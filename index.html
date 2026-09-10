@@ -2454,6 +2454,833 @@ html[data-theme="dark"] .qp-confirm-btn{background:#1b2232;color:#edf1f7;border-
 html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 @media(max-width:520px){.qp-confirm-dialog{padding:20px}.qp-confirm-actions{flex-direction:column-reverse}.qp-confirm-btn{width:100%}}
 </style>
+
+<style id="qPokoyMobileFixV1">
+/* Mobile layout fix for compact phones (iPhone 13 mini and similar).
+   Presentation-only: no JavaScript/data/auth changes. */
+@media (max-width: 430px){
+  html,body{min-width:0 !important;width:100%;overflow-x:hidden !important;}
+  body{font-size:14px;}
+  .content{min-height:100dvh !important;padding-bottom:calc(72px + env(safe-area-inset-bottom)) !important;}
+  main{width:100% !important;max-width:none !important;margin:0 !important;padding:12px !important;}
+
+  /* Bottom navigation */
+  .sidebar{height:64px !important;padding-bottom:env(safe-area-inset-bottom);grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
+  .nav-item{min-width:0 !important;padding:7px 4px !important;gap:4px !important;}
+  .nav-icon svg{width:21px !important;height:21px !important;}
+  .nav-label{font-size:10px !important;max-width:100%;}
+  html[data-nav-label-mode="both"] .nav-item{flex-direction:column !important;gap:2px !important;}
+  html[data-nav-label-mode="text"] .nav-item{font-size:12px !important;}
+  html[data-nav-label-mode="auto"] .nav-label{display:none !important;}
+
+  /* Dashboard */
+  .income-top{display:flex !important;flex-direction:column !important;gap:14px !important;min-height:0 !important;width:100% !important;margin-bottom:14px !important;padding:16px !important;border-radius:18px !important;}
+  .income-month-block{width:100% !important;gap:9px !important;}
+  .income-total{font-size:clamp(30px,9vw,38px) !important;max-width:100%;overflow-wrap:anywhere;}
+  .income-month-chart{width:100% !important;min-width:0 !important;min-height:132px !important;padding-top:34px !important;}
+  .income-chart-wrap{height:100px !important;width:100% !important;}
+  .income-chart-year-bottom{right:0 !important;}
+  .income-chart-year-switcher{max-width:100%;}
+
+  /* Statistics header and cards */
+  .income-analytics{width:100% !important;margin-bottom:14px !important;padding:16px !important;border-radius:18px !important;}
+  #incomeAnalytics .analytics-head{display:flex !important;flex-direction:column !important;align-items:flex-start !important;gap:8px !important;margin-bottom:14px !important;}
+  #incomeAnalytics .analytics-title-block{width:100% !important;min-width:0 !important;}
+  #incomeAnalytics .analytics-title-block h2{font-size:20px !important;line-height:1.25 !important;gap:7px !important;flex-wrap:wrap !important;}
+  #incomeAnalytics .analytics-year-switcher{flex:0 0 auto !important;}
+  #incomeAnalytics .analytics-total{font-size:21px !important;line-height:1.2 !important;}
+  #incomeAnalytics .analytics-cards{display:grid !important;grid-template-columns:1fr !important;gap:10px !important;}
+  #incomeAnalytics .analytics-card{width:100% !important;min-height:132px !important;height:auto !important;padding:18px 16px !important;border-radius:16px !important;gap:12px !important;}
+  #incomeAnalytics .analytics-card-icon{flex-basis:40px !important;width:40px !important;height:40px !important;}
+  #incomeAnalytics .analytics-card-icon svg{width:21px !important;height:21px !important;}
+  #incomeAnalytics .analytics-card-body{min-width:0 !important;max-width:calc(100% - 52px) !important;}
+  #incomeAnalytics .analytics-card-body > span{font-size:12px !important;}
+  #incomeAnalytics .analytics-card-body strong{margin-top:15px !important;font-size:21px !important;line-height:1.2 !important;overflow-wrap:anywhere;}
+  #incomeAnalytics .analytics-card-body small{margin-top:7px !important;font-size:11px !important;}
+
+  #incomeAnalytics .analytics-grid{display:block !important;}
+  #incomeAnalytics .analytics-category-panels{grid-template-columns:1fr !important;gap:10px !important;}
+  #incomeAnalytics .analytics-category-panel{width:100% !important;min-height:132px !important;height:auto !important;padding:18px 16px !important;border-radius:16px !important;}
+  #incomeAnalytics .analytics-category-panel-icon{width:40px !important;height:40px !important;flex-basis:40px !important;}
+  #incomeAnalytics .analytics-category-panel-icon svg{width:21px !important;height:21px !important;}
+  #incomeAnalytics .analytics-category-panel-value{margin-top:15px !important;font-size:21px !important;overflow-wrap:anywhere;}
+  #incomeAnalytics .analytics-category-panel-share{top:18px !important;right:16px !important;min-width:44px !important;height:30px !important;font-size:12px !important;}
+
+  /* Add/edit income form */
+  .income-form{width:100% !important;margin-bottom:14px !important;padding:18px 16px 76px !important;border-radius:18px !important;}
+  .form-title{font-size:17px !important;margin-right:42px !important;}
+  .form-grid{grid-template-columns:1fr !important;gap:11px !important;}
+  .form-grid input,.category-select{min-height:44px !important;}
+  .save-btn{right:16px !important;bottom:16px !important;min-width:46px !important;width:46px !important;height:42px !important;padding:0 !important;}
+  .save-btn svg{width:18px !important;height:18px !important;}
+  .cancel-btn{top:12px !important;right:12px !important;}
+  .calendar-popup{width:min(320px,calc(100vw - 32px)) !important;max-width:calc(100vw - 32px) !important;}
+
+  /* History */
+  #historySearchWrap{margin-bottom:10px !important;}
+  #historySearch{height:44px !important;}
+  .income-table-section{width:100% !important;border-radius:18px !important;}
+  .income-list{width:100% !important;overflow-x:hidden !important;}
+  .income-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;padding:9px 44px 9px 8px !important;}
+  .income-row > div{min-width:0 !important;padding:5px 7px !important;overflow:hidden !important;}
+  .income-row > div:nth-child(4){grid-column:1 / -1 !important;overflow-wrap:anywhere !important;}
+  .edit-income,.delete-income{top:27px !important;}
+
+  /* Settings: eliminate fixed desktop widths that caused the right-side crop. */
+  #settings{width:100% !important;max-width:none !important;margin:0 !important;padding:12px 0 calc(24px + env(safe-area-inset-bottom)) !important;}
+  #settings > .settings-card{width:100% !important;max-width:none !important;margin:0 0 12px !important;padding:18px 16px !important;border-radius:18px !important;overflow:hidden !important;}
+  #settings > .settings-card:not([style]) .icon-colors,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child{
+    width:100% !important;min-width:0 !important;max-width:100% !important;
+    flex-wrap:nowrap !important;gap:8px !important;overflow-x:auto !important;overflow-y:hidden !important;padding:2px 2px 6px !important;
+    scrollbar-width:none !important;
+  }
+  #settings > .settings-card:not([style]) .icon-colors::-webkit-scrollbar,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child::-webkit-scrollbar{display:none;}
+  #settings > .settings-card:not([style]) .icon-color,
+  #settings > .settings-card:not([style]) .accent-swatch,
+  #settings > .settings-card:not([style]) .custom-color,
+  #settings > .settings-card:not([style]) .accent-custom-color{
+    flex:0 0 38px !important;width:38px !important;min-width:38px !important;max-width:38px !important;height:38px !important;
+  }
+  #settings > .settings-card:not([style]) > .theme-options{grid-template-columns:1fr !important;gap:8px !important;}
+  #settings > .settings-card:not([style]) > .nav-label-mode-options{grid-template-columns:1fr 1fr !important;gap:8px !important;}
+  #settings > .settings-card:not([style]) .nav-label-mode-btn{min-width:0 !important;width:100% !important;}
+  #settings .qp-account-row{flex-direction:column !important;align-items:stretch !important;gap:10px !important;}
+  #settings #qpAuthLogoutBtn{width:100% !important;}
+  #settings > .settings-card[style] > div[style]{display:grid !important;grid-template-columns:1fr !important;gap:8px !important;}
+  #settings > .settings-card[style] button{width:100% !important;min-width:0 !important;}
+
+  /* Auth screen */
+  #qpAuthGate{padding:12px !important;align-items:center !important;}
+  .qp-auth-card{width:100% !important;max-width:none !important;padding:20px 16px !important;border-radius:18px !important;}
+}
+
+@media (max-width:360px){
+  main{padding:10px !important;}
+  .income-top,.income-analytics{padding:14px !important;}
+  #incomeAnalytics .analytics-card,#incomeAnalytics .analytics-category-panel{padding:16px 14px !important;}
+  .nav-label{font-size:9px !important;}
+}
+</style>
+<style id="qPokoyMobileFixV2">
+/* Mobile auth: prevent iOS Safari from zooming when entering email/password. */
+@media (max-width: 560px){
+  .qp-auth-field input{
+    font-size:16px !important;
+    -webkit-text-size-adjust:100%;
+  }
+  #qpAuthGate{
+    -webkit-text-size-adjust:100%;
+  }
+}
+</style>
+<style id="qPokoyMobileFixV3">
+/* Mobile auth: the login screen must be a true fixed viewport without page scrolling. */
+@media (max-width:560px){
+  html:has(body.qp-auth-locked),
+  body.qp-auth-locked{
+    width:100%;
+    height:100%;
+    min-height:100%;
+    overflow:hidden !important;
+    overscroll-behavior:none;
+  }
+  body.qp-auth-locked #qpAuthGate{
+    width:100vw !important;
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+    overflow:hidden !important;
+    overscroll-behavior:none;
+    touch-action:auto;
+  }
+  body.qp-auth-locked #qpAuthGate .qp-auth-card{
+    max-height:calc(100dvh - 32px) !important;
+    overflow:hidden !important;
+    overscroll-behavior:none;
+  }
+}
+</style>
+<style id="qPokoyMobileFixV4">
+/* Mobile fixes V4: keep controls inside the viewport and prevent iOS focus zoom. */
+@media (max-width:560px){
+  #incomeList{
+    margin-bottom:76px !important;
+  }
+  .income-row .edit-income,
+  .income-row .delete-income{
+    z-index:2 !important;
+  }
+  input,
+  select,
+  textarea,
+  button{
+    font-size:16px !important;
+  }
+  .nav-label{font-size:11px !important;}
+  .analytics-head{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    align-items:end !important;
+    gap:12px !important;
+  }
+  .analytics-head > *{min-width:0;}
+  .analytics-head h2{
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .analytics-total{
+    justify-self:end !important;
+    text-align:right !important;
+    white-space:nowrap !important;
+    font-size:19px !important;
+    line-height:1.15 !important;
+  }
+  #settings > .settings-card:not([style]) .icon-colors,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  #settings > .settings-card:not([style]) .icon-colors::-webkit-scrollbar,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child::-webkit-scrollbar{
+    display:none;
+  }
+}
+</style>
+<style id="qPokoyMobileForceRefreshV5">
+/* Mobile V5: keep fixed navigation above history actions and make compact layouts explicit. */
+@media (max-width:560px){
+  /* Fixed bottom navigation always stays above income row controls. */
+  .sidebar{
+    z-index:100000 !important;
+  }
+  .income-row .edit-income,
+  .income-row .delete-income{
+    position:relative !important;
+    z-index:10 !important;
+  }
+  #incomeList{
+    padding-bottom:88px !important;
+  }
+
+  /* Prevent iOS focus zoom in every income form field. */
+  #incomeForm input,
+  #incomeForm select,
+  #incomeForm textarea,
+  #incomeForm button,
+  .income-form input,
+  .income-form select,
+  .income-form textarea,
+  .income-form button{
+    font-size:16px !important;
+  }
+
+  /* Statistics total stays in the right column without collisions. */
+  .analytics-head{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    align-items:flex-end !important;
+    justify-content:space-between !important;
+    gap:8px 12px !important;
+  }
+  .analytics-head h2,
+  .analytics-head .analytics-title{
+    flex:1 1 45% !important;
+    min-width:0 !important;
+  }
+  .analytics-total{
+    flex:0 1 auto !important;
+    margin-left:auto !important;
+    text-align:right !important;
+    white-space:nowrap !important;
+    font-size:18px !important;
+    line-height:1.15 !important;
+  }
+
+  /* Settings palettes are contained inside the viewport and can scroll horizontally. */
+  #settings .icon-colors,
+  #settings .settings-row > div:last-child{
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    box-sizing:border-box !important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  #settings .icon-colors::-webkit-scrollbar,
+  #settings .settings-row > div:last-child::-webkit-scrollbar{
+    display:none;
+  }
+}
+</style>
+    <style id="qPokoyMobileLayoutV6">
+@media (max-width:560px){
+  #incomeList > .income-row:not(.income-header){padding-right:52px !important;position:relative !important;}
+  #incomeList > .income-row:not(.income-header) .edit-income,
+  #incomeList > .income-row:not(.income-header) .delete-income{position:absolute !important;top:12px !important;transform:none !important;width:30px !important;height:30px !important;z-index:20 !important;}
+  #incomeList > .income-row:not(.income-header) .edit-income{right:44px !important;}
+  #incomeList > .income-row:not(.income-header) .delete-income{right:8px !important;}
+  #incomeList{padding-bottom:96px !important;}
+  .income-form input,.income-form select,.income-form textarea,.income-form button,#historySearch{font-size:16px !important;}
+  #incomeAnalytics .analytics-head{display:grid !important;grid-template-columns:minmax(0,1fr) auto !important;align-items:start !important;gap:10px !important;width:100% !important;}
+  #incomeAnalytics .analytics-title-block{min-width:0 !important;max-width:100% !important;}
+  #incomeAnalytics .analytics-title-block h2{min-width:0 !important;overflow-wrap:anywhere !important;}
+  #incomeAnalytics .analytics-total{grid-column:2 !important;grid-row:1 !important;justify-self:end !important;align-self:start !important;margin:0 !important;padding:0 !important;max-width:42vw !important;overflow-wrap:anywhere !important;text-align:right !important;white-space:normal !important;font-size:20px !important;line-height:1.15 !important;}
+  #settings > .settings-card:not([style]) .icon-colors,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child{display:grid !important;grid-template-columns:repeat(7,minmax(0,1fr)) !important;gap:6px !important;width:100% !important;min-width:0 !important;max-width:100% !important;overflow:visible !important;box-sizing:border-box !important;}
+  #settings > .settings-card:not([style]) .icon-color,
+  #settings > .settings-card:not([style]) .accent-swatch,
+  #settings > .settings-card:not([style]) .custom-color,
+  #settings > .settings-card:not([style]) .accent-custom-color{width:34px !important;min-width:34px !important;max-width:34px !important;height:34px !important;min-height:34px !important;max-height:34px !important;justify-self:center !important;box-sizing:border-box !important;margin:0 !important;}
+  #settings > .settings-card:not([style]) .icon-color.active,
+  #settings > .settings-card:not([style]) .accent-swatch.active{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--icon-color,var(--primary)) !important;}
+}
+</style>
+    <style id="qPokoyMobileFixV7">
+/* Mobile: while the add/edit income form is open, hide the floating + button.
+   The form already has its own save control, so the two actions must never overlap. */
+@media (max-width:560px){
+  body:has(#incomeForm:not([hidden])) .add-income-btn{
+    display:none !important;
+  }
+}
+</style>
+    <style id="qPokoyDesktopAnalyticsFixV8">
+/* Desktop: best/worst month should read as "Month amount" on one line. */
+@media (min-width:561px){
+  #incomeAnalytics .analytics-card-best,
+  #incomeAnalytics .analytics-card-worst{
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:12px !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body{
+    width:100% !important;
+    max-width:none !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    align-items:end !important;
+    column-gap:10px !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body > span{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    min-width:0 !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body strong,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body strong{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    margin-top:0 !important;
+    white-space:nowrap !important;
+    font-size:22px !important;
+    line-height:1.15 !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body small,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body small{
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+  }
+}
+</style>
+    <style id="qPokoyDesktopAnalyticsFixV9">
+/* Desktop: keep the month label and amount on one stable line. */
+@media (min-width:561px){
+  #incomeAnalytics .analytics-card-best .analytics-card-body,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:baseline !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+    width:100% !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body > span{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body strong,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body strong{
+    flex:0 0 auto !important;
+    margin:0 !important;
+    padding:0 !important;
+    white-space:nowrap !important;
+    font-size:22px !important;
+    line-height:1.15 !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body small,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body small{
+    display:none !important;
+  }
+}
+</style>
+    <style id="qPokoyDesktopAnalyticsFixV10">
+/* Desktop: label stays above; month + amount stay together on one line. */
+@media (min-width:561px){
+  #incomeAnalytics .analytics-card-best .analytics-card-body,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body{
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body > span{
+    display:block !important;
+    width:100% !important;
+    margin:0 0 10px !important;
+    white-space:nowrap !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body strong,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body strong{
+    display:block !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    white-space:nowrap !important;
+    font-size:22px !important;
+    line-height:1.15 !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body small,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body small{
+    display:none !important;
+  }
+}
+</style>
+    <style id="qPokoyCategoryManagerV1">
+#settings .qp-category-manager{margin-top:22px;padding-top:22px;border-top:1px solid var(--border);}
+#settings .qp-category-manager-title{font-size:16px;font-weight:600;margin-bottom:5px;}
+#settings .qp-category-manager-subtitle{color:var(--text-muted);font-size:13px;line-height:1.45;margin-bottom:12px;}
+#settings .qp-category-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;}
+#settings .qp-category-add input{width:100%;min-width:0;height:42px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel-muted);color:var(--text);box-sizing:border-box;}
+#settings .qp-category-add button{height:42px;min-width:112px;padding:0 14px;border:1px solid var(--primary);border-radius:10px;background:var(--primary);color:#fff;font:inherit;font-weight:600;cursor:pointer;}
+#settings .qp-category-list{display:grid;gap:7px;margin-top:12px;}
+#settings .qp-category-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:var(--panel-muted);}
+#settings .qp-category-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#settings .qp-category-delete{flex:0 0 auto;width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;border:1px solid color-mix(in srgb,var(--danger) 35%,var(--border))!important;border-radius:8px!important;background:transparent!important;color:var(--danger)!important;font-size:18px!important;line-height:1!important;cursor:pointer;}
+#settings .qp-category-empty{padding:10px 0;color:var(--text-muted);font-size:13px;}
+@media(max-width:560px){
+  #settings .qp-category-add{grid-template-columns:1fr;}
+  #settings .qp-category-add button{width:100%;}
+}
+</style>
+<script id="qPokoyCategoryManagerV1">
+(function(){
+  const TABLE='qpokoy_categories';
+  const DEFAULTS=['Зарплата','Подработка','Прочее'];
+  let currentUser=null;
+  let categories=[];
+
+  function client(){return window.qPokoySupabase||null;}
+  function normalizeName(value){return String(value||'').trim().replace(/\s+/g,' ');}
+
+  async function fetchCategories(userId){
+    const c=client();
+    if(!c||!userId)return [];
+    const {data,error}=await c.from(TABLE).select('id,user_id,name,created_at').eq('user_id',userId).order('created_at',{ascending:true});
+    if(error){console.error('[qPokoy categories] load error',error);return [];}
+    return (data||[]).map(x=>({id:String(x.id),name:normalizeName(x.name)})).filter(x=>x.name);
+  }
+
+  function renderManager(){
+    const card=document.querySelector('#settings > .settings-card:not([style])');
+    if(!card)return;
+    let box=card.querySelector('.qp-category-manager');
+    if(!box){
+      box=document.createElement('div');
+      box.className='qp-category-manager';
+      box.innerHTML='<div class="qp-category-manager-title">Категории доходов</div>'+
+        '<div class="qp-category-manager-subtitle">Добавляйте свои категории. Удаление категории не удаляет уже внесённые доходы.</div>'+
+        '<div class="qp-category-add"><input id="qpCategoryInput" type="text" maxlength="80" placeholder="Название категории" autocomplete="off"><button type="button" id="qpCategoryAddBtn">Добавить</button></div>'+
+        '<div class="qp-category-list" id="qpCategoryList"></div>';
+      card.appendChild(box);
+      box.querySelector('#qpCategoryAddBtn').addEventListener('click',addCategory);
+      box.querySelector('#qpCategoryInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addCategory();}});
+    }
+    const list=box.querySelector('#qpCategoryList');
+    if(!currentUser){list.innerHTML='<div class="qp-category-empty">Войдите в аккаунт, чтобы управлять категориями.</div>';return;}
+    if(!categories.length){list.innerHTML='<div class="qp-category-empty">Категорий пока нет.</div>';return;}
+    list.innerHTML=categories.map((x,i)=>{const v=window.qPokoyCategoryVisual?window.qPokoyCategoryVisual(x.name,i):{icon:'',color:'var(--primary)'};return '<div class="qp-category-item" data-id="'+x.id+'" style="--category-color:'+v.color+'"><span class="qp-category-icon">'+v.icon+'</span><span class="qp-category-name">'+escapeHtml(x.name)+'</span><button type="button" class="qp-category-delete" aria-label="Удалить категорию" title="Удалить категорию" data-id="'+x.id+'">×</button></div>';}).join('');
+    list.querySelectorAll('.qp-category-delete').forEach(btn=>btn.addEventListener('click',function(){removeCategory(btn.dataset.id);}));
+  }
+
+(function(){
+  const icons=[
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="14" rx="2"/><path d="M2 21h20"/><path d="M8 18h8"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3z"/><path d="M7 7V5h10v2"/><path d="M8 12h8"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M2 10h20"/><path d="M6 10V7h12v3"/><path d="M8 20v-6h8v6"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 12h6"/></svg>'
+  ];
+  const colors=['#22c55e','#8b5cf6','#f59e0b','#3b82f6','#ec4899','#06b6d4','#f97316','#84cc16'];
+  window.qPokoyCategoryVisual=function(name,index){
+    const n=String(name||'').trim().toLowerCase();
+    let i=index%icons.length;
+    if(n==='зарплата') i=0;
+    else if(n==='подработка') i=1;
+    else if(n==='прочее') i=2;
+    else { let h=0; for(let k=0;k<n.length;k++)h=((h<<5)-h+n.charCodeAt(k))|0; i=Math.abs(h)%icons.length; }
+    return {icon:icons[i],color:colors[i]};
+  };
+})();
+
+(function(){
+  const icons=[
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="14" rx="2"/><path d="M2 21h20"/><path d="M8 18h8"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3z"/><path d="M7 7V5h10v2"/><path d="M8 12h8"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M2 10h20"/><path d="M6 10V7h12v3"/><path d="M8 20v-6h8v6"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 12h6"/></svg>'
+  ];
+  const colors=['#22c55e','#8b5cf6','#f59e0b','#3b82f6','#ec4899','#06b6d4','#f97316','#84cc16'];
+  window.qPokoyCategoryVisual=function(name,index){
+    const n=String(name||'').trim().toLowerCase();
+    let i=index%icons.length;
+    if(n==='зарплата') i=0;
+    else if(n==='подработка') i=1;
+    else if(n==='прочее') i=2;
+    else { let h=0; for(let k=0;k<n.length;k++)h=((h<<5)-h+n.charCodeAt(k))|0; i=Math.abs(h)%icons.length; }
+    return {icon:icons[i],color:colors[i]};
+  };
+})();
+
+(function(){
+  const icons=[
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="14" rx="2"/><path d="M2 21h20"/><path d="M8 18h8"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3z"/><path d="M7 7V5h10v2"/><path d="M8 12h8"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M2 10h20"/><path d="M6 10V7h12v3"/><path d="M8 20v-6h8v6"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 12h6"/></svg>'
+  ];
+  const colors=['#22c55e','#8b5cf6','#f59e0b','#3b82f6','#ec4899','#06b6d4','#f97316','#84cc16'];
+  window.qPokoyCategoryVisual=function(name,index){
+    const n=String(name||'').trim().toLowerCase();
+    let i=index%icons.length;
+    if(n==='зарплата') i=0;
+    else if(n==='подработка') i=1;
+    else if(n==='прочее') i=2;
+    else { let h=0; for(let k=0;k<n.length;k++)h=((h<<5)-h+n.charCodeAt(k))|0; i=Math.abs(h)%icons.length; }
+    return {icon:icons[i],color:colors[i]};
+  };
+})();
+
+
+function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));}
+
+  function renderIncomeCategoryOptions(){
+    const popup=document.getElementById('categoryPopup');
+    const value=document.getElementById('categoryValue');
+    const hidden=document.getElementById('incomeCategory');
+    if(!popup||!value||!hidden)return;
+    popup.innerHTML='';
+    if(!categories.length){
+      const empty=document.createElement('div');empty.className='category-option';empty.textContent='Категорий пока нет';empty.style.cursor='default';empty.style.color='var(--text-muted)';popup.appendChild(empty);
+      hidden.value='';value.textContent='Добавьте категорию';
+      return;
+    }
+    categories.forEach(cat=>{
+      const option=document.createElement('button');
+      option.type='button';option.className='category-option';option.dataset.value=cat.name;option.textContent=cat.name;
+      if(hidden.value===cat.name)option.classList.add('selected');
+      option.addEventListener('click',function(e){
+        e.stopPropagation();hidden.value=cat.name;value.textContent=cat.name;
+        popup.querySelectorAll('.category-option').forEach(o=>o.classList.remove('selected'));option.classList.add('selected');
+        popup.classList.remove('open');document.getElementById('categorySelect')?.classList.remove('open');
+        hidden.closest('label')?.classList.remove('field-invalid');
+      });
+      popup.appendChild(option);
+    });
+  }
+
+  async function loadForUser(user){
+    currentUser=user||null;
+    categories=user?await fetchCategories(user.id):[];
+    renderManager();
+    renderIncomeCategoryOptions();
+  }
+
+  window.qPokoySeedDefaultCategories=async function(userId){
+    const c=client();
+    if(!c||!userId)return;
+    const existing=await fetchCategories(userId);
+    if(existing.length){categories=existing;currentUser={id:userId};renderManager();renderIncomeCategoryOptions();return;}
+    const rows=DEFAULTS.map(name=>({user_id:userId,name}));
+    const {data,error}=await c.from(TABLE).insert(rows).select('id,user_id,name,created_at');
+    if(error){console.error('[qPokoy categories] seed error',error);return;}
+    currentUser={id:userId};
+    categories=(data||[]).map(x=>({id:String(x.id),name:normalizeName(x.name)}));
+    renderManager();renderIncomeCategoryOptions();
+  };
+
+  async function addCategory(){
+    const c=client();
+    const input=document.getElementById('qpCategoryInput');
+    const name=normalizeName(input?.value);
+    if(!c||!currentUser)return;
+    if(!name){if(window.qPokoyNotice)window.qPokoyNotice('Категория не добавлена','Введите название категории.','error');return;}
+    if(categories.some(x=>x.name.toLocaleLowerCase('ru-RU')===name.toLocaleLowerCase('ru-RU'))){if(window.qPokoyNotice)window.qPokoyNotice('Категория уже существует','Введите другое название.','error');return;}
+    const {data,error}=await c.from(TABLE).insert({user_id:currentUser.id,name}).select('id,user_id,name,created_at').single();
+    if(error){console.error('[qPokoy categories] add error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось добавить категорию',error.message||'Попробуйте ещё раз.','error');return;}
+    categories.push({id:String(data.id),name:normalizeName(data.name)});
+    input.value='';renderManager();renderIncomeCategoryOptions();
+  }
+
+  async function removeCategory(id){
+    const cat=categories.find(x=>x.id===String(id));
+    if(!cat)return;
+    const doRemove=async function(){
+      const c=client();if(!c||!currentUser)return;
+      const {error}=await c.from(TABLE).delete().eq('id',cat.id).eq('user_id',currentUser.id);
+      if(error){console.error('[qPokoy categories] delete error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось удалить категорию',error.message||'Попробуйте ещё раз.','error');return;}
+      categories=categories.filter(x=>x.id!==cat.id);
+      if(document.getElementById('incomeCategory')?.value===cat.name){document.getElementById('incomeCategory').value='';document.getElementById('categoryValue').textContent=categories.length? 'Выберите категорию':'Добавьте категорию';}
+      renderManager();renderIncomeCategoryOptions();
+    };
+    if(window.qPokoyConfirm)window.qPokoyConfirm('Удалить категорию?',`Удалить «${cat.name}»? Уже добавленные доходы не будут удалены.`,doRemove);
+    else doRemove();
+  }
+
+  window.qPokoyLoadCategories=loadForUser;
+  window.qPokoyGetCategories=function(){return categories.slice();};
+
+  function bindAuth(){
+    const c=client();if(!c)return false;
+    c.auth.onAuthStateChange(function(_event,session){loadForUser(session?.user||null);});
+    c.auth.getSession().then(r=>loadForUser(r.data?.session?.user||null));
+    return true;
+  }
+  function init(){
+    renderManager();
+    if(!bindAuth())setTimeout(init,100);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<style id="qPokoyCategoryManagerDesignV2">
+/* Category manager: compact, visual, consistent with the dark UI. */
+#settings .qp-category-manager{
+  margin-top:24px !important;
+  padding-top:28px !important;
+  border-top:1px solid var(--border) !important;
+}
+#settings .qp-category-manager-title{
+  margin-bottom:7px !important;
+  font-size:20px !important;
+  font-weight:700 !important;
+  line-height:1.2 !important;
+}
+#settings .qp-category-manager-subtitle{
+  max-width:760px !important;
+  margin-bottom:18px !important;
+  color:var(--text-muted) !important;
+  font-size:14px !important;
+  line-height:1.5 !important;
+}
+#settings .qp-category-add{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  gap:10px !important;
+  align-items:stretch !important;
+  margin-bottom:18px !important;
+}
+#settings .qp-category-add input{
+  height:52px !important;
+  padding:0 15px !important;
+  border:1px solid var(--border) !important;
+  border-radius:14px !important;
+  background:var(--panel-muted) !important;
+  color:var(--text) !important;
+  font-size:16px !important;
+}
+#settings .qp-category-add input:focus{
+  border-color:var(--primary) !important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 16%,transparent) !important;
+}
+#settings .qp-category-add button{
+  min-width:140px !important;
+  height:52px !important;
+  padding:0 20px !important;
+  border:1px solid var(--primary) !important;
+  border-radius:14px !important;
+  background:var(--primary) !important;
+  color:#fff !important;
+  font-size:16px !important;
+  font-weight:700 !important;
+  box-shadow:0 8px 20px color-mix(in srgb,var(--primary) 22%,transparent) !important;
+}
+#settings .qp-category-list{
+  display:grid !important;
+  gap:10px !important;
+  margin-top:0 !important;
+}
+#settings .qp-category-item{
+  position:relative !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:14px !important;
+  min-height:76px !important;
+  padding:12px 14px !important;
+  border:1px solid var(--border) !important;
+  border-radius:16px !important;
+  background:var(--panel-muted) !important;
+  box-shadow:0 3px 12px rgba(0,0,0,.08) !important;
+  transition:border-color .15s ease,transform .15s ease,background .15s ease !important;
+}
+#settings .qp-category-item:hover{
+  transform:translateY(-1px) !important;
+  border-color:color-mix(in srgb,var(--category-color) 48%,var(--border)) !important;
+}
+#settings .qp-category-icon{
+  flex:0 0 54px !important;
+  width:54px !important;
+  height:54px !important;
+  display:grid !important;
+  place-items:center !important;
+  border-radius:15px !important;
+  background:color-mix(in srgb,var(--category-color) 18%,transparent) !important;
+  color:var(--category-color) !important;
+}
+#settings .qp-category-icon svg{
+  width:26px !important;
+  height:26px !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.8 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+}
+#settings .qp-category-name{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  color:var(--text) !important;
+  font-size:16px !important;
+  font-weight:600 !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+#settings .qp-category-delete{
+  flex:0 0 38px !important;
+  width:38px !important;
+  min-width:38px !important;
+  height:38px !important;
+  border-radius:11px !important;
+  background:transparent !important;
+  color:var(--danger) !important;
+  font-size:21px !important;
+}
+#settings .qp-category-delete:hover{
+  background:color-mix(in srgb,var(--danger) 10%,transparent) !important;
+  border-color:color-mix(in srgb,var(--danger) 60%,var(--border)) !important;
+}
+#settings .qp-category-empty{
+  padding:22px 4px !important;
+  color:var(--text-muted) !important;
+  font-size:14px !important;
+}
+@media(max-width:560px){
+  #settings .qp-category-manager{
+    margin-top:20px !important;
+    padding-top:22px !important;
+  }
+  #settings .qp-category-manager-title{font-size:19px !important;}
+  #settings .qp-category-manager-subtitle{font-size:13px !important;margin-bottom:15px !important;}
+  #settings .qp-category-add{
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:8px !important;
+  }
+  #settings .qp-category-add input,
+  #settings .qp-category-add button{height:52px !important;font-size:16px !important;}
+  #settings .qp-category-add button{min-width:112px !important;padding:0 14px !important;}
+  #settings .qp-category-item{min-height:70px !important;padding:9px 10px !important;border-radius:14px !important;gap:11px !important;}
+  #settings .qp-category-icon{flex-basis:48px !important;width:48px !important;height:48px !important;border-radius:13px !important;}
+  #settings .qp-category-icon svg{width:23px !important;height:23px !important;}
+  #settings .qp-category-name{font-size:15px !important;}
+  #settings .qp-category-delete{width:36px !important;min-width:36px !important;height:36px !important;}
+}
+</style>
+
+<style id="qPokoyCategoryCompactV3">
+/* Smaller income category cards + clearer separation before theme settings. */
+#settings .qp-category-manager{
+  margin-bottom:28px !important;
+}
+#settings .qp-category-manager .qp-category-list{
+  gap:12px !important;
+}
+#settings .qp-category-manager .qp-category-item{
+  min-height:74px !important;
+  padding:10px 14px !important;
+  gap:14px !important;
+  border-radius:18px !important;
+}
+#settings .qp-category-manager .qp-category-icon{
+  width:52px !important;
+  height:52px !important;
+  min-width:52px !important;
+  border-radius:16px !important;
+}
+#settings .qp-category-manager .qp-category-name{
+  font-size:17px !important;
+  line-height:1.2 !important;
+}
+#settings .qp-category-manager .qp-category-delete{
+  width:52px !important;
+  height:52px !important;
+  min-width:52px !important;
+  border-radius:14px !important;
+}
+@media (max-width:560px){
+  #settings .qp-category-manager{
+    margin-bottom:24px !important;
+  }
+  #settings .qp-category-manager .qp-category-list{
+    gap:10px !important;
+  }
+  #settings .qp-category-manager .qp-category-item{
+    min-height:68px !important;
+    padding:8px 12px !important;
+    gap:12px !important;
+    border-radius:16px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon{
+    width:48px !important;
+    height:48px !important;
+    min-width:48px !important;
+    border-radius:14px !important;
+  }
+  #settings .qp-category-manager .qp-category-delete{
+    width:48px !important;
+    height:48px !important;
+    min-width:48px !important;
+    border-radius:13px !important;
+  }
+  #settings .qp-category-manager .qp-category-name{
+    font-size:16px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -3157,8 +3984,8 @@ window.renderIncomeAnalytics=function(){
   growthEl.classList.toggle('negative',growth!==null&&growth<0);
   growthEl.classList.toggle('neutral',growth===0||growth===null);
   if(growthCaptionEl) growthCaptionEl.textContent=hasPrevious?`по сравнению с ${year-1} годом`:'нет данных за предыдущий год';
-  bestEl.textContent=a.best>=0?`${fullNames[a.best]} — ${formatMoney(a.monthTotals[a.best])}`:'—';
-  worstEl.textContent=a.worst>=0?`${fullNames[a.worst]} — ${formatMoney(a.monthTotals[a.worst])}`:'—';
+  bestEl.textContent=a.best>=0?`${fullNames[a.best]} ${formatMoney(a.monthTotals[a.best])}`:'—';
+  worstEl.textContent=a.worst>=0?`${fullNames[a.worst]} ${formatMoney(a.monthTotals[a.worst])}`:'—';
 
   const categories=Object.entries(a.categoryTotals).sort((x,y)=>y[1]-x[1]);
   const catMax=Math.max(...categories.map(x=>x[1]),1);
@@ -4247,7 +5074,6 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
 (function(){
   const SUPABASE_URL='https://jrpialhwbliicbsmzmvb.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY='sb_publishable_KXwgGRgVxKUmlLvTlFs3HQ_3Wz6kcAt';
-  // Production: browser uses only the Supabase publishable key.
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}
   });
@@ -4314,6 +5140,9 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
           email:mail,password:pass
         });
         if(error) throw error;
+        if(data.user && typeof window.qPokoySeedDefaultCategories==='function'){
+          await window.qPokoySeedDefaultCategories(data.user.id);
+        }
         if(data.session){
           setMessage('Аккаунт создан. Выполняется вход…','success');
         }else{
@@ -4379,6 +5208,13 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
   let cloudReady=false;
   let cloudBusy=false;
   let cloudPendingRecords=[];
+  const LOCAL_INCOME_OWNER_KEY='qPokoyIncomeOwnerId';
+  function clearLocalIncomeCache(){
+    try{ localStorage.removeItem('incomes'); }catch(e){}
+    try{ if(Array.isArray(window.incomes)) window.incomes.splice(0,window.incomes.length); }catch(e){}
+  }
+  function resetCloudQueue(){ cloudPendingRecords=[]; }
+
 
   function toIsoDate(value){
     const v=String(value||'').trim();
@@ -4444,12 +5280,15 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
     if(!session||!session.user)return;
     cloudUser=session.user;
     cloudReady=false;
+    resetCloudQueue();
+    clearLocalIncomeCache();
     const {data,error}=await client.from(CLOUD_TABLE).select('id,user_id,income_date,category,description,amount,created_at,updated_at').eq('user_id',session.user.id).order('income_date',{ascending:false}).order('created_at',{ascending:false});
     if(error){ cloudError('Не удалось загрузить доходы из облака.',error); return; }
 
     const cloudRows=Array.isArray(data)?data:[];
-    // Cloud is the source of truth after authentication. Do not silently copy
-    // local data into a new/empty account; this prevents cross-account leakage.
+    if(cloudRows.length===0){
+      IncomeStore.save([]);
+    }
     const mapped=cloudRows.map(rowToUi);
     IncomeStore.save(mapped);
     cloudReady=true;
@@ -4498,6 +5337,7 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
       }
       cloudUser=user;
       const row=uiToRow(record,user.id);
+      delete row.id;
       if(!row.income_date || !Number.isFinite(row.amount) || row.amount<=0){
         cloudError('Доход не отправлен: некорректная дата или сумма.',new Error(JSON.stringify(row)));
         return;
@@ -4532,7 +5372,7 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
   window.qPokoyCloudAddMany=async function(records){
     if(!cloudUser||!cloudReady||cloudBusy||!records.length)return;
     try{
-      const rows=records.map(r=>uiToRow(r,cloudUser.id)).filter(r=>r.income_date && Number.isFinite(r.amount) && r.amount>0);
+      const rows=records.map(r=>{const row=uiToRow(r,cloudUser.id); delete row.id; return row;}).filter(r=>r.income_date && Number.isFinite(r.amount) && r.amount>0);
       if(!rows.length)return;
       const {data,error}=await client.from(CLOUD_TABLE).insert(rows).select('id,user_id,income_date,category,description,amount');
       if(error)throw error;
@@ -4544,17 +5384,19 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
 
   async function sync(session){
     if(session&&session.user){
+      const nextUserId=String(session.user.id||'');
+      let previousOwner='';
+      try{ previousOwner=localStorage.getItem(LOCAL_INCOME_OWNER_KEY)||''; }catch(e){}
+      if(previousOwner!==nextUserId){ resetCloudQueue(); clearLocalIncomeCache(); }
+      try{ localStorage.setItem(LOCAL_INCOME_OWNER_KEY,nextUserId); }catch(e){}
       showGate(false);
       if(accountEmail) accountEmail.textContent=session.user.email||'';
       await loadCloudIncome(session);
       await flushPendingCloudRecords();
     }else{
-      cloudUser=null; cloudReady=false; cloudPendingRecords=[];
-      // Clear the previous user's local cache. The next login reloads from Supabase.
-      IncomeStore.save([]);
-      if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
-      else if(typeof window.renderIncomes==='function') window.renderIncomes();
-      if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
+      cloudUser=null; cloudReady=false;
+      resetCloudQueue(); clearLocalIncomeCache();
+      try{ localStorage.removeItem(LOCAL_INCOME_OWNER_KEY); }catch(e){}
       showGate(true);
       if(accountEmail) accountEmail.textContent='—';
     }
