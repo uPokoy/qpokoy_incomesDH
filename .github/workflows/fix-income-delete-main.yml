@@ -1,5 +1,6 @@
 name: Fix income delete confirmation
 on:
+  workflow_dispatch:
   push:
     branches: [main]
 permissions:
@@ -15,24 +16,39 @@ jobs:
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          old="""  const deleteButton=e.target.closest('.delete-income');
+          old="""incomeList.addEventListener('click',e=>{
+  const editButton=e.target.closest('.edit-income');
+  if(editButton){
+    openHistoryEdit(editButton.dataset.id);
+    return;
+  }
+  const deleteButton=e.target.closest('.delete-income');
   if(deleteButton){
     IncomeStore.remove(deleteButton.dataset.id);
     renderIncomes();
   }
+});
+"""
+          new="""incomeList.addEventListener('click',e=>{
+  const editButton=e.target.closest('.edit-income');
+  if(editButton){
+    openHistoryEdit(editButton.dataset.id);
+    return;
+  }
+});
 """
           if old not in s:
-              print('Duplicate delete handler is already absent; no change needed.')
-              raise SystemExit(0)
-          s=s.replace(old,'',1)
-          p.write_text(s,encoding='utf-8')
-          print('Removed duplicate delete handler from index.html')
+              print('Duplicate delete handler was not found; no index change made.')
+          else:
+              s=s.replace(old,new,1)
+              p.write_text(s,encoding='utf-8')
+              print('Removed duplicate delete handler from index.html')
           PY
-      - name: Commit index fix and remove temporary workflow
+      - name: Commit index fix and remove temporary files
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git rm .github/workflows/fix-income-delete-main.yml
+          git rm -f .github/workflows/fix-income-delete-main.yml _fix-income-delete-trigger.txt || true
           git add index.html
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Fix income delete confirmation'
