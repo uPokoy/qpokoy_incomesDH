@@ -1,0 +1,39 @@
+name: Fix income delete confirmation
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove duplicate delete handler
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old="""  const deleteButton=e.target.closest('.delete-income');
+  if(deleteButton){
+    IncomeStore.remove(deleteButton.dataset.id);
+    renderIncomes();
+  }
+"""
+          if old not in s:
+              print('Duplicate delete handler is already absent; no change needed.')
+              raise SystemExit(0)
+          s=s.replace(old,'',1)
+          p.write_text(s,encoding='utf-8')
+          print('Removed duplicate delete handler from index.html')
+          PY
+      - name: Commit index fix and remove temporary workflow
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/fix-income-delete-main.yml
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Fix income delete confirmation'
+          git push
