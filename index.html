@@ -4154,11 +4154,6 @@ incomeList.addEventListener('click',e=>{
     openHistoryEdit(editButton.dataset.id);
     return;
   }
-  const deleteButton=e.target.closest('.delete-income');
-  if(deleteButton){
-    IncomeStore.remove(deleteButton.dataset.id);
-    renderIncomes();
-  }
 });
 
 incomeDate.addEventListener('focus',()=>incomeDate.select());
