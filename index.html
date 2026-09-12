@@ -2182,7 +2182,6 @@ html[data-nav-label-mode="text"] .nav-item{gap:0;}
   html[data-nav-label-mode="auto"] .nav-icon{display:inline-flex;}
 }
 </style>
->
 
 <style id="settings-nav-label-integrated-v138">
 /* Нижняя панель — единый стиль с остальными настройками. */
@@ -3173,6 +3172,58 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
 }
 </style>
 
+
+<style id="qPokoyAnalyticsCompactSpacingV1">
+/* Статистика: более плотные внутренние вертикальные отступы в карточках.
+   Геометрия карточек, шрифты и сетка не меняются. */
+#incomeAnalytics .analytics-card-body strong{
+  margin-top:10px !important;
+}
+#incomeAnalytics .analytics-card-body small{
+  margin-top:6px !important;
+}
+#incomeAnalytics .analytics-category-panel{
+  gap:10px !important;
+}
+#incomeAnalytics .analytics-category-panel-value{
+  margin-top:10px !important;
+}
+
+@media (max-width:560px){
+  #incomeAnalytics .analytics-card{
+    gap:10px !important;
+  }
+  #incomeAnalytics .analytics-card-body strong{
+    margin-top:8px !important;
+  }
+  #incomeAnalytics .analytics-card-body small{
+    margin-top:5px !important;
+  }
+  #incomeAnalytics .analytics-category-panel{
+    gap:8px !important;
+  }
+  #incomeAnalytics .analytics-category-panel-value{
+    margin-top:8px !important;
+  }
+}
+</style>
+
+
+<style id="qPokoyLargeIncomeResponsiveV1">
+/* Большие суммы в главной карточке: сохраняем одну строку и
+   разрешаем JS уменьшать размер шрифта только когда это необходимо. */
+.income-month-block{
+  min-width:0 !important;
+}
+#incomeTotal{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  white-space:nowrap !important;
+}
+</style>
+
 </head>
 <body class="qp-auth-locked qp-auth-checking">
 <div class="app">
@@ -3547,6 +3598,50 @@ const categoryValue=document.getElementById('categoryValue');
 const categoryOptions=document.querySelectorAll('.category-option');
 const incomeList=document.getElementById('incomeList');
 const incomeTotal=document.getElementById('incomeTotal');
+
+/* Автоподгонка главной суммы под доступную ширину.
+   Обычные суммы сохраняют исходный размер шрифта; уменьшаем его
+   только если значение физически не помещается в одну строку. */
+function qPokoyFitIncomeTotal(){
+  if(!incomeTotal) return;
+  const host=incomeTotal.closest('.income-month-block');
+  if(!host) return;
+
+  /* Каждый запуск начинаем с штатного CSS-размера, чтобы после
+     уменьшения суммы текст снова мог стать крупным. */
+  incomeTotal.style.removeProperty('font-size');
+
+  const maxSize=parseFloat(getComputedStyle(incomeTotal).fontSize);
+  const available=Math.floor(host.clientWidth);
+  if(!Number.isFinite(maxSize) || maxSize<=0 || available<=0) return;
+
+  const minSize=window.matchMedia('(max-width:560px)').matches ? 20 : 28;
+  let size=maxSize;
+
+  incomeTotal.style.setProperty('font-size',size+'px','important');
+
+  /* Уменьшаем до тех пор, пока точная сумма с символом ₽ не
+     поместится целиком. Значение и форматирование не сокращаются. */
+  while(incomeTotal.scrollWidth>available && size>minSize){
+    size=Math.max(minSize,size-1);
+    incomeTotal.style.setProperty('font-size',size+'px','important');
+  }
+}
+
+let qPokoyIncomeTotalFitFrame=0;
+function qPokoyScheduleIncomeTotalFit(){
+  cancelAnimationFrame(qPokoyIncomeTotalFitFrame);
+  qPokoyIncomeTotalFitFrame=requestAnimationFrame(qPokoyFitIncomeTotal);
+}
+
+window.addEventListener('resize',qPokoyScheduleIncomeTotalFit,{passive:true});
+if('ResizeObserver' in window){
+  const qPokoyIncomeTotalHost=incomeTotal?.closest('.income-month-block');
+  if(qPokoyIncomeTotalHost){
+    const qPokoyIncomeTotalResizeObserver=new ResizeObserver(qPokoyScheduleIncomeTotalFit);
+    qPokoyIncomeTotalResizeObserver.observe(qPokoyIncomeTotalHost);
+  }
+}
 const formTitle=document.querySelector('.form-title');
 const saveBtn=document.getElementById('saveIncome');
 const cancelBtn=document.getElementById('cancelIncome');
@@ -3816,6 +3911,7 @@ window.renderIncomes=function renderIncomes(filteredData=null){
       ?sum+Number(item.amount||0):sum;
   },0);
   incomeTotal.textContent=formatMoney(total);
+  qPokoyFitIncomeTotal();
 
   // Если фильтры не переданы явно, строим список через единый фильтр.
   // Важно: не пересортировываем результат здесь — иначе выбор «Дата»
