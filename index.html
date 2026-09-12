@@ -3224,6 +3224,27 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
 }
 </style>
 
+
+<style id="qPokoyAnalyticsTotalResponsiveV1">
+/* Годовая сумма в шапке статистики: всегда в одну строку.
+   Обычные суммы сохраняют штатный размер; большие уменьшаются только при необходимости. */
+#incomeAnalytics .analytics-head{
+  min-width:0 !important;
+}
+#incomeAnalytics .analytics-title-block{
+  flex:0 0 auto !important;
+  min-width:0 !important;
+}
+#incomeAnalytics #analyticsTotal{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  white-space:nowrap !important;
+  text-align:right !important;
+  line-height:1.1 !important;
+}
+</style>
+
 </head>
 <body class="qp-auth-locked qp-auth-checking">
 <div class="app">
@@ -3635,6 +3656,49 @@ function qPokoyScheduleIncomeTotalFit(){
 }
 
 window.addEventListener('resize',qPokoyScheduleIncomeTotalFit,{passive:true});
+
+/* Автоподгонка годовой суммы справа от «Доход за YYYY».
+   Нужна прежде всего на телефоне, где длинная сумма раньше переносила ₽ на вторую строку. */
+function qPokoyFitAnalyticsTotal(){
+  const total=document.getElementById('analyticsTotal');
+  const head=document.querySelector('#incomeAnalytics .analytics-head');
+  const title=document.querySelector('#incomeAnalytics .analytics-title-block');
+  if(!total||!head||!title) return;
+
+  total.style.removeProperty('font-size');
+
+  const maxSize=parseFloat(getComputedStyle(total).fontSize);
+  const headStyle=getComputedStyle(head);
+  const gap=parseFloat(headStyle.columnGap||headStyle.gap)||0;
+  const available=Math.floor(head.clientWidth-title.offsetWidth-gap);
+
+  if(!Number.isFinite(maxSize)||maxSize<=0||available<=0) return;
+
+  const minSize=window.matchMedia('(max-width:620px)').matches ? 14 : 16;
+  let size=maxSize;
+
+  total.style.setProperty('font-size',size+'px','important');
+
+  while(total.scrollWidth>available && size>minSize){
+    size=Math.max(minSize,size-1);
+    total.style.setProperty('font-size',size+'px','important');
+  }
+}
+
+let qPokoyAnalyticsTotalFitFrame=0;
+function qPokoyScheduleAnalyticsTotalFit(){
+  cancelAnimationFrame(qPokoyAnalyticsTotalFitFrame);
+  qPokoyAnalyticsTotalFitFrame=requestAnimationFrame(qPokoyFitAnalyticsTotal);
+}
+
+window.addEventListener('resize',qPokoyScheduleAnalyticsTotalFit,{passive:true});
+if('ResizeObserver' in window){
+  const qPokoyAnalyticsHead=document.querySelector('#incomeAnalytics .analytics-head');
+  if(qPokoyAnalyticsHead){
+    const qPokoyAnalyticsTotalResizeObserver=new ResizeObserver(qPokoyScheduleAnalyticsTotalFit);
+    qPokoyAnalyticsTotalResizeObserver.observe(qPokoyAnalyticsHead);
+  }
+}
 if('ResizeObserver' in window){
   const qPokoyIncomeTotalHost=incomeTotal?.closest('.income-month-block');
   if(qPokoyIncomeTotalHost){
@@ -4005,6 +4069,7 @@ window.renderIncomeAnalytics=function(){
 
   yearEl.textContent=a.year;
   totalEl.textContent=formatMoney(a.total);
+  qPokoyFitAnalyticsTotal();
   if(avgActiveEl) avgActiveEl.textContent=formatMoney(a.averageActive);
   const previous=calculateIncomeAnalytics(year-1);
   const hasPrevious=previous.total>0;
