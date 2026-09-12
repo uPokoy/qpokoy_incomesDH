@@ -5,6 +5,11 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style id="qPokoyAuthPrivacyBootstrap">
+body.qp-auth-locked{background:#070b12!important;}
+body.qp-auth-locked .app{visibility:hidden!important;}
+body.qp-auth-checking #qpAuthGate .qp-auth-card{visibility:hidden!important;}
+</style>
 <title>Доходы</title>
 <!-- qPokoy: Иконки сайта/ярлыков. Интерфейс сайта не изменяется. -->
 <meta name="application-name" content="Доходы">
@@ -3169,7 +3174,7 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
 </style>
 
 </head>
-<body>
+<body class="qp-auth-locked qp-auth-checking">
 <div class="app">
   <aside class="sidebar">
     <button class="toggle-btn" id="toggleSidebar" aria-label="Свернуть или развернуть меню">
@@ -3696,10 +3701,10 @@ window.IncomeStore={
     if(typeof window.qPokoyCloudUpdate==='function') window.qPokoyCloudUpdate(id,record);
     return result;
   },
-  remove(id){
-    const result=this.save(incomes.filter(x=>String(x.id)!==String(id)));
-    if(typeof window.qPokoyCloudRemove==='function') window.qPokoyCloudRemove(id);
-    return result;
+  async remove(id){
+    if(typeof window.qPokoyCloudRemove!=='function') throw new Error('Облачное хранилище недоступно. Повторите удаление позже.');
+    if(!await window.qPokoyCloudRemove(id)) return null;
+    return this.save(this.load().filter(x=>String(x.id)!==String(id)));
   },
   addMany(records){
     const list=Array.isArray(records)?records:[];
@@ -3836,12 +3841,12 @@ window.renderIncomes=function renderIncomes(filteredData=null){
   incomeList.innerHTML=header+
     rows.map(item=>`
       <div class="income-row">
-        <div>${formatDateShort(item.date)}</div>
+        <div>${escapeHtml(formatDateShort(item.date))}</div>
         <div class="income-amount">${formatMoney(Number(item.amount||0))}</div>
         <div>${escapeHtml(item.category||'—')}</div>
         <div>${escapeHtml(item.description||'')}</div>
-        <button class="edit-income" data-id="${item.id}" type="button" title="Редактировать" aria-label="Редактировать">✎</button>
-        <button class="delete-income" data-id="${item.id}" type="button" aria-label="Удалить доход" title="Удалить доход" onclick="return window.qPokoyDeleteIncome(this.getAttribute('data-id')); ">
+        <button class="edit-income" data-id="${escapeHtml(item.id)}" type="button" title="Редактировать" aria-label="Редактировать">✎</button>
+        <button class="delete-income" data-id="${escapeHtml(item.id)}" type="button" aria-label="Удалить доход" title="Удалить доход" onclick="return window.qPokoyDeleteIncome(this.getAttribute('data-id')); ">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></svg>
         </button>
       </div>`).join('');
@@ -4313,7 +4318,7 @@ document.addEventListener('mouseup',()=>{
         const b=document.createElement('button');b.type='button';b.className='filter-choice';
         const active=(type==='date'||type==='amount') ? state.sort===v : state[type]===v;
         b.classList.toggle('selected',active);
-        b.innerHTML='<span>'+t+'</span>'+(active?'<span>✓</span>':'');
+        b.innerHTML='<span>'+escapeHtml(t)+'</span>'+(active?'<span>✓</span>':'');
         b.onclick=()=>{
           if(type==='date'||type==='amount') state.sort=v; else state[type]=v;
           close();apply();
@@ -4561,11 +4566,16 @@ window.qPokoyDeleteIncome=function(id){
     ? `Удалить доход ${Number(record.amount||0).toLocaleString('ru-RU')} ₽ от ${record.date||''}?`
     : 'Удалить выбранный доход?';
   if(typeof window.qPokoyConfirm==='function'){
-    window.qPokoyConfirm('Удалить доход?',message,function(){
-      const next=records.filter(x=>String(x.id)!==String(id));
-      localStorage.setItem('incomes',JSON.stringify(next));
-      if(typeof window.qPokoyReplaceIncomes==='function') window.qPokoyReplaceIncomes(next);
-      else if(typeof window.renderIncomes==='function') window.renderIncomes();
+    window.qPokoyConfirm('Удалить доход?',message,async function(){
+      try{
+        const next=await IncomeStore.remove(id);
+        if(!next) return;
+        if(typeof window.qPokoyReplaceIncomes==='function') window.qPokoyReplaceIncomes(next,false);
+        else if(typeof window.renderIncomes==='function') window.renderIncomes();
+      }catch(error){
+        console.error('[qPokoy delete]',error);
+        if(window.qPokoyNotice) window.qPokoyNotice('Ошибка удаления','Не удалось завершить удаление. Обновите страницу перед повторной попыткой. '+(error.message||''),'error');
+      }
     });
   }
   return false;
@@ -4579,15 +4589,16 @@ function getAllIncomeRecords(){
     }
   }
 
-  function persistRecords(records){
+  async function persistRecords(records){
     const clean=records.map(normalizeIncomeRecord).filter(Boolean);
-    if(typeof window.qPokoyReplaceIncomes==='function'){
-      window.qPokoyReplaceIncomes(clean);
-    }else{
-      localStorage.setItem('incomes',JSON.stringify(clean));
+    if(typeof window.qPokoyCloudRestoreBackup!=='function'){
+      throw new Error('Облачное восстановление недоступно. Обновите страницу и повторите импорт.');
     }
-    window.incomes=clean;
-    return clean;
+    const restored=await window.qPokoyCloudRestoreBackup(clean);
+    if(!restored){
+      throw new Error('Резервная копия не была полностью восстановлена. Данные синхронизированы с фактическим состоянием облака.');
+    }
+    return IncomeStore.load();
   }
 
   function setBackupStatus(text){
@@ -4649,7 +4660,7 @@ function getAllIncomeRecords(){
 
     // Импорт резервной копии восстанавливает именно содержимое файла,
     // а не смешивает его со случайными локальными данными.
-    persistRecords(clean);
+    await persistRecords(clean);
     localStorage.removeItem('historical2026Imported');
     localStorage.removeItem('income2023ImportedV1');
 
@@ -5036,7 +5047,7 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
 </style>
 
 
-<div id="qpAuthGate" hidden>
+<div id="qpAuthGate">
   <div class="qp-auth-card" role="dialog" aria-modal="true">
     
     <div class="qp-auth-tabs" role="tablist">
@@ -5064,7 +5075,7 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
 <script id="qPokoyAuth">
 (function(){
   const SUPABASE_URL='https://jrpialhwbliicbsmzmvb.supabase.co';
@@ -5100,9 +5111,10 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
     password.autocomplete=signup?'new-password':'current-password';
     setMessage('');
   }
-  function showGate(show){
+  function showGate(show,checking=false){
     gate.hidden=!show;
     document.body.classList.toggle('qp-auth-locked',show);
+    document.body.classList.toggle('qp-auth-checking',show&&checking);
   }
   function friendlyError(error){
     const msg=(error&&error.message)||'Не удалось выполнить действие.';
@@ -5201,6 +5213,7 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
   let cloudReady=false;
   let cloudBusy=false;
   let cloudPendingRecords=[];
+  let authSyncRun=0;
   const LOCAL_INCOME_OWNER_KEY='qPokoyIncomeOwnerId';
   function clearLocalIncomeCache(){
     try{ localStorage.removeItem('incomes'); }catch(e){}
@@ -5269,14 +5282,16 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
     }
   }
 
-  async function loadCloudIncome(session){
-    if(!session||!session.user)return;
+  async function loadCloudIncome(session,runId){
+    if(!session||!session.user)return false;
+    const requestedUserId=String(session.user.id||'');
     cloudUser=session.user;
     cloudReady=false;
     resetCloudQueue();
     clearLocalIncomeCache();
-    const {data,error}=await client.from(CLOUD_TABLE).select('id,user_id,income_date,category,description,amount,created_at,updated_at').eq('user_id',session.user.id).order('income_date',{ascending:false}).order('created_at',{ascending:false});
-    if(error){ cloudError('Не удалось загрузить доходы из облака.',error); return; }
+    const {data,error}=await client.from(CLOUD_TABLE).select('id,user_id,income_date,category,description,amount,created_at,updated_at').eq('user_id',requestedUserId).order('income_date',{ascending:false}).order('created_at',{ascending:false});
+    if(runId!==authSyncRun||!cloudUser||String(cloudUser.id||'')!==requestedUserId)return false;
+    if(error){ cloudError('Не удалось загрузить доходы из облака.',error); return false; }
 
     const cloudRows=Array.isArray(data)?data:[];
     if(cloudRows.length===0){
@@ -5289,7 +5304,109 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
     if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
     else if(typeof window.renderIncomes==='function') window.renderIncomes();
     if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
+    return true;
   }
+
+  async function restoreBackupCloud(records,userId){
+    if(!userId)return false;
+    cloudBusy=true;
+    try{
+      const source=Array.isArray(records)?records:[];
+      const rows=source.map(record=>{
+        const row=uiToRow(record,userId);
+        delete row.id;
+        return row;
+      });
+      const valid=rows.filter(row=>row.income_date && Number.isFinite(row.amount) && row.amount>0);
+      if(valid.length!==source.length){
+        throw new Error('В резервной копии есть запись с некорректной датой или суммой.');
+      }
+
+      const {data:before,error:beforeError}=await client.from(CLOUD_TABLE).select('id').eq('user_id',userId);
+      if(beforeError)throw beforeError;
+      const oldIds=(Array.isArray(before)?before:[]).map(row=>String(row.id||'')).filter(Boolean);
+
+      if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
+        throw new Error('Сессия изменилась до начала восстановления.');
+      }
+
+      let inserted=[];
+      if(valid.length){
+        const {data,error}=await client.from(CLOUD_TABLE).insert(valid).select('id,user_id,income_date,category,description,amount,created_at,updated_at');
+        if(error)throw error;
+        inserted=Array.isArray(data)?data:[];
+        if(inserted.length!==valid.length){
+          throw new Error('Облако не подтвердило сохранение всех записей резервной копии.');
+        }
+      }
+
+      if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
+        throw new Error('Сессия изменилась во время восстановления. Старые данные не удалялись.');
+      }
+
+      for(let i=0;i<oldIds.length;i+=100){
+        const batch=oldIds.slice(i,i+100);
+        const {data:deleted,error:deleteError}=await client.from(CLOUD_TABLE).delete().eq('user_id',userId).in('id',batch).select('id');
+        if(deleteError)throw deleteError;
+        if(!Array.isArray(deleted)||deleted.length!==batch.length){
+          throw new Error('Не удалось подтвердить удаление прежних записей. Повторите импорт.');
+        }
+      }
+
+      if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
+        throw new Error('Сессия изменилась после восстановления.');
+      }
+
+      const {data:finalRows,error:finalError}=await client.from(CLOUD_TABLE)
+        .select('id,user_id,income_date,category,description,amount,created_at,updated_at')
+        .eq('user_id',userId)
+        .order('income_date',{ascending:false})
+        .order('created_at',{ascending:false});
+      if(finalError)throw finalError;
+
+      const expectedIds=new Set(inserted.map(row=>String(row.id)));
+      const actualRows=Array.isArray(finalRows)?finalRows:[];
+      if(actualRows.length!==inserted.length || actualRows.some(row=>!expectedIds.has(String(row.id)))){
+        throw new Error('Облачные доходы изменились параллельно восстановлению. Данные не скрыты; обновите страницу и повторите импорт.');
+      }
+
+      IncomeStore.save(actualRows.map(rowToUi));
+      cloudReady=true;
+      if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
+      else if(typeof window.renderIncomes==='function') window.renderIncomes();
+      if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
+      return true;
+    }catch(error){
+      cloudError('Не удалось безопасно восстановить резервную копию.',error);
+      if(cloudUser&&String(cloudUser.id||'')===String(userId)){
+        try{
+          const {data,error:reloadError}=await client.from(CLOUD_TABLE)
+            .select('id,user_id,income_date,category,description,amount,created_at,updated_at')
+            .eq('user_id',userId)
+            .order('income_date',{ascending:false})
+            .order('created_at',{ascending:false});
+          if(!reloadError){
+            IncomeStore.save((Array.isArray(data)?data:[]).map(rowToUi));
+            if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
+            else if(typeof window.renderIncomes==='function') window.renderIncomes();
+            if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
+          }else{
+            console.error('[qPokoy cloud] Не удалось перечитать доходы после ошибки восстановления.',reloadError);
+          }
+        }catch(reloadError){
+          console.error('[qPokoy cloud] Не удалось перечитать доходы после ошибки восстановления.',reloadError);
+        }
+      }
+      return false;
+    }finally{
+      cloudBusy=false;
+    }
+  }
+
+  window.qPokoyCloudRestoreBackup=function(records){
+    if(cloudUser&&cloudReady&&!cloudBusy) return restoreBackupCloud(records,cloudUser.id);
+    return Promise.resolve(false);
+  };
 
   async function replaceCloud(records,userId){
     if(!userId)return;
@@ -5357,11 +5474,15 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
     }catch(error){ cloudError('Не удалось обновить доход.',error); }
   };
   window.qPokoyCloudRemove=async function(id){
-    if(!cloudUser||!cloudReady||cloudBusy||!isUuid(id))return;
     try{
-      const {error}=await client.from(CLOUD_TABLE).delete().eq('id',id).eq('user_id',cloudUser.id);
+      if(!cloudUser||!cloudReady||cloudBusy||!isUuid(id)) throw new Error('Дождитесь авторизации и синхронизации доходов, затем повторите удаление.');
+      const userId=cloudUser.id;
+      const {data,error}=await client.from(CLOUD_TABLE).delete().eq('id',id).eq('user_id',userId).select('id');
       if(error)throw error;
-    }catch(error){ cloudError('Не удалось удалить доход.',error); }
+      if(!data||data.length!==1||String(data[0].id)!==String(id)) throw new Error('Удаление не подтверждено. Обновите страницу для синхронизации.');
+      if(!cloudUser||cloudUser.id!==userId||!cloudReady) throw new Error('Сессия изменилась. Обновите страницу для синхронизации.');
+      return true;
+    }catch(error){ cloudError('Не удалось удалить доход.',error); return false; }
   };
   window.qPokoyCloudAddMany=async function(records){
     if(!cloudUser||!cloudReady||cloudBusy||!records.length)return;
@@ -5377,16 +5498,26 @@ html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
   };
 
   async function sync(session){
+    const runId=++authSyncRun;
     if(session&&session.user){
       const nextUserId=String(session.user.id||'');
       let previousOwner='';
       try{ previousOwner=localStorage.getItem(LOCAL_INCOME_OWNER_KEY)||''; }catch(e){}
       if(previousOwner!==nextUserId){ resetCloudQueue(); clearLocalIncomeCache(); }
       try{ localStorage.setItem(LOCAL_INCOME_OWNER_KEY,nextUserId); }catch(e){}
-      showGate(false);
+      showGate(true,true);
       if(accountEmail) accountEmail.textContent=session.user.email||'';
-      await loadCloudIncome(session);
+      const loaded=await loadCloudIncome(session,runId);
+      if(runId!==authSyncRun)return;
+      if(!loaded){
+        if(cloudUser&&String(cloudUser.id||'')===nextUserId){
+          showGate(true);
+          setMessage('Не удалось загрузить данные. Проверьте соединение и обновите страницу.','error');
+        }
+        return;
+      }
       await flushPendingCloudRecords();
+      if(runId===authSyncRun&&cloudUser&&String(cloudUser.id||'')===nextUserId&&cloudReady) showGate(false);
     }else{
       cloudUser=null; cloudReady=false;
       resetCloudQueue(); clearLocalIncomeCache();
@@ -5452,6 +5583,7 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
   #qpAuthGate{align-items:flex-start;padding-top:16px;padding-bottom:16px;}
 }
 
+</style>
 <style id="qPokoyPlainIncomeYearV1">
 /* «Доход за»: год — обычная надпись без кнопки и стрелок.
    Скрытые элементы переключателя оставлены только для совместимости
