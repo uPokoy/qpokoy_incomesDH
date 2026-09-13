@@ -1,0 +1,140 @@
+name: qPokoy mobile bottom nav glass
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/qpokoy-mobile-bottom-nav-glass.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply phone-only glass bottom navigation
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_BLOB="5c75e28319194e5a278ad12b0e47650ee053eeca"
+          CURRENT_BLOB="$(git hash-object index.html)"
+          test "$CURRENT_BLOB" = "$EXPECTED_BLOB"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile, os
+
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='qPokoyMobileBottomNavGlassV1'
+          if marker in s:
+              raise SystemExit('Patch already present')
+
+          block='''
+<style id="qPokoyMobileBottomNavGlassV1">
+/* Phone only: variant 5 — glass bottom navigation. Desktop is untouched. */
+@media (max-width:560px){
+  .sidebar{
+    background:color-mix(in srgb,var(--panel) 74%,transparent) !important;
+    border-top:1px solid color-mix(in srgb,var(--border) 80%,rgba(255,255,255,.10)) !important;
+    box-shadow:0 -10px 30px rgba(0,0,0,.24),
+               inset 0 1px 0 rgba(255,255,255,.035) !important;
+    -webkit-backdrop-filter:blur(22px) saturate(135%) !important;
+    backdrop-filter:blur(22px) saturate(135%) !important;
+  }
+
+  .sidebar > .nav-item{
+    min-width:0 !important;
+    margin:0 !important;
+    padding:7px 4px !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  .sidebar > .nav-item:hover{
+    background:transparent !important;
+    transform:none !important;
+  }
+
+  .sidebar > .nav-item.active{
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    color:var(--primary) !important;
+  }
+
+  .sidebar > .nav-item.active .nav-icon,
+  .sidebar > .nav-item.active .nav-label{
+    color:var(--primary) !important;
+  }
+
+  .sidebar > .nav-item.active .nav-icon{
+    filter:drop-shadow(0 0 10px color-mix(in srgb,var(--primary) 28%,transparent));
+  }
+
+  .sidebar > .nav-item.active .nav-label{
+    font-weight:650 !important;
+  }
+
+  /* Preserve existing modes: icon+label / icons only / labels only. */
+  html[data-nav-label-mode="both"] .sidebar > .nav-item{
+    flex-direction:column !important;
+    gap:2px !important;
+  }
+  html[data-nav-label-mode="icons"] .sidebar > .nav-item,
+  html[data-nav-label-mode="text"] .sidebar > .nav-item{
+    flex-direction:row !important;
+    gap:0 !important;
+  }
+}
+</style>
+'''
+
+          if s.count('</head>') != 1:
+              raise SystemExit('Expected exactly one </head>')
+          s=s.replace('</head>',block+'\n</head>',1)
+          p.write_text(s,encoding='utf-8')
+
+          s=p.read_text(encoding='utf-8')
+          so=len(re.findall(r'<style\b',s,re.I)); sc=len(re.findall(r'</style\s*>',s,re.I))
+          jo=len(re.findall(r'<script\b',s,re.I)); jc=len(re.findall(r'</script\s*>',s,re.I))
+          if so != sc or jo != jc:
+              raise SystemExit(f'Unbalanced tags: style {so}/{sc}, script {jo}/{jc}')
+          if s.count(marker) != 1:
+              raise SystemExit('Patch marker count mismatch')
+          if '@media (max-width:560px)' not in block:
+              raise SystemExit('Phone-only media query missing')
+          if 'data-nav-label-mode="icons"' not in block or 'data-nav-label-mode="text"' not in block:
+              raise SystemExit('Navigation display modes not preserved')
+
+          scripts=re.findall(r'<script\b([^>]*)>(.*?)</script\s*>',s,re.I|re.S)
+          checked=0
+          for attrs,body in scripts:
+              if re.search(r'\bsrc\s*=',attrs,re.I):
+                  continue
+              checked+=1
+              with tempfile.NamedTemporaryFile('w',suffix='.js',encoding='utf-8',delete=False) as f:
+                  f.write(body)
+                  name=f.name
+              r=subprocess.run(['node','--check',name],capture_output=True,text=True)
+              os.unlink(name)
+              if r.returncode:
+                  print(r.stdout)
+                  print(r.stderr)
+                  raise SystemExit(f'JS syntax error in inline script #{checked}')
+          print(f'styles {so}/{sc} scripts {jo}/{jc} inline_js {checked}')
+          PY
+
+          rm -f .github/workflows/qpokoy-mobile-bottom-nav-glass.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/qpokoy-mobile-bottom-nav-glass.yml
+          git commit -m "Apply glass phone bottom navigation"
+          git push origin HEAD:main
