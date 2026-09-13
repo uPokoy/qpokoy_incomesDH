@@ -2173,14 +2173,6 @@ html[data-nav-label-mode="text"] .nav-item{gap:0;}
 @media (max-width:560px){
   .nav-label-mode-options{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
-@media (max-width:560px){
-  html[data-nav-label-mode="auto"] .nav-label{display:none !important;}
-  html[data-nav-label-mode="auto"] .nav-item{gap:0;}
-}
-@media (min-width:561px){
-  html[data-nav-label-mode="auto"] .nav-label{display:inline;}
-  html[data-nav-label-mode="auto"] .nav-icon{display:inline-flex;}
-}
 </style>
 
 <style id="settings-nav-label-integrated-v138">
@@ -2260,7 +2252,6 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   .nav-label{font-size:10px !important;max-width:100%;}
   html[data-nav-label-mode="both"] .nav-item{flex-direction:column !important;gap:2px !important;}
   html[data-nav-label-mode="text"] .nav-item{font-size:12px !important;}
-  html[data-nav-label-mode="auto"] .nav-label{display:none !important;}
 
   /* Dashboard */
   .income-top{display:flex !important;flex-direction:column !important;gap:14px !important;min-height:0 !important;width:100% !important;margin-bottom:14px !important;padding:16px !important;border-radius:18px !important;}
@@ -2668,6 +2659,13 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 
   function client(){return window.qPokoySupabase||null;}
   function normalizeName(value){return String(value||'').trim().replace(/\s+/g,' ');}
+  function categoryRank(name){return normalizeName(name).toLocaleLowerCase('ru-RU')==='зарплата'?0:1;}
+  function sortCategories(list){
+    return (Array.isArray(list)?list:[]).map((item,index)=>({item,index})).sort((a,b)=>{
+      const diff=categoryRank(a.item?.name)-categoryRank(b.item?.name);
+      return diff||a.index-b.index;
+    }).map(x=>x.item);
+  }
 
   async function ensureSalaryCategory(userId, existing){
     const c=client();
@@ -2677,7 +2675,7 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
     const {data,error}=await c.from(TABLE).insert({user_id:userId,name:'Зарплата'}).select('id,user_id,name,created_at').single();
     if(error){console.error('[qPokoy categories] salary ensure error',error);return list;}
     if(data)list.push({id:String(data.id),name:normalizeName(data.name)});
-    return list;
+    return sortCategories(list);
   }
 
   async function fetchCategories(userId){
@@ -2685,7 +2683,7 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
     if(!c||!userId)return [];
     const {data,error}=await c.from(TABLE).select('id,user_id,name,created_at').eq('user_id',userId).order('created_at',{ascending:true});
     if(error){console.error('[qPokoy categories] load error',error);return [];}
-    return (data||[]).map(x=>({id:String(x.id),name:normalizeName(x.name)})).filter(x=>x.name);
+    return sortCategories((data||[]).map(x=>({id:String(x.id),name:normalizeName(x.name)})).filter(x=>x.name));
   }
 
   function renderManager(){
@@ -2695,8 +2693,8 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
     if(!box){
       box=document.createElement('div');
       box.className='qp-category-manager';
-      box.innerHTML='<div class="qp-category-manager-title">Категории доходов</div>'+
-        '<div class="qp-category-manager-subtitle">Добавляйте свои категории. Удаление категории не удаляет уже внесённые доходы.</div>'+
+      box.innerHTML='<div class="qp-category-manager-title">Категории</div>'+
+        '<div class="qp-category-manager-subtitle"></div>'+
         '<div class="qp-category-add"><input id="qpCategoryInput" type="text" maxlength="80" placeholder="Название категории" autocomplete="off"><button type="button" id="qpCategoryAddBtn">Добавить</button></div>'+
         '<div class="qp-category-list" id="qpCategoryList"></div>';
       card.appendChild(box);
@@ -2706,7 +2704,8 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
     const list=box.querySelector('#qpCategoryList');
     if(!currentUser){list.innerHTML='<div class="qp-category-empty">Войдите в аккаунт, чтобы управлять категориями.</div>';return;}
     if(!categories.length){list.innerHTML='<div class="qp-category-empty">Категорий пока нет.</div>';return;}
-    list.innerHTML=categories.map((x,i)=>{const v=window.qPokoyCategoryVisual?window.qPokoyCategoryVisual(x.name,i):{icon:'',color:'var(--primary)'};return '<div class="qp-category-item" data-id="'+x.id+'" style="--category-color:'+v.color+'"><span class="qp-category-icon">'+v.icon+'</span><span class="qp-category-name">'+escapeHtml(x.name)+'</span>'+(normalizeName(x.name).toLocaleLowerCase('ru-RU')==='зарплата'?'':'<button type="button" class="qp-category-delete" aria-label="Удалить категорию" title="Удалить категорию" data-id="'+x.id+'">×</button>')+'</div>';}).join('');
+    const orderedCategories=sortCategories(categories);
+    list.innerHTML=orderedCategories.map((x,i)=>{const v=window.qPokoyCategoryVisual?window.qPokoyCategoryVisual(x.name,i):{icon:'',color:'var(--primary)'};return '<div class="qp-category-item" data-id="'+x.id+'" style="--category-color:'+v.color+'"><span class="qp-category-icon">'+v.icon+'</span><span class="qp-category-name">'+escapeHtml(x.name)+'</span>'+(normalizeName(x.name).toLocaleLowerCase('ru-RU')==='зарплата'?'':'<button type="button" class="qp-category-delete" aria-label="Удалить категорию" title="Удалить категорию" data-id="'+x.id+'">×</button>')+'</div>';}).join('');
     list.querySelectorAll('.qp-category-delete').forEach(btn=>btn.addEventListener('click',function(){removeCategory(btn.dataset.id);}));
   }
 
@@ -2793,7 +2792,7 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
       hidden.value='';value.textContent='Добавьте категорию';
       return;
     }
-    categories.forEach(cat=>{
+    sortCategories(categories).forEach(cat=>{
       const option=document.createElement('button');
       option.type='button';option.className='category-option';option.dataset.value=cat.name;option.textContent=cat.name;
       if(hidden.value===cat.name)option.classList.add('selected');
@@ -2844,7 +2843,7 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
     if(categories.some(x=>x.name.toLocaleLowerCase('ru-RU')===name.toLocaleLowerCase('ru-RU'))){if(window.qPokoyNotice)window.qPokoyNotice('Категория уже существует','Введите другое название.','error');return;}
     const {data,error}=await c.from(TABLE).insert({user_id:currentUser.id,name}).select('id,user_id,name,created_at').single();
     if(error){console.error('[qPokoy categories] add error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось добавить категорию',error.message||'Попробуйте ещё раз.','error');return;}
-    categories.push({id:String(data.id),name:normalizeName(data.name)});
+    categories=sortCategories(categories.concat({id:String(data.id),name:normalizeName(data.name)}));
     input.value='';renderManager();renderIncomeCategoryOptions();
   }
 
@@ -2859,7 +2858,7 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
       const c=client();if(!c||!currentUser)return;
       const {error}=await c.from(TABLE).delete().eq('id',cat.id).eq('user_id',currentUser.id);
       if(error){console.error('[qPokoy categories] delete error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось удалить категорию',error.message||'Попробуйте ещё раз.','error');return;}
-      categories=categories.filter(x=>x.id!==cat.id);
+      categories=sortCategories(categories.filter(x=>x.id!==cat.id));
       if(document.getElementById('incomeCategory')?.value===cat.name){document.getElementById('incomeCategory').value='';document.getElementById('categoryValue').textContent=categories.length? 'Выберите категорию':'Добавьте категорию';}
       renderManager();renderIncomeCategoryOptions();
     };
@@ -2868,7 +2867,7 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
   }
 
   window.qPokoyLoadCategories=loadForUser;
-  window.qPokoyGetCategories=function(){return categories.slice();};
+  window.qPokoyGetCategories=function(){return sortCategories(categories);};
 
   function bindAuth(){
     const c=client();if(!c)return false;
@@ -3245,6 +3244,165 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
 }
 </style>
 
+
+<style id="qPokoyDesktopBottomGapEqualHomeV2">
+/* Десктоп: делаем нижний визуальный зазор у всех вкладок таким же,
+   как на Главной. На Главной последний блок .income-analytics уже имеет
+   margin-bottom:24px, поэтому приводим Историю и Настройки к тем же 24px. */
+@media (min-width:561px){
+  /* История: собственного нижнего зазора не было. */
+  #history.page.active{
+    padding-bottom:24px !important;
+  }
+
+  /* Настройки: последний .settings-card уже имеет margin-bottom:16px.
+     Оставляем ещё 8px padding снизу: 16px + 8px = те же 24px, что на Главной. */
+  #settings.page.active{
+    padding-bottom:8px !important;
+  }
+}
+</style>
+
+
+<style id="qPokoyHistoryActionsUnderBottomNavV1">
+/* Десктоп: кнопки редактирования/удаления строки Истории не должны
+   перекрывать фиксированную нижнюю навигацию при прокрутке. */
+@media (min-width:561px){
+  #history #incomeList .income-row .edit-income,
+  #history #incomeList .income-row .delete-income{
+    z-index:900 !important;
+  }
+}
+</style>
+
+
+<style id="qPokoyAccountLogoutCloserV1">
+/* Десктоп: кнопка выхода должна быть рядом с данными аккаунта,
+   а не у правого края карточки. Мобильная раскладка не меняется. */
+@media (min-width:561px){
+  #settings #qpAccountCard .qp-account-row{
+    justify-content:flex-start !important;
+    gap:18px !important;
+    flex-wrap:wrap !important;
+  }
+  #settings #qpAccountCard .qp-account-email{
+    flex:0 1 auto !important;
+    min-width:0 !important;
+  }
+  #settings #qpAuthLogoutBtn{
+    flex:0 0 auto !important;
+  }
+}
+</style>
+
+
+<style id="qPokoyCategoriesSpacingSeparatorCleanupV1">
+/* Категории: убрать длинную разделительную линию и сделать верхний
+   отступ компактнее внутри оболочки настроек. */
+#settings .qp-category-manager{
+  border-top:0 !important;
+  margin-top:14px !important;
+  padding-top:10px !important;
+}
+
+@media (max-width:560px){
+  #settings .qp-category-manager{
+    margin-top:12px !important;
+    padding-top:8px !important;
+  }
+}
+</style>
+
+
+<style id="qPokoyCategoriesCompactGridV1">
+/* Компактный список категорий:
+   на десктопе — 2 колонки, на телефоне — 1 колонка. */
+@media (min-width:561px){
+  #settings .qp-category-manager .qp-category-list{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  #settings .qp-category-manager .qp-category-item{
+    min-height:62px !important;
+    padding:7px 10px !important;
+    gap:10px !important;
+    border-radius:14px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon{
+    flex:0 0 44px !important;
+    width:44px !important;
+    min-width:44px !important;
+    height:44px !important;
+    border-radius:13px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon svg{
+    width:22px !important;
+    height:22px !important;
+  }
+  #settings .qp-category-manager .qp-category-name{
+    font-size:15px !important;
+  }
+  #settings .qp-category-manager .qp-category-delete{
+    flex:0 0 42px !important;
+    width:42px !important;
+    min-width:42px !important;
+    height:42px !important;
+    border-radius:12px !important;
+    font-size:19px !important;
+  }
+}
+
+@media (max-width:560px){
+  #settings .qp-category-manager .qp-category-list{
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+  #settings .qp-category-manager .qp-category-item{
+    min-height:60px !important;
+    padding:7px 9px !important;
+    gap:10px !important;
+    border-radius:14px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon{
+    flex:0 0 42px !important;
+    width:42px !important;
+    min-width:42px !important;
+    height:42px !important;
+    border-radius:12px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon svg{
+    width:21px !important;
+    height:21px !important;
+  }
+  #settings .qp-category-manager .qp-category-name{
+    font-size:15px !important;
+  }
+  #settings .qp-category-manager .qp-category-delete{
+    flex:0 0 40px !important;
+    width:40px !important;
+    min-width:40px !important;
+    height:40px !important;
+    border-radius:11px !important;
+    font-size:18px !important;
+  }
+}
+</style>
+
+
+<style id="qPokoySettingsSeparatorSpacingV1">
+/* Добавляем воздух между разделительной линией и заголовком «Нижняя панель». */
+#settings > .settings-card:not([style]) > .nav-label-mode-title{
+  margin-top:14px !important;
+  margin-bottom:12px !important;
+}
+
+@media (max-width:560px){
+  #settings > .settings-card:not([style]) > .nav-label-mode-title{
+    margin-top:12px !important;
+  }
+}
+</style>
+
 </head>
 <body class="qp-auth-locked qp-auth-checking">
 <div class="app">
@@ -3495,7 +3653,6 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
             <button type="button" class="nav-label-mode-btn active" data-nav-label-mode="both">Основной</button>
             <button type="button" class="nav-label-mode-btn" data-nav-label-mode="icons">Иконки</button>
             <button type="button" class="nav-label-mode-btn" data-nav-label-mode="text">Подписи</button>
-            <button type="button" class="nav-label-mode-btn" data-nav-label-mode="auto">Авто</button>
           </div>
         </div>
       
@@ -3599,7 +3756,7 @@ customIconColor.addEventListener('input',e=>setIconColor(e.target.value));
 
 const navLabelModeButtons=document.querySelectorAll('.nav-label-mode-btn');
 function setNavLabelMode(mode){
-  const allowed=['both','icons','text','auto'];
+  const allowed=['both','icons','text'];
   mode=allowed.includes(mode)?mode:'both';
   document.documentElement.setAttribute('data-nav-label-mode',mode);
   navLabelModeButtons.forEach(b=>b.classList.toggle('active',b.dataset.navLabelMode===mode));
@@ -3665,6 +3822,15 @@ function qPokoyFitAnalyticsTotal(){
   const title=document.querySelector('#incomeAnalytics .analytics-title-block');
   if(!total||!head||!title) return;
 
+  /* На десктопе размер годовой суммы фиксированный и не зависит
+     от ширины окна браузера. */
+  if(!window.matchMedia('(max-width:620px)').matches){
+    total.style.setProperty('font-size','36px','important');
+    return;
+  }
+
+  /* На телефоне сохраняем автоподгонку для очень длинных сумм,
+     чтобы символ ₽ не переносился на вторую строку. */
   total.style.removeProperty('font-size');
 
   const maxSize=parseFloat(getComputedStyle(total).fontSize);
@@ -3674,7 +3840,7 @@ function qPokoyFitAnalyticsTotal(){
 
   if(!Number.isFinite(maxSize)||maxSize<=0||available<=0) return;
 
-  const minSize=window.matchMedia('(max-width:620px)').matches ? 14 : 16;
+  const minSize=14;
   let size=maxSize;
 
   total.style.setProperty('font-size',size+'px','important');
@@ -5784,6 +5950,16 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
 @media(max-width:620px){
   #incomeAnalytics .analytics-title-block h2{
     gap:4px !important;
+  }
+}
+</style>
+
+<style id="qPokoyAnnualTotalDesktopFontPatch">
+@media (min-width:621px){
+  #incomeAnalytics .analytics-total{
+    font-size:36px !important;
+    line-height:1.08 !important;
+    font-weight:800 !important;
   }
 }
 </style>
