@@ -1,0 +1,47 @@
+name: qPokoy mobile history clean list gap
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/qpokoy-mobile-history-clean-list-gap.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply mobile history list cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT="$(sha256sum index.html | awk '{print $1}')"
+          EXPECTED="55374f0864d0a0ec5e3135639f5a35b55ffb5fabb1549682aa92e9f89f67d7f1"
+          TARGET="3120ea81e483cc7a13612f67e006086148f81f0788e7b1b27811734cfcd06fa5"
+          if [ "$CURRENT" != "$EXPECTED" ]; then
+            echo "Unexpected base SHA-256: $CURRENT"
+            exit 1
+          fi
+          python - <<'PY2'
+          import base64,zlib,pathlib
+          data='eNptjl1ugzAMgN85hac+snQwbZWg0sQBdglDUhKNxMgJLdW0uy+MVdpo8hLb3+cfIQTgk3FSzXsd7JDleQ7t30LTgHitqufHsoB8DQ7QNBksTxo/DnitezYSHowdiQO6cFzpUhVB2agEJToaJut8XZ44oeJYl8U4/yNiISNKaVxfF1BAddgY+dYoXzbGz3SL3BsnWgqBbPTuRthItTK9Din6S3AKlGjF+dbqyKn75XRWfBroUp+NN+2QMFrsPnqmyck6MDo/IisX7le1xFJx6sKVCEZpJp8WZuE1ynhG6sqvDJZvp40PxFfYGdeRVe8xhTfYr5lgutxCrTAu/My+ASqetpQ='
+          pathlib.Path('/tmp/patch.diff').write_bytes(zlib.decompress(base64.b64decode(data)))
+          PY2
+          git apply --check --whitespace=nowarn /tmp/patch.diff
+          git apply --whitespace=nowarn /tmp/patch.diff
+          AFTER="$(sha256sum index.html | awk '{print $1}')"
+          if [ "$AFTER" != "$TARGET" ]; then
+            echo "Target SHA-256 mismatch: $AFTER"
+            exit 1
+          fi
+          rm -f .github/workflows/qpokoy-mobile-history-clean-list-gap.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/qpokoy-mobile-history-clean-list-gap.yml
+          git commit -m "Clean mobile history list frame and bottom gap"
+          git push origin HEAD:main
