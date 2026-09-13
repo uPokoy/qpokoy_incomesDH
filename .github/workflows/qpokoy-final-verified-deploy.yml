@@ -1,0 +1,56 @@
+name: qPokoy final verified deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/qpokoy-final-verified-deploy.yml
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy verified final qPokoy file
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CURRENT="$(sha256sum index.html | awk '{print $1}')"
+          EXPECTED_BASE="ffa879cf17c33084711966097af3cb710cf78e0cf7880f96920166be1ceb3af7"
+          TARGET="f2e23a8915b4565fa1b0b81bd2f9d7c911ad40308153ffa334c29bd3fb2e7058"
+
+          if [ "$CURRENT" != "$EXPECTED_BASE" ]; then
+            echo "Unexpected index.html base SHA-256: $CURRENT"
+            exit 1
+          fi
+
+          python - <<'PY'
+          import base64, zlib, pathlib
+          data = "eNrtW19vG8mRf9enaHNxmOGSHJGURFG0KVt2vH8Ar7OIdvfFMYIhpyVOPJyhZ5r6E1KALWdvE3hvfbkLkCC4vXu4x3vRKtZali0byH0B8ivkk1xVdc9whhxKlFcb5IDYgMiZ7q7qrvrVn65uFgoFZs7brsV3jJZoO3O5XI414i9u3GCFcml5IV9aZDn6UmE3bsyxG21u2SbT2+ZOYdu2RKu2VCl2drK9OcaY4ZpbBcdscKfQ9ixe8DrC9tygt+nbVkHwdscxBS80PafbdoOazzvcFHo537ZdIKcX86UNP5u9ujfH9uYK0xkVGMMp3rNMYRaSHOsZsyu8zP3YTHqWHQDf3ZrruZxdsdsdzxemK4DNzIRsmHtv0+zUijgqPjnbjSZX+iGTs13HdvmF5tT03LHhhQ2H78gZsmvzgdh1+Oocg+/0ldlWPRNwIWx3M4iRtl3BN31QjFXYKi1UM6tS9+VKMb8Mqi8vlZXq4/rtbXiuKAT2r3itBFqJy3WksFKx+E+ozbOW1PBEKyFmXEPBsn3eROzUJFji9FEP5STLc3gIviOSPEaTn6B0aehiOKn599lPzKDV8EzfYu/PkxBtt+m1eUF4nWg0Ljo+eiYhlBbHBA9gbHF7syVqxfj7kTKSavI3YQDIX3jtCVod07IAJ7VSJfm+4fkW9wu+adndoFaqjkuPoFOpVAEyuXJlaSVfWiDs4MI3ui4thzUdm7tCz/Z8Lrq+y7bB73jbxsNPvQfe7nq3YzbMgPf7btdxpGqjka7nt00HFHfXbHN9y3S6PKKyLnyYsXzZ72ta1oAXbT1rgJ9xzCbX538e5OY38xrT0Mfk4hMC9G96/u7PTPeB7gLpiGiSITUZwrvjNU2H3/G2uX8Lpqprfrfws8+1bL1e1wYvBgfDR4O3g1fwuT840K4Xa6UxfgHI65bkafNAd+xAgOuAHowpvvqa75u7hh3Qp+xxHf/W7t3PGm2zo+uI5Dx57Gx9Ve+NHveyWQM56LqZb0CboswYeIxAMMve2KgnVmwaOPi6QcsrJJoa8aarISE1SaTU78No5FpoyE/VaU/Ocqe+ukMk5GBlFWaw6zZH4uBu0PX5uumY/q4Sy67eDbj/sZVnfAdWDYqVESZcRLMeguiqwtzyMrmryvISfEp3FXbuoS3nue97/l7d3DZtGG9s+F5b/2zt5p3bWZg4MBN6D3n+wrZqijcuuqYN/jCmUFhawB0wTV2zrbwaQ53zTZ+jI/2FKQB+Acza4ThDmou9odMUsj2cledwgx517Z4EfohCQMR9FpAwlGQYddTkCrJXlfQRDdI8iDauMYvvjE43aAEerJqyCGwxbCsr15NENLWRcvdgnoWYcol8ApNpqKW1pWt1g4tmK9ZfChXUKPVVXZL6qi7E9AXruNLs96+ovorxvftXL6TOmbTDH+qaatXyip9B3k3XYh3zPTNocpecofC7fO+d1Ol4ppWuRVjbXkLupJJ+PzTzHbLtSJc70xS5E2oxa2zYjoBVkOnF7TZdjT8CvwQqIjz4IEXuf2K65ib0jnCwspSvIg5WFuAzjoOGtxPaPGPwULe8ZrcNNm9I9dx2OD7pmmVvaaFWqKfRdMwgwGnWtYedyKEV2pK3poAu+9quy/2PPvvkTl27BpQYja1nUsYVhC0cnlkd/IkcwdHgz4M34BiOB8ds8By+fjl4g5+Dw2vzQGhVy4VsGDuXdNBthNR/DyS+GxwMDgevhs8GL5ETGz6GxzfI6GSct8EG/w1sD8A9HQ1O4c1RSicGLUDliewIZI+G+/j4PfY+xMbh4+Hv4PN0+BRfRcsZPjWi1eQuV2jjdC8kpWgwO3cwZDLQ33Y7XUEp8MNOGGM+xncZJnY7YZLIIHl1uLspWvVMtZhhlDi0PAeAW88MvgXhvQBxHUyVc4ZhhgjpXcfhAoh6GxvAu9GFHMtVfORDZmwqa5Z1U7gJ7R8P94dfX5uX/S+yYHTM4/Tv4LuQSGQrTchKDbPTAcu81bIdS0ebUwF1uVghB71cXIwZpvTAyKGOOHjY5f7uOrlbdH3vJRlqMV95pdn1wQOIz8HTZnsUp2YAEWwZxS5I5d9AKi8BlcdkDYNDBhI6IfE/Acju59nwK2gByQ2fIqzfgjaUAaEQJxQFBvAaLCcUh3SMsVh6ZeS7DQmHi095HO8vGaQQb3AmZIzD/Un25C7G+MRmQlnfTt7GlE7qYaueSJ1D2X9hB13TuX5Gm3LfQKvWw41kTdPysMnw/Jq2Zfp6odCB1BkSkKy2FwaqqQvG7C7DaLuEmNNyGDNyWobRrrOeKYy6Kha5LYO+QafVa0HHdFPJwrQyq9gXv+U02NBCz+n9cT3YnwdNs8M/gi1cGKOisVpOTw1iF87oNa2mpVt1ysQsjr4APINvm3LTCK4kdNnH6fj8BrwSOrqZek6KfvV//xA5Do3WL5EGmesvPdvVNS3MCSSOKO3h1igrqI8lCSMUhgPHYDpB4R9o/QdaLxOtLAJdIuasOY6uGZMLgAR/w/Nvm82W3hBufRX+GJAI3N6CEIShibuU5zt284GWD1NUqki0vS0ebUJxGE444AITYZjSKLeVUXJlQUbJlXJsG8NYy7Ys7hpUjKhr2lX6YmCOcctzgbsARUWhfvi1DGsT0hpFahUj5KOKFLHQEK4VXkX7/ekmPN6dxcsDsmY7NdmWeorl27K/QcAKW6+ql7E8PNKPbIq6hNKVkoJeBPKwNS6wqC3kDIE6IeZ61CUb54/qRt3rmtwXcksLc5zq4iJpr7o4tgmNiTbw0PTCvc3ZxndOj2y2B7QTju6uJ+wmz6a807XxFGL4LEzZIVl/MvwtJe37AJ8nmE5oeQ3SpEPoHqVJz4ePoA1G48NpMnk1oL/ckGbH8p93rJnE8jtDbbj/FoUSUOzYxvpCIv42ti0CKT9Gp/U8mYKn2aXkZbR5EMDGpN/XBv8FgzDtxBz0idq1gVp+O/wdo2T0RarAx+343Us3uSSl6QEcgpkLT+/CJVIQ7ptGvm1sY6+eP6Yqd+hJfypPgvQx91ldWpEGuFRNuM+JIl9YGIrvIhI+McLtGZCVoUGXtR8s+6C/gHUna0FJIGfj7mZ2WEpWl4zM6PFvg8sEnuLBJlbvsa0r0u2SpHITw6bDcBqVhMCjKLTJhQpBN3c/BlduJ9ClZa9PxoDezINHUJ46JAxfX2BPPFpIBqbkZvE6A1c8fApO5Ij0MiW412ZLAfZGOcBF7QwsLYx0lao0tMpyZGiqQJeA3x3PjG8DsG75geejLVDRLNH3Qx5TbT2RRFEOHg+iDoIa8ifCyIWonLETAWrJEmMDCK91RUufelhAfiSsK2+YTsClgBbKi3jMmYPPUr5UWVIi2m7BfqEA6XgT/eK2b3bix13YA4FQAHe56dZ8PHobb6dzWXUqVzJKiebc3lwuOqfN4f/YSa2Uzk948EB4nZt0Sveh2bn9EPZDH4HCvyhnYMz8+wwwBHnA4ITqH29rGL6OMPeHv68Zxfrv6e9LLPQdD16AF8AS4NdU6oOXLygvALSBe4EuQOpo+CX2PSEqGAxPGG4k4MUxkoQEJE+WjmCFNsws2ODfqTeWEt8MXhoMa2VjL6n+AeRfUYqipvQdOjcgEh6KAridXfCAQVSdBJ4wABIc4pk8tSwvdnbyku6/0Ppf4xreUr3lkKqxNOM/Up6kDIphNRRmh+/IL77EhTG5yCO1QIaUDTywzU0/6s/R8W6C+rMalmrR11JmRhVZXDyY80gXR/IxEryqCDGsXqE4JF/G3mtB5go2bXTA4A0TIL7FVW6vjmfjckgiC607F85wYrW1NF0Y0d0ALAtOyn9M9ngybCiPP/hPWm9YsyYpyhiDB8RqsiiZU4nAGqNz5Rw115l0faHYw2JeOrCUaMK5ni+baqpozre8j6Tw18izBJ+jq5VWeNfc+qI0zfhOaJ5vCVIg7yMK2Nh8TNJX6ffw2XwUy4/kCxZpiNAYA1VYvSdTfIUIGj6V9veW4ssR0H8EyDnE0IFZwq9hzAnMKs7yFDYM30QQHH4jHyjHBTQeDP9ZmgaZDlMJA5J9ArM4gd3C+aYQopW9J00Zt12RWfveNjNgsCjIF/nZRsgsSo1R6v1VgY6ZayvF4jvpda3Z9LquuONtel1xy/EgtM2izgP0jU/VGc9BTBn4AIYrRf8I0I8tr0GdjBQsj1Reo1QTJevBgXKiB+HZDIvK1spfnOAjIIMGPSI4fIXoAO/6H5Q3HEs/Tp2o7+PIaZ9ETgWt91Se+ACmns2iydC42HsPO0pct9AlYJ3FlM+oH6WQX3YDYW9guYzSIbrLUgiE6Ytx/TBG11ZSLBJiOI7CAFubiLJSszPOi7dN2+mNaNaKrESHMpMsR4svzsAP0gqJmZvCTdIvptKfCYyjxGYdcgzgtc47pm+CVdxyuOl2OyNoTpyf1dBFf0d635fbVtgYRKYuk3uVDFAKqoI++QHZU0VDgI3KGSShQ3QrgHQKCxKkbwg8+3i0gnAEgINRSMeG8UweIqKzkP4DwfmGti1fSXd2GotA4K8kCEfyNVIO+0jG6roRZECTOlLhCNtKKfEvDAPUXhxvp+g4/YphQvtTZ5ecQzkN1vFZvGskGoHkltcGmIgPfduKAyOhDsrqQKVvQb2PKbeaOKZ8WZNaPZWOLObyQJN/ffR7VpZKxtTsFBWYl30liqD/r6lB9i0l+x5cyMGkiTb5Eku+StgXukU6xfcUU3VwsSnRFcKRC1HJfeUs/deWoTGN+fRpReAP79otXsbU8dLomPNaXExjLpWW3jZSanq7kkh649iqFi5pVSzY2uzFp14unzG1tMYLs8UqQyjM0YXSpUugLPOeCUWVz1BU+RxFnSWN9MYxRaX2ia17ZZp3+0F+9oLOAEw/3cKqP57dF8+z+5W/T7P/e0PTJZl96SyzL/1/NPviGYoqnqOo4lmKmgV+pXPM/l2TmnUllijhVQlwfC8WvwdHNQXcGkFOC4nml3Jj8z0+TM11ZdVJ5brw8iXVfrDu8meVsRzKZJb95X8G36qt8TPccb2lnRuR+cur8Wx1daxUUnM9od+jBd7PYuvYr2DobLw3Q8o6VmAp/5Ck9d0neW5WS7/Pif/AhAqoiyt0oXehsrQQ/V5k9O/M+wdjU2kIl8mKjrotkPqbkVUsOpGOVW0oukPwgzhPYYm+JgCefyTAUFL8o/Kj24irdHrzXKXyMYaFy2dIv2xZHfzr4BB3Aqlrk/cy5qY8SxQsrdCB3sLyUkWdM8ypIjwwvIP8PgF2N4l4MLpkkHKnY3LmdOlg9BsKLu7GSOrYS/7+SvIzHcfb5lb9noZw0fIaqRA+UbTwgQvW7hOgZxkgr6CTrFRHrFQ5XYsHkvV1/FuTY6lvtLjwizpQQrtcE8K3QcRc11K0oeWJIlFJEdvoZkt9tRG74yC8TTxG16TtaPlGdLkiTqRerxN1dQdioVJZooOParmcL4XnHlIi8lJPupJ0TVXt1qKKvREV76U3KTQcr/lAXRXBgxfhCdPp96+0uGnBB3XKjq62xMrVk9tS5eNfY22Ckf+mq9bk4vE6BLS8xsuf6cXPp8r3U0XshTrbx077YQX7DV6I/g0NO8YBjCqxqrr3iKp2L6jcehDWoHFF6iSrbYpm6xP0y7oWc8yVMjpmLSvbeRD+xofkYJD7RDB86nsd7otdXYviKqBuodLZQRCGrldLXuNPqfFP7s+xADD8kkR3GsbQA2nhdBn1OQkSvBlWH59jnGVUs8GKYaKi9BQCbijlvBJZ/MrtYzomQG28Yn/dP1WCDuvTp3TWgNXKx8jhVBZTqbwta1VR6Xv4xFC/kovLSF7KShNTVp0ASryC5NfhbR0yioB/4Him0De5wKIJWJq1jrR0oos3oFyBfSMrWKabQAvVxWLkt6SK73bbDbwJEHxgu7AD0BWTbL+vvl2rF/t9c8u0wYAdfIpDOnJHkJPR3C6GGHadlRYZHpfEHFVIqrQoTxi5YCiMupqPEsksIMO/OW0SZyiSpeXqMjqGpRUI6KXK6Mw4HvtTC+yu2zWdz5C9Or38ADh+igvC1G6yMlQpjypDZ/kUpDiReC9U0hLU5KlrsTolhd2WParnHiXAihuetUtf8NehmPX8Hxt9FnE="
+          pathlib.Path('/tmp/qpokoy-final.patch').write_bytes(
+              zlib.decompress(base64.b64decode(data))
+          )
+          PY
+
+          git apply --check --whitespace=nowarn /tmp/qpokoy-final.patch
+          git apply --whitespace=nowarn /tmp/qpokoy-final.patch
+
+          AFTER="$(sha256sum index.html | awk '{print $1}')"
+          if [ "$AFTER" != "$TARGET" ]; then
+            echo "Target SHA-256 mismatch: $AFTER"
+            exit 1
+          fi
+
+          rm -f .github/workflows/qpokoy-final-verified-deploy.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/qpokoy-final-verified-deploy.yml
+          git commit -m "Publish final verified qPokoy version"
+          git push origin HEAD:main
