@@ -1,1 +1,0 @@
-Trigger GitHub Pages for the current main after the mobile history date size patch.
