@@ -5963,6 +5963,19 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
   }
 }
 </style>
+
+<style id="qPokoyMobileHistoryKeyboardNavV1">
+/* Mobile history: while the search field has focus, hide the fixed bottom
+   navigation so iOS cannot lift it above the on-screen keyboard during scroll. */
+@media (max-width:560px){
+  body:has(#history.page.active #historySearch:focus) .sidebar{
+    opacity:0 !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
+    transform:translateY(110%) !important;
+  }
+}
+</style>
 </body>
 </html>
 
