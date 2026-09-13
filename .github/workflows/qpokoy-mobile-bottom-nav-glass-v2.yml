@@ -1,0 +1,84 @@
+name: qPokoy mobile bottom nav glass v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/qpokoy-mobile-bottom-nav-glass-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Match phone glass navigation to mockup
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_BLOB="afbd552b52ed37cbac02554d3ab1c9c29c1583ca"
+          CURRENT_BLOB="$(git hash-object index.html)"
+          test "$CURRENT_BLOB" = "$EXPECTED_BLOB"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, re, subprocess, tempfile, os
+
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old_pattern=r'<style id="qPokoyMobileBottomNavGlassV1">.*?</style>'
+          matches=re.findall(old_pattern,s,re.S)
+          if len(matches)!=1:
+              raise SystemExit(f'Expected one V1 glass style, found {len(matches)}')
+          if 'qPokoyMobileBottomNavGlassV2' in s:
+              raise SystemExit('V2 patch already present')
+
+          new=base64.b64decode('PHN0eWxlIGlkPSJxUG9rb3lNb2JpbGVCb3R0b21OYXZHbGFzc1YyIj4KLyogUGhvbmUgb25seTogdmFyaWFudCA1IG1hdGNoZWQgdG8gdGhlIGFwcHJvdmVkIGdsYXNzIG1vY2t1cC4gRGVza3RvcCBpcyB1bnRvdWNoZWQuICovCkBtZWRpYSAobWF4LXdpZHRoOjU2MHB4KXsKICAuY29udGVudHsKICAgIHBhZGRpbmctYm90dG9tOmNhbGMoODhweCArIGVudihzYWZlLWFyZWEtaW5zZXQtYm90dG9tKSkgIWltcG9ydGFudDsKICB9CgogIC5zaWRlYmFyewogICAgcG9zaXRpb246Zml4ZWQgIWltcG9ydGFudDsKICAgIGxlZnQ6MTJweCAhaW1wb3J0YW50OwogICAgcmlnaHQ6MTJweCAhaW1wb3J0YW50OwogICAgYm90dG9tOmNhbGMoOHB4ICsgZW52KHNhZmUtYXJlYS1pbnNldC1ib3R0b20pKSAhaW1wb3J0YW50OwogICAgd2lkdGg6YXV0byAhaW1wb3J0YW50OwogICAgaGVpZ2h0OjY2cHggIWltcG9ydGFudDsKICAgIHBhZGRpbmc6MCA2cHggIWltcG9ydGFudDsKICAgIGdhcDoycHggIWltcG9ydGFudDsKICAgIGdyaWQtdGVtcGxhdGUtY29sdW1uczpyZXBlYXQoMyxtaW5tYXgoMCwxZnIpKSAhaW1wb3J0YW50OwogICAgYmFja2dyb3VuZDpjb2xvci1taXgoaW4gc3JnYix2YXIoLS1wYW5lbCkgNzIlLHRyYW5zcGFyZW50KSAhaW1wb3J0YW50OwogICAgYm9yZGVyOjFweCBzb2xpZCBjb2xvci1taXgoaW4gc3JnYix2YXIoLS1ib3JkZXIpIDcwJSxyZ2JhKDI1NSwyNTUsMjU1LC4xOCkpICFpbXBvcnRhbnQ7CiAgICBib3JkZXItcmFkaXVzOjIycHggIWltcG9ydGFudDsKICAgIGJveC1zaGFkb3c6CiAgICAgIDAgMTBweCAzMHB4IHJnYmEoMCwwLDAsLjMwKSwKICAgICAgaW5zZXQgMCAxcHggMCByZ2JhKDI1NSwyNTUsMjU1LC4wNTUpLAogICAgICBpbnNldCAwIC0xcHggMCByZ2JhKDI1NSwyNTUsMjU1LC4wMTgpICFpbXBvcnRhbnQ7CiAgICAtd2Via2l0LWJhY2tkcm9wLWZpbHRlcjpibHVyKDI0cHgpIHNhdHVyYXRlKDE0MCUpICFpbXBvcnRhbnQ7CiAgICBiYWNrZHJvcC1maWx0ZXI6Ymx1cigyNHB4KSBzYXR1cmF0ZSgxNDAlKSAhaW1wb3J0YW50OwogICAgb3ZlcmZsb3c6aGlkZGVuICFpbXBvcnRhbnQ7CiAgfQoKICAuc2lkZWJhcjo6YmVmb3JlewogICAgY29udGVudDoiIjsKICAgIHBvc2l0aW9uOmFic29sdXRlOwogICAgaW5zZXQ6MDsKICAgIGJvcmRlci1yYWRpdXM6aW5oZXJpdDsKICAgIHBvaW50ZXItZXZlbnRzOm5vbmU7CiAgICBiYWNrZ3JvdW5kOgogICAgICBsaW5lYXItZ3JhZGllbnQoMTgwZGVnLHJnYmEoMjU1LDI1NSwyNTUsLjA0NSkscmdiYSgyNTUsMjU1LDI1NSwwKSA0MiUpLAogICAgICByYWRpYWwtZ3JhZGllbnQoMTIwJSAxNTAlIGF0IDE1JSAwJSxjb2xvci1taXgoaW4gc3JnYix2YXIoLS1wcmltYXJ5KSA3JSx0cmFuc3BhcmVudCksdHJhbnNwYXJlbnQgNTglKTsKICB9CgogIC5zaWRlYmFyID4gLm5hdi1pdGVtewogICAgcG9zaXRpb246cmVsYXRpdmUgIWltcG9ydGFudDsKICAgIHotaW5kZXg6MSAhaW1wb3J0YW50OwogICAgbWluLXdpZHRoOjAgIWltcG9ydGFudDsKICAgIGhlaWdodDoxMDAlICFpbXBvcnRhbnQ7CiAgICBtYXJnaW46MCAhaW1wb3J0YW50OwogICAgcGFkZGluZzo3cHggNHB4ICFpbXBvcnRhbnQ7CiAgICBib3JkZXI6MCAhaW1wb3J0YW50OwogICAgYm9yZGVyLXJhZGl1czowICFpbXBvcnRhbnQ7CiAgICBiYWNrZ3JvdW5kOnRyYW5zcGFyZW50ICFpbXBvcnRhbnQ7CiAgICBib3gtc2hhZG93Om5vbmUgIWltcG9ydGFudDsKICAgIHRyYW5zZm9ybTpub25lICFpbXBvcnRhbnQ7CiAgICBjb2xvcjp2YXIoLS10ZXh0LW11dGVkKSAhaW1wb3J0YW50OwogIH0KCiAgLnNpZGViYXIgPiAubmF2LWl0ZW06aG92ZXJ7CiAgICBiYWNrZ3JvdW5kOnRyYW5zcGFyZW50ICFpbXBvcnRhbnQ7CiAgICB0cmFuc2Zvcm06bm9uZSAhaW1wb3J0YW50OwogIH0KCiAgLnNpZGViYXIgPiAubmF2LWl0ZW0uYWN0aXZlewogICAgYm9yZGVyLXJhZGl1czowICFpbXBvcnRhbnQ7CiAgICBiYWNrZ3JvdW5kOnRyYW5zcGFyZW50ICFpbXBvcnRhbnQ7CiAgICBib3gtc2hhZG93Om5vbmUgIWltcG9ydGFudDsKICAgIGNvbG9yOnZhcigtLXByaW1hcnkpICFpbXBvcnRhbnQ7CiAgfQoKICAuc2lkZWJhciA+IC5uYXYtaXRlbS5hY3RpdmUgLm5hdi1pY29uLAogIC5zaWRlYmFyID4gLm5hdi1pdGVtLmFjdGl2ZSAubmF2LWxhYmVsewogICAgY29sb3I6dmFyKC0tcHJpbWFyeSkgIWltcG9ydGFudDsKICB9CgogIC5zaWRlYmFyID4gLm5hdi1pdGVtLmFjdGl2ZSAubmF2LWljb257CiAgICBmaWx0ZXI6ZHJvcC1zaGFkb3coMCAwIDhweCBjb2xvci1taXgoaW4gc3JnYix2YXIoLS1wcmltYXJ5KSAzMiUsdHJhbnNwYXJlbnQpKTsKICB9CgogIC5zaWRlYmFyID4gLm5hdi1pdGVtLmFjdGl2ZSAubmF2LWxhYmVsewogICAgZm9udC13ZWlnaHQ6NjUwICFpbXBvcnRhbnQ7CiAgfQoKICAuc2lkZWJhciAubmF2LWljb24gc3ZnewogICAgd2lkdGg6MjJweCAhaW1wb3J0YW50OwogICAgaGVpZ2h0OjIycHggIWltcG9ydGFudDsKICB9CgogIC5zaWRlYmFyIC5uYXYtbGFiZWx7CiAgICBmb250LXNpemU6MTAuNXB4ICFpbXBvcnRhbnQ7CiAgfQoKICAvKiBQcmVzZXJ2ZSBleGlzdGluZyB1c2VyIHNldHRpbmc6IGljb24rbGFiZWwgLyBpY29ucyBvbmx5IC8gbGFiZWxzIG9ubHkuICovCiAgaHRtbFtkYXRhLW5hdi1sYWJlbC1tb2RlPSJib3RoIl0gLnNpZGViYXIgPiAubmF2LWl0ZW17CiAgICBmbGV4LWRpcmVjdGlvbjpjb2x1bW4gIWltcG9ydGFudDsKICAgIGdhcDozcHggIWltcG9ydGFudDsKICB9CgogIGh0bWxbZGF0YS1uYXYtbGFiZWwtbW9kZT0iaWNvbnMiXSAuc2lkZWJhciA+IC5uYXYtaXRlbSwKICBodG1sW2RhdGEtbmF2LWxhYmVsLW1vZGU9InRleHQiXSAuc2lkZWJhciA+IC5uYXYtaXRlbXsKICAgIGZsZXgtZGlyZWN0aW9uOnJvdyAhaW1wb3J0YW50OwogICAgZ2FwOjAgIWltcG9ydGFudDsKICB9Cn0KPC9zdHlsZT4=').decode('utf-8')
+          s,n=re.subn(old_pattern,new,s,count=1,flags=re.S)
+          if n!=1:
+              raise SystemExit('Glass style replacement failed')
+          p.write_text(s,encoding='utf-8')
+
+          s=p.read_text(encoding='utf-8')
+          so=len(re.findall(r'<style\b',s,re.I)); sc=len(re.findall(r'</style\s*>',s,re.I))
+          jo=len(re.findall(r'<script\b',s,re.I)); jc=len(re.findall(r'</script\s*>',s,re.I))
+          print(f'style {so}/{sc}')
+          print(f'script {jo}/{jc}')
+          if so != sc or jo != jc:
+              raise SystemExit('Unbalanced style/script tags')
+          if s.count('qPokoyMobileBottomNavGlassV1') != 0:
+              raise SystemExit('Old V1 glass marker still present')
+          if s.count('qPokoyMobileBottomNavGlassV2') != 1:
+              raise SystemExit('V2 glass marker mismatch')
+          if 'data-nav-label-mode="icons"' not in new or 'data-nav-label-mode="text"' not in new:
+              raise SystemExit('Navigation display modes not preserved')
+
+          scripts=re.findall(r'<script\b([^>]*)>(.*?)</script\s*>',s,re.I|re.S)
+          checked=0
+          for attrs,body in scripts:
+              if re.search(r'\bsrc\s*=',attrs,re.I):
+                  continue
+              checked+=1
+              with tempfile.NamedTemporaryFile('w',suffix='.js',encoding='utf-8',delete=False) as f:
+                  f.write(body)
+                  name=f.name
+              r=subprocess.run(['node','--check',name],capture_output=True,text=True)
+              os.unlink(name)
+              if r.returncode:
+                  print(r.stdout)
+                  print(r.stderr)
+                  raise SystemExit(f'JS syntax error in inline script #{checked}')
+          print(f'inline_js_checked {checked}')
+          PY
+
+          rm -f .github/workflows/qpokoy-mobile-bottom-nav-glass-v2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/qpokoy-mobile-bottom-nav-glass-v2.yml
+          git commit -m "Match phone glass navigation to mockup"
+          git push origin HEAD:main
