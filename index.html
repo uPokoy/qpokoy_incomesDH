@@ -5976,6 +5976,143 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
   }
 }
 </style>
+
+<style id="qPokoyMobileHistoryCardsV1">
+/* Mobile history cards: visual-only redesign. No filtering or data logic changes. */
+@media (max-width:560px){
+  #history .income-table-section{
+    overflow:visible !important;
+    background:transparent !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
+  #history #incomeList{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    padding:0 0 96px !important;
+    margin-bottom:0 !important;
+    overflow:visible !important;
+    background:transparent !important;
+  }
+
+  #history #incomeList > .income-row.income-header{
+    display:none !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header){
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "amount amount"
+      "date category"
+      "description description" !important;
+    align-items:center !important;
+    gap:8px 10px !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:14px 92px 14px 14px !important;
+    overflow:hidden !important;
+    background:var(--panel) !important;
+    border:1px solid var(--border) !important;
+    border-radius:16px !important;
+    box-shadow:var(--shadow-sm) !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div{
+    min-height:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    overflow:visible !important;
+    justify-content:flex-start !important;
+    text-align:left !important;
+    white-space:normal !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(1){
+    grid-area:date !important;
+    color:var(--text-muted) !important;
+    font-size:13px !important;
+    line-height:1.25 !important;
+    font-weight:500 !important;
+    white-space:nowrap !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(2){
+    grid-area:amount !important;
+    color:var(--text) !important;
+    font-size:22px !important;
+    line-height:1.12 !important;
+    font-weight:750 !important;
+    font-variant-numeric:tabular-nums !important;
+    letter-spacing:-0.02em !important;
+    white-space:nowrap !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(3){
+    grid-area:category !important;
+    justify-self:end !important;
+    width:max-content !important;
+    max-width:100% !important;
+    padding:5px 9px !important;
+    border:1px solid color-mix(in srgb,var(--primary) 28%,var(--border)) !important;
+    border-radius:999px !important;
+    background:color-mix(in srgb,var(--primary) 10%,transparent) !important;
+    color:var(--primary) !important;
+    font-size:12px !important;
+    line-height:1.15 !important;
+    font-weight:650 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(4){
+    grid-area:description !important;
+    display:-webkit-box !important;
+    -webkit-box-orient:vertical !important;
+    -webkit-line-clamp:2 !important;
+    overflow:hidden !important;
+    color:var(--text) !important;
+    font-size:16px !important;
+    line-height:1.38 !important;
+    overflow-wrap:anywhere !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(4):empty{
+    display:none !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .edit-income,
+  #history #incomeList > .income-row:not(.income-header) .delete-income{
+    position:absolute !important;
+    top:14px !important;
+    width:34px !important;
+    height:34px !important;
+    transform:none !important;
+    border-radius:10px !important;
+    background:var(--panel-muted) !important;
+    z-index:20 !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .edit-income{
+    right:52px !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .delete-income{
+    right:12px !important;
+  }
+
+  #history .income-empty{
+    padding:36px 18px !important;
+    border:1px solid var(--border) !important;
+    border-radius:16px !important;
+    background:var(--panel) !important;
+  }
+}
+</style>
 </body>
 </html>
 
