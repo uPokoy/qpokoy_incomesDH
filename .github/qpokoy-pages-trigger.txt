@@ -1,1 +1,0 @@
-Trigger GitHub Pages for the current main index after the mobile history cards patch.
