@@ -1,0 +1,105 @@
+name: qPokoy phone bottom navigation gap adjustment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/qpokoy-mobile-nav-gap.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Reduce only the phone navigation bottom gap
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('index.html')
+          html = path.read_text(encoding='utf-8')
+          marker = '<style id="qPokoyMobileBottomNavGlassV2">'
+          start = html.find(marker)
+          if start < 0:
+              raise SystemExit('qPokoyMobileBottomNavGlassV2 not found')
+          end = html.find('</style>', start)
+          if end < 0:
+              raise SystemExit('Closing style tag for qPokoyMobileBottomNavGlassV2 not found')
+
+          block = html[start:end]
+          old = 'bottom:calc(8px + env(safe-area-inset-bottom)) !important;'
+          new = 'bottom:calc(4px + env(safe-area-inset-bottom)) !important;'
+          if block.count(old) != 1:
+              raise SystemExit(f'Expected exactly one old bottom rule in glass block, found {block.count(old)}')
+
+          block = block.replace(old, new, 1)
+          html = html[:start] + block + html[end:]
+          path.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Validate HTML tag balance and inline JavaScript
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+          import tempfile
+
+          html = Path('index.html').read_text(encoding='utf-8')
+
+          style_open = len(re.findall(r'<style\b', html, flags=re.I))
+          style_close = len(re.findall(r'</style\s*>', html, flags=re.I))
+          script_open = len(re.findall(r'<script\b', html, flags=re.I))
+          script_close = len(re.findall(r'</script\s*>', html, flags=re.I))
+
+          print(f'style tags: {style_open} / {style_close}')
+          print(f'script tags: {script_open} / {script_close}')
+          if style_open != style_close:
+              raise SystemExit('Unbalanced style tags')
+          if script_open != script_close:
+              raise SystemExit('Unbalanced script tags')
+
+          scripts = re.findall(r'<script\b([^>]*)>(.*?)</script\s*>', html, flags=re.I | re.S)
+          checked = 0
+          for attrs, body in scripts:
+              if re.search(r'\bsrc\s*=', attrs, flags=re.I):
+                  continue
+              m = re.search(r'\btype\s*=\s*["\']([^"\']+)["\']', attrs, flags=re.I)
+              if m and m.group(1).strip().lower() not in {
+                  'text/javascript', 'application/javascript', 'module',
+                  'text/ecmascript', 'application/ecmascript'
+              }:
+                  continue
+              checked += 1
+              suffix = '.mjs' if m and m.group(1).strip().lower() == 'module' else '.js'
+              with tempfile.NamedTemporaryFile('w', suffix=suffix, encoding='utf-8', delete=False) as f:
+                  f.write(body)
+                  temp_name = f.name
+              result = subprocess.run(['node', '--check', temp_name], text=True, capture_output=True)
+              if result.returncode:
+                  print(result.stdout)
+                  print(result.stderr)
+                  raise SystemExit(f'node --check failed for inline script #{checked}')
+          print(f'inline scripts checked: {checked}')
+          PY
+
+      - name: Commit isolated patch and remove temporary workflow
+        shell: bash
+        run: |
+          rm -f .github/workflows/qpokoy-mobile-nav-gap.yml
+          git config user.name "uPokoy"
+          git config user.email "120357426+uPokoy@users.noreply.github.com"
+          git add index.html .github/workflows/qpokoy-mobile-nav-gap.yml
+          git diff --cached --check
+          git commit -m "Reduce phone bottom navigation edge gap"
+          git push origin main
