@@ -1,0 +1,54 @@
+name: qPokoy mobile history date larger
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/qpokoy-mobile-history-date-larger.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Increase mobile history date size
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_BASE="b253d0bf439bf6d316c6f14a6f87b5c8bd57fffec5a907412682ad3b8b2f450e"
+          TARGET="55374f0864d0a0ec5e3135639f5a35b55ffb5fabb1549682aa92e9f89f67d7f1"
+          CURRENT="$(sha256sum index.html | awk '{print $1}')"
+          if [ "$CURRENT" != "$EXPECTED_BASE" ]; then
+            echo "Unexpected base SHA-256: $CURRENT"
+            exit 1
+          fi
+
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old='''  #history #incomeList > .income-row:not(.income-header) > div:nth-child(1){\n    grid-area:date !important;\n    color:var(--text-muted) !important;\n    font-size:13px !important;'''
+          new='''  #history #incomeList > .income-row:not(.income-header) > div:nth-child(1){\n    grid-area:date !important;\n    color:var(--text-muted) !important;\n    font-size:15px !important;'''
+          if s.count(old) != 1:
+              raise SystemExit(f'Expected exactly one mobile history date block, got {s.count(old)}')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+
+          AFTER="$(sha256sum index.html | awk '{print $1}')"
+          if [ "$AFTER" != "$TARGET" ]; then
+            echo "Target SHA-256 mismatch: $AFTER"
+            exit 1
+          fi
+
+          rm -f .github/workflows/qpokoy-mobile-history-date-larger.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/qpokoy-mobile-history-date-larger.yml
+          git commit -m "Increase mobile history date size"
+          git push origin HEAD:main
