@@ -3403,6 +3403,67 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
 }
 </style>
 
+
+<style id="qPokoyMobileBottomNavGlassV1">
+/* Phone only: variant 5 — glass bottom navigation. Desktop is untouched. */
+@media (max-width:560px){
+  .sidebar{
+    background:color-mix(in srgb,var(--panel) 74%,transparent) !important;
+    border-top:1px solid color-mix(in srgb,var(--border) 80%,rgba(255,255,255,.10)) !important;
+    box-shadow:0 -10px 30px rgba(0,0,0,.24),
+               inset 0 1px 0 rgba(255,255,255,.035) !important;
+    -webkit-backdrop-filter:blur(22px) saturate(135%) !important;
+    backdrop-filter:blur(22px) saturate(135%) !important;
+  }
+
+  .sidebar > .nav-item{
+    min-width:0 !important;
+    margin:0 !important;
+    padding:7px 4px !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  .sidebar > .nav-item:hover{
+    background:transparent !important;
+    transform:none !important;
+  }
+
+  .sidebar > .nav-item.active{
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    color:var(--primary) !important;
+  }
+
+  .sidebar > .nav-item.active .nav-icon,
+  .sidebar > .nav-item.active .nav-label{
+    color:var(--primary) !important;
+  }
+
+  .sidebar > .nav-item.active .nav-icon{
+    filter:drop-shadow(0 0 10px color-mix(in srgb,var(--primary) 28%,transparent));
+  }
+
+  .sidebar > .nav-item.active .nav-label{
+    font-weight:650 !important;
+  }
+
+  /* Preserve existing modes: icon+label / icons only / labels only. */
+  html[data-nav-label-mode="both"] .sidebar > .nav-item{
+    flex-direction:column !important;
+    gap:2px !important;
+  }
+  html[data-nav-label-mode="icons"] .sidebar > .nav-item,
+  html[data-nav-label-mode="text"] .sidebar > .nav-item{
+    flex-direction:row !important;
+    gap:0 !important;
+  }
+}
+</style>
+
 </head>
 <body class="qp-auth-locked qp-auth-checking">
 <div class="app">
