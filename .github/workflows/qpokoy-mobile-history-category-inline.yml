@@ -1,0 +1,48 @@
+name: qPokoy mobile history category inline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/qpokoy-mobile-history-category-inline.yml
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply mobile history category inline patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT="$(sha256sum index.html | awk '{print $1}')"
+          EXPECTED_BASE="432b5d3a7273c28cb0d4dc9869047ecd762a5568e080fcd124aa4b5bc9c649be"
+          TARGET="b253d0bf439bf6d316c6f14a6f87b5c8bd57fffec5a907412682ad3b8b2f450e"
+          if [ "$CURRENT" != "$EXPECTED_BASE" ]; then
+            echo "Unexpected index.html base SHA-256: $CURRENT"
+            exit 1
+          fi
+          python - <<'PY2'
+          import base64,zlib,pathlib
+          data="eNqlUlFOwzAM/d8pTCekTV2gZRuMIKEdgEuEJmuN2qRKPNaJy5O0FLa18MOPE9vPL86zGWMgblFL1dwUVJWTOI7h9TSw3QK7T5LVIl1C3F+22wlMAGBaoCNjjzBFnZlKvXgXnuGm85g1B64NzXq/UEIqO/8IpQASXV2KI88tSrjCqjaWhKanCQvZEGWkKg8hxTJT7ivteIW6Es0sWaQ7OwexJ3NWGf9RKRp/16Q0wTnLKQEMCYRVwvGuKYBIVGbvKboj+g5LD4XMm9zLEXWN/KCHiRYfTNS9GULKZRZrQqPh5B4NGxQl5pqhb9HxzH9I2RH9RM03dQNp4s1Qo6/s5iLZ0nt5/KgwL4gnI1lhc9RjmVpIiTrn6cqzPt6Fx1e9OQV3K7VeLh7CRvlz88+F8giJ71xTwbICSzlb9jvWjjJMkPcjGCr1tneEuyNzqtxxpeVQrTOEI2FpiOlm0iJGRtI2c0BJxdkijojbsA6WJsn17xKvg8IXsn4CSVEyHQ=="
+          pathlib.Path('/tmp/qpokoy.patch').write_bytes(zlib.decompress(base64.b64decode(data)))
+          PY2
+          git apply --check --whitespace=nowarn /tmp/qpokoy.patch
+          git apply --whitespace=nowarn /tmp/qpokoy.patch
+          AFTER="$(sha256sum index.html | awk '{print $1}')"
+          if [ "$AFTER" != "$TARGET" ]; then
+            echo "Target SHA-256 mismatch: $AFTER"
+            exit 1
+          fi
+          rm -f .github/workflows/qpokoy-mobile-history-category-inline.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/qpokoy-mobile-history-category-inline.yml
+          git commit -m "Align mobile history category with amount"
+          git push origin HEAD:main
