@@ -1,0 +1,1255 @@
+
+/* Mobile layout fix for compact phones (iPhone 13 mini and similar).
+   Presentation-only: no JavaScript/data/auth changes. */
+@media (max-width: 430px){
+  html,body{min-width:0 !important;width:100%;overflow-x:hidden !important;}
+  body{font-size:14px;}
+  .content{min-height:100dvh !important;padding-bottom:calc(72px + env(safe-area-inset-bottom)) !important;}
+  main{width:100% !important;max-width:none !important;margin:0 !important;padding:12px !important;}
+
+  /* Bottom navigation */
+  .sidebar{height:64px !important;padding-bottom:env(safe-area-inset-bottom);grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
+  .nav-item{min-width:0 !important;padding:7px 4px !important;gap:4px !important;}
+  .nav-icon svg{width:21px !important;height:21px !important;}
+  .nav-label{font-size:10px !important;max-width:100%;}
+  html[data-nav-label-mode="both"] .nav-item{flex-direction:column !important;gap:2px !important;}
+  html[data-nav-label-mode="text"] .nav-item{font-size:12px !important;}
+
+  /* Dashboard */
+  .income-top{display:flex !important;flex-direction:column !important;gap:14px !important;min-height:0 !important;width:100% !important;margin-bottom:14px !important;padding:16px !important;border-radius:18px !important;}
+  .income-month-block{width:100% !important;gap:9px !important;}
+  .income-total{font-size:clamp(30px,9vw,38px) !important;max-width:100%;overflow-wrap:anywhere;}
+  .income-month-chart{width:100% !important;min-width:0 !important;min-height:132px !important;padding-top:34px !important;}
+  .income-chart-wrap{height:100px !important;width:100% !important;}
+  .income-chart-year-bottom{right:0 !important;}
+  .income-chart-year-switcher{max-width:100%;}
+
+  /* Statistics header and cards */
+  .income-analytics{width:100% !important;margin-bottom:14px !important;padding:16px !important;border-radius:18px !important;}
+  #incomeAnalytics .analytics-head{display:flex !important;flex-direction:column !important;align-items:flex-start !important;gap:8px !important;margin-bottom:14px !important;}
+  #incomeAnalytics .analytics-title-block{width:100% !important;min-width:0 !important;}
+  #incomeAnalytics .analytics-title-block h2{font-size:20px !important;line-height:1.25 !important;gap:7px !important;flex-wrap:wrap !important;}
+  #incomeAnalytics .analytics-year-switcher{flex:0 0 auto !important;}
+  #incomeAnalytics .analytics-total{font-size:21px !important;line-height:1.2 !important;}
+  #incomeAnalytics .analytics-cards{display:grid !important;grid-template-columns:1fr !important;gap:10px !important;}
+  #incomeAnalytics .analytics-card{width:100% !important;min-height:132px !important;height:auto !important;padding:18px 16px !important;border-radius:16px !important;gap:12px !important;}
+  #incomeAnalytics .analytics-card-icon{flex-basis:40px !important;width:40px !important;height:40px !important;}
+  #incomeAnalytics .analytics-card-icon svg{width:21px !important;height:21px !important;}
+  #incomeAnalytics .analytics-card-body{min-width:0 !important;max-width:calc(100% - 52px) !important;}
+  #incomeAnalytics .analytics-card-body > span{font-size:12px !important;}
+  #incomeAnalytics .analytics-card-body strong{margin-top:15px !important;font-size:21px !important;line-height:1.2 !important;overflow-wrap:anywhere;}
+  #incomeAnalytics .analytics-card-body small{margin-top:7px !important;font-size:11px !important;}
+
+  #incomeAnalytics .analytics-grid{display:block !important;}
+  #incomeAnalytics .analytics-category-panels{grid-template-columns:1fr !important;gap:10px !important;}
+  #incomeAnalytics .analytics-category-panel{width:100% !important;min-height:132px !important;height:auto !important;padding:18px 16px !important;border-radius:16px !important;}
+  #incomeAnalytics .analytics-category-panel-icon{width:40px !important;height:40px !important;flex-basis:40px !important;}
+  #incomeAnalytics .analytics-category-panel-icon svg{width:21px !important;height:21px !important;}
+  #incomeAnalytics .analytics-category-panel-value{margin-top:15px !important;font-size:21px !important;overflow-wrap:anywhere;}
+  #incomeAnalytics .analytics-category-panel-share{top:18px !important;right:16px !important;min-width:44px !important;height:30px !important;font-size:12px !important;}
+
+  /* Category dropdown: keep long lists scrollable and above fixed bottom navigation. */
+  .category-popup{
+    max-height:calc(100dvh - 140px) !important;
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    z-index:100001 !important;
+  }
+  .category-option{min-height:42px !important;padding:10px 12px !important;font-size:14px !important;}
+
+  /* Add/edit income form */
+  .income-form{width:100% !important;margin-bottom:14px !important;padding:18px 16px 76px !important;border-radius:18px !important;}
+  .form-title{font-size:17px !important;margin-right:42px !important;}
+  .form-grid{grid-template-columns:1fr !important;gap:11px !important;}
+  .form-grid input,.category-select{min-height:44px !important;}
+  .save-btn{right:16px !important;bottom:16px !important;min-width:46px !important;width:46px !important;height:42px !important;padding:0 !important;}
+  .save-btn svg{width:18px !important;height:18px !important;}
+  .cancel-btn{top:12px !important;right:12px !important;}
+  .calendar-popup{width:min(320px,calc(100vw - 32px)) !important;max-width:calc(100vw - 32px) !important;}
+
+  /* History */
+  #historySearchWrap{margin-bottom:10px !important;}
+  #historySearch{height:44px !important;}
+  .income-table-section{width:100% !important;border-radius:18px !important;}
+  .income-list{width:100% !important;overflow-x:hidden !important;}
+  .income-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;padding:9px 44px 9px 8px !important;}
+  .income-row > div{min-width:0 !important;padding:5px 7px !important;overflow:hidden !important;}
+  .income-row > div:nth-child(4){grid-column:1 / -1 !important;overflow-wrap:anywhere !important;}
+  .edit-income,.delete-income{top:27px !important;}
+
+  /* Settings: eliminate fixed desktop widths that caused the right-side crop. */
+  #settings{width:100% !important;max-width:none !important;margin:0 !important;padding:12px 0 calc(24px + env(safe-area-inset-bottom)) !important;}
+  #settings > .settings-card{width:100% !important;max-width:none !important;margin:0 0 12px !important;padding:18px 16px !important;border-radius:18px !important;overflow:hidden !important;}
+  #settings > .settings-card:not([style]) .icon-colors,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child{
+    width:100% !important;min-width:0 !important;max-width:100% !important;
+    flex-wrap:nowrap !important;gap:8px !important;overflow-x:auto !important;overflow-y:hidden !important;padding:2px 2px 6px !important;
+    scrollbar-width:none !important;
+  }
+  #settings > .settings-card:not([style]) .icon-colors::-webkit-scrollbar,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child::-webkit-scrollbar{display:none;}
+  #settings > .settings-card:not([style]) .icon-color,
+  #settings > .settings-card:not([style]) .accent-swatch,
+  #settings > .settings-card:not([style]) .custom-color,
+  #settings > .settings-card:not([style]) .accent-custom-color{
+    flex:0 0 38px !important;width:38px !important;min-width:38px !important;max-width:38px !important;height:38px !important;
+  }
+  #settings > .settings-card:not([style]) > .nav-label-mode-options{grid-template-columns:1fr 1fr !important;gap:8px !important;}
+  #settings > .settings-card:not([style]) .nav-label-mode-btn{min-width:0 !important;width:100% !important;}
+  #settings .qp-account-row{flex-direction:column !important;align-items:stretch !important;gap:10px !important;}
+  #settings #qpAuthLogoutBtn{width:100% !important;}
+  #settings > .settings-card[style] > div[style]{display:grid !important;grid-template-columns:1fr !important;gap:8px !important;}
+  #settings > .settings-card[style] button{width:100% !important;min-width:0 !important;}
+
+  /* Auth screen */
+  #qpAuthGate{padding:12px !important;align-items:center !important;}
+  .qp-auth-card{width:100% !important;max-width:none !important;padding:20px 16px !important;border-radius:18px !important;}
+}
+
+@media (max-width:360px){
+  main{padding:10px !important;}
+  .income-top,.income-analytics{padding:14px !important;}
+  #incomeAnalytics .analytics-card,#incomeAnalytics .analytics-category-panel{padding:16px 14px !important;}
+  .nav-label{font-size:9px !important;}
+}
+
+/* Mobile auth: prevent iOS Safari from zooming when entering email/password. */
+@media (max-width: 560px){
+  .qp-auth-field input{
+    font-size:16px !important;
+    -webkit-text-size-adjust:100%;
+  }
+  #qpAuthGate{
+    -webkit-text-size-adjust:100%;
+  }
+}
+
+/* Mobile auth: the login screen must be a true fixed viewport without page scrolling. */
+@media (max-width:560px){
+  html:has(body.qp-auth-locked),
+  body.qp-auth-locked{
+    width:100%;
+    height:100%;
+    min-height:100%;
+    overflow:hidden !important;
+    overscroll-behavior:none;
+  }
+  body.qp-auth-locked #qpAuthGate{
+    width:100vw !important;
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+    overflow:hidden !important;
+    overscroll-behavior:none;
+    touch-action:auto;
+  }
+  body.qp-auth-locked #qpAuthGate .qp-auth-card{
+    max-height:calc(100dvh - 32px) !important;
+    overflow:hidden !important;
+    overscroll-behavior:none;
+  }
+}
+
+/* Mobile fixes V4: keep controls inside the viewport and prevent iOS focus zoom. */
+@media (max-width:560px){
+  #incomeList{
+    margin-bottom:76px !important;
+  }
+  .income-row .edit-income,
+  .income-row .delete-income{
+    z-index:2 !important;
+  }
+  input,
+  select,
+  textarea,
+  button{
+    font-size:16px !important;
+  }
+  .nav-label{font-size:11px !important;}
+  .analytics-head{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    align-items:end !important;
+    gap:12px !important;
+  }
+  .analytics-head > *{min-width:0;}
+  .analytics-head h2{
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .analytics-total{
+    justify-self:end !important;
+    text-align:right !important;
+    white-space:nowrap !important;
+    font-size:19px !important;
+    line-height:1.15 !important;
+  }
+  #settings > .settings-card:not([style]) .icon-colors,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  #settings > .settings-card:not([style]) .icon-colors::-webkit-scrollbar,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child::-webkit-scrollbar{
+    display:none;
+  }
+}
+
+/* Mobile V5: keep fixed navigation above history actions and make compact layouts explicit. */
+@media (max-width:560px){
+  /* Fixed bottom navigation always stays above income row controls. */
+  .sidebar{
+    z-index:100000 !important;
+  }
+  .income-row .edit-income,
+  .income-row .delete-income{
+    position:relative !important;
+    z-index:10 !important;
+  }
+  
+
+  /* Prevent iOS focus zoom in every income form field. */
+  #incomeForm input,
+  #incomeForm select,
+  #incomeForm textarea,
+  #incomeForm button,
+  .income-form input,
+  .income-form select,
+  .income-form textarea,
+  .income-form button{
+    font-size:16px !important;
+  }
+
+  /* Statistics total stays in the right column without collisions. */
+  .analytics-head{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    align-items:flex-end !important;
+    justify-content:space-between !important;
+    gap:8px 12px !important;
+  }
+  .analytics-head h2,
+  .analytics-head .analytics-title{
+    flex:1 1 45% !important;
+    min-width:0 !important;
+  }
+  .analytics-total{
+    flex:0 1 auto !important;
+    margin-left:auto !important;
+    text-align:right !important;
+    white-space:nowrap !important;
+    font-size:18px !important;
+    line-height:1.15 !important;
+  }
+
+  /* Settings palettes are contained inside the viewport and can scroll horizontally. */
+  #settings .icon-colors,
+  #settings .settings-row > div:last-child{
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    box-sizing:border-box !important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  #settings .icon-colors::-webkit-scrollbar,
+  #settings .settings-row > div:last-child::-webkit-scrollbar{
+    display:none;
+  }
+}
+
+@media (max-width:560px){
+  #incomeList > .income-row:not(.income-header){padding-right:52px !important;position:relative !important;}
+  #incomeList > .income-row:not(.income-header) .edit-income,
+  #incomeList > .income-row:not(.income-header) .delete-income{position:absolute !important;top:12px !important;transform:none !important;width:30px !important;height:30px !important;z-index:20 !important;}
+  #incomeList > .income-row:not(.income-header) .edit-income{right:44px !important;}
+  #incomeList > .income-row:not(.income-header) .delete-income{right:8px !important;}
+  #incomeList{padding-bottom:96px !important;}
+  .income-form input,.income-form select,.income-form textarea,.income-form button,#historySearch{font-size:16px !important;}
+  #incomeAnalytics .analytics-head{display:grid !important;grid-template-columns:minmax(0,1fr) auto !important;align-items:start !important;gap:10px !important;width:100% !important;}
+  #incomeAnalytics .analytics-title-block{min-width:0 !important;max-width:100% !important;}
+  #incomeAnalytics .analytics-title-block h2{min-width:0 !important;overflow-wrap:anywhere !important;}
+  #incomeAnalytics .analytics-total{grid-column:2 !important;grid-row:1 !important;justify-self:end !important;align-self:start !important;margin:0 !important;padding:0 !important;max-width:42vw !important;overflow-wrap:anywhere !important;text-align:right !important;white-space:normal !important;font-size:20px !important;line-height:1.15 !important;}
+  #settings > .settings-card:not([style]) .icon-colors,
+  #settings > .settings-card:not([style]) .settings-row > div:last-child{display:grid !important;grid-template-columns:repeat(7,minmax(0,1fr)) !important;gap:6px !important;width:100% !important;min-width:0 !important;max-width:100% !important;overflow:visible !important;box-sizing:border-box !important;}
+  #settings > .settings-card:not([style]) .icon-color,
+  #settings > .settings-card:not([style]) .accent-swatch,
+  #settings > .settings-card:not([style]) .custom-color,
+  #settings > .settings-card:not([style]) .accent-custom-color{width:34px !important;min-width:34px !important;max-width:34px !important;height:34px !important;min-height:34px !important;max-height:34px !important;justify-self:center !important;box-sizing:border-box !important;margin:0 !important;}
+  #settings > .settings-card:not([style]) .icon-color.active,
+  #settings > .settings-card:not([style]) .accent-swatch.active{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--icon-color,var(--primary)) !important;}
+}
+
+/* Desktop: best/worst month should read as "Month amount" on one line. */
+@media (min-width:561px){
+  #incomeAnalytics .analytics-card-best,
+  #incomeAnalytics .analytics-card-worst{
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:12px !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body{
+    width:100% !important;
+    max-width:none !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    align-items:end !important;
+    column-gap:10px !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body > span{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    min-width:0 !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body strong,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body strong{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    margin-top:0 !important;
+    white-space:nowrap !important;
+    font-size:22px !important;
+    line-height:1.15 !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body small,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body small{
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+  }
+}
+
+/* Desktop: keep the month label and amount on one stable line. */
+@media (min-width:561px){
+  #incomeAnalytics .analytics-card-best .analytics-card-body,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:baseline !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+    width:100% !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body > span{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body strong,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body strong{
+    flex:0 0 auto !important;
+    margin:0 !important;
+    padding:0 !important;
+    white-space:nowrap !important;
+    font-size:22px !important;
+    line-height:1.15 !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body small,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body small{
+    display:none !important;
+  }
+}
+
+/* Desktop: label stays above; month + amount stay together on one line. */
+@media (min-width:561px){
+  #incomeAnalytics .analytics-card-best .analytics-card-body,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body{
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body > span{
+    display:block !important;
+    width:100% !important;
+    margin:0 0 10px !important;
+    white-space:nowrap !important;
+  }
+  #incomeAnalytics .analytics-card-best .analytics-card-body strong,
+  #incomeAnalytics .analytics-card-worst .analytics-card-body strong{
+    display:block !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    white-space:nowrap !important;
+    font-size:22px !important;
+    line-height:1.15 !important;
+  }
+}
+
+#settings .qp-category-manager{margin-top:22px;padding-top:22px;border-top:1px solid var(--border);}
+#settings .qp-category-manager-title{font-size:16px;font-weight:600;margin-bottom:5px;}
+#settings .qp-category-manager-subtitle{color:var(--text-muted);font-size:13px;line-height:1.45;margin-bottom:12px;}
+#settings .qp-category-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;}
+#settings .qp-category-add input{width:100%;min-width:0;height:42px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel-muted);color:var(--text);box-sizing:border-box;}
+#settings .qp-category-add button{height:42px;min-width:112px;padding:0 14px;border:1px solid var(--primary);border-radius:10px;background:var(--primary);color:#fff;font:inherit;font-weight:600;cursor:pointer;}
+#settings .qp-category-list{display:grid;gap:7px;margin-top:12px;}
+#settings .qp-category-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:var(--panel-muted);}
+#settings .qp-category-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#settings .qp-category-delete{flex:0 0 auto;width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;border:1px solid color-mix(in srgb,var(--danger) 35%,var(--border))!important;border-radius:8px!important;background:transparent!important;color:var(--danger)!important;font-size:18px!important;line-height:1!important;cursor:pointer;}
+#settings .qp-category-empty{padding:10px 0;color:var(--text-muted);font-size:13px;}
+@media(max-width:560px){
+  #settings .qp-category-add{grid-template-columns:1fr;}
+  #settings .qp-category-add button{width:100%;}
+}
+
+/* Category manager: compact, visual, consistent with the dark UI. */
+#settings .qp-category-manager{
+  margin-top:24px !important;
+  padding-top:28px !important;
+  border-top:1px solid var(--border) !important;
+}
+#settings .qp-category-manager-title{
+  margin-bottom:7px !important;
+  font-size:20px !important;
+  font-weight:700 !important;
+  line-height:1.2 !important;
+}
+#settings .qp-category-manager-subtitle{
+  max-width:760px !important;
+  margin-bottom:18px !important;
+  color:var(--text-muted) !important;
+  font-size:14px !important;
+  line-height:1.5 !important;
+}
+#settings .qp-category-add{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  gap:10px !important;
+  align-items:stretch !important;
+  margin-bottom:18px !important;
+}
+#settings .qp-category-add input{
+  height:52px !important;
+  padding:0 15px !important;
+  border:1px solid var(--border) !important;
+  border-radius:14px !important;
+  background:var(--panel-muted) !important;
+  color:var(--text) !important;
+  font-size:16px !important;
+}
+#settings .qp-category-add input:focus{
+  border-color:var(--primary) !important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 16%,transparent) !important;
+}
+#settings .qp-category-add button{
+  min-width:140px !important;
+  height:52px !important;
+  padding:0 20px !important;
+  border:1px solid var(--primary) !important;
+  border-radius:14px !important;
+  background:var(--primary) !important;
+  color:#fff !important;
+  font-size:16px !important;
+  font-weight:700 !important;
+  box-shadow:0 8px 20px color-mix(in srgb,var(--primary) 22%,transparent) !important;
+}
+#settings .qp-category-list{
+  display:grid !important;
+  gap:10px !important;
+  margin-top:0 !important;
+}
+#settings .qp-category-item{
+  position:relative !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:14px !important;
+  min-height:76px !important;
+  padding:12px 14px !important;
+  border:1px solid var(--border) !important;
+  border-radius:16px !important;
+  background:var(--panel-muted) !important;
+  box-shadow:0 3px 12px rgba(0,0,0,.08) !important;
+  transition:border-color .15s ease,transform .15s ease,background .15s ease !important;
+}
+#settings .qp-category-item:hover{
+  transform:translateY(-1px) !important;
+  border-color:color-mix(in srgb,var(--category-color) 48%,var(--border)) !important;
+}
+#settings .qp-category-icon{
+  flex:0 0 54px !important;
+  width:54px !important;
+  height:54px !important;
+  display:grid !important;
+  place-items:center !important;
+  border-radius:15px !important;
+  background:color-mix(in srgb,var(--category-color) 18%,transparent) !important;
+  color:var(--category-color) !important;
+}
+#settings .qp-category-icon svg{
+  width:26px !important;
+  height:26px !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.8 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+}
+#settings .qp-category-name{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  color:var(--text) !important;
+  font-size:16px !important;
+  font-weight:600 !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+#settings .qp-category-delete{
+  flex:0 0 38px !important;
+  width:38px !important;
+  min-width:38px !important;
+  height:38px !important;
+  border-radius:11px !important;
+  background:transparent !important;
+  color:var(--danger) !important;
+  font-size:21px !important;
+}
+#settings .qp-category-delete:hover{
+  background:color-mix(in srgb,var(--danger) 10%,transparent) !important;
+  border-color:color-mix(in srgb,var(--danger) 60%,var(--border)) !important;
+}
+#settings .qp-category-empty{
+  padding:22px 4px !important;
+  color:var(--text-muted) !important;
+  font-size:14px !important;
+}
+@media(max-width:560px){
+  #settings .qp-category-manager{
+    margin-top:20px !important;
+    padding-top:22px !important;
+  }
+  #settings .qp-category-manager-title{font-size:19px !important;}
+  #settings .qp-category-manager-subtitle{font-size:13px !important;margin-bottom:15px !important;}
+  #settings .qp-category-add{
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:8px !important;
+  }
+  #settings .qp-category-add input,
+  #settings .qp-category-add button{height:52px !important;font-size:16px !important;}
+  #settings .qp-category-add button{min-width:112px !important;padding:0 14px !important;}
+  #settings .qp-category-item{min-height:70px !important;padding:9px 10px !important;border-radius:14px !important;gap:11px !important;}
+  #settings .qp-category-icon{flex-basis:48px !important;width:48px !important;height:48px !important;border-radius:13px !important;}
+  #settings .qp-category-icon svg{width:23px !important;height:23px !important;}
+  #settings .qp-category-name{font-size:15px !important;}
+  #settings .qp-category-delete{width:36px !important;min-width:36px !important;height:36px !important;}
+}
+
+/* Smaller income category cards + clearer separation before theme settings. */
+#settings .qp-category-manager{
+  margin-bottom:28px !important;
+}
+#settings .qp-category-manager .qp-category-list{
+  gap:12px !important;
+}
+#settings .qp-category-manager .qp-category-item{
+  min-height:74px !important;
+  padding:10px 14px !important;
+  gap:14px !important;
+  border-radius:18px !important;
+}
+#settings .qp-category-manager .qp-category-icon{
+  width:52px !important;
+  height:52px !important;
+  min-width:52px !important;
+  border-radius:16px !important;
+}
+#settings .qp-category-manager .qp-category-name{
+  font-size:17px !important;
+  line-height:1.2 !important;
+}
+#settings .qp-category-manager .qp-category-delete{
+  width:52px !important;
+  height:52px !important;
+  min-width:52px !important;
+  border-radius:14px !important;
+}
+@media (max-width:560px){
+  #settings .qp-category-manager{
+    margin-bottom:24px !important;
+  }
+  #settings .qp-category-manager .qp-category-list{
+    gap:10px !important;
+  }
+  #settings .qp-category-manager .qp-category-item{
+    min-height:68px !important;
+    padding:8px 12px !important;
+    gap:12px !important;
+    border-radius:16px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon{
+    width:48px !important;
+    height:48px !important;
+    min-width:48px !important;
+    border-radius:14px !important;
+  }
+  #settings .qp-category-manager .qp-category-delete{
+    width:48px !important;
+    height:48px !important;
+    min-width:48px !important;
+    border-radius:13px !important;
+  }
+  #settings .qp-category-manager .qp-category-name{
+    font-size:16px !important;
+  }
+}
+
+@media (min-width:561px){
+  .sidebar{
+    border-radius:22px 22px 0 0 !important;
+    overflow:hidden !important;
+  }
+}
+
+@media (min-width:561px){
+  .sidebar{
+    position:fixed !important;
+    bottom:0 !important;
+    z-index:1000 !important;
+  }
+}
+
+/* Hide floating + while the new/edit income form is open. */
+body:has(#incomeForm:not([hidden])) .add-income-btn{
+  display:none !important;
+}
+
+/* Убираем только левое нижнее скругление активной вкладки «Главная». */
+.sidebar > .nav-item.active{
+  border-radius:12px 12px 12px 0 !important;
+}
+
+/* Десктоп: карточка Настроек должна иметь ту же ширину,
+   что и контент остальных страниц. Нижнюю навигацию не трогаем. */
+@media (min-width:561px){
+  #settings.page{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  #settings.page > .settings-card{
+    width:100% !important;
+    max-width:none !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+    box-sizing:border-box !important;
+  }
+}
+
+/* Статистика: более плотные внутренние вертикальные отступы в карточках.
+   Геометрия карточек, шрифты и сетка не меняются. */
+#incomeAnalytics .analytics-card-body strong{
+  margin-top:10px !important;
+}
+#incomeAnalytics .analytics-card-body small{
+  margin-top:6px !important;
+}
+#incomeAnalytics .analytics-category-panel{
+  gap:10px !important;
+}
+#incomeAnalytics .analytics-category-panel-value{
+  margin-top:10px !important;
+}
+
+@media (max-width:560px){
+  #incomeAnalytics .analytics-card{
+    gap:10px !important;
+  }
+  #incomeAnalytics .analytics-card-body strong{
+    margin-top:8px !important;
+  }
+  #incomeAnalytics .analytics-card-body small{
+    margin-top:5px !important;
+  }
+  #incomeAnalytics .analytics-category-panel{
+    gap:8px !important;
+  }
+  #incomeAnalytics .analytics-category-panel-value{
+    margin-top:8px !important;
+  }
+}
+
+/* Большие суммы в главной карточке: сохраняем одну строку и
+   разрешаем JS уменьшать размер шрифта только когда это необходимо. */
+.income-month-block{
+  min-width:0 !important;
+}
+#incomeTotal{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  white-space:nowrap !important;
+}
+
+/* Годовая сумма в шапке статистики: всегда в одну строку.
+   Обычные суммы сохраняют штатный размер; большие уменьшаются только при необходимости. */
+#incomeAnalytics .analytics-head{
+  min-width:0 !important;
+}
+#incomeAnalytics .analytics-title-block{
+  flex:0 0 auto !important;
+  min-width:0 !important;
+}
+#incomeAnalytics #analyticsTotal{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  white-space:nowrap !important;
+  text-align:right !important;
+  line-height:1.1 !important;
+}
+
+/* Десктоп: делаем нижний визуальный зазор у всех вкладок таким же,
+   как на Главной. На Главной последний блок .income-analytics уже имеет
+   margin-bottom:24px, поэтому приводим Историю и Настройки к тем же 24px. */
+@media (min-width:561px){
+  /* История: собственного нижнего зазора не было. */
+  #history.page.active{
+    padding-bottom:24px !important;
+  }
+
+  /* Настройки: последний .settings-card уже имеет margin-bottom:16px.
+     Оставляем ещё 8px padding снизу: 16px + 8px = те же 24px, что на Главной. */
+  #settings.page.active{
+    padding-bottom:8px !important;
+  }
+}
+
+/* Десктоп: кнопки редактирования/удаления строки Истории не должны
+   перекрывать фиксированную нижнюю навигацию при прокрутке. */
+@media (min-width:561px){
+  #history #incomeList .income-row .edit-income,
+  #history #incomeList .income-row .delete-income{
+    z-index:900 !important;
+  }
+}
+
+/* Десктоп: кнопка выхода должна быть рядом с данными аккаунта,
+   а не у правого края карточки. Мобильная раскладка не меняется. */
+@media (min-width:561px){
+  #settings #qpAccountCard .qp-account-row{
+    justify-content:flex-start !important;
+    gap:18px !important;
+    flex-wrap:wrap !important;
+  }
+  #settings #qpAccountCard .qp-account-email{
+    flex:0 1 auto !important;
+    min-width:0 !important;
+  }
+  #settings #qpAuthLogoutBtn{
+    flex:0 0 auto !important;
+  }
+}
+
+/* Категории: убрать длинную разделительную линию и сделать верхний
+   отступ компактнее внутри оболочки настроек. */
+#settings .qp-category-manager{
+  border-top:0 !important;
+  margin-top:14px !important;
+  padding-top:10px !important;
+}
+
+@media (max-width:560px){
+  #settings .qp-category-manager{
+    margin-top:12px !important;
+    padding-top:8px !important;
+  }
+}
+
+/* Компактный список категорий:
+   на десктопе — 2 колонки, на телефоне — 1 колонка. */
+@media (min-width:561px){
+  #settings .qp-category-manager .qp-category-list{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  #settings .qp-category-manager .qp-category-item{
+    min-height:62px !important;
+    padding:7px 10px !important;
+    gap:10px !important;
+    border-radius:14px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon{
+    flex:0 0 44px !important;
+    width:44px !important;
+    min-width:44px !important;
+    height:44px !important;
+    border-radius:13px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon svg{
+    width:22px !important;
+    height:22px !important;
+  }
+  #settings .qp-category-manager .qp-category-name{
+    font-size:15px !important;
+  }
+  #settings .qp-category-manager .qp-category-delete{
+    flex:0 0 42px !important;
+    width:42px !important;
+    min-width:42px !important;
+    height:42px !important;
+    border-radius:12px !important;
+    font-size:19px !important;
+  }
+}
+
+@media (max-width:560px){
+  #settings .qp-category-manager .qp-category-list{
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+  #settings .qp-category-manager .qp-category-item{
+    min-height:60px !important;
+    padding:7px 9px !important;
+    gap:10px !important;
+    border-radius:14px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon{
+    flex:0 0 42px !important;
+    width:42px !important;
+    min-width:42px !important;
+    height:42px !important;
+    border-radius:12px !important;
+  }
+  #settings .qp-category-manager .qp-category-icon svg{
+    width:21px !important;
+    height:21px !important;
+  }
+  #settings .qp-category-manager .qp-category-name{
+    font-size:15px !important;
+  }
+  #settings .qp-category-manager .qp-category-delete{
+    flex:0 0 40px !important;
+    width:40px !important;
+    min-width:40px !important;
+    height:40px !important;
+    border-radius:11px !important;
+    font-size:18px !important;
+  }
+}
+
+/* Добавляем воздух между разделительной линией и заголовком «Нижняя панель». */
+#settings > .settings-card:not([style]) > .nav-label-mode-title{
+  margin-top:14px !important;
+  margin-bottom:12px !important;
+}
+
+@media (max-width:560px){
+  #settings > .settings-card:not([style]) > .nav-label-mode-title{
+    margin-top:12px !important;
+  }
+}
+
+/* Phone only: variant 5 matched to the approved glass mockup. Desktop is untouched. */
+@media (max-width:560px){
+  .content{
+    padding-bottom:calc(88px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .sidebar{
+    position:fixed !important;
+    left:12px !important;
+    right:12px !important;
+    bottom:calc(3px + env(safe-area-inset-bottom)) !important;
+    width:auto !important;
+    height:66px !important;
+    padding:0 6px !important;
+    gap:2px !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    background:color-mix(in srgb,var(--panel) 68%,transparent) !important;
+    border:1px solid color-mix(in srgb,var(--border) 66%,rgba(255,255,255,.20)) !important;
+    border-radius:28px !important;
+    box-shadow:
+      0 12px 34px rgba(0,0,0,.34),
+      0 0 0 1px rgba(255,255,255,.018),
+      inset 0 1px 0 rgba(255,255,255,.075),
+      inset 0 -1px 0 rgba(255,255,255,.018) !important;
+    -webkit-backdrop-filter:blur(28px) saturate(150%) !important;
+    backdrop-filter:blur(28px) saturate(150%) !important;
+    overflow:hidden !important;
+  }
+
+  .sidebar::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    pointer-events:none;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,0) 42%),
+      radial-gradient(120% 150% at 15% 0%,color-mix(in srgb,var(--primary) 7%,transparent),transparent 58%);
+  }
+
+  .sidebar > .nav-item{
+    position:relative !important;
+    z-index:1 !important;
+    min-width:0 !important;
+    height:calc(100% - 8px) !important;
+    margin:4px 2px !important;
+    padding:6px 4px !important;
+    border:1px solid transparent !important;
+    border-radius:24px !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    transform:none !important;
+    color:var(--text-muted) !important;
+  }
+
+  .sidebar > .nav-item:hover{
+    background:transparent !important;
+    transform:none !important;
+  }
+
+  .sidebar > .nav-item.active{
+    border-radius:24px !important;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 8%,rgba(255,255,255,.115)),color-mix(in srgb,var(--primary) 6%,rgba(255,255,255,.065))) !important;
+    border:1px solid color-mix(in srgb,var(--primary) 20%,rgba(255,255,255,.12)) !important;
+    box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.10) !important;
+    color:var(--primary) !important;
+  }
+
+  .sidebar > .nav-item.active .nav-icon,
+  .sidebar > .nav-item.active .nav-label{
+    color:var(--primary) !important;
+  }
+
+  .sidebar > .nav-item.active .nav-icon{
+    filter:drop-shadow(0 0 8px color-mix(in srgb,var(--primary) 32%,transparent));
+  }
+
+  .sidebar > .nav-item.active .nav-label{
+    font-weight:650 !important;
+  }
+
+  .sidebar .nav-icon svg{
+    width:23px !important;
+    height:23px !important;
+  }
+
+  .sidebar .nav-label{
+    font-size:11px !important;
+  }
+
+  /* Preserve existing user setting: icon+label / icons only / labels only. */
+  html[data-nav-label-mode="both"] .sidebar > .nav-item{
+    flex-direction:column !important;
+    gap:3px !important;
+  }
+
+  html[data-nav-label-mode="icons"] .sidebar > .nav-item,
+  html[data-nav-label-mode="text"] .sidebar > .nav-item{
+    flex-direction:row !important;
+    gap:0 !important;
+  }
+}
+
+.qp-notice-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.34);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.qp-notice-dialog{width:min(460px,calc(100vw - 32px));box-sizing:border-box;padding:24px;border:1px solid var(--qp-border,#d7dde7);border-radius:18px;background:var(--qp-surface-strong,#fff);color:var(--qp-text,#172033);box-shadow:0 24px 70px rgba(15,23,42,.22);}
+.qp-notice-title{margin:0 0 8px;font-size:17px;line-height:24px;font-weight:700;}
+.qp-notice-message{margin:0;color:var(--qp-muted,#64748b);font-size:14px;line-height:21px;white-space:pre-wrap;overflow-wrap:anywhere;}
+.qp-notice-actions{display:flex;justify-content:flex-end;margin-top:20px;}
+.qp-notice-btn{min-width:96px;height:38px;padding:0 18px;border:1px solid var(--qp-border,#d7dde7);border-radius:10px;background:var(--qp-surface,#fff);color:var(--qp-text,#172033);font:inherit;cursor:pointer;}
+.qp-notice-btn:hover{background:rgba(100,116,139,.10);}
+.qp-notice-dialog[data-type="error"]{border-color:rgba(239,68,68,.35);}
+html[data-theme="dark"] .qp-notice-overlay{background:rgba(0,0,0,.52);}
+
+#qpAuthGate{
+  position:fixed; inset:0; z-index:200000; display:flex; align-items:center; justify-content:center;
+  padding:20px; background:var(--bg,#f7f9fc); color:var(--text,#172033);
+}
+html[data-theme="dark"] #qpAuthGate{background:#070b12;}
+.qp-auth-card{
+  width:min(430px,100%); box-sizing:border-box; padding:30px;
+  border:1px solid var(--border,#d7dde7); border-radius:22px;
+  background:var(--panel,#fff); box-shadow:0 24px 70px rgba(15,23,42,.14);
+}
+html[data-theme="dark"] .qp-auth-card{
+  background:#111827; border-color:rgba(255,255,255,.10); box-shadow:0 24px 70px rgba(0,0,0,.35);
+}
+.qp-auth-brand{font-size:26px;font-weight:800;letter-spacing:-.03em;margin-bottom:5px}
+.qp-auth-subtitle{margin:0 0 22px;color:var(--text-muted,#64748b);font-size:14px;line-height:21px}
+.qp-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;margin-bottom:20px;
+  border:1px solid var(--border,#d7dde7);border-radius:12px;background:rgba(100,116,139,.06)}
+.qp-auth-tab{height:38px;border:0;border-radius:9px;background:transparent;color:var(--text-muted,#64748b);
+  font:inherit;font-weight:600;cursor:pointer}
+.qp-auth-tab.active{background:var(--panel,#fff);color:var(--text,#172033);box-shadow:0 1px 5px rgba(15,23,42,.08)}
+html[data-theme="dark"] .qp-auth-tab.active{background:#1f2937;color:#f8fafc}
+.qp-auth-field{display:block;margin-bottom:13px}
+.qp-auth-field span{display:block;margin-bottom:7px;font-size:13px;font-weight:600}
+.qp-auth-field input{
+  width:100%;height:44px;box-sizing:border-box;padding:0 13px;border:1px solid var(--border,#d7dde7);
+  border-radius:11px;background:var(--panel,#fff);color:var(--text,#172033);font:inherit;outline:none;
+}
+.qp-auth-field input:focus{border-color:#9aa5b8;box-shadow:0 0 0 3px rgba(100,116,139,.12)}
+html[data-theme="dark"] .qp-auth-field input{background:#0f172a;border-color:rgba(255,255,255,.12);color:#f8fafc}
+.qp-auth-primary{
+  width:100%;height:44px;border:1px solid #cbd5e1;border-radius:11px;background:#e9edf2;color:#374151;
+  font:inherit;font-weight:700;cursor:pointer
+}
+.qp-auth-primary:hover{background:#e2e7ed}
+.qp-auth-primary:disabled{opacity:.55;cursor:wait}
+html[data-theme="dark"] .qp-auth-primary{background:#374151;border-color:#4b5563;color:#f8fafc}
+.qp-auth-link{display:block;width:100%;margin-top:13px;border:0;background:transparent;color:#6b7280;
+  font:inherit;font-size:13px;cursor:pointer}
+.qp-auth-link:hover{text-decoration:underline}
+.qp-auth-message{min-height:20px;margin:13px 0 0;padding:0;font-size:13px;line-height:19px;color:#64748b}
+.qp-auth-message.success{display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-radius:11px;background:#ecfdf3;color:#166534;font-weight:500}
+.qp-auth-message.success::before{content:'✓';flex:0 0 auto;font-size:15px;line-height:19px;font-weight:800;color:#16a34a}
+.qp-auth-message.error{color:#b91c1c}
+html[data-theme="dark"] .qp-auth-message.error{color:#fca5a5}
+html[data-theme="dark"] .qp-auth-message.success{color:#86efac}
+.qp-account-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.qp-account-email{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted,#64748b);font-size:13px}
+#qpAuthLogoutBtn{flex:0 0 auto}
+
+body.qp-auth-locked > *:not(#qpAuthGate){pointer-events:none;}
+body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
+
+#qpAuthGate{
+  width:100vw;
+  height:100dvh;
+  min-height:100vh;
+  box-sizing:border-box;
+  overflow:auto;
+  align-items:center;
+  justify-content:center;
+}
+.qp-auth-card{
+  width:min(430px, calc(100vw - 32px));
+  max-height:calc(100dvh - 32px);
+  overflow:auto;
+}
+@media (max-width:560px){
+  #qpAuthGate{
+    padding:16px;
+    align-items:center;
+  }
+  .qp-auth-card{
+    width:100%;
+    max-width:none;
+    padding:24px 20px;
+    border-radius:18px;
+    max-height:calc(100dvh - 32px);
+  }
+}
+@media (max-height:600px){
+  #qpAuthGate{align-items:flex-start;padding-top:16px;padding-bottom:16px;}
+}
+
+
+/* «Доход за»: год — обычная надпись без кнопки и стрелок.
+   Скрытые элементы переключателя оставлены только для совместимости
+   с существующей логикой синхронизации года. */
+#incomeAnalytics .analytics-title-block h2{
+  gap:4px !important;
+}
+#incomeAnalytics .analytics-year-switcher{
+  display:inline-flex !important;
+  align-items:center !important;
+  min-width:0 !important;
+  width:auto !important;
+  height:auto !important;
+  min-height:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+#incomeAnalytics .analytics-year-switcher > button{
+  display:none !important;
+}
+#incomeAnalytics #analyticsYearControl{
+  display:inline !important;
+  min-width:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  font-size:inherit !important;
+  font-weight:inherit !important;
+  line-height:inherit !important;
+  text-align:left !important;
+  font-variant-numeric:tabular-nums !important;
+  white-space:nowrap !important;
+}
+@media(max-width:620px){
+  #incomeAnalytics .analytics-title-block h2{
+    gap:4px !important;
+  }
+}
+
+@media (min-width:621px){
+  #incomeAnalytics .analytics-total{
+    font-size:36px !important;
+    line-height:1.08 !important;
+    font-weight:800 !important;
+  }
+}
+
+/* Mobile history: while the search field has focus, hide the fixed bottom
+   navigation so iOS cannot lift it above the on-screen keyboard during scroll. */
+@media (max-width:560px){
+  body:has(#history.page.active #historySearch:focus) .sidebar{
+    opacity:0 !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
+    transform:translateY(110%) !important;
+  }
+}
+
+/* Mobile history cards: visual-only redesign. No filtering or data logic changes. */
+@media (max-width:560px){
+  #history .income-table-section{
+    overflow:visible !important;
+    background:transparent !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
+  #history #incomeList{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    padding:0 0 14px !important;
+    margin-bottom:0 !important;
+    min-height:0 !important;
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+    background:transparent !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
+  #history #incomeList > .income-row.income-header{
+    display:none !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header){
+    display:grid !important;
+    grid-template-columns:max-content minmax(0,1fr) !important;
+    grid-template-areas:
+      "amount category"
+      "date date"
+      "description description" !important;
+    align-items:center !important;
+    gap:8px 8px !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:14px 92px 14px 14px !important;
+    overflow:hidden !important;
+    background:var(--panel) !important;
+    border:1px solid var(--border) !important;
+    border-radius:16px !important;
+    box-shadow:var(--shadow-sm) !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div{
+    min-height:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    overflow:visible !important;
+    justify-content:flex-start !important;
+    text-align:left !important;
+    white-space:normal !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(1){
+    grid-area:date !important;
+    color:var(--text-muted) !important;
+    font-size:15px !important;
+    line-height:1.25 !important;
+    font-weight:500 !important;
+    white-space:nowrap !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(2){
+    grid-area:amount !important;
+    color:var(--text) !important;
+    font-size:22px !important;
+    line-height:1.12 !important;
+    font-weight:750 !important;
+    font-variant-numeric:tabular-nums !important;
+    letter-spacing:-0.02em !important;
+    white-space:nowrap !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(3){
+    grid-area:category !important;
+    justify-self:start !important;
+    align-self:center !important;
+    width:max-content !important;
+    max-width:100% !important;
+    padding:5px 9px !important;
+    border:1px solid color-mix(in srgb,var(--primary) 28%,var(--border)) !important;
+    border-radius:999px !important;
+    background:color-mix(in srgb,var(--primary) 10%,transparent) !important;
+    color:var(--primary) !important;
+    font-size:12px !important;
+    line-height:1.15 !important;
+    font-weight:650 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(4){
+    grid-area:description !important;
+    display:-webkit-box !important;
+    -webkit-box-orient:vertical !important;
+    -webkit-line-clamp:2 !important;
+    overflow:hidden !important;
+    color:var(--text) !important;
+    font-size:16px !important;
+    line-height:1.38 !important;
+    overflow-wrap:anywhere !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) > div:nth-child(4):empty{
+    display:none !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .edit-income,
+  #history #incomeList > .income-row:not(.income-header) .delete-income{
+    position:absolute !important;
+    top:14px !important;
+    width:34px !important;
+    height:34px !important;
+    transform:none !important;
+    border-radius:10px !important;
+    background:var(--panel-muted) !important;
+    z-index:20 !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .edit-income{
+    right:52px !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .delete-income{
+    right:12px !important;
+  }
+
+  #history .income-empty{
+    padding:36px 18px !important;
+    border:1px solid var(--border) !important;
+    border-radius:16px !important;
+    background:var(--panel) !important;
+  }
+}

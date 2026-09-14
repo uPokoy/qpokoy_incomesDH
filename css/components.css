@@ -1,0 +1,1467 @@
+
+/* ===== qPokoy Design V2: Dashboard composition ===== */
+.income-dashboard,
+.income-section,
+.dashboard-section{
+  position:relative;
+}
+
+/* Unified dashboard rhythm */
+main{
+  max-width:1180px !important;
+  margin:0 auto !important;
+}
+
+.income-dashboard{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr) !important;
+  gap:18px !important;
+  align-items:stretch !important;
+}
+
+.income-dashboard > .income-summary,
+.income-dashboard > .income-total-card{
+  min-height:260px;
+}
+
+.income-dashboard > .chart-card,
+.income-dashboard > .income-chart,
+.income-dashboard > .chart-container{
+  min-height:260px;
+}
+
+/* Give the main amount area a stronger hierarchy */
+.income-summary,
+.income-total-card{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:30px !important;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(124,58,237,.13), transparent 32%),
+    radial-gradient(circle at 0% 100%, rgba(79,70,229,.09), transparent 35%),
+    var(--qp-surface) !important;
+}
+
+.income-summary #incomeTotal,
+.income-total-card #incomeTotal{
+  margin:12px 0 20px !important;
+}
+
+/* Month selector becomes a quiet control */
+#incomeMonthSwitcher{
+  margin-top:auto;
+}
+
+/* Chart gets a more premium frame */
+.chart-card,
+.income-chart,
+.chart-container{
+  padding:22px !important;
+  display:flex;
+  flex-direction:column;
+}
+
+.chart-card svg,
+.income-chart svg,
+.chart-container svg{
+  flex:1;
+}
+
+/* Statistics: three-column rhythm where space allows */
+.analytics-cards{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+
+.analytics-card{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+/* Statistics blocks below cards */
+.income-statistics,
+.analytics-section{
+  margin-top:18px !important;
+}
+
+/* History should read as a separate workspace */
+#incomeList{
+  box-shadow:none !important;
+  border:1px solid var(--qp-border);
+  background:var(--qp-surface);
+}
+
+@media (max-width:900px){
+  .income-dashboard{
+    grid-template-columns:1fr !important;
+  }
+  .income-summary,
+  .income-total-card,
+  .chart-card,
+  .income-chart,
+  .chart-container{
+    min-height:230px !important;
+  }
+}
+
+@media (max-width:680px){
+  .analytics-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width:480px){
+  .analytics-cards{
+    grid-template-columns:1fr !important;
+  }
+  .income-summary,
+  .income-total-card{
+    padding:22px !important;
+  }
+}
+
+.income-summary::before,
+.income-total-card::before{
+  content:"Доходы";
+  display:inline-block;
+  width:max-content;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(79,70,229,.09);
+  color:var(--qp-accent);
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.chart-card::before,
+.income-chart::before,
+.chart-container::before{
+  content:"Динамика";
+  display:inline-block;
+  width:max-content;
+  margin-bottom:8px;
+  color:var(--qp-muted);
+  font-size:.78rem;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.analytics-card{
+  position:relative;
+  overflow:hidden;
+}
+.analytics-card::after{
+  content:"";
+  position:absolute;
+  right:-35px;
+  bottom:-45px;
+  width:110px;
+  height:110px;
+  border-radius:50%;
+  background:rgba(79,70,229,.045);
+}
+
+.accent-swatch{width:38px;height:38px;padding:0;border-radius:10px;border:2px solid transparent;background:var(--accent-swatch);cursor:pointer;box-sizing:border-box;}
+.accent-swatch.active{border-color:var(--text);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--accent-swatch);}
+
+/* Settings redesign — presentation only */
+#settings{
+  max-width:1100px;
+  margin:0 auto;
+  padding:28px 22px 48px;
+}
+#settings .settings-card{
+  position:relative;
+  background:var(--card-bg, rgba(255,255,255,.72));
+  border:1px solid var(--border-color, rgba(120,130,150,.16));
+  border-radius:24px;
+  padding:22px;
+  margin:0 0 16px;
+  box-shadow:0 12px 34px rgba(20,30,50,.06);
+  backdrop-filter:blur(18px);
+}
+#settings .settings-card-title{
+  font-size:18px;
+  line-height:1.25;
+  font-weight:750;
+  letter-spacing:-.01em;
+}
+#settings .settings-card-subtitle{
+  margin-top:6px;
+  color:var(--muted-text, #7b8494);
+  font-size:13px;
+  line-height:1.45;
+}
+#settings .settings-card > .settings-card-title:first-child{
+  margin-bottom:2px;
+}
+#settings .settings-card .settings-row,
+#settings .settings-card .setting-row{
+  min-height:48px;
+}
+#settings .settings-card button{
+  border-radius:14px;
+  min-height:42px;
+  padding:9px 15px;
+  font:inherit;
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+#settings .settings-card button:hover{
+  transform:translateY(-1px);
+}
+#settings .settings-card button:active{
+  transform:translateY(0);
+}
+#settings .settings-card .btn-secondary{
+  border:1px solid var(--border-color, rgba(120,130,150,.2));
+  background:var(--surface-2, rgba(127,140,160,.08));
+}
+#settings .settings-card .btn-secondary:hover{
+  box-shadow:0 8px 20px rgba(20,30,50,.08);
+}
+#settings #exportDataBtn,
+#settings #importDataBtn{
+  background:var(--accent, #5b6cff);
+  color:#fff;
+  border-color:transparent;
+}
+#settings #clearIncomeDataBtn{
+  color:#c0392b;
+  border-color:rgba(192,57,43,.22);
+  background:rgba(192,57,43,.06);
+}
+#settings #clearIncomeDataBtn:hover{
+  background:rgba(192,57,43,.1);
+}
+#settings .settings-card:has(#exportDataBtn){
+  overflow:hidden;
+}
+#settings .settings-card:has(#exportDataBtn)::before{
+  content:"";
+  position:absolute;
+  width:180px;
+  height:180px;
+  right:-90px;
+  top:-100px;
+  border-radius:50%;
+  background:var(--accent, #5b6cff);
+  opacity:.07;
+  pointer-events:none;
+}
+@media (max-width:700px){
+  #settings{padding:18px 14px 32px}
+  #settings .settings-card{border-radius:20px;padding:18px}
+  #settings .settings-card > div[style*="display:flex"]{
+    flex-direction:column;
+  }
+  #settings .settings-card button{width:100%}
+}
+
+#settings .settings-card .settings-action-icon{
+  width:18px;
+  height:18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 18px;
+}
+#settings .settings-card .settings-action-icon svg{
+  width:18px;
+  height:18px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#settings .settings-card button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+/* Custom accent-color control matches the custom icon-color control. */
+#settings .accent-custom-color{
+  width:34px;
+  height:34px;
+  box-sizing:border-box;
+}
+#settings .accent-custom-color input{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  cursor:pointer;
+}
+#settings .accent-custom-color span{
+  pointer-events:none;
+  font-size:21px;
+  line-height:1;
+}
+
+#settings .settings-card > .settings-row{
+  margin-bottom:22px;
+  padding-bottom:22px;
+  border-bottom:1px solid var(--border);
+}
+#settings .settings-card > .settings-row + .settings-title{
+  margin-top:0;
+}
+#settings .settings-card .settings-title.icon-color-title{
+  margin-top:22px;
+}
+
+#settings .settings-card{
+  display:flex;
+  flex-direction:column;
+}
+#settings .settings-card > .settings-row{order:3;}
+#settings .settings-card > .settings-title.icon-color-title{order:2;}
+#settings .settings-card > .settings-title:not(.icon-color-title){order:1;}
+#settings .settings-card > .icon-colors{order:2;}
+
+/* Visual order applies only to the first settings card. */
+#settings > .settings-card:not([style]){
+  display:flex;
+  flex-direction:column;
+}
+#settings > .settings-card:not([style]) > .settings-title:not(.icon-color-title){order:1;}
+#settings > .settings-card:not([style]) > .settings-title.icon-color-title{order:2;}
+#settings > .settings-card:not([style]) > .icon-colors{order:2;}
+#settings > .settings-card:not([style]) > .settings-row{order:3;}
+
+/* Data card: restore normal document order. */
+#settings > .settings-card[style]{
+  display:block;
+}
+#settings > .settings-card[style] > .settings-title,
+#settings > .settings-card[style] > .settings-card-subtitle,
+#settings > .settings-card[style] > div[style]{
+  order:initial;
+}
+
+/* Two palettes: identical geometry, spacing and total width */
+#settings > .settings-card:first-of-type .icon-colors,
+#settings > .settings-card:first-of-type .settings-row > div:last-child{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  flex-wrap:nowrap !important;
+  gap:10px !important;
+  width:326px !important;
+  min-width:326px !important;
+  max-width:326px !important;
+  box-sizing:border-box !important;
+}
+
+/* Every palette item is exactly the same 38×38 control. */
+#settings > .settings-card:first-of-type .icon-color,
+#settings > .settings-card:first-of-type .accent-swatch,
+#settings > .settings-card:first-of-type .custom-color,
+#settings > .settings-card:first-of-type .accent-custom-color{
+  flex:0 0 38px !important;
+  width:38px !important;
+  min-width:38px !important;
+  max-width:38px !important;
+  height:38px !important;
+  min-height:38px !important;
+  max-height:38px !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+
+/* Same corner treatment for both color palettes. */
+#settings > .settings-card:first-of-type .icon-color,
+#settings > .settings-card:first-of-type .accent-swatch{
+  border-radius:10px !important;
+}
+
+/* The "+" buttons stay round in both palettes. */
+#settings > .settings-card:first-of-type .custom-color,
+#settings > .settings-card:first-of-type .accent-custom-color{
+  border-radius:50% !important;
+}
+
+/* Identical vertical spacing between label and palette. */
+#settings > .settings-card:first-of-type .icon-color-title{
+  margin:0 0 12px 0 !important;
+}
+#settings > .settings-card:first-of-type .settings-row{
+  display:block !important;
+  margin:0 0 22px 0 !important;
+  padding:0 0 22px 0 !important;
+}
+#settings > .settings-card:first-of-type .settings-row > div:first-child{
+  margin:0 0 12px 0 !important;
+}
+#settings > .settings-card:first-of-type .settings-row > div:first-child .settings-title{
+  margin:0 !important;
+}
+
+/* Keep the palette width identical even when the selected state adds outlines. */
+#settings > .settings-card:first-of-type .icon-color.active,
+#settings > .settings-card:first-of-type .accent-swatch.active{
+  box-sizing:border-box !important;
+}
+
+/* The first settings card has no inline style; the Data card does. */
+#settings > .settings-card:not([style]) .icon-colors,
+#settings > .settings-card:not([style]) .settings-row > div:last-child{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  flex-wrap:nowrap !important;
+  gap:12px !important;
+  width:350px !important;
+  min-width:350px !important;
+  max-width:350px !important;
+  box-sizing:border-box !important;
+}
+
+/* Identical 38×38 geometry for both palettes. */
+
+
+/* Same shape for the six color swatches. */
+
+
+/* Same circular custom-color control. */
+
+
+/* Same label-to-palette spacing and same vertical gap between panels. */
+#settings > .settings-card:not([style]) .icon-color-title{
+  margin:0 0 12px 0 !important;
+}
+#settings > .settings-card:not([style]) .settings-row{
+  display:block !important;
+  margin:0 0 22px 0 !important;
+  padding:0 0 22px 0 !important;
+}
+#settings > .settings-card:not([style]) .settings-row > div:first-child{
+  margin:0 0 12px 0 !important;
+}
+#settings > .settings-card:not([style]) .settings-row > div:first-child .settings-title{
+  margin:0 !important;
+}
+
+/* Equal vertical rhythm between all three controls in the unified settings card. */
+
+#settings > .settings-card:not([style]) > .icon-color-title{
+  margin-top:0 !important;
+  margin-bottom:12px !important;
+}
+
+#settings > .settings-card:not([style]) > .icon-colors{
+  margin-bottom:12px !important;
+}
+
+#settings > .settings-card:not([style]) > .settings-row{
+  margin-top:0 !important;
+  margin-bottom:0 !important;
+  padding-top:0 !important;
+  padding-bottom:22px !important;
+}
+
+#settings > .settings-card:not([style]) > .settings-row > div:first-child{
+  margin-bottom:12px !important;
+}
+
+#settings > .settings-card:not([style]) > .settings-row > div:first-child .settings-title{
+  margin:0 !important;
+}
+
+/* Keep both palettes on exactly the same horizontal baseline and width. */
+#settings > .settings-card:not([style]) .icon-colors,
+#settings > .settings-card:not([style]) .settings-row > div:last-child{
+  display:flex !important;
+  align-items:center !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  gap:12px !important;
+  width:350px !important;
+  min-width:350px !important;
+  max-width:350px !important;
+}
+
+#settings > .settings-card:not([style]) .icon-color,
+#settings > .settings-card:not([style]) .accent-swatch,
+#settings > .settings-card:not([style]) .custom-color,
+#settings > .settings-card:not([style]) .accent-custom-color{
+  flex:0 0 38px !important;
+  width:38px !important;
+  min-width:38px !important;
+  max-width:38px !important;
+  height:38px !important;
+  min-height:38px !important;
+  max-height:38px !important;
+  margin:0 !important;
+  padding:0 !important;
+  box-sizing:border-box !important;
+}
+
+#settings > .settings-card:not([style]) .icon-color,
+#settings > .settings-card:not([style]) .accent-swatch{
+  border-radius:10px !important;
+}
+
+#settings > .settings-card:not([style]) .custom-color,
+#settings > .settings-card:not([style]) .accent-custom-color{
+  border-radius:50% !important;
+}
+
+/* History: remove the artificial viewport on the income list. */
+#history .income-list,
+#history #incomeList{
+  max-height:none !important;
+  height:auto !important;
+  overflow-y:visible !important;
+  overflow-x:visible !important;
+}
+
+/* History table header — actual rendered element is .income-row.income-header. */
+#incomeList > .income-row.income-header{
+  background:transparent !important;
+  background-color:transparent !important;
+  color:var(--text-muted) !important;
+  border-bottom:1px solid var(--qp-border) !important;
+  border-top:0 !important;
+  box-shadow:none !important;
+}
+
+/* Remove the strong vertical grid only from the header cells. */
+#incomeList > .income-row.income-header > div{
+  background:transparent !important;
+  border-right:0 !important;
+  border-left:0 !important;
+  border-top:0 !important;
+  border-bottom:0 !important;
+  color:var(--text-muted) !important;
+  font-weight:500 !important;
+}
+
+/* Header controls inherit the quiet header typography. */
+#incomeList > .income-row.income-header .header-filter-btn{
+  color:inherit !important;
+  font-weight:500 !important;
+  background:transparent !important;
+  border:0 !important;
+}
+
+/* Keep the header height and padding consistent with the table rows. */
+#incomeList > .income-row.income-header{
+  min-height:42px !important;
+  height:42px !important;
+}
+#incomeList > .income-row.income-header > div{
+  padding:0 10px !important;
+}
+
+/* History table rows: match the clean header and remove vertical column lines. */
+#incomeList > .income-row{
+  border-left:0 !important;
+  border-right:0 !important;
+  border-top:0 !important;
+  border-bottom:1px solid var(--qp-border) !important;
+  box-shadow:none !important;
+}
+
+/* Cells keep their column widths/alignment but have no vertical borders. */
+#incomeList > .income-row > div{
+  border-left:0 !important;
+  border-right:0 !important;
+  border-top:0 !important;
+  border-bottom:0 !important;
+  box-shadow:none !important;
+}
+
+/* Preserve the clean header treatment. */
+#incomeList > .income-row.income-header{
+  border-bottom:1px solid var(--qp-border) !important;
+}
+
+/* Last row should not add a second heavy bottom line inside the card. */
+#incomeList > .income-row:last-child{
+  border-bottom:0 !important;
+}
+
+.history-edit-panel{margin:12px 0 16px;padding:18px;border:1px solid var(--border);border-radius:14px;background:var(--panel);box-shadow:var(--shadow-sm)}
+.history-edit-panel-title{font-weight:700;margin-bottom:14px}
+.history-edit-grid{display:grid;grid-template-columns:120px 140px 190px minmax(180px,1fr);gap:12px;align-items:end}
+.history-edit-grid label{display:grid;gap:6px;font-size:12px;color:var(--muted)}
+.history-edit-grid input,.history-edit-grid select{box-sizing:border-box;width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text)}
+.history-edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.history-edit-actions button{padding:9px 14px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text);cursor:pointer}
+@media(max-width:800px){.history-edit-grid{grid-template-columns:1fr 1fr}}
+
+#history > .income-form{position:relative;z-index:100002 !important;overflow:visible}
+#history > .income-form .calendar-popup{z-index:1200}
+#history > .income-form .calendar-btn{display:grid;place-items:center}
+#history > .income-form .calendar-btn svg{display:block;width:19px;height:19px}
+#history > .income-form .cancel-btn{display:grid;place-items:center;z-index:20}
+#history > .income-form .cancel-btn svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+#history > .income-form .save-btn{display:grid;place-items:center;z-index:20}
+#history > .income-form .save-btn svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+#history .income-form .close-form,
+#history .income-form .form-close,
+#history .income-form .close-btn,
+#history .income-form button[aria-label="Закрыть"]{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  line-height:0 !important;
+  text-align:center !important;
+  padding:0 !important;
+}
+#history .income-form .close-form svg,
+#history .income-form .form-close svg,
+#history .income-form .close-btn svg,
+#history .income-form button[aria-label="Закрыть"] svg{
+  display:block !important;
+  width:18px !important;
+  height:18px !important;
+  margin:0 !important;
+  transform:none !important;
+}
+
+/* Точная геометрия кнопки закрытия формы */
+.income-form .cancel-btn{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:32px !important;
+  height:32px !important;
+  min-width:32px !important;
+  min-height:32px !important;
+  padding:0 !important;
+  line-height:0 !important;
+  font-size:0 !important;
+  box-sizing:border-box !important;
+}
+.income-form .cancel-btn svg{
+  position:static !important;
+  display:block !important;
+  flex:0 0 16px !important;
+  width:16px !important;
+  height:16px !important;
+  min-width:16px !important;
+  min-height:16px !important;
+  margin:0 !important;
+  padding:0 !important;
+  transform:translate(0,0) !important;
+  align-self:center !important;
+}
+.income-form .cancel-btn svg path{
+  transform:none !important;
+}
+
+/* Галочка режима редактирования: фиксированная SVG-иконка,
+   не зависит от темы или пользовательского цвета иконок. */
+.income-form #saveIncome > svg{
+  display:block !important;
+  width:18px !important;
+  height:18px !important;
+  margin:0 auto !important;
+  fill:none !important;
+  stroke:#fff !important;
+  stroke-width:2 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  color:#fff !important;
+  pointer-events:none !important;
+}
+.income-form #saveIncome > svg path{
+  fill:none !important;
+  stroke:#fff !important;
+  stroke-width:2 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+}
+
+#incomeList .income-row .delete-income{
+  z-index:9999 !important;
+  pointer-events:auto !important;
+  cursor:pointer !important;
+}
+
+.income-month-block{
+  display:grid !important;
+  gap:10px !important;
+  justify-items:start !important;
+  align-content:start !important;
+}
+#incomeMonthSwitcher{
+  margin-top:0 !important;
+}
+
+/* Стрелки месяца видны только при наведении на переключатель. */
+#incomeMonthSwitcher > button{
+  opacity:0 !important;
+  transition:opacity .15s ease, background .15s ease !important;
+}
+#incomeMonthSwitcher:hover > button,
+#incomeMonthSwitcher > button:focus-visible,
+#incomeMonthSwitcher > button:active{
+  opacity:1 !important;
+}
+#incomeMonthSwitcher > button{
+  background:transparent !important;
+}
+#incomeMonthSwitcher:hover > button:hover{
+  background:var(--active) !important;
+}
+
+/* Стрелки переключателя года показываются только при наведении. */
+.income-chart-year-switcher > button{
+  opacity:0 !important;
+  transition:opacity .15s ease, background .15s ease !important;
+}
+.income-chart-year-switcher:hover > button,
+.income-chart-year-switcher > button:focus-visible,
+.income-chart-year-switcher > button:active{
+  opacity:1 !important;
+}
+.income-chart-year-switcher:hover > button:hover{
+  background:var(--active) !important;
+}
+
+.income-chart-year-bottom{
+  position:absolute !important;
+  top:0 !important;
+  right:0 !important;
+  left:auto !important;
+  width:auto !important;
+  display:flex !important;
+  justify-content:flex-end !important;
+  z-index:5;
+}
+.income-chart-year-switcher{
+  margin:0 !important;
+}
+
+.content > header{
+  display:none !important;
+}
+
+/* Верхняя панель статистики — только визуальная переработка. */
+#incomeAnalytics{
+  padding:24px 26px !important;
+  border-radius:22px !important;
+  background:var(--panel) !important;
+}
+#incomeAnalytics .analytics-head{
+  align-items:start !important;
+  margin-bottom:20px !important;
+}
+#incomeAnalytics .analytics-kicker{
+  letter-spacing:.08em;
+  font-size:12px !important;
+}
+#incomeAnalytics .analytics-head h2{
+  margin:8px 0 0 !important;
+  font-size:21px !important;
+}
+#incomeAnalytics .analytics-total{
+  font-size:24px !important;
+  font-weight:700 !important;
+  padding-top:0 !important;
+}
+#incomeAnalytics .analytics-cards{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:16px !important;
+}
+#incomeAnalytics .analytics-card{
+  position:relative !important;
+  min-height:184px !important;
+  padding:28px 54px 24px 28px !important;
+  display:flex !important;
+  align-items:flex-start !important;
+  gap:16px !important;
+  overflow:hidden !important;
+  cursor:pointer !important;
+  border:1px solid var(--border) !important;
+  border-radius:20px !important;
+  background:var(--panel-muted) !important;
+  box-shadow:none !important;
+  transition:transform .16s ease,border-color .16s ease,background .16s ease !important;
+}
+#incomeAnalytics .analytics-card::after{
+  content:"";
+  position:absolute;
+  width:150px;
+  height:150px;
+  right:-54px;
+  bottom:-76px;
+  border-radius:50%;
+  background:color-mix(in srgb,var(--primary) 9%,transparent);
+  pointer-events:none;
+}
+#incomeAnalytics .analytics-card:hover{
+  transform:translateY(-2px);
+  border-color:color-mix(in srgb,var(--primary) 45%,var(--border));
+  background:color-mix(in srgb,var(--panel-muted) 88%,var(--primary));
+}
+#incomeAnalytics .analytics-card-icon{
+  position:relative;
+  z-index:1;
+  flex:0 0 44px;
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:color-mix(in srgb,var(--primary) 15%,var(--panel));
+  color:var(--primary);
+}
+#incomeAnalytics .analytics-card-icon svg{
+  width:23px;
+  height:23px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#incomeAnalytics .analytics-card-body{
+  position:relative;
+  z-index:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+#incomeAnalytics .analytics-card-body > span{
+  color:var(--text-muted);
+  font-size:13px;
+  line-height:1.35;
+}
+#incomeAnalytics .analytics-card-body strong{
+  margin-top:25px;
+  color:var(--text);
+  font-size:24px;
+  line-height:1.15;
+  letter-spacing:-.025em;
+}
+#incomeAnalytics .analytics-card-body small{
+  margin-top:10px;
+  color:var(--text-muted);
+  font-size:12px;
+  line-height:1.35;
+}
+#incomeAnalytics .analytics-card-arrow{
+  position:absolute;
+  z-index:2;
+  right:22px;
+  top:50%;
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border:1px solid color-mix(in srgb,var(--primary) 70%,var(--border));
+  border-radius:50%;
+  color:var(--primary);
+  font-size:30px;
+  line-height:1;
+  transform:translateY(-50%);
+  opacity:.9;
+}
+#incomeAnalytics .analytics-card-best{
+  border-color:color-mix(in srgb,var(--success) 34%,var(--border)) !important;
+}
+#incomeAnalytics .analytics-card-best .analytics-card-icon,
+#incomeAnalytics .analytics-card-best .analytics-card-arrow{
+  color:var(--success);
+  border-color:color-mix(in srgb,var(--success) 70%,var(--border));
+}
+#incomeAnalytics .analytics-card-best::after{
+  background:color-mix(in srgb,var(--success) 10%,transparent);
+}
+#incomeAnalytics .analytics-card-worst{
+  border-color:color-mix(in srgb,var(--danger) 24%,var(--border)) !important;
+}
+#incomeAnalytics .analytics-card-worst .analytics-card-icon,
+#incomeAnalytics .analytics-card-worst .analytics-card-arrow{
+  color:var(--danger);
+  border-color:color-mix(in srgb,var(--danger) 65%,var(--border));
+}
+#incomeAnalytics .analytics-card-worst::after{
+  background:color-mix(in srgb,var(--danger) 9%,transparent);
+}
+@media(max-width:1050px){
+  #incomeAnalytics .analytics-cards{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+}
+@media(max-width:620px){
+  #incomeAnalytics{padding:20px 16px !important}
+  #incomeAnalytics .analytics-head{gap:12px}
+  #incomeAnalytics .analytics-total{font-size:20px !important}
+  #incomeAnalytics .analytics-cards{grid-template-columns:1fr !important}
+}
+
+#incomeAnalytics .analytics-card-best,
+#incomeAnalytics .analytics-card-worst{
+  cursor:pointer !important;
+}
+#incomeAnalytics .analytics-card-best:focus-visible,
+#incomeAnalytics .analytics-card-worst:focus-visible{
+  outline:2px solid var(--primary);
+  outline-offset:2px;
+}
+#incomeAnalytics .analytics-card-best:hover .analytics-card-arrow,
+#incomeAnalytics .analytics-card-worst:hover .analytics-card-arrow{
+  transform:translateY(-50%) translateX(2px);
+}
+
+#incomeAnalytics .analytics-card-arrow{
+  display:none !important;
+}
+#incomeAnalytics .analytics-card{
+  padding-right:22px !important;
+}
+
+#incomeAnalytics .analytics-cards{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+@media (max-width:900px){
+  #incomeAnalytics .analytics-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width:560px){
+  #incomeAnalytics .analytics-cards{
+    grid-template-columns:1fr !important;
+  }
+}
+
+#incomeAnalytics .analytics-card-growth .analytics-card-body strong.positive{color:var(--success)!important}
+#incomeAnalytics .analytics-card-growth .analytics-card-body strong.negative{color:var(--danger)!important}
+#incomeAnalytics .analytics-card-growth .analytics-card-body strong.neutral{color:var(--text-muted)!important}
+#incomeAnalytics .analytics-card-growth .analytics-card-icon{color:var(--primary)!important}
+
+#incomeAnalytics .analytics-head-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+}
+#incomeAnalytics .analytics-year-switcher{
+  display:inline-grid;
+  grid-template-columns:30px minmax(58px,auto) 30px;
+  align-items:center;
+  min-height:32px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--panel-muted);
+}
+#incomeAnalytics .analytics-year-switcher > button{
+  width:30px;
+  height:30px;
+  padding:0;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  color:var(--text);
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+  opacity:0;
+  transition:opacity .15s ease,background .15s ease;
+}
+#incomeAnalytics .analytics-year-switcher:hover > button,
+#incomeAnalytics .analytics-year-switcher > button:focus-visible,
+#incomeAnalytics .analytics-year-switcher > button:active{
+  opacity:1;
+}
+#incomeAnalytics .analytics-year-switcher:hover > button:hover{
+  background:var(--active);
+}
+#incomeAnalytics #analyticsYearControl{
+  min-width:0;
+  padding:0 5px;
+  text-align:center;
+  font-size:13px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+@media(max-width:620px){
+  #incomeAnalytics .analytics-head-right{gap:6px}
+}
+
+#incomeAnalytics .analytics-head{
+  align-items:flex-start !important;
+}
+#incomeAnalytics .analytics-title-block{
+  min-width:0;
+}
+#incomeAnalytics .analytics-title-block h2{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  flex-wrap:nowrap !important;
+  margin:8px 0 0 !important;
+}
+#incomeAnalytics .analytics-year-source{
+  display:none !important;
+}
+#incomeAnalytics .analytics-year-switcher{
+  display:inline-grid !important;
+  grid-template-columns:30px minmax(58px,auto) 30px !important;
+  align-items:center !important;
+  min-height:32px !important;
+  flex:0 0 auto !important;
+  border:1px solid var(--border) !important;
+  border-radius:9px !important;
+  background:var(--panel-muted) !important;
+  vertical-align:middle !important;
+}
+#incomeAnalytics .analytics-year-switcher > button{
+  width:30px !important;
+  height:30px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:7px !important;
+  background:transparent !important;
+  color:var(--text) !important;
+  font-size:20px !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+  opacity:0 !important;
+  transition:opacity .15s ease,background .15s ease !important;
+}
+#incomeAnalytics .analytics-year-switcher:hover > button,
+#incomeAnalytics .analytics-year-switcher > button:focus-visible,
+#incomeAnalytics .analytics-year-switcher > button:active{
+  opacity:1 !important;
+}
+#incomeAnalytics .analytics-year-switcher:hover > button:hover{
+  background:var(--active) !important;
+}
+#incomeAnalytics #analyticsYearControl{
+  min-width:0 !important;
+  padding:0 5px !important;
+  text-align:center !important;
+  font-size:14px !important;
+  font-weight:500 !important;
+  line-height:30px !important;
+  font-variant-numeric:tabular-nums !important;
+  white-space:nowrap !important;
+}
+#incomeAnalytics .analytics-total{
+  align-self:flex-start !important;
+}
+@media(max-width:620px){
+  #incomeAnalytics .analytics-title-block h2{
+    gap:8px !important;
+  }
+  #incomeAnalytics .analytics-year-switcher{
+    grid-template-columns:27px minmax(52px,auto) 27px !important;
+    min-height:30px !important;
+  }
+  #incomeAnalytics .analytics-year-switcher > button{
+    width:27px !important;
+    height:28px !important;
+  }
+  #incomeAnalytics #analyticsYearControl{
+    line-height:28px !important;
+    font-size:13px !important;
+  }
+}
+
+
+#incomeAnalytics .analytics-panel-title{
+  margin:0 0 12px 0;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+}
+
+#incomeAnalytics .analytics-category-panel{
+  color:var(--text);
+  transition:border-color .15s ease,transform .15s ease;
+}
+#incomeAnalytics .analytics-category-panel::after{
+  content:"";
+  position:absolute;
+  background:var(--category-soft);
+  pointer-events:none;
+}
+#incomeAnalytics .analytics-category-panel.salary{
+  --category:var(--success);
+  --category-soft:rgba(24,185,129,.10);
+  border-color:color-mix(in srgb,var(--success) 55%,var(--border));
+}
+#incomeAnalytics .analytics-category-panel.advance{
+  --category:#3b82f6;
+  --category-soft:rgba(59,130,246,.10);
+  border-color:color-mix(in srgb,#3b82f6 55%,var(--border));
+}
+#incomeAnalytics .analytics-category-panel.other{
+  --category:#8b5cf6;
+  --category-soft:rgba(139,92,246,.10);
+  border-color:color-mix(in srgb,#8b5cf6 55%,var(--border));
+}
+#incomeAnalytics .analytics-category-panel.pension{
+  --category:#f59e0b;
+  --category-soft:rgba(245,158,11,.10);
+  border-color:color-mix(in srgb,#f59e0b 55%,var(--border));
+}
+#incomeAnalytics .analytics-category-panel:hover{
+  transform:translateY(-1px);
+  border-color:var(--category);
+}
+#incomeAnalytics .analytics-category-panel-icon{
+  background:color-mix(in srgb,var(--category) 14%,transparent);
+  color:var(--category);
+}
+#incomeAnalytics .analytics-category-panel-icon svg{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#incomeAnalytics .analytics-category-panel-name{
+  color:var(--text-muted);
+}
+
+#incomeAnalytics .analytics-category-panel-share{
+  color:var(--text-muted);
+}
+
+
+#incomeAnalytics .analytics-grid{display:block}
+#incomeAnalytics .analytics-grid .analytics-panel{
+  padding:0;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+#incomeAnalytics .analytics-panel-title{
+  margin:0 0 12px 0;
+  padding:0;
+}
+#incomeAnalytics .analytics-category-panels{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+@media(max-width:900px){
+  #incomeAnalytics .analytics-category-panels{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  #incomeAnalytics .analytics-category-panels{grid-template-columns:1fr}
+}
+
+/* Категории: сохраняем вертикальную компоновку содержимого карточки. */
+#incomeAnalytics .analytics-category-panel{
+  flex-direction:column !important;
+}
+
+
+/* «По категориям» — тот же размер и форма, что и верхние карточки */
+#incomeAnalytics .analytics-category-panels{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:16px !important;
+  align-items:stretch !important;
+}
+#incomeAnalytics .analytics-category-panel{
+  position:relative !important;
+  width:100% !important;
+  min-width:0 !important;
+  min-height:184px !important;
+  height:184px !important;
+  box-sizing:border-box !important;
+  padding:28px 54px 24px 28px !important;
+  display:flex !important;
+  align-items:flex-start !important;
+  gap:16px !important;
+  overflow:hidden !important;
+  border:1px solid var(--border) !important;
+  border-radius:20px !important;
+  background:var(--panel-muted) !important;
+  text-align:left !important;
+}
+#incomeAnalytics .analytics-category-panel::after{
+  width:150px !important;
+  height:150px !important;
+  right:-54px !important;
+  bottom:-76px !important;
+  border-radius:50% !important;
+}
+#incomeAnalytics .analytics-category-panel-icon{
+  position:relative !important;
+  z-index:1 !important;
+  flex:0 0 44px !important;
+  width:44px !important;
+  height:44px !important;
+  margin:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  border-radius:12px !important;
+}
+#incomeAnalytics .analytics-category-panel-icon svg{
+  width:23px !important;
+  height:23px !important;
+}
+#incomeAnalytics .analytics-category-panel-name{
+  position:relative !important;
+  z-index:1 !important;
+  display:block !important;
+  margin:0 !important;
+  color:var(--text-muted) !important;
+  font-size:13px !important;
+  line-height:1.35 !important;
+}
+#incomeAnalytics .analytics-category-panel-value{
+  position:relative !important;
+  z-index:1 !important;
+  display:block !important;
+  margin-top:25px !important;
+  color:var(--text) !important;
+  font-size:24px !important;
+  line-height:1.15 !important;
+  letter-spacing:-.025em !important;
+  font-weight:600 !important;
+}
+#incomeAnalytics .analytics-category-panel-share{
+  position:absolute !important;
+  z-index:1 !important;
+  right:22px !important;
+  bottom:22px !important;
+  font-size:12px !important;
+  font-weight:600 !important;
+}
+@media(max-width:900px){
+  #incomeAnalytics .analytics-category-panels{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:560px){
+  #incomeAnalytics .analytics-category-panels{
+    grid-template-columns:1fr !important;
+  }
+}
+
+#incomeAnalytics .analytics-category-panel-body{
+  position:relative !important;
+  z-index:1 !important;
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-start !important;
+}
+
+/* Процент в карточках категорий — аккуратный бейдж справа сверху */
+
+#incomeAnalytics .analytics-category-panel-share{
+  position:absolute !important;
+  top:20px !important;
+  right:20px !important;
+  bottom:auto !important;
+  z-index:3 !important;
+  min-width:44px !important;
+  height:30px !important;
+  padding:0 10px !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:9px !important;
+  background:rgba(255,255,255,.055) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:var(--text-muted) !important;
+  font-size:12px !important;
+  line-height:1 !important;
+  font-weight:600 !important;
+}
+#incomeAnalytics .analytics-category-panel.salary .analytics-category-panel-share{
+  color:#00d084 !important;
+  background:rgba(0,208,132,.08) !important;
+  border-color:rgba(0,208,132,.16) !important;
+}
+#incomeAnalytics .analytics-category-panel.advance .analytics-category-panel-share{
+  color:#4d9cff !important;
+  background:rgba(77,156,255,.08) !important;
+  border-color:rgba(77,156,255,.16) !important;
+}
+#incomeAnalytics .analytics-category-panel.other .analytics-category-panel-share{
+  color:#a66cff !important;
+  background:rgba(166,108,255,.09) !important;
+  border-color:rgba(166,108,255,.17) !important;
+}
+#incomeAnalytics .analytics-category-panel.pension .analytics-category-panel-share{
+  color:#ffad00 !important;
+  background:rgba(255,173,0,.09) !important;
+  border-color:rgba(255,173,0,.17) !important;
+}
+
+/* Процент — справа от иконки, на одной горизонтали с ней */
+#incomeAnalytics .analytics-category-panel-share{
+  top:28px !important;
+  right:20px !important;
+  bottom:auto !important;
+  min-width:48px !important;
+  height:32px !important;
+  padding:0 9px !important;
+  border-radius:9px !important;
+  font-size:14px !important;
+}
+
+#incomeAnalytics .analytics-category-panel{
+  cursor:default !important;
+}
+
+/* Убираем служебные надписи на главной, не затрагивая сами карточки и статистику. */
+#incomeAnalytics .analytics-panel-title,
+#incomeAnalytics .analytics-panel-subtitle,
+#incomeAnalytics .analytics-category-title{
+  display:none !important;
+}
+
+/* Удаляем именно служебные подписи «Статистика» и «Нажмите, чтобы открыть». */
+#incomeAnalytics .analytics-panel-subtitle,
+#incomeAnalytics [class*="subtitle"],
+#incomeAnalytics [class*="hint"],
+#incomeAnalytics [class*="description"]{
+  display:none !important;
+}
+
+/* Шапка дохода: левый блок и сумма справа выровнены по размеру и вертикали */
+#incomeAnalytics .analytics-head{
+  align-items:center !important;
+}
+#incomeAnalytics .analytics-title-block h2{
+  margin:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  flex-wrap:nowrap !important;
+  font-size:24px !important;
+  line-height:32px !important;
+}
+#incomeAnalytics .analytics-total{
+  font-size:24px !important;
+  line-height:32px !important;
+}
+#incomeAnalytics .analytics-year-switcher{
+  min-height:32px !important;
+  height:32px !important;
+  border-radius:9px !important;
+}
+#incomeAnalytics #analyticsYearControl{
+  font-size:14px !important;
+  line-height:32px !important;
+}
+
+/* Тёмная тема: фон страницы ближе к чёрному */
+html[data-theme="dark"]{
+  --bg:#070b12;
+  --bg-accent:#111827;
+}
+html[data-theme="dark"] body{
+  background:#070b12 !important;
+}
+
+/* Нижняя панель: режим отображения подписей */
+.nav-label-mode-options{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px !important;
+  margin-top:12px;
+  max-width:100%;
+}
+.nav-label-mode-btn{
+  min-height:40px;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--panel-muted);
+  color:var(--text);
+  font:inherit;
+  font-size:13px;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
+}
+.nav-label-mode-btn:hover{background:var(--panel);}
+.nav-label-mode-btn.active{
+  background:var(--active);
+  border-color:var(--border-strong,var(--border));
+  color:var(--text);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--border) 70%,transparent);
+}
+html[data-nav-label-mode="icons"] .nav-label{display:none !important;}
+html[data-nav-label-mode="icons"] .nav-item{gap:0;}
+html[data-nav-label-mode="text"] .nav-icon{display:none !important;}
+html[data-nav-label-mode="text"] .nav-item{gap:0;}
+@media (max-width:560px){
+  .nav-label-mode-options{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+/* Нижняя панель — единый стиль с остальными настройками. */
+#settings > .settings-card:not([style]) > .nav-label-mode-title{
+  order:4 !important;
+  margin:0 0 12px 0 !important;
+}
+#settings > .settings-card:not([style]) > .nav-label-mode-options{
+  order:4 !important;
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px !important;
+  width:100% !important;
+  margin:0 !important;
+}
+#settings > .settings-card:not([style]) .nav-label-mode-btn{
+  min-height:44px !important;
+  padding:10px 12px !important;
+  border:1px solid var(--border) !important;
+  border-radius:10px !important;
+  background:var(--panel-muted) !important;
+  color:var(--text) !important;
+  font:inherit !important;
+  font-size:13px !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+#settings > .settings-card:not([style]) .nav-label-mode-btn:hover{
+  background:var(--panel) !important;
+  border-color:var(--border-strong,var(--border)) !important;
+}
+#settings > .settings-card:not([style]) .nav-label-mode-btn.active{
+  background:var(--panel) !important;
+  border-color:var(--primary) !important;
+  box-shadow:inset 0 0 0 1px var(--primary) !important;
+  color:var(--text) !important;
+}
+@media (max-width:700px){
+  #settings > .settings-card:not([style]) > .nav-label-mode-options{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+.qp-confirm-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.28);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.qp-confirm-dialog{width:min(460px,calc(100vw - 40px));background:var(--surface,#fff);color:var(--text,#172033);border:1px solid rgba(100,116,139,.28);border-radius:18px;box-shadow:0 20px 60px rgba(15,23,42,.22);padding:24px}
+.qp-confirm-title{margin:0 0 8px;font-size:18px;line-height:24px;font-weight:700}
+.qp-confirm-message{margin:0;color:var(--muted,#64748b);font-size:14px;line-height:20px}
+.qp-confirm-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.qp-confirm-btn{min-width:104px;height:40px;padding:0 18px;border-radius:10px;border:1px solid rgba(100,116,139,.28);font:inherit;font-size:14px;cursor:pointer;background:var(--surface,#fff);color:var(--text,#172033)}
+.qp-confirm-btn:hover{background:#f1f3f6}
+.qp-confirm-btn-primary{border-color:#2563eb;background:#2563eb;color:#fff}
+.qp-confirm-btn-primary:hover{background:#1d4ed8}
+html[data-theme="dark"] .qp-confirm-overlay{background:rgba(0,0,0,.52)}
+html[data-theme="dark"] .qp-confirm-dialog{background:#151b2a;color:#edf1f7;border-color:rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.45)}
+html[data-theme="dark"] .qp-confirm-message{color:#9aa5b8}
+html[data-theme="dark"] .qp-confirm-btn{background:#1b2232;color:#edf1f7;border-color:rgba(255,255,255,.12)}
+html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
+@media(max-width:520px){.qp-confirm-dialog{padding:20px}.qp-confirm-actions{flex-direction:column-reverse}.qp-confirm-btn{width:100%}}
