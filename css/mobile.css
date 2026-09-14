@@ -1153,7 +1153,35 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     display:none !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header){
+  /* Native mobile history swipe: Safari owns horizontal scrolling. */
+  #history #incomeList > .history-swipe-row{
+    display:grid !important;
+    grid-template-columns:100% 160px !important;
+    align-items:stretch !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    background:transparent !important;
+    border:0 !important;
+    border-radius:16px !important;
+    box-shadow:none !important;
+    box-sizing:border-box;
+  }
+
+  #history #incomeList > .history-swipe-row::-webkit-scrollbar{
+    display:none;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface{
+    grid-column:1 !important;
+    min-width:0 !important;
     display:grid !important;
     grid-template-columns:max-content minmax(0,1fr) !important;
     grid-template-areas:
@@ -1163,18 +1191,18 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     align-items:center !important;
     gap:8px 8px !important;
     min-height:0 !important;
-    margin:0 !important;
     padding:14px !important;
     overflow:hidden !important;
-    background:transparent !important;
-    border:0 !important;
+    border:1px solid var(--border) !important;
     border-radius:16px !important;
-    box-shadow:none !important;
-    isolation:isolate;
-    touch-action:pan-y;
+    background:var(--panel) !important;
+    box-shadow:var(--shadow-sm) !important;
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
+    box-sizing:border-box;
   }
 
-  #history #incomeList > .income-row:not(.income-header) > div{
+  #history #incomeList > .history-swipe-row .history-card-surface > div{
     min-height:0 !important;
     padding:0 !important;
     border:0 !important;
@@ -1182,31 +1210,9 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     justify-content:flex-start !important;
     text-align:left !important;
     white-space:normal !important;
-    position:relative !important;
-    z-index:3;
-    transform:translateX(var(--history-swipe-x,0px));
-    transition:transform .18s ease;
   }
 
-  #history #incomeList > .income-row:not(.income-header)::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    z-index:2;
-    border:1px solid var(--border);
-    border-radius:16px;
-    background:var(--panel);
-    box-shadow:var(--shadow-sm);
-    transform:translateX(var(--history-swipe-x,0px));
-    transition:transform .18s ease;
-  }
-
-  #history #incomeList > .income-row:not(.income-header).history-swipe-dragging > div,
-  #history #incomeList > .income-row:not(.income-header).history-swipe-dragging::before{
-    transition:none;
-  }
-
-  #history #incomeList > .income-row:not(.income-header) > div:nth-child(1){
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(1){
     grid-area:date !important;
     color:var(--text-muted) !important;
     font-size:15px !important;
@@ -1215,7 +1221,7 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     white-space:nowrap !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) > div:nth-child(2){
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(2){
     grid-area:amount !important;
     color:var(--text) !important;
     font-size:22px !important;
@@ -1226,7 +1232,7 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     white-space:nowrap !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) > div:nth-child(3){
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(3){
     grid-area:category !important;
     justify-self:start !important;
     align-self:center !important;
@@ -1245,7 +1251,7 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     text-overflow:ellipsis !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) > div:nth-child(4){
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(4){
     grid-area:description !important;
     display:-webkit-box !important;
     -webkit-box-orient:vertical !important;
@@ -1257,23 +1263,37 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     overflow-wrap:anywhere !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) > div:nth-child(4):empty{
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(4):empty{
     display:none !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) .edit-income,
-  #history #incomeList > .income-row:not(.income-header) .delete-income{
-    position:absolute !important;
-    top:0 !important;
-    bottom:0 !important;
+  #history #incomeList > .history-swipe-row .history-swipe-actions{
+    grid-column:2 !important;
+    min-width:0 !important;
+    width:160px !important;
+    padding:0 !important;
+    border:0 !important;
+    display:flex !important;
+    align-items:stretch !important;
+    scroll-snap-align:end;
+    scroll-snap-stop:always;
+  }
+
+  #history #incomeList > .history-swipe-row .edit-income,
+  #history #incomeList > .history-swipe-row .delete-income{
+    position:static !important;
+    top:auto !important;
+    right:auto !important;
+    bottom:auto !important;
     display:flex !important;
     align-items:center !important;
     justify-content:center !important;
-    gap:6px !important;
+    flex:0 0 80px !important;
     width:80px !important;
-    height:auto !important;
+    height:100% !important;
     min-height:0 !important;
     padding:0 6px !important;
+    gap:6px !important;
     border:0 !important;
     border-radius:0 !important;
     box-shadow:none !important;
@@ -1285,28 +1305,26 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     opacity:1 !important;
     pointer-events:auto !important;
     transform:none !important;
-    z-index:1 !important;
+    z-index:auto !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) .edit-income{
-    right:80px !important;
+  #history #incomeList > .history-swipe-row .edit-income{
     background:#475569 !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) .delete-income{
-    right:0 !important;
+  #history #incomeList > .history-swipe-row .delete-income{
     background:#b91c1c !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) .history-action-label{
+  #history #incomeList > .history-swipe-row .history-action-label{
     display:inline !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) .history-delete-close{
+  #history #incomeList > .history-swipe-row .history-delete-close{
     display:none !important;
   }
 
-  #history #incomeList > .income-row:not(.income-header) .history-delete-trash{
+  #history #incomeList > .history-swipe-row .history-delete-trash{
     display:block !important;
     width:18px !important;
     height:18px !important;

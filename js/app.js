@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.14.01';
+const qPokoyDevVersion='dev-2026.09.14.02';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -447,7 +447,7 @@ function getVisibleIncomes(source=incomes){
 }
 
 window.renderIncomes=function renderIncomes(filteredData=null){
-  clearHistorySwipeState();
+  clearHistoryNativeSwipeState();
   const latest=IncomeStore.load();
   if(Array.isArray(latest)) incomes.splice(0,incomes.length,...latest);
   const period=syncAppPeriod();
@@ -482,20 +482,25 @@ window.renderIncomes=function renderIncomes(filteredData=null){
   }
 
   const rows = source.slice();
+  const mobileHistoryRows=historyNativeSwipeMedia.matches;
   incomeList.innerHTML=header+
-    rows.map(item=>`
-      <div class="income-row">
+    rows.map(item=>{
+      const cells=`
         <div>${escapeHtml(formatDateShort(item.date))}</div>
         <div class="income-amount">${formatMoney(Number(item.amount||0))}</div>
         <div>${escapeHtml(item.category||'—')}</div>
-        <div>${escapeHtml(item.description||'')}</div>
+        <div>${escapeHtml(item.description||'')}</div>`;
+      const actions=`
         <button class="edit-income" data-id="${escapeHtml(item.id)}" type="button" title="Редактировать" aria-label="Редактировать"><span class="history-action-pencil" aria-hidden="true">✎</span><span class="history-action-label" style="display:none">Изменить</span></button>
         <button class="delete-income" data-id="${escapeHtml(item.id)}" type="button" aria-label="Удалить доход" title="Удалить доход" onclick="return window.qPokoyDeleteIncome(this.getAttribute('data-id')); ">
           <svg class="history-delete-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></svg>
           <svg class="history-delete-trash" style="display:none" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>
           <span class="history-action-label" style="display:none">Удалить</span>
-        </button>
-      </div>`).join('');
+        </button>`;
+      return mobileHistoryRows
+        ? `<div class="income-row history-swipe-row"><div class="history-card-surface">${cells}</div><div class="history-swipe-actions">${actions}</div></div>`
+        : `<div class="income-row">${cells}${actions}</div>`;
+    }).join('');
   if(typeof window.renderIncomeMonthChart==='function') window.renderIncomeMonthChart();
   if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
 }
@@ -749,119 +754,46 @@ incomeList.addEventListener('click',e=>{
   }
 });
 
-const historySwipeMedia=window.matchMedia('(max-width:560px)');
-const historySwipeWidth=160;
-const historySwipeStartThreshold=12;
-const historySwipeOpenThreshold=56;
-let historySwipeOpenRow=null;
-let historySwipeGesture=null;
-let historySwipeSuppressClick=false;
-let historySwipeSuppressClickTimer=null;
+const historyNativeSwipeMedia=window.matchMedia('(max-width:560px)');
+let historyNativeOpenRow=null;
 
-function setHistorySwipeOffset(row,offset,dragging){
-  const next=Math.max(0,Math.min(historySwipeWidth,offset));
-  row.style.setProperty('--history-swipe-x',`${-next}px`);
-  row.classList.toggle('history-swipe-dragging',Boolean(dragging));
-  return next;
-}
-function closeHistorySwipe(row){
+function closeHistoryNativeRow(row,smooth=true){
   if(!row)return;
-  row.classList.remove('history-swipe-open','history-swipe-dragging');
-  row.style.removeProperty('--history-swipe-x');
-  if(historySwipeOpenRow===row)historySwipeOpenRow=null;
+  if(smooth && typeof row.scrollTo==='function')row.scrollTo({left:0,behavior:'smooth'});
+  else row.scrollLeft=0;
+  if(historyNativeOpenRow===row)historyNativeOpenRow=null;
 }
-function openHistorySwipe(row){
-  if(historySwipeOpenRow && historySwipeOpenRow!==row)closeHistorySwipe(historySwipeOpenRow);
-  setHistorySwipeOffset(row,historySwipeWidth,false);
-  row.classList.add('history-swipe-open');
-  historySwipeOpenRow=row;
-}
-function releaseHistorySwipeCapture(gesture){
-  if(!gesture?.row)return;
-  try{
-    if(gesture.row.hasPointerCapture(gesture.pointerId))gesture.row.releasePointerCapture(gesture.pointerId);
-  }catch(_error){}
-}
-function clearHistorySwipeClickSuppression(){
-  historySwipeSuppressClick=false;
-  if(historySwipeSuppressClickTimer!==null){
-    clearTimeout(historySwipeSuppressClickTimer);
-    historySwipeSuppressClickTimer=null;
-  }
-}
-function armHistorySwipeClickSuppression(){
-  clearHistorySwipeClickSuppression();
-  historySwipeSuppressClick=true;
-  historySwipeSuppressClickTimer=setTimeout(()=>{
-    historySwipeSuppressClick=false;
-    historySwipeSuppressClickTimer=null;
-  },0);
-}
-function clearHistorySwipeState(){
-  const gesture=historySwipeGesture;
-  historySwipeGesture=null;
-  if(gesture){
-    gesture.row.classList.remove('history-swipe-dragging');
-    releaseHistorySwipeCapture(gesture);
-  }
-  closeHistorySwipe(historySwipeOpenRow);
-  historySwipeOpenRow=null;
-  clearHistorySwipeClickSuppression();
+function clearHistoryNativeSwipeState(){
+  closeHistoryNativeRow(historyNativeOpenRow,false);
+  historyNativeOpenRow=null;
 }
 
 incomeList.addEventListener('pointerdown',e=>{
-  if(!historySwipeMedia.matches || e.pointerType==='mouse')return;
-  const row=e.target.closest('#history #incomeList > .income-row:not(.income-header)');
-  if(!row || e.target.closest('.edit-income,.delete-income'))return;
-  historySwipeGesture={row,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,startOffset:row.classList.contains('history-swipe-open')?historySwipeWidth:0,offset:0,horizontal:false};
+  if(!historyNativeSwipeMedia.matches)return;
+  const row=e.target.closest('#history #incomeList > .history-swipe-row');
+  if(row && historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow);
 });
-incomeList.addEventListener('pointermove',e=>{
-  const gesture=historySwipeGesture;
-  if(!gesture || gesture.pointerId!==e.pointerId)return;
-  const dx=e.clientX-gesture.startX;
-  const dy=e.clientY-gesture.startY;
-  if(!gesture.horizontal){
-    const ax=Math.abs(dx);
-    const ay=Math.abs(dy);
-    if(Math.max(ax,ay)<historySwipeStartThreshold)return;
-    if(ay>ax*1.5)return;
-    if(ax<historySwipeStartThreshold || ax<ay*0.75)return;
-    gesture.horizontal=true;
-    if(historySwipeOpenRow && historySwipeOpenRow!==gesture.row)closeHistorySwipe(historySwipeOpenRow);
-    try{gesture.row.setPointerCapture(e.pointerId);}catch(_error){}
+incomeList.addEventListener('scroll',e=>{
+  if(!historyNativeSwipeMedia.matches)return;
+  const row=e.target;
+  if(!row.matches?.('#history #incomeList > .history-swipe-row'))return;
+  if(row.scrollLeft>2){
+    if(historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow);
+    historyNativeOpenRow=row;
+  }else if(historyNativeOpenRow===row){
+    historyNativeOpenRow=null;
   }
-  if(!gesture.horizontal)return;
-  if(e.cancelable)e.preventDefault();
-  gesture.offset=setHistorySwipeOffset(gesture.row,gesture.startOffset-dx,true);
-});
-function finishHistorySwipe(e,cancelled){
-  const gesture=historySwipeGesture;
-  if(!gesture || gesture.pointerId!==e.pointerId)return;
-  if(gesture.horizontal){
-    const shouldOpen=!cancelled && (gesture.startOffset===historySwipeWidth ? gesture.offset>historySwipeWidth-historySwipeOpenThreshold : gesture.offset>=historySwipeOpenThreshold);
-    if(shouldOpen)openHistorySwipe(gesture.row);else closeHistorySwipe(gesture.row);
-  }
-  historySwipeGesture=null;
-  if(cancelled)clearHistorySwipeClickSuppression();
-  else if(gesture.horizontal)armHistorySwipeClickSuppression();
-  if(gesture.horizontal)releaseHistorySwipeCapture(gesture);
-}
-document.addEventListener('pointerup',e=>finishHistorySwipe(e,false),true);
-document.addEventListener('pointercancel',e=>finishHistorySwipe(e,true),true);
-document.addEventListener('lostpointercapture',e=>finishHistorySwipe(e,true),true);
-document.addEventListener('pointerdown',e=>{
-  if(!historySwipeMedia.matches || !historySwipeOpenRow)return;
-  if(!historySwipeOpenRow.contains(e.target))closeHistorySwipe(historySwipeOpenRow);
-});
-incomeList.addEventListener('click',e=>{
-  if(!historySwipeSuppressClick)return;
-  e.preventDefault();
-  e.stopPropagation();
-  clearHistorySwipeClickSuppression();
 },true);
-window.addEventListener('resize',()=>{
-  if(!historySwipeMedia.matches)closeHistorySwipe(historySwipeOpenRow);
-},{passive:true});
+document.addEventListener('pointerdown',e=>{
+  if(!historyNativeSwipeMedia.matches || !historyNativeOpenRow)return;
+  if(!historyNativeOpenRow.contains(e.target))closeHistoryNativeRow(historyNativeOpenRow);
+});
+function rerenderHistoryForNativeSwipe(){
+  if(typeof window.applyIncomeHeaderFilters==='function')window.applyIncomeHeaderFilters();
+  else window.renderIncomes();
+}
+if(historyNativeSwipeMedia.addEventListener)historyNativeSwipeMedia.addEventListener('change',rerenderHistoryForNativeSwipe);
+else historyNativeSwipeMedia.addListener(rerenderHistoryForNativeSwipe);
 
 incomeDate.addEventListener('focus',()=>incomeDate.select());
 incomeDate.addEventListener('click',()=>incomeDate.select());
