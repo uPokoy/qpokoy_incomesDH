@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.14.02';
+const qPokoyDevVersion='dev-2026.09.14.03';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -756,12 +756,18 @@ incomeList.addEventListener('click',e=>{
 
 const historyNativeSwipeMedia=window.matchMedia('(max-width:560px)');
 let historyNativeOpenRow=null;
+const historyNativeClosingRows=new WeakSet();
 
 function closeHistoryNativeRow(row,smooth=true){
   if(!row)return;
-  if(smooth && typeof row.scrollTo==='function')row.scrollTo({left:0,behavior:'smooth'});
-  else row.scrollLeft=0;
   if(historyNativeOpenRow===row)historyNativeOpenRow=null;
+  if(smooth && typeof row.scrollTo==='function'){
+    historyNativeClosingRows.add(row);
+    row.scrollTo({left:0,behavior:'smooth'});
+  }else{
+    historyNativeClosingRows.delete(row);
+    row.scrollLeft=0;
+  }
 }
 function clearHistoryNativeSwipeState(){
   closeHistoryNativeRow(historyNativeOpenRow,false);
@@ -771,14 +777,18 @@ function clearHistoryNativeSwipeState(){
 incomeList.addEventListener('pointerdown',e=>{
   if(!historyNativeSwipeMedia.matches)return;
   const row=e.target.closest('#history #incomeList > .history-swipe-row');
-  if(row && historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow);
+  if(row && historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow,false);
 });
 incomeList.addEventListener('scroll',e=>{
   if(!historyNativeSwipeMedia.matches)return;
   const row=e.target;
   if(!row.matches?.('#history #incomeList > .history-swipe-row'))return;
+  if(historyNativeClosingRows.has(row)){
+    if(row.scrollLeft<=2)historyNativeClosingRows.delete(row);
+    return;
+  }
   if(row.scrollLeft>2){
-    if(historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow);
+    if(historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow,false);
     historyNativeOpenRow=row;
   }else if(historyNativeOpenRow===row){
     historyNativeOpenRow=null;
