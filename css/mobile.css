@@ -1162,9 +1162,9 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
       "description description" !important;
     align-items:center !important;
     gap:8px 8px !important;
-    min-height:0 !important;
+    min-height:124px !important;
     margin:0 !important;
-    padding:14px 92px 14px 14px !important;
+    padding:14px 130px 14px 14px !important;
     overflow:hidden !important;
     background:var(--panel) !important;
     border:1px solid var(--border) !important;
@@ -1241,20 +1241,50 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
   #history #incomeList > .income-row:not(.income-header) .delete-income{
     position:absolute !important;
     top:14px !important;
-    width:34px !important;
-    height:34px !important;
+    right:14px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:8px !important;
+    width:108px !important;
+    height:44px !important;
+    min-height:44px !important;
+    padding:0 10px !important;
     transform:none !important;
     border-radius:10px !important;
-    background:var(--panel-muted) !important;
+    box-shadow:none !important;
+    color:var(--text) !important;
+    font-size:14px !important;
+    font-weight:650 !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
     z-index:20 !important;
   }
 
   #history #incomeList > .income-row:not(.income-header) .edit-income{
-    right:52px !important;
+    border-color:color-mix(in srgb,var(--icon-color) 38%,var(--border)) !important;
+    background:var(--panel-muted) !important;
   }
 
   #history #incomeList > .income-row:not(.income-header) .delete-income{
-    right:12px !important;
+    top:66px !important;
+    border-color:color-mix(in srgb,var(--danger) 42%,var(--border)) !important;
+    background:color-mix(in srgb,var(--panel) 74%,#000) !important;
+    color:var(--danger) !important;
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .edit-income::after{
+    content:"Изменить";
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .delete-income::after{
+    content:"Удалить";
+  }
+
+  #history #incomeList > .income-row:not(.income-header) .delete-income svg{
+    width:17px !important;
+    height:17px !important;
+    flex:0 0 auto !important;
   }
 
   #history .income-empty{
