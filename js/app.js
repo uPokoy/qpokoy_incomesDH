@@ -300,7 +300,7 @@ function formatDateShort(value){
     return v;
   }
 function escapeHtml(value){
-  return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
+  return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 }
 incomes=incomes.map(item=>({...item,date:formatDateShort(item.date)}));
 localStorage.setItem('incomes',JSON.stringify(incomes));
