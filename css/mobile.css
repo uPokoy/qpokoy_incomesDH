@@ -150,6 +150,9 @@
     overflow:hidden !important;
     overscroll-behavior:none;
   }
+  body.qp-auth-locked #qpAuthGate .qp-auth-card {
+    overflow: auto !important;
+  }
 }
 
 /* Mobile fixes V4: keep controls inside the viewport and prevent iOS focus zoom. */
