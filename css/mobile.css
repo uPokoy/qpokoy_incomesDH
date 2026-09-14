@@ -1318,4 +1318,38 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     border-radius:16px !important;
     background:var(--panel) !important;
   }
+
+  /* TEMP DEV TOOL — remove after mobile development */
+  #income .qp-dev-panel{
+    display:flex !important;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    width:100%;
+    min-height:38px;
+    margin:0 0 12px;
+    padding:7px 9px 7px 11px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--panel-muted);
+    color:var(--text-muted);
+    font-size:12px;
+    line-height:1.2;
+    box-sizing:border-box;
+  }
+  #income .qp-dev-panel strong{
+    color:var(--text);
+    font-weight:650;
+  }
+  #income .qp-dev-panel button{
+    flex:0 0 auto;
+    min-height:30px;
+    padding:5px 9px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--panel);
+    color:var(--text-muted);
+    font:inherit;
+    cursor:pointer;
+  }
 }

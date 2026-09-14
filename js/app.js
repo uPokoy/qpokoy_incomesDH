@@ -2,6 +2,17 @@
 (function(){
 "use strict";
 
+// TEMP DEV TOOL — remove after mobile development
+const qPokoyDevVersion='dev-2026.09.14.01';
+const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
+const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
+if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
+qPokoyDevRefresh?.addEventListener('click',()=>{
+  const url=new URL(window.location.href);
+  url.searchParams.set('_devrefresh',Date.now().toString());
+  window.location.replace(url.toString());
+});
+
 const sidebar=document.querySelector('.sidebar');
 const content=document.querySelector('.content');
 const toggleSidebar=document.getElementById('toggleSidebar');

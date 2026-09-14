@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.14.01">
 <title>Доходы</title>
 <!-- qPokoy: Иконки сайта/ярлыков. Интерфейс сайта не изменяется. -->
 <meta name="application-name" content="Доходы">
@@ -227,6 +227,11 @@
     <header><h1 id="pageTitle">Главная</h1></header>
     <main>
       <section id="income" class="page active">
+  <!-- TEMP DEV TOOL — remove after mobile development -->
+  <div class="qp-dev-panel" style="display:none">
+    <span>DEV · <strong id="qPokoyDevVersion"></strong></span>
+    <button type="button" id="qPokoyDevRefresh">Обновить</button>
+  </div>
   <div class="income-top">
     <div class="income-month-block">
       <div class="month-switcher" id="incomeMonthSwitcher" aria-label="Переключение месяца"><button type="button" id="monthPrev" aria-label="Предыдущий месяц">‹</button><span id="monthSwitcherName"></span><button type="button" id="monthNext" aria-label="Следующий месяц">›</button></div>
@@ -476,7 +481,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.14.01"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
