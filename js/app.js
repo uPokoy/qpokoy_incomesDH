@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.14.03';
+const qPokoyDevVersion='dev-2026.09.14.04';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -300,7 +300,7 @@ function formatDateShort(value){
     return v;
   }
 function escapeHtml(value){
-  return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
 }
 incomes=incomes.map(item=>({...item,date:formatDateShort(item.date)}));
 localStorage.setItem('incomes',JSON.stringify(incomes));
@@ -777,7 +777,8 @@ function clearHistoryNativeSwipeState(){
 incomeList.addEventListener('pointerdown',e=>{
   if(!historyNativeSwipeMedia.matches)return;
   const row=e.target.closest('#history #incomeList > .history-swipe-row');
-  if(row && historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow,false);
+  if(row)historyNativeClosingRows.delete(row);
+  if(row && historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow,true);
 });
 incomeList.addEventListener('scroll',e=>{
   if(!historyNativeSwipeMedia.matches)return;
@@ -788,7 +789,7 @@ incomeList.addEventListener('scroll',e=>{
     return;
   }
   if(row.scrollLeft>2){
-    if(historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow,false);
+    if(historyNativeOpenRow && historyNativeOpenRow!==row)closeHistoryNativeRow(historyNativeOpenRow,true);
     historyNativeOpenRow=row;
   }else if(historyNativeOpenRow===row){
     historyNativeOpenRow=null;
