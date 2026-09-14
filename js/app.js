@@ -740,8 +740,8 @@ incomeList.addEventListener('click',e=>{
 
 const historySwipeMedia=window.matchMedia('(max-width:560px)');
 const historySwipeWidth=160;
-const historySwipeStartThreshold=10;
-const historySwipeOpenThreshold=36;
+const historySwipeStartThreshold=12;
+const historySwipeOpenThreshold=56;
 let historySwipeOpenRow=null;
 let historySwipeGesture=null;
 let historySwipeSuppressClick=false;
@@ -802,19 +802,19 @@ incomeList.addEventListener('pointerdown',e=>{
   if(!historySwipeMedia.matches || e.pointerType==='mouse')return;
   const row=e.target.closest('#history #incomeList > .income-row:not(.income-header)');
   if(!row || e.target.closest('.edit-income,.delete-income'))return;
-  historySwipeGesture={row,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,startOffset:row.classList.contains('history-swipe-open')?historySwipeWidth:0,offset:0,horizontal:false,vertical:false};
+  historySwipeGesture={row,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,startOffset:row.classList.contains('history-swipe-open')?historySwipeWidth:0,offset:0,horizontal:false};
 });
 incomeList.addEventListener('pointermove',e=>{
   const gesture=historySwipeGesture;
   if(!gesture || gesture.pointerId!==e.pointerId)return;
   const dx=e.clientX-gesture.startX;
   const dy=e.clientY-gesture.startY;
-  if(!gesture.horizontal && !gesture.vertical){
-    if(Math.max(Math.abs(dx),Math.abs(dy))<historySwipeStartThreshold)return;
-    if(Math.abs(dx)<=Math.abs(dy)){
-      gesture.vertical=true;
-      return;
-    }
+  if(!gesture.horizontal){
+    const ax=Math.abs(dx);
+    const ay=Math.abs(dy);
+    if(Math.max(ax,ay)<historySwipeStartThreshold)return;
+    if(ay>ax*1.5)return;
+    if(ax<historySwipeStartThreshold || ax<ay*0.75)return;
     gesture.horizontal=true;
     if(historySwipeOpenRow && historySwipeOpenRow!==gesture.row)closeHistorySwipe(historySwipeOpenRow);
     try{gesture.row.setPointerCapture(e.pointerId);}catch(_error){}
