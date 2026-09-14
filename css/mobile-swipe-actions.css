@@ -1,0 +1,65 @@
+/* Mobile history swipe actions — Telegram-inspired visual treatment only.
+   Swipe mechanics, snap behavior and action width remain unchanged. */
+@media (max-width:560px){
+  #history #incomeList > .history-swipe-row .history-swipe-actions{
+    gap:4px !important;
+    padding:5px 0 5px 4px !important;
+    background:transparent !important;
+    box-sizing:border-box !important;
+  }
+
+  #history #incomeList > .history-swipe-row .edit-income,
+  #history #incomeList > .history-swipe-row .delete-income{
+    flex:1 1 0 !important;
+    width:auto !important;
+    min-width:0 !important;
+    height:100% !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:7px 3px !important;
+    gap:6px !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border:0 !important;
+    border-radius:17px !important;
+    box-shadow:none !important;
+    color:#fff !important;
+    font-size:11px !important;
+    font-weight:600 !important;
+    line-height:1.1 !important;
+    text-align:center !important;
+  }
+
+  #history #incomeList > .history-swipe-row .edit-income{
+    background:#526071 !important;
+  }
+
+  #history #incomeList > .history-swipe-row .delete-income{
+    background:#d52b24 !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-action-pencil{
+    display:block !important;
+    font-size:22px !important;
+    line-height:1 !important;
+    color:#fff !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-delete-trash{
+    display:block !important;
+    width:20px !important;
+    height:20px !important;
+    flex:0 0 auto !important;
+    color:#fff !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-action-label{
+    display:block !important;
+    color:#fff !important;
+    font-size:11px !important;
+    font-weight:600 !important;
+    line-height:1.1 !important;
+    text-align:center !important;
+  }
+}
