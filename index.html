@@ -3421,15 +3421,16 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
     padding:0 6px !important;
     gap:2px !important;
     grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-    background:color-mix(in srgb,var(--panel) 72%,transparent) !important;
-    border:1px solid color-mix(in srgb,var(--border) 70%,rgba(255,255,255,.18)) !important;
-    border-radius:22px !important;
+    background:color-mix(in srgb,var(--panel) 68%,transparent) !important;
+    border:1px solid color-mix(in srgb,var(--border) 66%,rgba(255,255,255,.20)) !important;
+    border-radius:28px !important;
     box-shadow:
-      0 10px 30px rgba(0,0,0,.30),
-      inset 0 1px 0 rgba(255,255,255,.055),
+      0 12px 34px rgba(0,0,0,.34),
+      0 0 0 1px rgba(255,255,255,.018),
+      inset 0 1px 0 rgba(255,255,255,.075),
       inset 0 -1px 0 rgba(255,255,255,.018) !important;
-    -webkit-backdrop-filter:blur(24px) saturate(140%) !important;
-    backdrop-filter:blur(24px) saturate(140%) !important;
+    -webkit-backdrop-filter:blur(28px) saturate(150%) !important;
+    backdrop-filter:blur(28px) saturate(150%) !important;
     overflow:hidden !important;
   }
 
@@ -3448,11 +3449,11 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
     position:relative !important;
     z-index:1 !important;
     min-width:0 !important;
-    height:100% !important;
-    margin:0 !important;
-    padding:7px 4px !important;
-    border:0 !important;
-    border-radius:0 !important;
+    height:calc(100% - 8px) !important;
+    margin:4px 2px !important;
+    padding:6px 4px !important;
+    border:1px solid transparent !important;
+    border-radius:24px !important;
     background:transparent !important;
     box-shadow:none !important;
     transform:none !important;
@@ -3465,9 +3466,10 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
   }
 
   .sidebar > .nav-item.active{
-    border-radius:0 !important;
-    background:transparent !important;
-    box-shadow:none !important;
+    border-radius:24px !important;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 8%,rgba(255,255,255,.115)),color-mix(in srgb,var(--primary) 6%,rgba(255,255,255,.065))) !important;
+    border:1px solid color-mix(in srgb,var(--primary) 20%,rgba(255,255,255,.12)) !important;
+    box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.10) !important;
     color:var(--primary) !important;
   }
 
@@ -3485,12 +3487,12 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
   }
 
   .sidebar .nav-icon svg{
-    width:22px !important;
-    height:22px !important;
+    width:23px !important;
+    height:23px !important;
   }
 
   .sidebar .nav-label{
-    font-size:10.5px !important;
+    font-size:11px !important;
   }
 
   /* Preserve existing user setting: icon+label / icons only / labels only. */
