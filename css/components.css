@@ -1464,4 +1464,4 @@ html[data-theme="dark"] .qp-confirm-dialog{background:#151b2a;color:#edf1f7;bord
 html[data-theme="dark"] .qp-confirm-message{color:#9aa5b8}
 html[data-theme="dark"] .qp-confirm-btn{background:#1b2232;color:#edf1f7;border-color:rgba(255,255,255,.12)}
 html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
-@media(max-width:520px){.qp-confirm-dialog{padding:20px}.qp-confirm-actions{flex-direction:column-reverse}.qp-confirm-btn{width:100%}}
+@media(max-width:520px){.qp-confirm-dialog{padding:20px}.qp-confirm-actions{flex-direction:column-reverse}.qp-confirm-btn{width:100%;min-height:44px}}
