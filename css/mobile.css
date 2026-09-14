@@ -963,6 +963,10 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
   .add-income-btn {
     bottom: calc(82px + env(safe-area-inset-bottom));
   }
+
+  #incomeAnalytics .analytics-year-switcher > button {
+    display: grid !important;
+  }
 }
 
 .qp-notice-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.34);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
