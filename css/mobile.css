@@ -1,5 +1,5 @@
 @import url("./mobile-base.css");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.18");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.19");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -8,8 +8,9 @@
   .sidebar.qp-bottom-nav-ready .qp-bottom-nav-indicator{position:absolute;top:50%;left:0;z-index:2;width:72px;height:46px;pointer-events:none;border:1px solid color-mix(in srgb,var(--primary) 25%,rgba(255,255,255,.16));border-radius:23px;background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 8%,rgba(255,255,255,.115)),color-mix(in srgb,var(--primary) 6%,rgba(255,255,255,.065)));box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.10);transform:translate3d(-36px,-50%,0);will-change:transform;}
 }
 @media (max-width:560px){
-  .sidebar.qp-bottom-nav-ready{bottom:calc(18px + env(safe-area-inset-bottom)) !important;background:color-mix(in srgb,var(--panel) 50%,transparent) !important;border-color:color-mix(in srgb,var(--border) 52%,rgba(255,255,255,.16)) !important;box-shadow:0 8px 22px rgba(0,0,0,.22),0 0 0 1px rgba(255,255,255,.014),inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(255,255,255,.012) !important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+  .sidebar.qp-bottom-nav-ready{bottom:calc(18px + env(safe-area-inset-bottom)) !important;background:color-mix(in srgb,var(--panel) 32%,transparent) !important;border-color:color-mix(in srgb,var(--border) 38%,rgba(255,255,255,.13)) !important;box-shadow:0 6px 16px rgba(0,0,0,.16),0 0 0 1px rgba(255,255,255,.010),inset 0 1px 0 rgba(255,255,255,.040),inset 0 -1px 0 rgba(255,255,255,.009) !important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
   .app:has(.sidebar.qp-bottom-nav-ready) .content{padding-bottom:calc(103px + env(safe-area-inset-bottom)) !important;}
+  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn{bottom:calc(96px + env(safe-area-inset-bottom)) !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item,.sidebar.qp-bottom-nav-ready .nav-icon,.sidebar.qp-bottom-nav-ready .nav-label{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
   .sidebar.qp-bottom-nav-ready > .nav-item:active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item:focus:not(:focus-visible){outline:none;}
