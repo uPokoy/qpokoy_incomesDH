@@ -22,9 +22,9 @@
   requestAnimationFrame(syncAppShell);
   setTimeout(syncAppShell,100);
 
-  /* Mobile bottom navigation: drag the finger across the bar, then switch
-     to the highlighted section when the finger is released. Normal taps remain intact. */
-  const qPokoyMobileNavDevVersion='dev-2026.09.15.01';
+  /* Mobile bottom navigation: finger scrubbing across the bar.
+     The preview follows the finger; the page changes only on release. */
+  const qPokoyMobileNavDevVersion='dev-2026.09.15.02';
 
   function qPokoySetMobileNavDevVersion(){
     const label=document.getElementById('qPokoyDevVersion');
@@ -37,41 +37,59 @@
     style.id='qPokoyMobileNavDragStyles';
     style.textContent=`
       @media (max-width:560px){
-        .sidebar.qp-nav-drag-ready{touch-action:pan-y;}
-        .sidebar.qp-nav-drag-ready .nav-item{position:relative;z-index:4;}
+        html,body{
+          overscroll-behavior-x:none;
+        }
+        .sidebar.qp-nav-drag-ready{
+          touch-action:none !important;
+          overscroll-behavior:none !important;
+          -webkit-user-select:none;
+          user-select:none;
+        }
+        .sidebar.qp-nav-drag-ready .nav-item{
+          position:relative;
+          z-index:4;
+          -webkit-user-select:none;
+          user-select:none;
+        }
         .sidebar.qp-nav-dragging,
-        .sidebar.qp-nav-drag-settling{overflow:visible !important;}
-        .sidebar.qp-nav-dragging .nav-item.active{background:transparent !important;}
+        .sidebar.qp-nav-drag-settling{
+          overflow:visible !important;
+        }
+        .sidebar.qp-nav-dragging .nav-item.active{
+          background:transparent !important;
+        }
         .sidebar .qp-nav-drag-lens{
           position:absolute;
           top:50%;
           left:0;
-          width:74px;
-          height:74px;
+          width:58px;
+          height:58px;
           margin:0;
-          border:1px solid color-mix(in srgb,var(--primary) 42%,rgba(255,255,255,.30));
+          border:1px solid color-mix(in srgb,var(--primary) 32%,rgba(255,255,255,.22));
           border-radius:999px;
           background:
-            radial-gradient(circle at 32% 22%,rgba(255,255,255,.18),transparent 34%),
-            color-mix(in srgb,var(--panel) 70%,rgba(35,48,68,.28));
+            radial-gradient(circle at 34% 24%,rgba(255,255,255,.12),transparent 38%),
+            color-mix(in srgb,var(--panel) 55%,transparent);
           box-shadow:
-            0 10px 28px rgba(0,0,0,.28),
-            inset 0 1px 0 rgba(255,255,255,.16),
-            inset 0 -1px 0 rgba(255,255,255,.05),
-            0 0 0 1px color-mix(in srgb,var(--primary) 18%,transparent);
-          -webkit-backdrop-filter:blur(18px) saturate(155%);
-          backdrop-filter:blur(18px) saturate(155%);
+            0 6px 18px rgba(0,0,0,.22),
+            inset 0 1px 0 rgba(255,255,255,.11),
+            inset 0 -1px 0 rgba(255,255,255,.025);
+          -webkit-backdrop-filter:blur(10px) saturate(130%);
+          backdrop-filter:blur(10px) saturate(130%);
           pointer-events:none;
           opacity:0;
           z-index:3;
           transform:translate3d(0,-50%,0);
           will-change:transform,opacity;
-          transition:opacity .12s ease;
+          transition:opacity .10s ease;
         }
         .sidebar.qp-nav-dragging .qp-nav-drag-lens,
-        .sidebar.qp-nav-drag-settling .qp-nav-drag-lens{opacity:1;}
         .sidebar.qp-nav-drag-settling .qp-nav-drag-lens{
-          transition:transform .18s cubic-bezier(.2,.8,.2,1),opacity .14s ease;
+          opacity:1;
+        }
+        .sidebar.qp-nav-drag-settling .qp-nav-drag-lens{
+          transition:transform .13s cubic-bezier(.2,.8,.2,1),opacity .11s ease;
         }
         .sidebar.qp-nav-dragging .nav-item.qp-nav-drag-preview,
         .sidebar.qp-nav-drag-settling .nav-item.qp-nav-drag-preview{
@@ -80,14 +98,14 @@
         .sidebar.qp-nav-dragging .nav-item.qp-nav-drag-preview .nav-icon,
         .sidebar.qp-nav-drag-settling .nav-item.qp-nav-drag-preview .nav-icon{
           color:var(--primary) !important;
-          transform:scale(1.12);
+          transform:scale(1.06);
           transform-origin:center;
-          transition:transform .12s ease,color .12s ease;
+          transition:transform .10s ease,color .10s ease;
         }
         .sidebar.qp-nav-dragging .nav-item.qp-nav-drag-preview .nav-label,
         .sidebar.qp-nav-drag-settling .nav-item.qp-nav-drag-preview .nav-label{
           color:var(--primary) !important;
-          transition:color .12s ease;
+          transition:color .10s ease;
         }
         #qPokoyDevVersion{font-size:0 !important;}
         #qPokoyDevVersion::after{
@@ -115,7 +133,6 @@
 
     let pointerId=null;
     let startX=0;
-    let startY=0;
     let dragging=false;
     let previewItem=null;
     let suppressNativeClick=false;
@@ -126,19 +143,15 @@
       return Array.from(sidebar.querySelectorAll('.nav-item[data-page]'));
     }
 
-    function nearestItem(clientX){
+    /* Split the entire bar into equal horizontal hit-zones.
+       This makes a tab selectable even when the finger is between icon/label elements. */
+    function itemFromX(clientX){
       const list=items();
-      let best=null;
-      let bestDistance=Infinity;
-      list.forEach(item=>{
-        const rect=item.getBoundingClientRect();
-        const distance=Math.abs(clientX-(rect.left+rect.width/2));
-        if(distance<bestDistance){
-          bestDistance=distance;
-          best=item;
-        }
-      });
-      return best;
+      if(!list.length)return null;
+      const rect=sidebar.getBoundingClientRect();
+      const local=Math.min(rect.width-0.001,Math.max(0,clientX-rect.left));
+      const index=Math.min(list.length-1,Math.max(0,Math.floor(local/rect.width*list.length)));
+      return list[index];
     }
 
     function setPreview(item){
@@ -150,15 +163,21 @@
 
     function setLensX(clientX){
       const rect=sidebar.getBoundingClientRect();
-      const size=74;
-      const x=Math.min(rect.width-size/2,Math.max(size/2,clientX-rect.left));
+      const size=58;
+      const local=clientX-rect.left;
+      const x=Math.min(rect.width-size/2,Math.max(size/2,local));
       lens.style.transform=`translate3d(${Math.round(x-size/2)}px,-50%,0)`;
+    }
+
+    function centerLensOn(item){
+      if(!item)return;
+      const itemRect=item.getBoundingClientRect();
+      setLensX(itemRect.left+itemRect.width/2);
     }
 
     function settleLens(item){
       if(!item)return;
-      const itemRect=item.getBoundingClientRect();
-      setLensX(itemRect.left+itemRect.width/2);
+      centerLensOn(item);
       sidebar.classList.remove('qp-nav-dragging');
       sidebar.classList.add('qp-nav-drag-settling');
       clearTimeout(settleTimer);
@@ -166,10 +185,10 @@
         sidebar.classList.remove('qp-nav-drag-settling');
         if(previewItem)previewItem.classList.remove('qp-nav-drag-preview');
         previewItem=null;
-      },190);
+      },145);
     }
 
-    function cancelDrag(){
+    function clearDrag(){
       pointerId=null;
       dragging=false;
       sidebar.classList.remove('qp-nav-dragging','qp-nav-drag-settling');
@@ -183,9 +202,8 @@
       sidebar.classList.remove('qp-nav-drag-settling');
       pointerId=event.pointerId;
       startX=event.clientX;
-      startY=event.clientY;
       dragging=false;
-      setPreview(nearestItem(event.clientX));
+      setPreview(itemFromX(event.clientX));
       setLensX(event.clientX);
       sidebar.classList.add('qp-nav-dragging');
       try{sidebar.setPointerCapture(pointerId);}catch(e){}
@@ -194,18 +212,12 @@
     sidebar.addEventListener('pointermove',event=>{
       if(event.pointerId!==pointerId || !mobile.matches)return;
       const dx=event.clientX-startX;
-      const dy=event.clientY-startY;
-      if(!dragging){
-        if(Math.abs(dy)>12 && Math.abs(dy)>Math.abs(dx)){
-          cancelDrag();
-          return;
-        }
-        if(Math.abs(dx)<8)return;
-        dragging=true;
-      }
+      if(!dragging && Math.abs(dx)<5)return;
+      dragging=true;
+      if(event.cancelable)event.preventDefault();
       setLensX(event.clientX);
-      setPreview(nearestItem(event.clientX));
-    });
+      setPreview(itemFromX(event.clientX));
+    },{passive:false});
 
     sidebar.addEventListener('pointerup',event=>{
       if(event.pointerId!==pointerId)return;
@@ -220,12 +232,16 @@
       }
 
       dragging=false;
-      const target=previewItem || nearestItem(event.clientX);
+      const target=itemFromX(event.clientX) || previewItem;
+      setPreview(target);
       suppressNativeClick=true;
       settleLens(target);
 
       setTimeout(()=>{
-        if(!target)return;
+        if(!target){
+          suppressNativeClick=false;
+          return;
+        }
         programmaticCommit=true;
         target.click();
         programmaticCommit=false;
@@ -234,8 +250,14 @@
     });
 
     sidebar.addEventListener('pointercancel',event=>{
-      if(event.pointerId===pointerId)cancelDrag();
+      if(event.pointerId===pointerId)clearDrag();
     });
+
+    /* iOS Safari may try to interpret a horizontal drag as browser navigation.
+       A non-passive touchmove on the navigation itself keeps the gesture inside the app. */
+    sidebar.addEventListener('touchmove',event=>{
+      if(pointerId!==null && event.cancelable)event.preventDefault();
+    },{passive:false});
 
     sidebar.addEventListener('click',event=>{
       if(!suppressNativeClick || programmaticCommit)return;
@@ -245,7 +267,7 @@
     },true);
 
     window.addEventListener('resize',()=>{
-      if(!mobile.matches)cancelDrag();
+      if(!mobile.matches)clearDrag();
     },{passive:true});
   }
 
