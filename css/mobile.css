@@ -1,5 +1,5 @@
 @import url("./mobile-base.css");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.19");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.20");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -14,4 +14,10 @@
   .sidebar.qp-bottom-nav-ready > .nav-item,.sidebar.qp-bottom-nav-ready .nav-icon,.sidebar.qp-bottom-nav-ready .nav-label{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
   .sidebar.qp-bottom-nav-ready > .nav-item:active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item:focus:not(:focus-visible){outline:none;}
+}
+@media (max-width:560px){
+  .sidebar.qp-bottom-nav-ready{background:color-mix(in srgb,var(--panel) 10%,transparent) !important;border-color:color-mix(in srgb,var(--border) 18%,rgba(255,255,255,.09)) !important;box-shadow:0 3px 10px rgba(0,0,0,.08),0 0 0 1px rgba(255,255,255,.006),inset 0 1px 0 rgba(255,255,255,.020) !important;}
+  .sidebar.qp-bottom-nav-ready > .nav-item{border-radius:999px !important;background:color-mix(in srgb,var(--panel) 18%,transparent) !important;border-color:color-mix(in srgb,var(--border) 28%,rgba(255,255,255,.10)) !important;box-shadow:0 2px 7px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.025) !important;}
+  .sidebar.qp-bottom-nav-ready > .nav-item:hover:not(.active){background:color-mix(in srgb,var(--panel) 18%,transparent) !important;}
+  .sidebar.qp-bottom-nav-ready > .nav-item.active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
 }
