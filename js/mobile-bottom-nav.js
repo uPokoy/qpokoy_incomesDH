@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const DEV='dev-2026.09.15.15';
+  const DEV='dev-2026.09.15.16';
   const mobile=window.matchMedia('(max-width:560px)');
   const HALF_WIDTH=36;
   const TRANSITION='transform 200ms cubic-bezier(.22,.8,.25,1)';
@@ -39,10 +39,10 @@
     function nearest(x){let chosen=0;let distance=Infinity;centers.forEach((center,index)=>{const next=Math.abs(center-x);if(next<distance){distance=next;chosen=index}});return chosen}
     function currentX(){const transform=getComputedStyle(indicator).transform;if(!transform||transform==='none')return positionX;const values=transform.match(/matrix(?:3d)?\(([^)]+)\)/);if(!values)return positionX;const parts=values[1].split(',').map(Number);const offset=transform.startsWith('matrix3d')?parts[12]:parts[4];return Number.isFinite(offset)?offset+HALF_WIDTH:positionX}
     function moveToActive(){if(pointerId!==null||!centers.length)return;setTransition(true);write(centers[activeIndex()])}
-    function release(event,commit){if(event.pointerId!==pointerId)return;const wasDragging=dragging;pointerId=null;if(sidebar.hasPointerCapture(event.pointerId))sidebar.releasePointerCapture(event.pointerId);if(wasDragging){event.preventDefault();cancelWrite();const target=nearest(clamp(event.clientX-barLeft));setTransition(true);write(centers[target]);if(commit&&target!==activeIndex())items[target].click()}else setTransition(true);dragging=false}
+    function release(event,commit){if(event.pointerId!==pointerId)return;const wasDragging=dragging;pointerId=null;if(sidebar.hasPointerCapture(event.pointerId))sidebar.releasePointerCapture(event.pointerId);if(wasDragging){event.preventDefault();cancelWrite();const finalFingerX=clamp(event.clientX-barLeft);write(finalFingerX);const target=nearest(finalFingerX);setTransition(true);write(centers[target]);if(commit&&target!==activeIndex())items[target].click()}else setTransition(true);dragging=false}
 
-    sidebar.addEventListener('pointerdown',event=>{if(!mobile.matches||!event.isPrimary||pointerId!==null)return;measure();pointerId=event.pointerId;startX=event.clientX;startY=event.clientY;dragging=false;cancelWrite();positionX=currentX();setTransition(false);write(positionX)});
-    sidebar.addEventListener('pointermove',event=>{if(event.pointerId!==pointerId)return;const dx=event.clientX-startX;const dy=event.clientY-startY;if(!dragging){if(Math.abs(dx)<6||Math.abs(dx)<=Math.abs(dy))return;dragging=true;sidebar.setPointerCapture(event.pointerId)}event.preventDefault();pendingX=clamp(event.clientX-barLeft);queueWrite()},{passive:false});
+    sidebar.addEventListener('pointerdown',event=>{if(!mobile.matches||!event.isPrimary||pointerId!==null)return;measure();pointerId=event.pointerId;startX=event.clientX;startY=event.clientY;dragging=false});
+    sidebar.addEventListener('pointermove',event=>{if(event.pointerId!==pointerId)return;const dx=event.clientX-startX;const dy=event.clientY-startY;if(!dragging){if(Math.abs(dx)<6||Math.abs(dx)<=Math.abs(dy))return;dragging=true;positionX=currentX();setTransition(false);write(positionX);sidebar.setPointerCapture(event.pointerId)}event.preventDefault();pendingX=clamp(event.clientX-barLeft);queueWrite()},{passive:false});
     sidebar.addEventListener('pointerup',event=>release(event,true),{passive:false});
     sidebar.addEventListener('pointercancel',event=>{release(event,false);moveToActive()},{passive:false});
     const observer=new MutationObserver(records=>{if(records.some(record=>record.attributeName==='class'))moveToActive()});
