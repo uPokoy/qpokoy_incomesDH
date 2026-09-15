@@ -32,3 +32,13 @@
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
+
+/* TEMP MOBILE NAV DEV LOADER — remove after mobile navigation is finalized. */
+(function(){
+  if(document.getElementById('qPokoyLiquidNavScript')) return;
+  var s=document.createElement('script');
+  s.id='qPokoyLiquidNavScript';
+  s.src='js/mobile-nav-liquid.js?v=dev-2026.09.15.04';
+  s.async=false;
+  document.head.appendChild(s);
+})();
