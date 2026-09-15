@@ -25,6 +25,8 @@
   /* Mobile bottom navigation: finger scrubbing across the bar.
      The preview follows the finger; the page changes only on release. */
   const qPokoyMobileNavDevVersion='dev-2026.09.15.06';
+  // The liquid controller owns mobile pointer and click handling.
+  const qPokoyMobileNavDragEnabled=false;
 
   function qPokoySetMobileNavDevVersion(){
     const label=document.getElementById('qPokoyDevVersion');
@@ -168,6 +170,10 @@
   function qPokoyInitMobileNavDrag(){
     const mobile=window.matchMedia('(max-width:560px)');
     const sidebar=document.querySelector('.sidebar');
+    if(!qPokoyMobileNavDragEnabled){
+      if(sidebar)sidebar.classList.add('qp-nav-drag-ready');
+      return;
+    }
     if(!sidebar || sidebar.dataset.qpNavDragReady==='1')return;
 
     sidebar.dataset.qpNavDragReady='1';
