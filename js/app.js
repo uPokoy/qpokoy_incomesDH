@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.14.04';
+const qPokoyDevVersion='dev-2026.09.15.17';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -28,7 +28,28 @@ if(localStorage.getItem('sidebarCollapsed')==='true'){
 const navItems=document.querySelectorAll('.nav-item');
 const pages=document.querySelectorAll('.page');
 const title=document.getElementById('pageTitle');
+let incomeRenderGeneration=0;
+let incomeRenderFrame=0;
+let incomeRenderAfterFrame=0;
+function invalidateDeferredIncomeRender(){
+  incomeRenderGeneration++;
+  if(incomeRenderFrame){cancelAnimationFrame(incomeRenderFrame);incomeRenderFrame=0;}
+  if(incomeRenderAfterFrame){cancelAnimationFrame(incomeRenderAfterFrame);incomeRenderAfterFrame=0;}
+}
+function deferIncomeRender(){
+  const generation=incomeRenderGeneration;
+  incomeRenderFrame=requestAnimationFrame(()=>{
+    incomeRenderFrame=0;
+    incomeRenderAfterFrame=requestAnimationFrame(()=>{
+      incomeRenderAfterFrame=0;
+      const incomeNav=document.querySelector('.nav-item[data-page="income"]');
+      if(generation!==incomeRenderGeneration||!incomeNav?.classList.contains('active'))return;
+      if(typeof window.renderIncomes==='function')window.renderIncomes();
+    });
+  });
+}
 navItems.forEach(item=>item.addEventListener('click',()=>{
+  invalidateDeferredIncomeRender();
   navItems.forEach(x=>x.classList.remove('active'));
   pages.forEach(x=>x.classList.remove('active'));
   item.classList.add('active');
@@ -46,8 +67,7 @@ navItems.forEach(item=>item.addEventListener('click',()=>{
     const switcherName=document.getElementById('monthSwitcherName');
     if(caption)caption.textContent=names[period.month];
     if(switcherName)switcherName.textContent=names[period.month];
-    if(typeof window.renderIncomes==='function')window.renderIncomes();
-    if(typeof window.renderIncomeAnalytics==='function')window.renderIncomeAnalytics();
+    deferIncomeRender();
   }
 
   // При переходе между разделами всегда начинаем с верхней части страницы.
@@ -1399,4 +1419,3 @@ function getAllIncomeRecords(){
   const last=localStorage.getItem(BACKUP_KEY);
   if(last) setBackupStatus(`Последний экспорт: ${new Date(last).toLocaleString('ru-RU')}`);
 })();
-
