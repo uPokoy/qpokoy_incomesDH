@@ -24,7 +24,7 @@
 
   /* Mobile bottom navigation: finger scrubbing across the bar.
      The preview follows the finger; the page changes only on release. */
-  const qPokoyMobileNavDevVersion='dev-2026.09.15.02';
+  const qPokoyMobileNavDevVersion='dev-2026.09.15.03';
 
   function qPokoySetMobileNavDevVersion(){
     const label=document.getElementById('qPokoyDevVersion');
@@ -40,7 +40,11 @@
         html,body{
           overscroll-behavior-x:none;
         }
+        .content{
+          padding-bottom:calc(105px + env(safe-area-inset-bottom)) !important;
+        }
         .sidebar.qp-nav-drag-ready{
+          bottom:calc(20px + env(safe-area-inset-bottom)) !important;
           touch-action:none !important;
           overscroll-behavior:none !important;
           -webkit-user-select:none;
@@ -254,7 +258,8 @@
     });
 
     /* iOS Safari may try to interpret a horizontal drag as browser navigation.
-       A non-passive touchmove on the navigation itself keeps the gesture inside the app. */
+       This blocks page-level scrolling gestures; the system home gesture itself
+       is avoided by keeping the control physically above the reserved bottom zone. */
     sidebar.addEventListener('touchmove',event=>{
       if(pointerId!==null && event.cancelable)event.preventDefault();
     },{passive:false});
