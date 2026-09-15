@@ -1,2 +1,13 @@
 @import url("./mobile-base.css");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.14.05");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.14");
+
+@media (max-width:560px){
+  .sidebar.qp-native-nav-ready{isolation:isolate;}
+  .sidebar.qp-native-nav-ready > .nav-item{z-index:4 !important;pointer-events:none !important;}
+  .sidebar.qp-native-nav-ready > .nav-item.active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
+  .sidebar.qp-native-nav-ready .qp-native-nav-indicator{--qp-native-nav-x:36px;position:absolute;top:50%;left:0;z-index:2;width:72px;height:46px;pointer-events:none;border:1px solid color-mix(in srgb,var(--primary) 25%,rgba(255,255,255,.16));border-radius:23px;background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 8%,rgba(255,255,255,.115)),color-mix(in srgb,var(--primary) 6%,rgba(255,255,255,.065)));box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.10);transform:translate3d(calc(var(--qp-native-nav-x) - 36px),-50%,0);will-change:transform;}
+  .sidebar.qp-native-nav-ready .qp-native-nav-track{position:absolute;inset:0;z-index:3;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
+  .sidebar.qp-native-nav-ready .qp-native-nav-track::-webkit-scrollbar{display:none;}
+  .sidebar.qp-native-nav-ready .qp-native-nav-rail{display:flex;width:max-content;height:100%;}
+  .sidebar.qp-native-nav-ready .qp-native-nav-snap{flex:0 0 100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always;}
+}
