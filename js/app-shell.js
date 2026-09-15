@@ -24,7 +24,7 @@
 
   /* Mobile bottom navigation: finger scrubbing across the bar.
      The preview follows the finger; the page changes only on release. */
-  const qPokoyMobileNavDevVersion='dev-2026.09.15.10';
+  const qPokoyMobileNavDevVersion='dev-2026.09.15.11';
   // The liquid controller owns mobile pointer and click handling.
   const qPokoyMobileNavDragEnabled=false;
 

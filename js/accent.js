@@ -38,7 +38,7 @@
   if(document.getElementById('qPokoyLiquidNavScript')) return;
   var s=document.createElement('script');
   s.id='qPokoyLiquidNavScript';
-  s.src='js/mobile-nav-liquid.js?v=dev-2026.09.15.10';
+  s.src='js/mobile-nav-liquid.js?v=dev-2026.09.15.11';
   s.async=false;
   document.head.appendChild(s);
 })();
