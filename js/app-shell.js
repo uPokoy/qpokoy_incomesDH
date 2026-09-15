@@ -24,7 +24,7 @@
 
   /* Mobile bottom navigation: finger scrubbing across the bar.
      The preview follows the finger; the page changes only on release. */
-  const qPokoyMobileNavDevVersion='dev-2026.09.15.03';
+  const qPokoyMobileNavDevVersion='dev-2026.09.15.05';
 
   function qPokoySetMobileNavDevVersion(){
     const label=document.getElementById('qPokoyDevVersion');
@@ -56,12 +56,23 @@
           -webkit-user-select:none;
           user-select:none;
         }
+        .sidebar.qp-nav-drag-ready .nav-item.active{
+          background:transparent !important;
+          border-color:transparent !important;
+          box-shadow:none !important;
+          color:var(--text-muted) !important;
+        }
+        .sidebar.qp-nav-drag-ready .nav-item.active .nav-icon{
+          color:var(--icon-color) !important;
+          filter:none !important;
+        }
+        .sidebar.qp-nav-drag-ready .nav-item.active .nav-label{
+          color:var(--text-muted) !important;
+          font-weight:inherit !important;
+        }
         .sidebar.qp-nav-dragging,
         .sidebar.qp-nav-drag-settling{
           overflow:visible !important;
-        }
-        .sidebar.qp-nav-dragging .nav-item.active{
-          background:transparent !important;
         }
         .sidebar .qp-nav-drag-lens{
           position:absolute;
@@ -98,18 +109,8 @@
         .sidebar.qp-nav-dragging .nav-item.qp-nav-drag-preview,
         .sidebar.qp-nav-drag-settling .nav-item.qp-nav-drag-preview{
           background:transparent !important;
-        }
-        .sidebar.qp-nav-dragging .nav-item.qp-nav-drag-preview .nav-icon,
-        .sidebar.qp-nav-drag-settling .nav-item.qp-nav-drag-preview .nav-icon{
-          color:var(--primary) !important;
-          transform:scale(1.06);
-          transform-origin:center;
-          transition:transform .10s ease,color .10s ease;
-        }
-        .sidebar.qp-nav-dragging .nav-item.qp-nav-drag-preview .nav-label,
-        .sidebar.qp-nav-drag-settling .nav-item.qp-nav-drag-preview .nav-label{
-          color:var(--primary) !important;
-          transition:color .10s ease;
+          border-color:transparent !important;
+          box-shadow:none !important;
         }
         #qPokoyDevVersion{font-size:0 !important;}
         #qPokoyDevVersion::after{
@@ -147,8 +148,6 @@
       return Array.from(sidebar.querySelectorAll('.nav-item[data-page]'));
     }
 
-    /* Split the entire bar into equal horizontal hit-zones.
-       This makes a tab selectable even when the finger is between icon/label elements. */
     function itemFromX(clientX){
       const list=items();
       if(!list.length)return null;
@@ -207,17 +206,19 @@
       pointerId=event.pointerId;
       startX=event.clientX;
       dragging=false;
-      setPreview(itemFromX(event.clientX));
-      setLensX(event.clientX);
-      sidebar.classList.add('qp-nav-dragging');
       try{sidebar.setPointerCapture(pointerId);}catch(e){}
     });
 
     sidebar.addEventListener('pointermove',event=>{
       if(event.pointerId!==pointerId || !mobile.matches)return;
       const dx=event.clientX-startX;
-      if(!dragging && Math.abs(dx)<5)return;
-      dragging=true;
+      if(!dragging && Math.abs(dx)<7)return;
+      if(!dragging){
+        dragging=true;
+        setLensX(event.clientX);
+        setPreview(itemFromX(event.clientX));
+        sidebar.classList.add('qp-nav-dragging');
+      }
       if(event.cancelable)event.preventDefault();
       setLensX(event.clientX);
       setPreview(itemFromX(event.clientX));
@@ -228,13 +229,9 @@
       try{sidebar.releasePointerCapture(pointerId);}catch(e){}
       pointerId=null;
 
-      if(!dragging){
-        sidebar.classList.remove('qp-nav-dragging');
-        if(previewItem)previewItem.classList.remove('qp-nav-drag-preview');
-        previewItem=null;
-        return;
-      }
+      if(!dragging)return;
 
+      if(event.cancelable)event.preventDefault();
       dragging=false;
       const target=itemFromX(event.clientX) || previewItem;
       setPreview(target);
@@ -257,11 +254,8 @@
       if(event.pointerId===pointerId)clearDrag();
     });
 
-    /* iOS Safari may try to interpret a horizontal drag as browser navigation.
-       This blocks page-level scrolling gestures; the system home gesture itself
-       is avoided by keeping the control physically above the reserved bottom zone. */
     sidebar.addEventListener('touchmove',event=>{
-      if(pointerId!==null && event.cancelable)event.preventDefault();
+      if(dragging && event.cancelable)event.preventDefault();
     },{passive:false});
 
     sidebar.addEventListener('click',event=>{
