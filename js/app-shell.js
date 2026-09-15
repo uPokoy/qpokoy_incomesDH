@@ -24,7 +24,7 @@
 
   /* Mobile bottom navigation: finger scrubbing across the bar.
      The preview follows the finger; the page changes only on release. */
-  const qPokoyMobileNavDevVersion='dev-2026.09.15.05';
+  const qPokoyMobileNavDevVersion='dev-2026.09.15.06';
 
   function qPokoySetMobileNavDevVersion(){
     const label=document.getElementById('qPokoyDevVersion');
@@ -42,6 +42,9 @@
         }
         .content{
           padding-bottom:calc(105px + env(safe-area-inset-bottom)) !important;
+        }
+        .page.active{
+          view-transition-name:qp-nav-page;
         }
         .sidebar.qp-nav-drag-ready{
           bottom:calc(20px + env(safe-area-inset-bottom)) !important;
@@ -112,6 +115,45 @@
           border-color:transparent !important;
           box-shadow:none !important;
         }
+
+        html.qp-nav-tap-forward::view-transition-old(qp-nav-page),
+        html.qp-nav-tap-forward::view-transition-new(qp-nav-page),
+        html.qp-nav-tap-backward::view-transition-old(qp-nav-page),
+        html.qp-nav-tap-backward::view-transition-new(qp-nav-page){
+          animation-duration:.22s;
+          animation-timing-function:cubic-bezier(.22,.72,.18,1);
+          animation-fill-mode:both;
+          mix-blend-mode:normal;
+        }
+        html.qp-nav-tap-forward::view-transition-old(qp-nav-page){
+          animation-name:qpNavPageOutForward;
+        }
+        html.qp-nav-tap-forward::view-transition-new(qp-nav-page){
+          animation-name:qpNavPageInForward;
+        }
+        html.qp-nav-tap-backward::view-transition-old(qp-nav-page){
+          animation-name:qpNavPageOutBackward;
+        }
+        html.qp-nav-tap-backward::view-transition-new(qp-nav-page){
+          animation-name:qpNavPageInBackward;
+        }
+        @keyframes qpNavPageOutForward{
+          from{opacity:1;transform:translate3d(0,0,0);}
+          to{opacity:.46;transform:translate3d(-14px,0,0);}
+        }
+        @keyframes qpNavPageInForward{
+          from{opacity:.46;transform:translate3d(14px,0,0);}
+          to{opacity:1;transform:translate3d(0,0,0);}
+        }
+        @keyframes qpNavPageOutBackward{
+          from{opacity:1;transform:translate3d(0,0,0);}
+          to{opacity:.46;transform:translate3d(14px,0,0);}
+        }
+        @keyframes qpNavPageInBackward{
+          from{opacity:.46;transform:translate3d(-14px,0,0);}
+          to{opacity:1;transform:translate3d(0,0,0);}
+        }
+
         #qPokoyDevVersion{font-size:0 !important;}
         #qPokoyDevVersion::after{
           content:"${qPokoyMobileNavDevVersion}" !important;
@@ -143,6 +185,8 @@
     let suppressNativeClick=false;
     let programmaticCommit=false;
     let settleTimer=0;
+    let tapViewTransition=null;
+    let tapFallbackAnimation=null;
 
     function items(){
       return Array.from(sidebar.querySelectorAll('.nav-item[data-page]'));
@@ -197,6 +241,74 @@
       sidebar.classList.remove('qp-nav-dragging','qp-nav-drag-settling');
       if(previewItem)previewItem.classList.remove('qp-nav-drag-preview');
       previewItem=null;
+    }
+
+    function commitNavItem(item){
+      if(!item)return;
+      programmaticCommit=true;
+      try{item.click();}finally{programmaticCommit=false;}
+    }
+
+    function clearTapDirection(){
+      document.documentElement.classList.remove('qp-nav-tap-forward','qp-nav-tap-backward');
+    }
+
+    function startTapTransition(target){
+      const list=items();
+      const current=sidebar.querySelector('.nav-item.active[data-page]');
+      if(!target || !current || target===current){
+        commitNavItem(target);
+        return;
+      }
+
+      const fromIndex=list.indexOf(current);
+      const toIndex=list.indexOf(target);
+      const direction=toIndex>=fromIndex?'forward':'backward';
+      const root=document.documentElement;
+
+      clearTapDirection();
+      root.classList.add(direction==='forward'?'qp-nav-tap-forward':'qp-nav-tap-backward');
+
+      if(tapFallbackAnimation){
+        try{tapFallbackAnimation.cancel();}catch(e){}
+        tapFallbackAnimation=null;
+      }
+      if(tapViewTransition && typeof tapViewTransition.skipTransition==='function'){
+        try{tapViewTransition.skipTransition();}catch(e){}
+      }
+
+      if(typeof document.startViewTransition==='function'){
+        const transition=document.startViewTransition(()=>{
+          commitNavItem(target);
+        });
+        tapViewTransition=transition;
+        transition.finished.finally(()=>{
+          if(tapViewTransition!==transition)return;
+          tapViewTransition=null;
+          clearTapDirection();
+        });
+        return;
+      }
+
+      commitNavItem(target);
+      const page=document.getElementById(target.dataset.page);
+      if(page && typeof page.animate==='function'){
+        const offset=direction==='forward'?14:-14;
+        tapFallbackAnimation=page.animate([
+          {opacity:.46,transform:`translate3d(${offset}px,0,0)`},
+          {opacity:1,transform:'translate3d(0,0,0)'}
+        ],{
+          duration:220,
+          easing:'cubic-bezier(.22,.72,.18,1)',
+          fill:'both'
+        });
+        tapFallbackAnimation.finished.catch(()=>{}).finally(()=>{
+          tapFallbackAnimation=null;
+          clearTapDirection();
+        });
+      }else{
+        setTimeout(clearTapDirection,230);
+      }
     }
 
     sidebar.addEventListener('pointerdown',event=>{
@@ -259,10 +371,22 @@
     },{passive:false});
 
     sidebar.addEventListener('click',event=>{
-      if(!suppressNativeClick || programmaticCommit)return;
+      if(programmaticCommit)return;
+
+      if(suppressNativeClick){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        suppressNativeClick=false;
+        return;
+      }
+
+      if(!mobile.matches || !event.isTrusted)return;
+      const target=event.target.closest('.nav-item[data-page]');
+      if(!target || target.classList.contains('active'))return;
+
       event.preventDefault();
       event.stopImmediatePropagation();
-      suppressNativeClick=false;
+      startTapTransition(target);
     },true);
 
     window.addEventListener('resize',()=>{
