@@ -1384,3 +1384,32 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     max-height:400px;
   }
 }
+
+/* Style the desktop category list scrollbar without affecting iOS scrolling. */
+@media (min-width:561px){
+  #settings .qp-category-list{
+    scrollbar-width:thin;
+    scrollbar-color:color-mix(in srgb,var(--border) 88%,transparent) transparent;
+  }
+  #settings .qp-category-list::-webkit-scrollbar{
+    width:8px;
+  }
+  #settings .qp-category-list::-webkit-scrollbar-track{
+    background:transparent;
+  }
+  #settings .qp-category-list::-webkit-scrollbar-thumb{
+    border:2px solid transparent;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--border) 88%,transparent);
+    background-clip:padding-box;
+  }
+  #settings .qp-category-list::-webkit-scrollbar-thumb:hover{
+    background:color-mix(in srgb,var(--primary) 62%,var(--border));
+    background-clip:padding-box;
+  }
+  #settings .qp-category-list::-webkit-scrollbar-button{
+    display:none;
+    width:0;
+    height:0;
+  }
+}
