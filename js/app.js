@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.15.17';
+const qPokoyDevVersion='dev-2026.09.15.37';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -93,7 +93,7 @@ customIconColor.addEventListener('input',e=>setIconColor(e.target.value));
 
 const navLabelModeButtons=document.querySelectorAll('.nav-label-mode-btn');
 function setNavLabelMode(mode){
-  const allowed=['both','icons','text'];
+  const allowed=['both','icons'];
   mode=allowed.includes(mode)?mode:'both';
   document.documentElement.setAttribute('data-nav-label-mode',mode);
   navLabelModeButtons.forEach(b=>b.classList.toggle('active',b.dataset.navLabelMode===mode));
