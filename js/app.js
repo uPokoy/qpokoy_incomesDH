@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.15.41';
+const qPokoyDevVersion='dev-2026.09.15.40';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -815,51 +815,6 @@ function rerenderHistoryForNativeSwipe(){
 }
 if(historyNativeSwipeMedia.addEventListener)historyNativeSwipeMedia.addEventListener('change',rerenderHistoryForNativeSwipe);
 else historyNativeSwipeMedia.addListener(rerenderHistoryForNativeSwipe);
-
-let historyFastTap=null;
-let suppressHistoryFastTapButton=null;
-let historyFastTapDispatching=false;
-let suppressHistoryFastTapFrame=0;
-function getHistoryFastTapButton(target){
-  const button=target.closest('.history-swipe-row .edit-income,.history-swipe-row .delete-income');
-  return button?.closest('#history #incomeList > .history-swipe-row')?button:null;
-}
-function dispatchHistoryFastTap(button){
-  suppressHistoryFastTapButton=button;
-  if(suppressHistoryFastTapFrame)cancelAnimationFrame(suppressHistoryFastTapFrame);
-  historyFastTapDispatching=true;
-  button.click();
-  historyFastTapDispatching=false;
-  suppressHistoryFastTapFrame=requestAnimationFrame(()=>{
-    if(suppressHistoryFastTapButton===button)suppressHistoryFastTapButton=null;
-    suppressHistoryFastTapFrame=0;
-  });
-}
-incomeList.addEventListener('pointerdown',e=>{
-  if(!historyNativeSwipeMedia.matches||!e.isPrimary)return;
-  const button=getHistoryFastTapButton(e.target);
-  if(!button)return;
-  const row=button.closest('#history #incomeList > .history-swipe-row');
-  row.scrollLeft=row.scrollLeft;
-  historyFastTap={button,row,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY};
-});
-document.addEventListener('pointerup',e=>{
-  const tap=historyFastTap;
-  if(!tap||e.pointerId!==tap.pointerId)return;
-  historyFastTap=null;
-  if(historyNativeSwipeMedia.matches&&tap.button.isConnected&&Math.abs(e.clientX-tap.startX)<=10&&Math.abs(e.clientY-tap.startY)<=10)dispatchHistoryFastTap(tap.button);
-});
-document.addEventListener('pointercancel',e=>{
-  if(historyFastTap?.pointerId===e.pointerId)historyFastTap=null;
-});
-incomeList.addEventListener('click',e=>{
-  const button=getHistoryFastTapButton(e.target);
-  if(!historyFastTapDispatching&&button===suppressHistoryFastTapButton){
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    suppressHistoryFastTapButton=null;
-  }
-},true);
 
 incomeDate.addEventListener('focus',()=>incomeDate.select());
 incomeDate.addEventListener('click',()=>incomeDate.select());

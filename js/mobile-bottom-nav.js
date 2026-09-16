@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const DEV='dev-2026.09.15.41';
+  const DEV='dev-2026.09.15.23';
   const mobile=window.matchMedia('(max-width:560px)');
   const HALF_WIDTH=44;
   const TRANSITION='transform 200ms cubic-bezier(.22,.8,.25,1)';
@@ -24,14 +24,10 @@
     let pointerId=null;
     let startX=0;
     let startY=0;
-    let tapItem=null;
     let dragging=false;
     let pendingX=null;
     let writer=0;
     let positionX=HALF_WIDTH;
-    let suppressClickItem=null;
-    let fastTapDispatching=false;
-    let suppressClickFrame=0;
 
     function activeIndex(){const index=items.findIndex(item=>item.classList.contains('active'));return index<0?0:index}
     function measure(){const rect=sidebar.getBoundingClientRect();barLeft=rect.left;barWidth=rect.width;centers=items.map(item=>{const itemRect=item.getBoundingClientRect();return itemRect.left+itemRect.width/2-barLeft})}
@@ -43,59 +39,12 @@
     function nearest(x){let chosen=0;let distance=Infinity;centers.forEach((center,index)=>{const next=Math.abs(center-x);if(next<distance){distance=next;chosen=index}});return chosen}
     function currentX(){const transform=getComputedStyle(indicator).transform;if(!transform||transform==='none')return positionX;const values=transform.match(/matrix(?:3d)?\(([^)]+)\)/);if(!values)return positionX;const parts=values[1].split(',').map(Number);const offset=transform.startsWith('matrix3d')?parts[12]:parts[4];return Number.isFinite(offset)?offset+HALF_WIDTH:positionX}
     function moveToActive(){if(pointerId!==null||!centers.length)return;setTransition(true);write(centers[activeIndex()])}
-    function dispatchFastTap(item){
-      suppressClickItem=item;
-      if(suppressClickFrame)cancelAnimationFrame(suppressClickFrame);
-      fastTapDispatching=true;
-      item.click();
-      fastTapDispatching=false;
-      suppressClickFrame=requestAnimationFrame(()=>{if(suppressClickItem===item)suppressClickItem=null;suppressClickFrame=0});
-    }
-    function release(event,commit){
-      if(event.pointerId!==pointerId)return;
-      const wasDragging=dragging;
-      const item=tapItem;
-      const isTap=commit&&!wasDragging&&item&&Math.abs(event.clientX-startX)<=10&&Math.abs(event.clientY-startY)<=10;
-      pointerId=null;
-      tapItem=null;
-      if(sidebar.hasPointerCapture(event.pointerId))sidebar.releasePointerCapture(event.pointerId);
-      if(wasDragging){
-        event.preventDefault();
-        cancelWrite();
-        const finalFingerX=clamp(event.clientX-barLeft);
-        write(finalFingerX);
-        const target=nearest(finalFingerX);
-        setTransition(true);
-        write(centers[target]);
-        if(commit&&target!==activeIndex())items[target].click();
-      }else{
-        setTransition(true);
-        if(isTap)dispatchFastTap(item);
-      }
-      dragging=false;
-    }
+    function release(event,commit){if(event.pointerId!==pointerId)return;const wasDragging=dragging;pointerId=null;if(sidebar.hasPointerCapture(event.pointerId))sidebar.releasePointerCapture(event.pointerId);if(wasDragging){event.preventDefault();cancelWrite();const finalFingerX=clamp(event.clientX-barLeft);write(finalFingerX);const target=nearest(finalFingerX);setTransition(true);write(centers[target]);if(commit&&target!==activeIndex())items[target].click()}else setTransition(true);dragging=false}
 
-    sidebar.addEventListener('pointerdown',event=>{
-      if(!mobile.matches||!event.isPrimary||pointerId!==null)return;
-      measure();
-      pointerId=event.pointerId;
-      startX=event.clientX;
-      startY=event.clientY;
-      const item=event.target.closest('.nav-item[data-page]');
-      tapItem=items.includes(item)?item:null;
-      dragging=false;
-    });
+    sidebar.addEventListener('pointerdown',event=>{if(!mobile.matches||!event.isPrimary||pointerId!==null)return;measure();pointerId=event.pointerId;startX=event.clientX;startY=event.clientY;dragging=false});
     sidebar.addEventListener('pointermove',event=>{if(event.pointerId!==pointerId)return;const dx=event.clientX-startX;const dy=event.clientY-startY;if(!dragging){if(Math.abs(dx)<6||Math.abs(dx)<=Math.abs(dy))return;dragging=true;positionX=currentX();setTransition(false);write(positionX);sidebar.setPointerCapture(event.pointerId)}event.preventDefault();pendingX=clamp(event.clientX-barLeft);queueWrite()},{passive:false});
     sidebar.addEventListener('pointerup',event=>release(event,true),{passive:false});
     sidebar.addEventListener('pointercancel',event=>{release(event,false);moveToActive()},{passive:false});
-    sidebar.addEventListener('click',event=>{
-      const item=event.target.closest('.nav-item[data-page]');
-      if(!fastTapDispatching&&item===suppressClickItem){
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        suppressClickItem=null;
-      }
-    },true);
     const observer=new MutationObserver(records=>{if(records.some(record=>record.attributeName==='class'))moveToActive()});
     items.forEach(item=>observer.observe(item,{attributes:true,attributeFilter:['class']}));
     const refresh=()=>{if(!mobile.matches)return;measure();setTransition(false);write(centers[activeIndex()]);setTransition(true)};
