@@ -1,5 +1,5 @@
 @import url("./mobile-base.css");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.35");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.36");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -34,6 +34,6 @@
 #settings .qp-category-delete:hover,
 #settings .qp-category-delete:active{background:rgba(239,68,68,.07) !important;border-color:transparent !important;color:rgba(239,68,68,.88) !important;}
 #settings .qp-category-add{grid-template-columns:minmax(0,1fr) auto !important;align-items:center !important;}
-#settings .qp-category-add button{width:56px !important;min-width:56px !important;height:52px !important;padding:0 !important;border:1px solid rgba(94,234,212,.34) !important;border-radius:14px !important;background:linear-gradient(135deg,#14b8a6 0%,#10b981 100%) !important;color:#fff !important;font-size:28px !important;font-weight:500 !important;line-height:1 !important;cursor:pointer !important;box-shadow:0 8px 18px rgba(16,185,129,.30),inset 0 1px 0 rgba(255,255,255,.20) !important;-webkit-tap-highlight-color:transparent;}
-#settings .qp-category-add button:hover{background:linear-gradient(135deg,#16c7b4 0%,#12bf8c 100%) !important;}
-#settings .qp-category-add button:active{box-shadow:0 4px 10px rgba(16,185,129,.24),inset 0 1px 0 rgba(255,255,255,.16) !important;}
+#settings .qp-category-add button{width:56px !important;min-width:56px !important;height:52px !important;padding:0 !important;border:0 !important;border-radius:14px !important;background:var(--primary) !important;color:#fff !important;font-size:28px !important;font-weight:500 !important;line-height:1 !important;cursor:pointer !important;box-shadow:0 9px 22px color-mix(in srgb,var(--primary) 38%,transparent) !important;-webkit-tap-highlight-color:transparent;}
+#settings .qp-category-add button:hover{background:var(--primary) !important;filter:brightness(1.06) !important;}
+#settings .qp-category-add button:active{box-shadow:0 5px 12px color-mix(in srgb,var(--primary) 30%,transparent) !important;}
