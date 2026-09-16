@@ -300,13 +300,13 @@ main { width: min(1180px, 100%); margin: 0 auto; padding: clamp(18px, 3vw, 34px)
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border));
+  border: 0;
   border-radius: 50%;
   background: transparent;
   color: var(--danger);
   cursor: pointer;
 }
-.cancel-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+.cancel-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
 .cancel-btn:hover { background: color-mix(in srgb, var(--danger) 10%, transparent); }
 .field-invalid input, .field-invalid .category-select { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, .12); }
 .field-invalid::after { display: block; margin-top: 4px; color: #ef4444; font-size: 11px; content: "Обязательное поле"; }
