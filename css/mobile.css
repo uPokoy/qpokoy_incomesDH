@@ -1,5 +1,5 @@
 @import url("./mobile-base.css?v=dev-2026.09.15.38");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.37");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.38");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
