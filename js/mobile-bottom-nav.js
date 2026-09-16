@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const DEV='dev-2026.09.15.42';
+  const DEV='dev-2026.09.15.23';
   const mobile=window.matchMedia('(max-width:560px)');
   const HALF_WIDTH=44;
   const TRANSITION='transform 200ms cubic-bezier(.22,.8,.25,1)';
@@ -45,35 +45,6 @@
     sidebar.addEventListener('pointermove',event=>{if(event.pointerId!==pointerId)return;const dx=event.clientX-startX;const dy=event.clientY-startY;if(!dragging){if(Math.abs(dx)<6||Math.abs(dx)<=Math.abs(dy))return;dragging=true;positionX=currentX();setTransition(false);write(positionX);sidebar.setPointerCapture(event.pointerId)}event.preventDefault();pendingX=clamp(event.clientX-barLeft);queueWrite()},{passive:false});
     sidebar.addEventListener('pointerup',event=>release(event,true),{passive:false});
     sidebar.addEventListener('pointercancel',event=>{release(event,false);moveToActive()},{passive:false});
-    let touchTap=null;
-    function findTouch(list,identifier){return Array.from(list).find(touch=>touch.identifier===identifier)}
-    sidebar.addEventListener('touchstart',event=>{
-      if(!mobile.matches||event.touches.length!==1)return;
-      const item=event.target.closest('.nav-item[data-page]');
-      if(!items.includes(item))return;
-      const touch=event.touches[0];
-      touchTap={item,identifier:touch.identifier,startX:touch.clientX,startY:touch.clientY};
-    },{passive:true});
-    sidebar.addEventListener('touchmove',event=>{
-      if(!touchTap)return;
-      const touch=findTouch(event.changedTouches,touchTap.identifier);
-      if(touch){
-        const dx=touch.clientX-touchTap.startX;
-        const dy=touch.clientY-touchTap.startY;
-        if(Math.abs(dx)>10||Math.abs(dy)>10||(Math.abs(dx)>=6&&Math.abs(dx)>Math.abs(dy)))touchTap=null;
-      }
-    },{passive:true});
-    sidebar.addEventListener('touchend',event=>{
-      const tap=touchTap;
-      if(!tap)return;
-      const touch=findTouch(event.changedTouches,tap.identifier);
-      touchTap=null;
-      if(touch&&Math.abs(touch.clientX-tap.startX)<=10&&Math.abs(touch.clientY-tap.startY)<=10){
-        event.preventDefault();
-        tap.item.click();
-      }
-    },{passive:false});
-    sidebar.addEventListener('touchcancel',()=>{touchTap=null},{passive:true});
     const observer=new MutationObserver(records=>{if(records.some(record=>record.attributeName==='class'))moveToActive()});
     items.forEach(item=>observer.observe(item,{attributes:true,attributeFilter:['class']}));
     const refresh=()=>{if(!mobile.matches)return;measure();setTransition(false);write(centers[activeIndex()]);setTransition(true)};
