@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.15.39';
+const qPokoyDevVersion='dev-2026.09.15.40';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -48,18 +48,22 @@ function deferIncomeRender(){
     });
   });
 }
-navItems.forEach(item=>item.addEventListener('click',()=>{
-  if(!item.classList.contains('active')&&!incomeForm.hidden) closeIncomeEditor();
+function activatePage(item){
+  const pageId=item?.dataset.page;
+  const page=document.getElementById(pageId);
+  if(!page) return false;
+  const changed=!item.classList.contains('active');
+  if(changed&&!incomeForm.hidden) closeIncomeEditor();
   invalidateDeferredIncomeRender();
   navItems.forEach(x=>x.classList.remove('active'));
   pages.forEach(x=>x.classList.remove('active'));
   item.classList.add('active');
-  document.getElementById(item.dataset.page).classList.add('active');
+  page.classList.add('active');
   title.textContent=item.querySelector('.nav-label')?.textContent||item.textContent.trim();
 
   // При каждом возврате на «Главную» показываем актуальные месяц и год.
   // Ручное переключение периода работает до ухода с вкладки.
-  if(item.dataset.page==='income'){
+  if(pageId==='income'){
     const now=new Date();
     const period={month:now.getMonth(),year:now.getFullYear()};
     localStorage.setItem('incomeSelectedPeriod',JSON.stringify(period));
@@ -73,8 +77,16 @@ navItems.forEach(item=>item.addEventListener('click',()=>{
 
   // При переходе между разделами всегда начинаем с верхней части страницы.
   window.scrollTo({top:0,left:0,behavior:'auto'});
-}));
+  return changed;
+}
 
+function findNavItem(pageId){
+  return Array.from(navItems).find(item=>item.dataset.page===pageId);
+}
+
+navItems.forEach(item=>item.addEventListener('click',()=>{
+  if(activatePage(item)) history.pushState({qPokoyPage:item.dataset.page},'',location.href);
+}));
 document.documentElement.setAttribute('data-theme','dark');
 document.body.classList.add('dark');
 localStorage.removeItem('theme');
@@ -1404,4 +1416,12 @@ function getAllIncomeRecords(){
 
   const last=localStorage.getItem(BACKUP_KEY);
   if(last) setBackupStatus(`Последний экспорт: ${new Date(last).toLocaleString('ru-RU')}`);
+  const stateItem=findNavItem(history.state?.qPokoyPage);
+  if(stateItem) activatePage(stateItem);
+  const activeItem=Array.from(navItems).find(item=>item.classList.contains('active'));
+  if(activeItem) history.replaceState({...history.state,qPokoyPage:activeItem.dataset.page},'',location.href);
+  window.addEventListener('popstate',event=>{
+    const item=findNavItem(event.state?.qPokoyPage);
+    if(item) activatePage(item);
+  });
 })();
