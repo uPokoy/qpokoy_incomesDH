@@ -1370,3 +1370,17 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
     cursor:pointer;
   }
 }
+
+/* Keep the category manager usable with long lists without reserving empty space. */
+#settings .qp-category-list{
+  max-height:206px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+@media (max-width:560px){
+  #settings .qp-category-list{
+    max-height:400px;
+  }
+}
