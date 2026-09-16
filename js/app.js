@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.15.40';
+const qPokoyDevVersion='dev-2026.09.15.42';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -815,6 +815,66 @@ function rerenderHistoryForNativeSwipe(){
 }
 if(historyNativeSwipeMedia.addEventListener)historyNativeSwipeMedia.addEventListener('change',rerenderHistoryForNativeSwipe);
 else historyNativeSwipeMedia.addListener(rerenderHistoryForNativeSwipe);
+
+let historyTouchTap=null;
+const historyMomentumStops=new WeakMap();
+function getHistoryTouchButton(target){
+  const button=target.closest('.history-swipe-row .edit-income,.history-swipe-row .delete-income');
+  return button?.closest('#history #incomeList > .history-swipe-row')?button:null;
+}
+function restoreInlineStyle(element,property,saved){
+  if(saved.value)element.style.setProperty(property,saved.value,saved.priority);
+  else element.style.removeProperty(property);
+}
+function stopHistoryRowMomentum(row){
+  const previous=historyMomentumStops.get(row);
+  if(previous){
+    cancelAnimationFrame(previous.frame);
+    previous.restore();
+  }
+  const left=row.scrollLeft;
+  const snap={value:row.style.getPropertyValue('scroll-snap-type'),priority:row.style.getPropertyPriority('scroll-snap-type')};
+  const overflowX={value:row.style.getPropertyValue('overflow-x'),priority:row.style.getPropertyPriority('overflow-x')};
+  const restore=()=>{
+    restoreInlineStyle(row,'overflow-x',overflowX);
+    restoreInlineStyle(row,'scroll-snap-type',snap);
+    row.scrollLeft=left;
+  };
+  row.style.setProperty('scroll-snap-type','none','important');
+  row.style.setProperty('overflow-x','hidden','important');
+  row.scrollLeft=left;
+  const frame=requestAnimationFrame(()=>{
+    if(row.isConnected)restore();
+    historyMomentumStops.delete(row);
+  });
+  historyMomentumStops.set(row,{frame,restore});
+}
+function findTrackedTouch(list,identifier){return Array.from(list).find(touch=>touch.identifier===identifier)}
+incomeList.addEventListener('touchstart',event=>{
+  if(!historyNativeSwipeMedia.matches||event.touches.length!==1)return;
+  const button=getHistoryTouchButton(event.target);
+  if(!button)return;
+  const row=button.closest('#history #incomeList > .history-swipe-row');
+  const touch=event.touches[0];
+  stopHistoryRowMomentum(row);
+  historyTouchTap={button,row,identifier:touch.identifier,startX:touch.clientX,startY:touch.clientY};
+},{passive:true});
+incomeList.addEventListener('touchmove',event=>{
+  if(!historyTouchTap)return;
+  const touch=findTrackedTouch(event.changedTouches,historyTouchTap.identifier);
+  if(touch&&(Math.abs(touch.clientX-historyTouchTap.startX)>10||Math.abs(touch.clientY-historyTouchTap.startY)>10))historyTouchTap=null;
+},{passive:true});
+incomeList.addEventListener('touchend',event=>{
+  const tap=historyTouchTap;
+  if(!tap)return;
+  const touch=findTrackedTouch(event.changedTouches,tap.identifier);
+  historyTouchTap=null;
+  if(historyNativeSwipeMedia.matches&&tap.button.isConnected&&touch&&Math.abs(touch.clientX-tap.startX)<=10&&Math.abs(touch.clientY-tap.startY)<=10){
+    event.preventDefault();
+    tap.button.click();
+  }
+},{passive:false});
+incomeList.addEventListener('touchcancel',()=>{historyTouchTap=null},{passive:true});
 
 incomeDate.addEventListener('focus',()=>incomeDate.select());
 incomeDate.addEventListener('click',()=>incomeDate.select());
