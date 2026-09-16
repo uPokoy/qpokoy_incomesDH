@@ -1,5 +1,5 @@
 @import url("./mobile-base.css");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.31");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.32");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -28,5 +28,5 @@
   .sidebar.qp-bottom-nav-ready > .nav-item .nav-icon,.sidebar.qp-bottom-nav-ready > .nav-item .nav-label{position:relative;z-index:3;}
 }
 @media (max-width:560px){
-  .sidebar.qp-bottom-nav-ready::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.12) 0,rgba(255,255,255,.055) 8px,rgba(255,255,255,.018) 20px,transparent 34px,transparent calc(100% - 34px),rgba(255,255,255,.018) calc(100% - 20px),rgba(255,255,255,.055) calc(100% - 8px),rgba(255,255,255,.12) 100%),linear-gradient(180deg,rgba(255,255,255,.10) 0,rgba(255,255,255,.035) 10px,transparent 24px,transparent calc(100% - 20px),rgba(0,0,0,.10) 100%);box-shadow:inset 1px 0 0 rgba(255,255,255,.09),inset -1px 0 0 rgba(255,255,255,.09),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(0,0,0,.12);}
+  .sidebar.qp-bottom-nav-ready::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.11) 0,rgba(255,255,255,.05) 8px,rgba(255,255,255,.0165) 20px,transparent 34px,transparent calc(100% - 34px),rgba(255,255,255,.0165) calc(100% - 20px),rgba(255,255,255,.05) calc(100% - 8px),rgba(255,255,255,.11) 100%),linear-gradient(180deg,rgba(255,255,255,.092) 0,rgba(255,255,255,.032) 10px,transparent 24px,transparent calc(100% - 20px),rgba(0,0,0,.092) 100%);box-shadow:inset 1px 0 0 rgba(255,255,255,.083),inset -1px 0 0 rgba(255,255,255,.083),inset 0 1px 0 rgba(255,255,255,.11),inset 0 -1px 0 rgba(0,0,0,.11);}
 }
