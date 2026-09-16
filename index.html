@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.15.39">
+<link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.15.40">
 <title>Доходы</title>
 <!-- qPokoy: Иконки сайта/ярлыков. Интерфейс сайта не изменяется. -->
 <meta name="application-name" content="Доходы">
@@ -251,6 +251,62 @@
     </div>
   </div>
 
+  <div class="income-form" id="incomeForm" hidden>
+    <div class="form-title">Новый доход</div>
+    <div class="form-grid">
+      <label class="date-label">Дата
+        <div class="date-field">
+          <input type="text" id="incomeDate" placeholder="ДД.ММ.ГГ" inputmode="numeric" maxlength="8" autocomplete="off">
+          <button type="button" class="calendar-btn" id="openCalendar" aria-label="Открыть календарь">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3.5" y="4.5" width="17" height="16" rx="2"></rect>
+              <path d="M7.5 2.8v3.4M16.5 2.8v3.4M3.5 9h17"></path>
+            </svg>
+          </button>
+          <div class="calendar-popup" id="calendarPopup">
+            <div class="calendar-head">
+              <button type="button" class="calendar-nav" id="calendarPrev">‹</button>
+              <div id="calendarMonth"></div>
+              <button type="button" class="calendar-nav" id="calendarNext">›</button>
+            </div>
+            <div class="calendar-weekdays">
+              <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+            </div>
+            <div class="calendar-days" id="calendarDays"></div>
+          </div>
+        </div>
+      </label>
+      <label>Сумма<input type="number" id="incomeAmount" min="0" step="0.01" placeholder="0"></label>
+      <label class="category-label">Категория
+        <div class="category-field">
+          <button type="button" class="category-select" id="categorySelect">
+            <span id="categoryValue">Выберите категорию</span>
+            <span class="category-arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m6 9 6 6 6-6"/>
+      </svg>
+    </span>
+          </button>
+          <div class="category-popup" id="categoryPopup">
+            <button type="button" class="category-option" data-value="Зарплата">Зарплата</button>
+            <button type="button" class="category-option" data-value="Аванс">Аванс</button>
+            <button type="button" class="category-option" data-value="Праздничные">Праздничные</button>
+            <button type="button" class="category-option" data-value="Подработка">Подработка</button>
+            <button type="button" class="category-option" data-value="Ремонт">Ремонт</button>
+      <button type="button" class="category-option" data-value="НПФ">НПФ</button>
+      <button type="button" class="category-option" data-value="Другое">Другое</button>
+          </div>
+          <input type="hidden" id="incomeCategory" value="">
+        </div>
+      </label>
+      <label class="description-field">Описание<input type="text" id="incomeDescription" placeholder=""></label>
+      <button class="save-btn" id="saveIncome" type="button" aria-label="Добавить" title="Добавить">Добавить</button>
+    </div>
+    <div class="form-actions">
+      <button class="cancel-btn" id="cancelIncome" type="button" aria-label="Отмена" title="Отмена"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+  </div>
+
   <section class="income-analytics" id="incomeAnalytics" aria-label="Статистика доходов">
   <div class="analytics-head">
     <div class="analytics-title-block">
@@ -327,61 +383,7 @@
 </section>
 
 
-  <div class="income-form" id="incomeForm" hidden>
-    <div class="form-title">Новый доход</div>
-    <div class="form-grid">
-      <label class="date-label">Дата
-        <div class="date-field">
-          <input type="text" id="incomeDate" placeholder="ДД.ММ.ГГ" inputmode="numeric" maxlength="8" autocomplete="off">
-          <button type="button" class="calendar-btn" id="openCalendar" aria-label="Открыть календарь">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3.5" y="4.5" width="17" height="16" rx="2"></rect>
-              <path d="M7.5 2.8v3.4M16.5 2.8v3.4M3.5 9h17"></path>
-            </svg>
-          </button>
-          <div class="calendar-popup" id="calendarPopup">
-            <div class="calendar-head">
-              <button type="button" class="calendar-nav" id="calendarPrev">‹</button>
-              <div id="calendarMonth"></div>
-              <button type="button" class="calendar-nav" id="calendarNext">›</button>
-            </div>
-            <div class="calendar-weekdays">
-              <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
-            </div>
-            <div class="calendar-days" id="calendarDays"></div>
-          </div>
-        </div>
-      </label>
-      <label>Сумма<input type="number" id="incomeAmount" min="0" step="0.01" placeholder="0"></label>
-      <label class="category-label">Категория
-        <div class="category-field">
-          <button type="button" class="category-select" id="categorySelect">
-            <span id="categoryValue">Выберите категорию</span>
-            <span class="category-arrow" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m6 9 6 6 6-6"/>
-      </svg>
-    </span>
-          </button>
-          <div class="category-popup" id="categoryPopup">
-            <button type="button" class="category-option" data-value="Зарплата">Зарплата</button>
-            <button type="button" class="category-option" data-value="Аванс">Аванс</button>
-            <button type="button" class="category-option" data-value="Праздничные">Праздничные</button>
-            <button type="button" class="category-option" data-value="Подработка">Подработка</button>
-            <button type="button" class="category-option" data-value="Ремонт">Ремонт</button>
-      <button type="button" class="category-option" data-value="НПФ">НПФ</button>
-      <button type="button" class="category-option" data-value="Другое">Другое</button>
-          </div>
-          <input type="hidden" id="incomeCategory" value="">
-        </div>
-      </label>
-      <label class="description-field">Описание<input type="text" id="incomeDescription" placeholder=""></label>
-      <button class="save-btn" id="saveIncome" type="button" aria-label="Добавить" title="Добавить">Добавить</button>
-    </div>
-    <div class="form-actions">
-      <button class="cancel-btn" id="cancelIncome" type="button" aria-label="Отмена" title="Отмена"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    </div>
-  </div>
+
 
   <button class="add-income-btn" id="openIncomeForm" aria-label="Добавить доход" title="Добавить доход"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 </section>
@@ -481,7 +483,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.15.39"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.15.40"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
