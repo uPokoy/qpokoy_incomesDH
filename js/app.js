@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.15.37';
+const qPokoyDevVersion='dev-2026.09.15.38';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -49,6 +49,7 @@ function deferIncomeRender(){
   });
 }
 navItems.forEach(item=>item.addEventListener('click',()=>{
+  if(!item.classList.contains('active')&&!incomeForm.hidden) closeIncomeEditor();
   invalidateDeferredIncomeRender();
   navItems.forEach(x=>x.classList.remove('active'));
   pages.forEach(x=>x.classList.remove('active'));
@@ -214,69 +215,59 @@ const saveBtn=document.getElementById('saveIncome');
 const cancelBtn=document.getElementById('cancelIncome');
 const openIncomeForm=document.getElementById('openIncomeForm');
 
-function positionCategoryPopup(){
-  if(!categoryPopup.classList.contains('open')) return;
-  if(window.matchMedia('(max-width:560px)').matches){
-    const rect=categorySelect.getBoundingClientRect();
-    const gap=6;
-    const edge=8;
-    const bottomNav=72;
-    const below=Math.max(0,window.innerHeight-rect.bottom-bottomNav-edge);
-    const above=Math.max(0,rect.top-edge);
-    const openBelow=below>=180 || below>=above;
-    const available=openBelow?below:above;
-    const maxHeight=Math.max(140,Math.min(360,available));
-    categoryPopup.style.position='fixed';
-    categoryPopup.style.left=Math.max(edge,rect.left)+'px';
-    categoryPopup.style.width=Math.min(rect.width,window.innerWidth-edge*2)+'px';
-    categoryPopup.style.maxHeight=maxHeight+'px';
-    categoryPopup.style.overflowY='auto';
-    if(openBelow){
-      categoryPopup.style.top=(rect.bottom+gap)+'px';
-      categoryPopup.style.bottom='auto';
-    }else{
-      categoryPopup.style.top='auto';
-      categoryPopup.style.bottom=(window.innerHeight-rect.top+gap)+'px';
-    }
-  }else{
-    const rect=categorySelect.getBoundingClientRect();
-    const gap=6;
-    const edge=8;
-    const bottomNav=68;
-    const below=Math.max(0,window.innerHeight-rect.bottom-bottomNav-edge);
-    const above=Math.max(0,rect.top-edge);
-    const openBelow=below>=180 || below>=above;
-    const available=openBelow?below:above;
-    const maxHeight=Math.max(140,Math.min(420,available));
-    categoryPopup.style.position='fixed';
-    categoryPopup.style.left=Math.max(edge,rect.left)+'px';
-    categoryPopup.style.width=Math.min(rect.width,window.innerWidth-edge*2)+'px';
-    categoryPopup.style.maxHeight=maxHeight+'px';
-    categoryPopup.style.overflowY='auto';
-    if(openBelow){
-      categoryPopup.style.top=(rect.bottom+gap)+'px';
-      categoryPopup.style.bottom='auto';
-    }else{
-      categoryPopup.style.top='auto';
-      categoryPopup.style.bottom=(window.innerHeight-rect.top+gap)+'px';
-    }
-  }
+function closeCategoryPopup(){
+  categoryPopup.classList.remove('open');
+  categorySelect.classList.remove('open');
+  ['position','left','width','max-height','overflow-y','top','bottom'].forEach(property=>{
+    categoryPopup.style.removeProperty(property);
+  });
 }
 
+function positionCategoryPopup(){
+  if(!categoryPopup.classList.contains('open')) return;
+  const mobile=window.matchMedia('(max-width:560px)').matches;
+  const maxPopupHeight=mobile?360:420;
+  const edge=8;
+  const gap=6;
+  const rect=categorySelect.getBoundingClientRect();
+  const sidebarRect=sidebar?.getBoundingClientRect();
+  const sidebarBelow=sidebarRect&&sidebarRect.width>0&&sidebarRect.height>0&&sidebarRect.top>rect.bottom&&sidebarRect.top<window.innerHeight;
+  const bottomLimit=sidebarBelow?sidebarRect.top-edge:window.innerHeight-edge;
+  const below=Math.max(0,bottomLimit-rect.bottom-gap);
+  const above=Math.max(0,rect.top-edge-gap);
+  const openBelow=below>=maxPopupHeight||below>=above;
+  const available=openBelow?below:above;
+  const maxHeight=Math.min(maxPopupHeight,available);
+  const width=Math.min(rect.width,window.innerWidth-edge*2);
+  const left=Math.min(Math.max(edge,rect.left),window.innerWidth-edge-width);
+  categoryPopup.style.position='fixed';
+  categoryPopup.style.left=left+'px';
+  categoryPopup.style.width=width+'px';
+  categoryPopup.style.maxHeight=maxHeight+'px';
+  categoryPopup.style.overflowY='auto';
+  if(openBelow){
+    categoryPopup.style.top=(rect.bottom+gap)+'px';
+    categoryPopup.style.bottom='auto';
+  }else{
+    categoryPopup.style.top='auto';
+    categoryPopup.style.bottom=(window.innerHeight-rect.top+gap)+'px';
+  }
+}
 categorySelect.addEventListener('click',e=>{
   e.stopPropagation();
   const open=categoryPopup.classList.toggle('open');
   categorySelect.classList.toggle('open',open);
-  if(open) requestAnimationFrame(positionCategoryPopup);
+  if(open){
+    requestAnimationFrame(()=>{
+      positionCategoryPopup();
+      categoryPopup.querySelector('.category-option.selected')?.scrollIntoView({block:'nearest'});
+    });
+  }else closeCategoryPopup();
 });
 
 window.addEventListener('resize',positionCategoryPopup,{passive:true});
 window.addEventListener('scroll',()=>{
-  if(categoryPopup.classList.contains('open')){
-    categoryPopup.classList.remove('open');
-    categorySelect.classList.remove('open');
-    positionCategoryPopup();
-  }
+  if(categoryPopup.classList.contains('open')) closeCategoryPopup();
 },{passive:true});
 categoryOptions.forEach(option=>option.addEventListener('click',e=>{
   e.stopPropagation();
@@ -285,9 +276,7 @@ categoryOptions.forEach(option=>option.addEventListener('click',e=>{
   incomeCategory.closest('label')?.classList.remove('field-invalid');
   categoryOptions.forEach(o=>o.classList.remove('selected'));
   option.classList.add('selected');
-  categoryPopup.classList.remove('open');
-  categorySelect.classList.remove('open');
-  positionCategoryPopup();
+  closeCategoryPopup();
 }));
 
 let incomes=[];
@@ -409,6 +398,13 @@ function restoreIncomeFormHome(){
   if(incomeFormHome && incomeForm.parentElement!==incomeFormHome){
     incomeFormHome.insertBefore(incomeForm,incomeFormHomeNext);
   }
+}
+
+function closeIncomeEditor(){
+  resetForm();
+  incomeForm.hidden=true;
+  closeCategoryPopup();
+  restoreIncomeFormHome();
 }
 
 function openHistoryEdit(id){
@@ -715,11 +711,7 @@ openIncomeForm.addEventListener('click',()=>{
   });
 });
 
-cancelBtn.addEventListener('click',()=>{
-  resetForm();
-  incomeForm.hidden=true;
-  restoreIncomeFormHome();
-});
+cancelBtn.addEventListener('click',closeIncomeEditor);
 
 saveBtn.addEventListener('click',(e)=>{
   incomeForm.querySelectorAll('.field-invalid').forEach(el=>el.classList.remove('field-invalid'));
@@ -758,9 +750,7 @@ saveBtn.addEventListener('click',(e)=>{
   }
 
   renderIncomes();
-  resetForm();
-  incomeForm.hidden=true;
-  restoreIncomeFormHome();
+  closeIncomeEditor();
   if(!wasEditing){
     window.scrollTo({top:0,left:0,behavior:'smooth'});
   }
@@ -952,11 +942,7 @@ calendarDays.addEventListener('click',e=>{
 });
 document.addEventListener('click',e=>{
   if(!e.target.closest('.date-field'))calendarPopup.classList.remove('open');
-  if(!e.target.closest('.category-field')){
-    categoryPopup.classList.remove('open');
-    categorySelect.classList.remove('open');
-    positionCategoryPopup();
-  }
+  if(!e.target.closest('.category-field')) closeCategoryPopup();
 });
 
 const incomeListEl=document.getElementById('incomeList');

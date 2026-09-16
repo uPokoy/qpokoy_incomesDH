@@ -50,7 +50,6 @@
 
   /* Category dropdown: keep long lists scrollable and above fixed bottom navigation. */
   .category-popup{
-    max-height:calc(100dvh - 140px) !important;
     overflow-y:auto !important;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
