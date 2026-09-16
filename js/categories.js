@@ -43,7 +43,7 @@
       box.className='qp-category-manager';
       box.innerHTML='<div class="qp-category-manager-title">Категории</div>'+
         '<div class="qp-category-manager-subtitle"></div>'+
-        '<div class="qp-category-add"><input id="qpCategoryInput" type="text" maxlength="80" placeholder="Название категории" autocomplete="off"><button type="button" id="qpCategoryAddBtn">Добавить</button></div>'+
+        '<div class="qp-category-add"><input id="qpCategoryInput" type="text" maxlength="80" placeholder="Название категории" autocomplete="off"><button type="button" id="qpCategoryAddBtn" aria-label="Добавить категорию" title="Добавить категорию">+</button></div>'+
         '<div class="qp-category-list" id="qpCategoryList"></div>';
       card.appendChild(box);
       box.querySelector('#qpCategoryAddBtn').addEventListener('click',addCategory);

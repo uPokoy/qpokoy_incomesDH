@@ -1,5 +1,5 @@
 @import url("./mobile-base.css");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.34");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.15.35");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -33,3 +33,7 @@
 #settings .qp-category-delete{flex:0 0 44px !important;width:44px !important;min-width:44px !important;height:44px !important;padding:0 !important;border:0 !important;border-radius:12px !important;background:transparent !important;box-shadow:none !important;color:rgba(239,68,68,.58) !important;font-size:17px !important;font-weight:500 !important;line-height:1 !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent;}
 #settings .qp-category-delete:hover,
 #settings .qp-category-delete:active{background:rgba(239,68,68,.07) !important;border-color:transparent !important;color:rgba(239,68,68,.88) !important;}
+#settings .qp-category-add{grid-template-columns:minmax(0,1fr) auto !important;align-items:center !important;}
+#settings .qp-category-add button{width:56px !important;min-width:56px !important;height:52px !important;padding:0 !important;border:1px solid rgba(94,234,212,.34) !important;border-radius:14px !important;background:linear-gradient(135deg,#14b8a6 0%,#10b981 100%) !important;color:#fff !important;font-size:28px !important;font-weight:500 !important;line-height:1 !important;cursor:pointer !important;box-shadow:0 8px 18px rgba(16,185,129,.30),inset 0 1px 0 rgba(255,255,255,.20) !important;-webkit-tap-highlight-color:transparent;}
+#settings .qp-category-add button:hover{background:linear-gradient(135deg,#16c7b4 0%,#12bf8c 100%) !important;}
+#settings .qp-category-add button:active{box-shadow:0 4px 10px rgba(16,185,129,.24),inset 0 1px 0 rgba(255,255,255,.16) !important;}
