@@ -13,6 +13,7 @@
   const yandexButton=document.getElementById('qpAuthYandex');
   const googleButton=document.getElementById('qpAuthGoogle');
   const reset=document.getElementById('qpAuthReset');
+  const oauthDivider=document.getElementById('qpAuthOAuthDivider');
   const email=document.getElementById('qpAuthEmail');
   const password=document.getElementById('qpAuthPassword');
   const confirm=document.getElementById('qpAuthPasswordConfirm');
@@ -20,11 +21,13 @@
   const message=document.getElementById('qpAuthMessage');
   const tabs=[...document.querySelectorAll('[data-auth-mode]')];
   let mode='login';
+  function oauthLabel(button){return button.querySelector('.qp-auth-oauth-label');}
+  function setOAuthButtonText(button,text){oauthLabel(button).textContent=text;}
   function resetOAuthButtons(){
     googleButton.disabled=false;
-    googleButton.textContent='Войти через Google';
+    setOAuthButtonText(googleButton,'Вход через Google');
     yandexButton.disabled=false;
-    yandexButton.textContent='Войти через Яндекс';
+    setOAuthButtonText(yandexButton,'Вход через Яндекс');
   }
   window.addEventListener('pageshow',resetOAuthButtons);
 
@@ -36,8 +39,9 @@
     mode=next;
     tabs.forEach(t=>t.classList.toggle('active',t.dataset.authMode===mode));
     const signup=mode==='signup';
-    submit.textContent=signup?'Создать аккаунт':'Войти';
+    submit.textContent=signup?'Создать аккаунт':'Вход';
     reset.hidden=signup;
+    oauthDivider.hidden=signup;
     yandexButton.hidden=signup;
     googleButton.hidden=signup;
     confirmWrap.hidden=!signup;
@@ -62,10 +66,10 @@
 
   tabs.forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.authMode)));
   yandexButton.addEventListener('click',async function(){
-    const originalText=yandexButton.textContent;
+    const originalText=oauthLabel(yandexButton).textContent;
     setMessage('');
     yandexButton.disabled=true;
-    yandexButton.textContent='Переходим в Яндекс…';
+    setOAuthButtonText(yandexButton,'Переходим в Яндекс…');
     try{
       const redirectTo=location.origin+location.pathname;
       const {error}=await client.auth.signInWithOAuth({
@@ -75,16 +79,16 @@
       if(error) throw error;
     }catch(err){
       setMessage(friendlyError(err),'error');
-      yandexButton.textContent=originalText;
+      setOAuthButtonText(yandexButton,originalText);
       yandexButton.disabled=false;
     }
   });
 
   googleButton.addEventListener('click',async function(){
-    const originalText=googleButton.textContent;
+    const originalText=oauthLabel(googleButton).textContent;
     setMessage('');
     googleButton.disabled=true;
-    googleButton.textContent='Переходим в Google…';
+    setOAuthButtonText(googleButton,'Переходим в Google…');
     try{
       const redirectTo=location.origin+location.pathname;
       const {error}=await client.auth.signInWithOAuth({
@@ -94,7 +98,7 @@
       if(error) throw error;
     }catch(err){
       setMessage(friendlyError(err),'error');
-      googleButton.textContent=originalText;
+      setOAuthButtonText(googleButton,originalText);
       googleButton.disabled=false;
     }
   });
