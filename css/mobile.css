@@ -40,15 +40,73 @@
 #settings .qp-category-add button:active{box-shadow:0 5px 12px color-mix(in srgb,var(--primary) 30%,transparent) !important;}
 #settings > .settings-card:not([style]) > .nav-label-mode-options{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
 
-/* qPokoy background visibility fix: keep the standard background clearly visible behind the app. */
+/* Standard background: exact auth-screen background, adapted to the site canvas. */
 html[data-theme="dark"] body.qp-bg-standard{
+  isolation:isolate;
+  overflow-x:hidden !important;
   background:
-    radial-gradient(86% 70% at -4% 78%,rgba(69,101,141,.52) 0 20%,rgba(30,48,71,.24) 42%,transparent 66%),
-    radial-gradient(90% 68% at 104% 22%,rgba(65,96,136,.48) 0 20%,rgba(28,45,68,.22) 42%,transparent 66%),
-    radial-gradient(120% 88% at 50% -18%,rgba(82,113,154,.42) 0 18%,rgba(34,52,76,.20) 36%,transparent 60%),
-    linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%) fixed !important;
-  background-color:#05080e !important;
+    radial-gradient(120% 86% at 50% -24%,rgba(72,99,135,.42) 0 18%,rgba(32,48,70,.20) 34%,transparent 52%),
+    radial-gradient(80% 58% at -8% 72%,rgba(47,70,99,.34) 0 24%,transparent 54%),
+    radial-gradient(86% 62% at 108% 32%,rgba(46,69,98,.32) 0 22%,transparent 53%),
+    linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%) !important;
 }
-html[data-theme="dark"] body.qp-bg-standard .app{
+html[data-theme="dark"] body.qp-bg-standard::before,
+html[data-theme="dark"] body.qp-bg-standard::after{
+  content:"";
+  position:fixed;
+  pointer-events:none;
+  z-index:0;
+}
+html[data-theme="dark"] body.qp-bg-standard::before{
+  width:max(980px,86vw);
+  height:max(520px,47vw);
+  left:min(-280px,-16vw);
+  bottom:min(-250px,-12vw);
+  border-radius:50%;
+  background:linear-gradient(165deg,rgba(52,76,108,.62) 0%,rgba(16,27,42,.92) 42%,rgba(5,9,15,.98) 72%);
+  box-shadow:
+    0 -1px 0 rgba(167,193,224,.16),
+    0 -24px 72px rgba(72,101,139,.10),
+    0 -70px 140px rgba(44,67,96,.08);
+  transform:rotate(13deg);
+  transform-origin:center;
+}
+html[data-theme="dark"] body.qp-bg-standard::after{
+  width:max(1120px,92vw);
+  height:max(500px,41vw);
+  right:min(-360px,-20vw);
+  top:min(-210px,-9vw);
+  border-radius:50%;
+  background:linear-gradient(345deg,rgba(54,79,112,.58) 0%,rgba(15,26,40,.94) 44%,rgba(5,9,15,.99) 76%);
+  box-shadow:
+    0 1px 0 rgba(157,185,218,.14),
+    0 26px 80px rgba(64,91,126,.10),
+    0 72px 150px rgba(42,64,91,.07);
+  transform:rotate(-10deg);
+  transform-origin:center;
+}
+html[data-theme="dark"] body.qp-bg-standard > .app{
+  position:relative;
+  z-index:1;
   background:transparent !important;
+}
+@media (max-width:560px){
+  html[data-theme="dark"] body.qp-bg-standard::before{
+    width:150vw;
+    height:78vw;
+    left:-64vw;
+    bottom:-10vw;
+    opacity:.82;
+  }
+  html[data-theme="dark"] body.qp-bg-standard::after{
+    width:160vw;
+    height:72vw;
+    right:-72vw;
+    top:-8vw;
+    opacity:.80;
+  }
+}
+@media (min-width:2200px){
+  html[data-theme="dark"] body.qp-bg-standard::before{width:76vw;height:38vw;left:-12vw;bottom:-11vw;}
+  html[data-theme="dark"] body.qp-bg-standard::after{width:78vw;height:34vw;right:-14vw;top:-8vw;}
 }
