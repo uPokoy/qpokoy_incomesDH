@@ -39,3 +39,16 @@
 #settings .qp-category-add button:hover{background:var(--primary) !important;filter:brightness(1.06) !important;}
 #settings .qp-category-add button:active{box-shadow:0 5px 12px color-mix(in srgb,var(--primary) 30%,transparent) !important;}
 #settings > .settings-card:not([style]) > .nav-label-mode-options{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+
+/* qPokoy background visibility fix: keep the standard background clearly visible behind the app. */
+html[data-theme="dark"] body.qp-bg-standard{
+  background:
+    radial-gradient(86% 70% at -4% 78%,rgba(69,101,141,.52) 0 20%,rgba(30,48,71,.24) 42%,transparent 66%),
+    radial-gradient(90% 68% at 104% 22%,rgba(65,96,136,.48) 0 20%,rgba(28,45,68,.22) 42%,transparent 66%),
+    radial-gradient(120% 88% at 50% -18%,rgba(82,113,154,.42) 0 18%,rgba(34,52,76,.20) 36%,transparent 60%),
+    linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%) fixed !important;
+  background-color:#05080e !important;
+}
+html[data-theme="dark"] body.qp-bg-standard .app{
+  background:transparent !important;
+}
