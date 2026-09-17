@@ -65,5 +65,5 @@
 
 /* Visible DEV marker for this isolated CSS patch. */
 #qPokoyDevVersion::after{
-  content:"dev-2026.09.15.55" !important;
+  content:"dev-2026.09.15.56" !important;
 }
