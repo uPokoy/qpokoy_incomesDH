@@ -10,6 +10,7 @@
   const gate=document.getElementById('qpAuthGate');
   const form=document.getElementById('qpAuthForm');
   const submit=document.getElementById('qpAuthSubmit');
+  const yandexButton=document.getElementById('qpAuthYandex');
   const reset=document.getElementById('qpAuthReset');
   const email=document.getElementById('qpAuthEmail');
   const password=document.getElementById('qpAuthPassword');
@@ -29,6 +30,7 @@
     const signup=mode==='signup';
     submit.textContent=signup?'Создать аккаунт':'Войти';
     reset.hidden=signup;
+    yandexButton.hidden=signup;
     confirmWrap.hidden=!signup;
     password.autocomplete=signup?'new-password':'current-password';
     setMessage('');
@@ -50,6 +52,24 @@
   }
 
   tabs.forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.authMode)));
+  yandexButton.addEventListener('click',async function(){
+    const originalText=yandexButton.textContent;
+    setMessage('');
+    yandexButton.disabled=true;
+    yandexButton.textContent='Переходим в Яндекс…';
+    try{
+      const redirectTo=location.origin+location.pathname;
+      const {error}=await client.auth.signInWithOAuth({
+        provider:'custom:yandex',
+        options:{redirectTo}
+      });
+      if(error) throw error;
+    }catch(err){
+      setMessage(friendlyError(err),'error');
+      yandexButton.textContent=originalText;
+      yandexButton.disabled=false;
+    }
+  });
 
   form.addEventListener('submit',async function(e){
     e.preventDefault();
