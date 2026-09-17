@@ -1,41 +1,69 @@
-/* qPokoy OAuth buttons — exact supplied PNG layers; auth markup and behavior stay unchanged. */
-.qp-auth-oauth{
+/* qPokoy OAuth brand styling — visual only, auth logic unchanged */
+.qp-auth-google,
+.qp-auth-yandex{
+  height:44px;
+  gap:10px;
+  border-radius:11px;
+  background:rgba(15,23,42,.72) !important;
+  border:1px solid rgba(148,163,184,.34) !important;
+  color:#f8fafc !important;
+  box-shadow:none !important;
+  font-family:inherit;
+  font-size:14px;
+  font-weight:500;
+  line-height:20px;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease;
+}
+
+/* Keep the existing markup/JS, but replace the old hand-drawn marks visually. */
+.qp-auth-google .qp-auth-oauth-icon svg,
+.qp-auth-yandex .qp-auth-oauth-icon svg{
+  display:none !important;
+}
+
+.qp-auth-google:hover,
+.qp-auth-yandex:hover{
+  background:rgba(30,41,59,.9) !important;
+  border-color:rgba(148,163,184,.52) !important;
+}
+.qp-auth-google:active,
+.qp-auth-yandex:active{
+  transform:translateY(1px);
+  background:rgba(15,23,42,.9) !important;
+}
+
+/* Official Google G, without the oversized white tile from the previous version. */
+.qp-auth-google .qp-auth-oauth-icon{
+  display:block;
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+  border-radius:0;
+  background:transparent url("https://developers.google.com/static/identity/images/g-logo.png") center/20px 20px no-repeat;
+}
+
+/* Yandex ID mark: archived original Yandex LLC vector, presented on the brand-red disc. */
+.qp-auth-yandex .qp-auth-oauth-icon{
   position:relative;
   display:block;
-  width:100%;
-  aspect-ratio:900 / 190;
-  height:auto;
-  min-height:0;
-  margin-top:10px;
-  padding:0 !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background-color:transparent;
-  background-size:100% 100%;
-  background-position:center;
-  background-repeat:no-repeat;
-  box-shadow:none !important;
-  appearance:none;
-  -webkit-appearance:none;
-  overflow:visible;
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  border-radius:50%;
+  background:#fc3f1d;
+  overflow:hidden;
 }
-html[data-theme="dark"] .qp-auth-primary.qp-auth-google{
-  background:transparent url("../assets/oauth/oauth-google-exact.png") center/100% 100% no-repeat !important;
-}
-html[data-theme="dark"] .qp-auth-primary.qp-auth-yandex{
-  background:transparent url("../assets/oauth/oauth-yandex-exact.png") center/100% 100% no-repeat !important;
-}
-
-/* Keep DOM nodes for existing loading text and handlers, but let the supplied image be the full visual. */
-.qp-auth-oauth-icon,
-.qp-auth-oauth-label{
+.qp-auth-yandex .qp-auth-oauth-icon::after{
+  content:"";
   position:absolute;
-  opacity:0;
-  pointer-events:none;
+  inset:3px;
+  background:transparent url("https://upload.wikimedia.org/wikipedia/commons/8/81/Yandex_ID_icon.svg") center/contain no-repeat;
+  filter:invert(1);
 }
-.qp-auth-oauth:disabled{opacity:.62;cursor:wait;}
 
-/* Visible DEV marker remains synchronized with the current published app version. */
+.qp-auth-oauth-label{font-weight:500;}
+
+/* Visible DEV marker for this isolated CSS patch. */
 #qPokoyDevVersion::after{
-  content:"dev-2026.09.15.60" !important;
+  content:"dev-2026.09.15.55" !important;
 }
