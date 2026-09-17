@@ -2,63 +2,68 @@
 .qp-auth-google,
 .qp-auth-yandex{
   height:44px;
+  gap:10px;
+  border-radius:11px;
+  background:rgba(15,23,42,.72) !important;
+  border:1px solid rgba(148,163,184,.34) !important;
+  color:#f8fafc !important;
+  box-shadow:none !important;
+  font-family:inherit;
   font-size:14px;
+  font-weight:500;
   line-height:20px;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease;
 }
 
-/* Hide the previous hand-drawn inline marks without touching auth markup/JS. */
+/* Keep the existing markup/JS, but replace the old hand-drawn marks visually. */
 .qp-auth-google .qp-auth-oauth-icon svg,
 .qp-auth-yandex .qp-auth-oauth-icon svg{
   display:none !important;
 }
 
-.qp-auth-google{
-  background:#131314 !important;
-  border-color:#8e918f !important;
-  color:#e3e3e3 !important;
-  font-family:Roboto,Arial,sans-serif;
-  font-weight:500;
+.qp-auth-google:hover,
+.qp-auth-yandex:hover{
+  background:rgba(30,41,59,.9) !important;
+  border-color:rgba(148,163,184,.52) !important;
 }
-.qp-auth-google:hover{
-  background:#1f1f20 !important;
-  border-color:#a9aca9 !important;
-}
-.qp-auth-google:active{
-  background:#131314 !important;
-}
-.qp-auth-google .qp-auth-oauth-icon{
-  display:block;
-  width:28px;
-  height:28px;
-  flex:0 0 28px;
-  border-radius:7px;
-  background:#fff url("https://developers.google.com/static/identity/images/g-logo.png") center/18px 18px no-repeat;
+.qp-auth-google:active,
+.qp-auth-yandex:active{
+  transform:translateY(1px);
+  background:rgba(15,23,42,.9) !important;
 }
 
-/* Yandex ID additional/dark treatment. The image is an archived copy of the original Yandex LLC ID asset. */
-.qp-auth-yandex{
-  background:transparent !important;
-  border-color:rgba(255,255,255,.34) !important;
-  color:#f8fafc !important;
-  font-weight:600;
-}
-.qp-auth-yandex:hover{
-  background:rgba(255,255,255,.06) !important;
-  border-color:rgba(255,255,255,.52) !important;
-}
-.qp-auth-yandex:active{
-  background:rgba(255,255,255,.035) !important;
-}
-.qp-auth-yandex .qp-auth-oauth-icon{
+/* Official Google G, without the oversized white tile from the previous version. */
+.qp-auth-google .qp-auth-oauth-icon{
   display:block;
-  width:24px;
-  height:24px;
-  flex:0 0 24px;
-  border-radius:50%;
-  background:#fff url("https://upload.wikimedia.org/wikipedia/commons/8/81/Yandex_ID_icon.svg") center/19px 19px no-repeat;
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+  border-radius:0;
+  background:transparent url("https://developers.google.com/static/identity/images/g-logo.png") center/20px 20px no-repeat;
 }
+
+/* Yandex ID mark: archived original Yandex LLC vector, presented on the brand-red disc. */
+.qp-auth-yandex .qp-auth-oauth-icon{
+  position:relative;
+  display:block;
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  border-radius:50%;
+  background:#fc3f1d;
+  overflow:hidden;
+}
+.qp-auth-yandex .qp-auth-oauth-icon::after{
+  content:"";
+  position:absolute;
+  inset:3px;
+  background:transparent url("https://upload.wikimedia.org/wikipedia/commons/8/81/Yandex_ID_icon.svg") center/contain no-repeat;
+  filter:invert(1);
+}
+
+.qp-auth-oauth-label{font-weight:500;}
 
 /* Visible DEV marker for this isolated CSS patch. */
 #qPokoyDevVersion::after{
-  content:"dev-2026.09.15.54" !important;
+  content:"dev-2026.09.15.55" !important;
 }
