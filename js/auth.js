@@ -20,6 +20,13 @@
   const message=document.getElementById('qpAuthMessage');
   const tabs=[...document.querySelectorAll('[data-auth-mode]')];
   let mode='login';
+  function resetOAuthButtons(){
+    googleButton.disabled=false;
+    googleButton.textContent='Войти через Google';
+    yandexButton.disabled=false;
+    yandexButton.textContent='Войти через Яндекс';
+  }
+  window.addEventListener('pageshow',resetOAuthButtons);
 
   function setMessage(text,type){
     message.textContent=text||'';
