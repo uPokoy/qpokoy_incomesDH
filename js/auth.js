@@ -509,7 +509,18 @@
     }
   }
 
-  client.auth.onAuthStateChange(function(_event,session){
+  function isRoutineSessionRefresh(event,session){
+    if(event!=='SIGNED_IN'&&event!=='TOKEN_REFRESHED') return false;
+    if(!session||!session.user||!cloudUser||!cloudReady) return false;
+    return String(session.user.id||'')===String(cloudUser.id||'');
+  }
+
+  client.auth.onAuthStateChange(function(event,session){
+    if(isRoutineSessionRefresh(event,session)){
+      cloudUser=session.user;
+      if(accountEmail) accountEmail.textContent=session.user.email||'';
+      return;
+    }
     sync(session);
   });
 
