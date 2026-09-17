@@ -7,20 +7,24 @@
   height:auto;
   min-height:0;
   margin-top:10px;
-  padding:0;
-  border:0;
-  border-radius:0;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
   background-color:transparent;
   background-size:100% 100%;
   background-position:center;
   background-repeat:no-repeat;
-  box-shadow:none;
+  box-shadow:none !important;
   appearance:none;
   -webkit-appearance:none;
   overflow:visible;
 }
-.qp-auth-google{background-image:url("../assets/oauth/oauth-google-exact.png");}
-.qp-auth-yandex{background-image:url("../assets/oauth/oauth-yandex-exact.png");}
+html[data-theme="dark"] .qp-auth-primary.qp-auth-google{
+  background:transparent url("../assets/oauth/oauth-google-exact.png") center/100% 100% no-repeat !important;
+}
+html[data-theme="dark"] .qp-auth-primary.qp-auth-yandex{
+  background:transparent url("../assets/oauth/oauth-yandex-exact.png") center/100% 100% no-repeat !important;
+}
 
 /* Keep DOM nodes for existing loading text and handlers, but let the supplied image be the full visual. */
 .qp-auth-oauth-icon,
@@ -33,5 +37,5 @@
 
 /* Visible DEV marker remains synchronized with the current published app version. */
 #qPokoyDevVersion::after{
-  content:"dev-2026.09.15.59" !important;
+  content:"dev-2026.09.15.60" !important;
 }
