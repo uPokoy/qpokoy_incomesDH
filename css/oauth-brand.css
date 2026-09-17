@@ -1,65 +1,37 @@
-/* qPokoy OAuth buttons — visual skin only; auth markup and behavior stay unchanged. */
+/* qPokoy OAuth buttons — exact supplied PNG layers; auth markup and behavior stay unchanged. */
 .qp-auth-oauth{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:100%;
-  height:44px;
-  min-height:44px;
-  margin-top:10px;
-  padding:0 16px;
-  gap:10px;
-  border:1px solid rgba(204,222,248,.82);
-  border-radius:22px;
-  background:linear-gradient(135deg,#14263b 0%,#07121f 48%,#0d1b2d 100%);
-  color:#f5f8ff;
-  box-shadow:0 0 0 1px rgba(78,130,202,.3),0 0 15px rgba(56,112,199,.32),0 6px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(52,99,162,.32);
-  font:600 15px/20px inherit;
-  letter-spacing:.01em;
-  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;
-}
-
-.qp-auth-oauth-icon{
-  display:grid;
-  place-items:center;
-  width:26px;
-  height:26px;
-  flex:0 0 26px;
-}
-.qp-auth-google .qp-auth-oauth-icon svg{
-  display:block;
-  width:26px;
-  height:26px;
-}
-.qp-auth-oauth-label{white-space:nowrap;}
-
-.qp-auth-yandex .qp-auth-oauth-icon{
   position:relative;
-  border-radius:50%;
-  background:#fc3f1d;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 3px rgba(0,0,0,.25);
+  display:block;
+  width:100%;
+  aspect-ratio:900 / 190;
+  height:auto;
+  min-height:0;
+  margin-top:10px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background-color:transparent;
+  background-size:100% 100%;
+  background-position:center;
+  background-repeat:no-repeat;
+  box-shadow:none;
+  appearance:none;
+  -webkit-appearance:none;
+  overflow:visible;
 }
-.qp-auth-yandex .qp-auth-oauth-icon svg{display:none;}
-.qp-auth-yandex .qp-auth-oauth-icon::after{
-  content:"Я";
-  color:#fff;
-  font:700 24px/1 Arial,sans-serif;
-  transform:translateY(-1px);
-}
+.qp-auth-google{background-image:url("../assets/oauth/oauth-google-exact.png");}
+.qp-auth-yandex{background-image:url("../assets/oauth/oauth-yandex-exact.png");}
 
-.qp-auth-oauth:hover{
-  background:linear-gradient(135deg,#1a304b 0%,#091827 48%,#11223a 100%);
-  border-color:#d7e6ff;
-  box-shadow:0 0 0 1px rgba(111,165,242,.48),0 0 18px rgba(67,130,225,.4),0 7px 18px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(65,117,187,.36);
-}
-.qp-auth-oauth:active{
-  transform:translateY(1px);
-  background:#091522;
-  box-shadow:0 0 0 1px rgba(103,158,236,.34),inset 0 1px 3px rgba(0,0,0,.4);
+/* Keep DOM nodes for existing loading text and handlers, but let the supplied image be the full visual. */
+.qp-auth-oauth-icon,
+.qp-auth-oauth-label{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
 }
 .qp-auth-oauth:disabled{opacity:.62;cursor:wait;}
 
 /* Visible DEV marker remains synchronized with the current published app version. */
 #qPokoyDevVersion::after{
-  content:"dev-2026.09.15.58" !important;
+  content:"dev-2026.09.15.59" !important;
 }
