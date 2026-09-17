@@ -55,58 +55,111 @@
           linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%) fixed !important;
       }
       body.qp-bg-off{background:var(--bg) !important;}
-      body.qp-bg-custom{
-        background-color:#070b12 !important;
-        background-image:linear-gradient(rgba(4,8,14,.22),rgba(4,8,14,.22)),var(--qp-custom-bg-image) !important;
-        background-position:center center !important;
-        background-size:cover !important;
-        background-repeat:no-repeat !important;
-        background-attachment:fixed !important;
+      body.qp-bg-standard>.app,body.qp-bg-off>.app{background:transparent !important;}
+      #qpCustomBackgroundLayer{
+        position:fixed;
+        inset:0;
+        z-index:0;
+        display:none;
+        pointer-events:none;
+        background-color:#070b12;
+        background-position:center center;
+        background-size:cover;
+        background-repeat:no-repeat;
       }
-      body.qp-bg-standard .app,body.qp-bg-custom .app,body.qp-bg-off .app{background:transparent;}
-      body.qp-bg-off #qpAuthGate{background:#070b12 !important;}
-      body.qp-bg-custom #qpAuthGate{
-        background-color:#070b12 !important;
-        background-image:linear-gradient(rgba(4,8,14,.30),rgba(4,8,14,.30)),var(--qp-custom-bg-image) !important;
-        background-position:center center !important;
-        background-size:cover !important;
-        background-repeat:no-repeat !important;
-      }
-      body.qp-bg-off #qpAuthGate::before,body.qp-bg-off #qpAuthGate::after,
-      body.qp-bg-custom #qpAuthGate::before,body.qp-bg-custom #qpAuthGate::after{display:none !important;}
+      body.qp-bg-custom{background:#070b12 !important;}
+      body.qp-bg-custom #qpCustomBackgroundLayer{display:block;}
+      body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !important;}
+
       .qp-background-settings{margin-top:16px;}
-      .qp-background-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px;}
-      .qp-background-option{min-width:0;padding:8px;border:1px solid var(--border);border-radius:14px;background:var(--panel-muted);color:var(--text);cursor:pointer;text-align:left;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;}
+      .qp-background-options{
+        display:grid;
+        grid-template-columns:repeat(3,170px);
+        gap:12px;
+        justify-content:start;
+        align-items:start;
+        max-width:100%;
+        margin-top:12px;
+      }
+      .qp-background-option{
+        display:flex !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        justify-content:flex-start !important;
+        width:170px !important;
+        min-width:0 !important;
+        height:auto !important;
+        padding:7px !important;
+        border:1px solid var(--border);
+        border-radius:12px;
+        background:var(--panel-muted);
+        color:var(--text);
+        cursor:pointer;
+        text-align:center !important;
+        transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+      }
       .qp-background-option:hover{border-color:color-mix(in srgb,var(--primary) 55%,var(--border));}
       .qp-background-option.active{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 22%,transparent);}
-      .qp-background-preview{display:block;position:relative;width:100%;aspect-ratio:16/9;margin-bottom:8px;overflow:hidden;border-radius:10px;border:1px solid rgba(148,163,184,.18);background:#0b1018;}
+      .qp-background-preview{
+        display:block;
+        position:relative;
+        width:100%;
+        height:88px;
+        margin:0 0 7px;
+        overflow:hidden;
+        border-radius:8px;
+        border:1px solid rgba(148,163,184,.18);
+        background:#0b1018;
+      }
       .qp-background-preview-standard{background:radial-gradient(82% 70% at 0% 90%,rgba(67,95,132,.52),transparent 58%),radial-gradient(82% 70% at 100% 10%,rgba(62,89,126,.48),transparent 58%),linear-gradient(145deg,#05080e,#0a1421 48%,#05080e);}
       .qp-background-preview-off{background:#0b1018;}
       .qp-background-preview-custom{display:grid;place-items:center;background-position:center;background-size:cover;background-repeat:no-repeat;}
-      .qp-background-preview-custom b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(15,23,42,.74);border:1px solid rgba(203,213,225,.36);font-size:20px;font-weight:400;line-height:1;}
+      .qp-background-preview-custom b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(15,23,42,.74);border:1px solid rgba(203,213,225,.36);font-size:19px;font-weight:400;line-height:1;}
       .qp-background-option.has-image .qp-background-preview-custom b{opacity:0;}
-      .qp-background-option>span:last-child{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;text-align:center;}
+      .qp-background-option>span:last-child{
+        display:block !important;
+        width:100%;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        font-size:12px;
+        font-weight:600;
+        line-height:1.3;
+        text-align:center !important;
+      }
       .qp-background-custom-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
       .qp-background-note{margin-top:10px;color:var(--text-muted);font-size:12px;}
       .qp-background-status{min-height:18px;margin-top:5px;color:var(--text-muted);font-size:12px;}
       .qp-background-status.error{color:var(--danger);}
-      @media (max-width:560px){
-        body.qp-bg-custom{background-attachment:scroll !important;}
-        .qp-background-options{gap:8px;}
-        .qp-background-option{padding:6px;border-radius:12px;}
-        .qp-background-preview{border-radius:8px;}
-        .qp-background-option>span:last-child{font-size:11px;}
+      @media (max-width:700px){
+        .qp-background-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+        .qp-background-option{width:auto !important;padding:5px !important;border-radius:10px;}
+        .qp-background-preview{height:64px;margin-bottom:6px;border-radius:7px;}
+        .qp-background-option>span:last-child{font-size:10px;}
       }
     `;
     (document.head||document.documentElement).appendChild(style);
   }
   installStyles();
+
   try{
     var saved=localStorage.getItem(MODE_KEY);
     if(saved==="standard"||saved==="off"||saved==="custom") mode=saved;
   }catch(e){}
 
+  function ensureCustomLayer(){
+    var layer=document.getElementById("qpCustomBackgroundLayer");
+    if(layer) return layer;
+    if(!document.body) return null;
+    layer=document.createElement("div");
+    layer.id="qpCustomBackgroundLayer";
+    layer.setAttribute("aria-hidden","true");
+    document.body.insertBefore(layer,document.body.firstChild);
+    return layer;
+  }
+
   function setBodyMode(next){
+    if(!document.body) return;
     document.body.classList.remove("qp-bg-standard","qp-bg-off","qp-bg-custom");
     document.body.classList.add("qp-bg-"+next);
   }
@@ -163,8 +216,12 @@
   function applyCustomBlob(blob){
     if(currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
     currentObjectUrl=blob?URL.createObjectURL(blob):"";
-    if(currentObjectUrl) document.documentElement.style.setProperty("--qp-custom-bg-image",'url("'+currentObjectUrl+'")');
-    else document.documentElement.style.removeProperty("--qp-custom-bg-image");
+    var layer=ensureCustomLayer();
+    if(layer){
+      layer.style.backgroundImage=currentObjectUrl
+        ? 'linear-gradient(rgba(4,8,14,.18),rgba(4,8,14,.18)),url("'+currentObjectUrl+'")'
+        : "";
+    }
     var preview=document.getElementById("qpBackgroundCustomPreview");
     if(preview) preview.style.backgroundImage=currentObjectUrl?'url("'+currentObjectUrl+'")':"";
   }
@@ -200,6 +257,7 @@
   function createUi(){
     var settings=document.getElementById("settings");
     if(!settings||document.getElementById("qpBackgroundSettings")) return;
+    ensureCustomLayer();
     var card=document.createElement("div");
     card.className="settings-card qp-background-settings";
     card.id="qpBackgroundSettings";
@@ -239,8 +297,13 @@
           return;
         }
         readCustomBackground().then(function(blob){
-          if(blob){refreshCustomState(blob);storeMode("custom");setStatus("");}
-          else file.click();
+          if(blob){
+            refreshCustomState(blob);
+            storeMode("custom");
+            setStatus("");
+          }else{
+            file.click();
+          }
         }).catch(function(){file.click();});
       });
     });
@@ -258,12 +321,15 @@
         setStatus("Файл слишком большой. Максимум 25 МБ.",true);
         return;
       }
+
+      refreshCustomState(selected);
+      storeMode("custom");
+      setStatus("Фон применён. Сохраняю на этом устройстве…",false);
+
       writeCustomBackground(selected).then(function(){
-        refreshCustomState(selected);
-        storeMode("custom");
         setStatus("Фон сохранён на этом устройстве.",false);
       }).catch(function(){
-        setStatus("Не удалось сохранить фон на этом устройстве.",true);
+        setStatus("Фон применён, но браузер не смог сохранить его после перезапуска.",true);
       });
     });
 
@@ -286,8 +352,12 @@
 
   if(mode==="custom"){
     readCustomBackground().then(function(blob){
-      if(blob) applyCustomBlob(blob);
-      else storeMode("standard");
+      if(blob){
+        applyCustomBlob(blob);
+        setBodyMode("custom");
+      }else{
+        storeMode("standard");
+      }
     }).catch(function(){storeMode("standard");});
   }
 
