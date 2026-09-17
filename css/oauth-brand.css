@@ -63,7 +63,12 @@
 
 .qp-auth-oauth-label{font-weight:500;}
 
+/* Final shared OAuth button surface. */
+.qp-auth-oauth{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;padding:0 16px;background:linear-gradient(180deg,#101b2a 0%,#07111e 100%);border:1px solid rgba(201,218,244,.78);border-radius:22px;color:#f5f8ff;box-shadow:0 0 0 1px rgba(74,120,184,.26),0 5px 14px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(67,110,171,.28);font-size:14px;font-weight:600;line-height:20px;letter-spacing:.01em;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;}
+.qp-auth-oauth-icon,.qp-auth-oauth-icon svg{display:block;width:24px;height:24px;flex:0 0 24px;}
+.qp-auth-oauth:hover{background:linear-gradient(180deg,#14243a 0%,#091728 100%);border-color:#d6e4ff;box-shadow:0 0 0 1px rgba(103,157,235,.42),0 7px 17px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.17),inset 0 -1px 0 rgba(67,110,171,.32);}
+.qp-auth-oauth:active{transform:translateY(1px);background:#091421;box-shadow:0 0 0 1px rgba(103,157,235,.3),inset 0 1px 2px rgba(0,0,0,.35);}
 /* Visible DEV marker for this isolated CSS patch. */
 #qPokoyDevVersion::after{
-  content:"dev-2026.09.15.56" !important;
+  content:"dev-2026.09.15.57" !important;
 }
