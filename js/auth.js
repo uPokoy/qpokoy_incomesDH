@@ -13,6 +13,7 @@
   const yandexButton=document.getElementById('qpAuthYandex');
   const googleButton=document.getElementById('qpAuthGoogle');
   const reset=document.getElementById('qpAuthReset');
+  const resetMessage=document.getElementById('qpAuthResetMessage');
   const oauthDivider=document.getElementById('qpAuthOAuthDivider');
   const email=document.getElementById('qpAuthEmail');
   const password=document.getElementById('qpAuthPassword');
@@ -31,6 +32,11 @@
   }
   window.addEventListener('pageshow',resetOAuthButtons);
 
+  function setResetMessage(text,type){
+    resetMessage.textContent=text||'';
+    resetMessage.className='qp-auth-reset-message'+(text&&type?' '+type:'');
+  }
+
   function setMessage(text,type){
     message.textContent=text||'';
     message.className='qp-auth-message'+(type?' '+type:'');
@@ -47,6 +53,7 @@
     confirmWrap.hidden=!signup;
     password.autocomplete=signup?'new-password':'current-password';
     setMessage('');
+    setResetMessage('');
   }
   function showGate(show,checking=false){
     gate.hidden=!show;
@@ -87,6 +94,7 @@
   googleButton.addEventListener('click',async function(){
     const originalText=oauthLabel(googleButton).textContent;
     setMessage('');
+    setResetMessage('');
     googleButton.disabled=true;
     setOAuthButtonText(googleButton,'Переходим в Google…');
     try{
@@ -144,9 +152,10 @@
   });
 
   reset.addEventListener('click',async function(){
+    setResetMessage('');
     const mail=email.value.trim();
     if(!mail||!email.checkValidity()){
-      setMessage('Сначала введите email, для которого нужно восстановить пароль.','error');
+      setResetMessage('Сначала введите email, для которого нужно восстановить пароль.','error');
       return;
     }
     reset.disabled=true;
@@ -155,9 +164,9 @@
       const options=redirectTo?{redirectTo}:undefined;
       const {error}=await client.auth.resetPasswordForEmail(mail,options);
       if(error) throw error;
-      setMessage('Если аккаунт существует, письмо для восстановления отправлено на указанный email.','success');
+      setResetMessage('Если аккаунт существует, письмо для восстановления отправлено на указанный email.','success');
     }catch(err){
-      setMessage(friendlyError(err),'error');
+      setResetMessage(friendlyError(err),'error');
     }finally{
       reset.disabled=false;
     }
