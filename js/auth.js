@@ -11,6 +11,7 @@
   const form=document.getElementById('qpAuthForm');
   const submit=document.getElementById('qpAuthSubmit');
   const yandexButton=document.getElementById('qpAuthYandex');
+  const googleButton=document.getElementById('qpAuthGoogle');
   const reset=document.getElementById('qpAuthReset');
   const email=document.getElementById('qpAuthEmail');
   const password=document.getElementById('qpAuthPassword');
@@ -31,6 +32,7 @@
     submit.textContent=signup?'Создать аккаунт':'Войти';
     reset.hidden=signup;
     yandexButton.hidden=signup;
+    googleButton.hidden=signup;
     confirmWrap.hidden=!signup;
     password.autocomplete=signup?'new-password':'current-password';
     setMessage('');
@@ -71,6 +73,24 @@
     }
   });
 
+  googleButton.addEventListener('click',async function(){
+    const originalText=googleButton.textContent;
+    setMessage('');
+    googleButton.disabled=true;
+    googleButton.textContent='Переходим в Google…';
+    try{
+      const redirectTo=location.origin+location.pathname;
+      const {error}=await client.auth.signInWithOAuth({
+        provider:'google',
+        options:{redirectTo}
+      });
+      if(error) throw error;
+    }catch(err){
+      setMessage(friendlyError(err),'error');
+      googleButton.textContent=originalText;
+      googleButton.disabled=false;
+    }
+  });
   form.addEventListener('submit',async function(e){
     e.preventDefault();
     setMessage('');
