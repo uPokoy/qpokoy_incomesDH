@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.15.44">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.15.57">
+<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.18.01">
 <title>Доходы</title>
 <!-- qPokoy: Иконки сайта/ярлыков. Интерфейс сайта не изменяется. -->
 <meta name="application-name" content="Доходы">
@@ -308,6 +309,10 @@
   </div>
 
   <section class="income-analytics" id="incomeAnalytics" aria-label="Статистика доходов">
+  <div class="analytics-mode-tabs" id="analyticsModeTabs" role="tablist" aria-label="Период статистики">
+    <button type="button" class="analytics-mode-tab active" id="analyticsModeYear" data-analytics-mode="year" role="tab" aria-selected="true">Год</button>
+    <button type="button" class="analytics-mode-tab" id="analyticsModeMonth" data-analytics-mode="month" role="tab" aria-selected="false">Месяц</button>
+  </div>
   <div class="analytics-head">
     <div class="analytics-title-block">
       <div class="analytics-kicker"></div>
@@ -379,6 +384,53 @@
       <div class="analytics-panel-title">По категориям</div>
       <div id="analyticsCategories" class="analytics-category-panels"></div>
     </div>
+  </div>
+
+  <div class="monthly-analytics" id="monthlyAnalytics" hidden>
+    <div class="monthly-analytics-head">
+      <div class="monthly-analytics-title">
+        <h2>Доход за месяц</h2>
+        <div class="monthly-analytics-period" id="monthlyAnalyticsPeriod"></div>
+      </div>
+      <div class="monthly-analytics-total" id="monthlyAnalyticsTotal">0 ₽</div>
+    </div>
+
+    <div class="monthly-summary-cards">
+      <div class="monthly-summary-card monthly-summary-best">
+        <div class="monthly-summary-card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M8 4h8v3a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5v2a4 4 0 0 0 4 4M16 5h3v2a4 4 0 0 1-4 4M12 11v5M9 20h6M10 16h4v4h-4z"/></svg>
+        </div>
+        <div class="monthly-summary-card-body">
+          <span>Лучшая категория</span>
+          <strong id="monthlyBestCategory">—</strong>
+          <b id="monthlyBestAmount">0 ₽</b>
+        </div>
+      </div>
+
+      <div class="monthly-summary-card monthly-summary-average">
+        <div class="monthly-summary-card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
+        </div>
+        <div class="monthly-summary-card-body">
+          <span>Средний доход в день</span>
+          <strong id="monthlyAverageDay">0 ₽</strong>
+          <small id="monthlyAverageDayNote"></small>
+        </div>
+      </div>
+
+      <div class="monthly-summary-card monthly-summary-growth" id="monthlyGrowthCard">
+        <div class="monthly-summary-card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 17l6-6 4 3 6-7"/><path d="M15 7h5v5"/></svg>
+        </div>
+        <div class="monthly-summary-card-body">
+          <span>Изменение к прошлому месяцу</span>
+          <strong id="monthlyGrowthValue">—</strong>
+          <small id="monthlyGrowthNote"></small>
+        </div>
+      </div>
+    </div>
+
+    <div class="monthly-category-panels" id="monthlyAnalyticsCategories"></div>
   </div>
 </section>
 
@@ -493,6 +545,7 @@
 
 <script src="js/clear-data.js"></script>
 <script id="statistics-year-inline-v90-js" src="js/analytics-year.js"></script>
+<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.18.01"></script>
 
 
 <script id="qPokoyInlineNotice" src="js/notice.js"></script>
