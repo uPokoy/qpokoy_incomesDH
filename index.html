@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.18.01">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.18.04">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.18.05">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.15.57">
 <link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.18.07">
 <title>Доходы</title>
@@ -250,6 +250,16 @@
       <div class="income-chart-months" id="incomeChartMonths"></div>
       <div class="income-chart-year-bottom"><div class="income-chart-year-switcher" aria-label="Переключение года"><button type="button" id="chartYearPrev" aria-label="Предыдущий год">‹</button><span id="incomeChartYear"></span><button type="button" id="chartYearNext" aria-label="Следующий год">›</button></div></div>
     </div>
+
+    <section class="income-recent" id="incomeRecent" aria-label="Последние доходы">
+      <div class="income-recent-controls">
+        <button type="button" class="income-recent-toggle" id="incomeRecentToggle" aria-expanded="true" aria-controls="incomeRecentGrid" title="Скрыть последние доходы">
+          <span id="incomeRecentToggleText">Скрыть</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div class="income-recent-grid" id="incomeRecentGrid"></div>
+    </section>
   </div>
 
   <div class="income-form" id="incomeForm" hidden>
@@ -307,10 +317,6 @@
       <button class="cancel-btn" id="cancelIncome" type="button" aria-label="Отмена" title="Отмена"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
   </div>
-
-  <section class="income-recent" id="incomeRecent" aria-label="Последние доходы">
-    <div class="income-recent-grid" id="incomeRecentGrid"></div>
-  </section>
 
   <section class="income-analytics" id="incomeAnalytics" aria-label="Статистика доходов">
   <div class="analytics-mode-row">
@@ -536,7 +542,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.18.02"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.18.03"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
