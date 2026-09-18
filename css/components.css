@@ -1509,6 +1509,7 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   stroke-width:2;
   stroke-linecap:round;
   stroke-linejoin:round;
+  transform:rotate(180deg);
   transition:transform .18s ease;
 }
 #income .income-recent.is-collapsed{
@@ -1521,7 +1522,7 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   display:none;
 }
 #income .income-recent.is-collapsed .income-recent-toggle svg{
-  transform:rotate(180deg);
+  transform:rotate(0deg);
 }
 #income .income-recent-grid{
   display:grid;
