@@ -417,3 +417,14 @@
   }
 }
 
+/* Match the year label size to the month label beside the mode switch. */
+#incomeAnalytics .analytics-mode-period #analyticsYearControl{
+  font-size:24px !important;
+  font-weight:700 !important;
+  line-height:1 !important;
+}
+@media(max-width:560px){
+  #incomeAnalytics .analytics-mode-period #analyticsYearControl{
+    font-size:20px !important;
+  }
+}
