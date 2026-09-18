@@ -8,6 +8,7 @@
   const MODE_KEY='incomeAnalyticsMode';
   const monthNames=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   const monthPrep=['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'];
+  const monthGenitive=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
   const monthWith=['январём','февралём','мартом','апрелем','маем','июнем','июлем','августом','сентябрём','октябрём','ноябрём','декабрём'];
 
   function money(value){
@@ -159,7 +160,7 @@
     }
     if(growthNoteEl){
       const previousPeriodLabel=isCurrentMonth
-        ?'за 1–'+previousComparisonDay+' '+monthPrep[prevMonth]+' '+prevYear
+        ?'за 1–'+previousComparisonDay+' '+monthGenitive[prevMonth]+' '+prevYear
         :'в '+monthPrep[prevMonth]+' '+prevYear;
       if(previousTotal<=0){
         growthNoteEl.textContent=isCurrentMonth
@@ -170,7 +171,7 @@
       }else if(difference<0){
         growthNoteEl.textContent='На '+money(Math.abs(difference))+' меньше, чем '+previousPeriodLabel;
       }else{
-        growthNoteEl.textContent='Без изменений по сравнению '+(isCurrentMonth?'с периодом 1–'+previousComparisonDay+' '+monthPrep[prevMonth]+' '+prevYear:'с '+monthPrep[prevMonth]+' '+prevYear);
+        growthNoteEl.textContent='Без изменений по сравнению '+(isCurrentMonth?'с периодом 1–'+previousComparisonDay+' '+monthGenitive[prevMonth]+' '+prevYear:'с '+monthPrep[prevMonth]+' '+prevYear);
       }
     }
 
@@ -194,7 +195,7 @@
     }
     if(yearGrowthNoteEl){
       if(lastYearTotal<=0){
-        yearGrowthNoteEl.textContent='Нет данных за '+monthPrep[period.month]+' '+lastYear;
+        yearGrowthNoteEl.textContent='Нет данных за '+monthNames[period.month].toLowerCase()+' '+lastYear;
       }else if(yearDifference>0){
         yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше';
       }else if(yearDifference<0){
