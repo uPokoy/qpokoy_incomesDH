@@ -65,6 +65,11 @@
       .qp-background-option{display:flex !important;flex-direction:column !important;align-items:stretch !important;justify-content:flex-start !important;width:170px !important;min-width:0 !important;height:auto !important;padding:7px !important;border:1px solid var(--border);border-radius:12px;background:var(--panel-muted);color:var(--text);cursor:pointer;text-align:center !important;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;}
       .qp-background-option:hover{border-color:color-mix(in srgb,var(--primary) 55%,var(--border));}
       .qp-background-option.active{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 22%,transparent);}
+      .qp-background-custom-wrap{position:relative;width:170px;min-width:0;}
+      .qp-background-custom-wrap>.qp-background-option{width:100% !important;}
+      .qp-background-remove{position:absolute;z-index:3;top:12px;right:12px;width:28px;height:28px;padding:0;display:grid;place-items:center;border:1px solid rgba(203,213,225,.34);border-radius:8px;background:rgba(7,11,18,.78);color:#f8fafc;box-shadow:0 2px 8px rgba(0,0,0,.24);cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+      .qp-background-remove:hover{background:rgba(30,41,59,.94);border-color:rgba(248,250,252,.58);}
+      .qp-background-remove svg{display:block;width:15px;height:15px;pointer-events:none;}
       .qp-background-preview{display:block;position:relative;width:100%;height:88px;margin:0 0 7px;overflow:hidden;border-radius:8px;border:1px solid rgba(148,163,184,.18);background:#0b1018;}
       .qp-background-preview-standard{background:radial-gradient(82% 70% at 0% 90%,rgba(67,95,132,.52),transparent 58%),radial-gradient(82% 70% at 100% 10%,rgba(62,89,126,.48),transparent 58%),linear-gradient(145deg,#05080e,#0a1421 48%,#05080e);}
       .qp-background-preview-off{background:#0b1018;}
@@ -72,7 +77,6 @@
       .qp-background-preview-custom b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(15,23,42,.74);border:1px solid rgba(203,213,225,.36);font-size:19px;font-weight:400;line-height:1;}
       .qp-background-option.has-image .qp-background-preview-custom b{opacity:0;}
       .qp-background-option>span:last-child{display:block !important;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;line-height:1.3;text-align:center !important;}
-      .qp-background-custom-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
       .qp-background-note{margin-top:10px;color:var(--text-muted);font-size:12px;}
       .qp-background-status{min-height:0;margin-top:5px;color:var(--text-muted);font-size:12px;}
       .qp-background-status:empty{display:none;}
@@ -80,6 +84,8 @@
       @media (max-width:700px){
         .qp-background-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
         .qp-background-option{width:auto !important;padding:5px !important;border-radius:10px;}
+        .qp-background-custom-wrap{width:auto;}
+        .qp-background-remove{top:9px;right:9px;width:26px;height:26px;border-radius:7px;}
         .qp-background-preview{height:64px;margin-bottom:6px;border-radius:7px;}
         .qp-background-option>span:last-child{font-size:10px;}
       }
@@ -179,8 +185,6 @@
       btn.classList.toggle("active",active);
       btn.setAttribute("aria-pressed",active?"true":"false");
     });
-    var controls=document.getElementById("qpBackgroundCustomControls");
-    if(controls) controls.hidden=next!=="custom";
   }
 
   function setStatus(text,isError){
@@ -230,7 +234,6 @@
     settings.insertBefore(card,account||settings.lastChild);
 
     var file=document.getElementById("qpBackgroundFile");
-    var choose=document.getElementById("qpBackgroundChoose");
     var remove=document.getElementById("qpBackgroundRemove");
 
     document.querySelectorAll("[data-qp-bg-mode]").forEach(function(btn){
@@ -247,8 +250,6 @@
         }).catch(function(){file.click();});
       });
     });
-
-    choose.addEventListener("click",function(){file.click();});
     file.addEventListener("change",function(){
       var selected=file.files&&file.files[0];
       file.value="";
