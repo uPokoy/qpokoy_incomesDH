@@ -67,8 +67,8 @@
       .qp-background-option.active{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 22%,transparent);}
       .qp-background-custom-wrap{position:relative;width:170px;min-width:0;}
       .qp-background-custom-wrap>.qp-background-option{width:100% !important;}
-      .qp-background-remove{position:absolute;z-index:3;top:12px;right:12px;width:28px;height:28px;padding:0;display:grid;place-items:center;border:1px solid rgba(248,113,113,.72);border-radius:50%;background:rgba(7,11,18,.82);color:#ff4d4f;box-shadow:0 2px 8px rgba(0,0,0,.24);cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:21px;font-weight:700;line-height:1;}
-      .qp-background-remove:hover{background:rgba(69,10,10,.92);border-color:#ff4d4f;color:#ff6b6b;}
+      .qp-background-remove{position:absolute;z-index:3;top:9px;right:9px;width:32px;height:32px;padding:0;display:grid;place-items:center;border:0;background:transparent;color:#ff4d4f;box-shadow:none;cursor:pointer;font-size:30px;font-weight:700;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.85);}
+      .qp-background-remove:hover{background:transparent;color:#ff6b6b;transform:scale(1.08);}
       .qp-background-remove::before{content:"×";display:block;transform:translateY(-1px);pointer-events:none;}
       .qp-background-preview{display:block;position:relative;width:100%;height:88px;margin:0 0 7px;overflow:hidden;border-radius:8px;border:1px solid rgba(148,163,184,.18);background:#0b1018;}
       .qp-background-preview-standard{background:radial-gradient(82% 70% at 0% 90%,rgba(67,95,132,.52),transparent 58%),radial-gradient(82% 70% at 100% 10%,rgba(62,89,126,.48),transparent 58%),linear-gradient(145deg,#05080e,#0a1421 48%,#05080e);}
@@ -85,7 +85,7 @@
         .qp-background-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
         .qp-background-option{width:auto !important;padding:5px !important;border-radius:10px;}
         .qp-background-custom-wrap{width:auto;}
-        .qp-background-remove{top:9px;right:9px;width:26px;height:26px;border-radius:7px;}
+        .qp-background-remove{top:6px;right:6px;width:30px;height:30px;font-size:28px;}
         .qp-background-preview{height:64px;margin-bottom:6px;border-radius:7px;}
         .qp-background-option>span:last-child{font-size:10px;}
       }
