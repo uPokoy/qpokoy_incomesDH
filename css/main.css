@@ -27,7 +27,7 @@ body.qp-auth-checking #qpAuthGate .qp-auth-card{visibility:hidden!important;}
 }
 
 * { box-sizing: border-box; }
-html { min-width: 320px; background: var(--bg); }
+html { min-width: 320px; background: var(--bg); scrollbar-gutter: stable; }
 body {
   min-width: 320px;
   min-height: 100vh;
