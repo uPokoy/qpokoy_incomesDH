@@ -8,6 +8,7 @@
   const MODE_KEY='incomeAnalyticsMode';
   const monthNames=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   const monthPrep=['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'];
+  const monthWith=['январём','февралём','мартом','апрелем','маем','июнем','июлем','августом','сентябрём','октябрём','ноябрём','декабрём'];
 
   function money(value){
     if(typeof formatMoney==='function') return formatMoney(Number(value)||0);
@@ -92,6 +93,7 @@
     const growthEl=document.getElementById('monthlyGrowthValue');
     const growthNoteEl=document.getElementById('monthlyGrowthNote');
     const growthCard=document.getElementById('monthlyGrowthCard');
+    const yearGrowthLabelEl=document.getElementById('monthlyYearGrowthLabel');
     const yearGrowthEl=document.getElementById('monthlyYearGrowthValue');
     const yearGrowthNoteEl=document.getElementById('monthlyYearGrowthNote');
     const yearGrowthCard=document.getElementById('monthlyYearGrowthCard');
@@ -137,6 +139,7 @@
     }
 
     const lastYear=period.year-1;
+    if(yearGrowthLabelEl)yearGrowthLabelEl.textContent='Сравнение с '+monthWith[period.month]+' '+lastYear;
     const lastYearTotal=monthTotal(data,period.month,lastYear);
     const yearDifference=total-lastYearTotal;
     const yearGrowth=lastYearTotal>0?(yearDifference/lastYearTotal*100):null;
