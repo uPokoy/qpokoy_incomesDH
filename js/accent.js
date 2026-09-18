@@ -67,7 +67,7 @@
       .qp-background-option.active{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 22%,transparent);}
       .qp-background-custom-wrap{position:relative;width:170px;min-width:0;}
       .qp-background-custom-wrap>.qp-background-option{width:100% !important;}
-      .qp-background-remove{position:absolute;z-index:3;top:4px;right:4px;width:32px;height:32px;padding:0;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;box-shadow:none;color:rgba(239,68,68,.92);font-size:21px;font-weight:600;line-height:1;cursor:pointer;-webkit-text-stroke:.8px rgba(255,255,255,.92);paint-order:stroke fill;text-shadow:0 1px 2px rgba(0,0,0,.72);-webkit-tap-highlight-color:transparent;}
+      .qp-background-remove{position:absolute;z-index:3;top:3px;right:3px;width:34px;height:34px;padding:0;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;box-shadow:none;color:#ef4444;font-family:Arial,sans-serif;font-size:26px;font-weight:700;line-height:1;cursor:pointer;-webkit-text-stroke:1.1px #ffffff;paint-order:stroke fill;text-shadow:0 0 2px rgba(0,0,0,.95),0 1px 3px rgba(0,0,0,.95);-webkit-tap-highlight-color:transparent;}
       .qp-background-remove:hover,
       .qp-background-remove:active{background:rgba(239,68,68,.07);color:#ef4444;}
       .qp-background-preview{display:block;position:relative;width:100%;height:88px;margin:0 0 7px;overflow:hidden;border-radius:8px;border:1px solid rgba(148,163,184,.18);background:#0b1018;}
@@ -85,7 +85,7 @@
         .qp-background-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
         .qp-background-option{width:auto !important;padding:5px !important;border-radius:10px;}
         .qp-background-custom-wrap{width:auto;}
-        .qp-background-remove{top:3px;right:3px;width:30px;height:30px;font-size:20px;}
+        .qp-background-remove{top:2px;right:2px;width:32px;height:32px;font-size:24px;}
         .qp-background-preview{height:64px;margin-bottom:6px;border-radius:7px;}
         .qp-background-option>span:last-child{font-size:10px;}
       }
