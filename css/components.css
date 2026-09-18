@@ -1505,7 +1505,7 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 }
 #income .income-recent-category{
   grid-area:category;
-  justify-self:start;
+  justify-self:end;
   align-self:center;
   width:max-content;
   max-width:100%;
