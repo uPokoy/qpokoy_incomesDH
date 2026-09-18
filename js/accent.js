@@ -67,9 +67,12 @@
       .qp-background-option.active{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 22%,transparent);}
       .qp-background-custom-wrap{position:relative;width:170px;min-width:0;}
       .qp-background-custom-wrap>.qp-background-option{width:100% !important;}
-      .qp-background-remove{position:absolute;z-index:3;top:4px;right:4px;width:38px;height:38px;padding:0;display:grid;place-items:center;border:0;background:transparent;color:#ff2f35;box-shadow:none;cursor:pointer;font-size:38px;font-weight:900;line-height:1;text-shadow:-1px -1px 0 #ffffff,1px -1px 0 #ffffff,-1px 1px 0 #ffffff,1px 1px 0 #ffffff,0 2px 5px rgba(0,0,0,.95);}
-      .qp-background-remove:hover{background:transparent;color:#ff171f;transform:scale(1.08);}
-      .qp-background-remove::before{content:"×";display:block;transform:translateY(-1px);pointer-events:none;}
+      .qp-background-remove{position:absolute;z-index:3;top:5px;right:5px;width:34px;height:34px;padding:0;border:0;background:transparent;box-shadow:none;cursor:pointer;}
+      .qp-background-remove:hover{background:transparent;transform:scale(1.08);}
+      .qp-background-remove::before,
+      .qp-background-remove::after{content:"";position:absolute;left:5px;top:15px;width:24px;height:4px;border-radius:3px;background:#ff1f2d;box-shadow:0 0 0 1px #fff,0 2px 5px rgba(0,0,0,.95);pointer-events:none;}
+      .qp-background-remove::before{transform:rotate(45deg);}
+      .qp-background-remove::after{transform:rotate(-45deg);}
       .qp-background-preview{display:block;position:relative;width:100%;height:88px;margin:0 0 7px;overflow:hidden;border-radius:8px;border:1px solid rgba(148,163,184,.18);background:#0b1018;}
       .qp-background-preview-standard{background:radial-gradient(82% 70% at 0% 90%,rgba(67,95,132,.52),transparent 58%),radial-gradient(82% 70% at 100% 10%,rgba(62,89,126,.48),transparent 58%),linear-gradient(145deg,#05080e,#0a1421 48%,#05080e);}
       .qp-background-preview-off{background:#0b1018;}
@@ -85,7 +88,7 @@
         .qp-background-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
         .qp-background-option{width:auto !important;padding:5px !important;border-radius:10px;}
         .qp-background-custom-wrap{width:auto;}
-        .qp-background-remove{top:2px;right:2px;width:34px;height:34px;font-size:34px;}
+        .qp-background-remove{top:3px;right:3px;width:32px;height:32px;}
         .qp-background-preview{height:64px;margin-bottom:6px;border-radius:7px;}
         .qp-background-option>span:last-child{font-size:10px;}
       }
