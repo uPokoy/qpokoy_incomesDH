@@ -1530,6 +1530,7 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   gap:12px;
 }
 #income .income-recent-card{
+  position:relative;
   min-width:0;
   display:grid;
   grid-template-columns:max-content minmax(0,1fr);
@@ -1582,6 +1583,49 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   line-height:1.25;
   font-weight:500;
   white-space:nowrap;
+}
+
+@media(min-width:761px){
+  #income .income-recent-card{
+    cursor:pointer;
+  }
+  #income .income-recent-edit{
+    position:absolute;
+    right:10px;
+    bottom:10px;
+    display:grid;
+    place-items:center;
+    width:28px;
+    height:28px;
+    padding:0;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--panel);
+    color:var(--icon-color);
+    box-shadow:var(--shadow-sm);
+    cursor:pointer;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .15s ease,transform .15s ease,background .15s ease;
+  }
+  #income .income-recent-card.is-selected .income-recent-edit{
+    opacity:1;
+    pointer-events:auto;
+  }
+  #income .income-recent-edit:hover{
+    transform:scale(1.06);
+    background:var(--panel-muted);
+  }
+  #income .income-recent-edit .history-action-pencil{
+    display:block;
+    font-size:16px;
+    line-height:1;
+  }
+}
+@media(max-width:760px){
+  #income .income-recent-edit{
+    display:none !important;
+  }
 }
 #income .income-recent-empty{
   grid-column:1/-1;
