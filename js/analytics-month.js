@@ -155,11 +155,11 @@
       if(lastYearTotal<=0){
         yearGrowthNoteEl.textContent='Нет данных за '+monthPrep[period.month]+' '+lastYear;
       }else if(yearDifference>0){
-        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше, чем в '+monthPrep[period.month]+' '+lastYear;
+        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше';
       }else if(yearDifference<0){
-        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' меньше, чем в '+monthPrep[period.month]+' '+lastYear;
+        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' меньше';
       }else{
-        yearGrowthNoteEl.textContent='Без изменений по сравнению с '+monthPrep[period.month]+' '+lastYear;
+        yearGrowthNoteEl.textContent='Без изменений';
       }
     }
 
