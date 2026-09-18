@@ -1476,20 +1476,19 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   min-width:0;
   margin:0;
   padding-top:14px;
-  border-top:1px solid color-mix(in srgb,var(--border) 82%,transparent);
 }
 #income .income-recent-controls{
   display:flex;
-  justify-content:flex-end;
+  justify-content:flex-start;
   align-items:center;
   margin:0 0 10px;
 }
 #income .income-recent-toggle{
   display:inline-flex;
   align-items:center;
-  gap:6px;
+  min-width:30px;
   min-height:30px;
-  padding:0 10px;
+  padding:0 6px;
   border:1px solid var(--border);
   border-radius:9px;
   background:var(--panel-muted);
