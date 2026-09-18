@@ -82,6 +82,36 @@
   #incomeAnalytics .monthly-summary-card{
     grid-column:span 2;
   }
+
+  /* Comparison cards: content stays left, the main percentage uses the free space on the right. */
+  #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:
+      "label value"
+      "note value";
+    column-gap:28px;
+    row-gap:8px;
+    align-items:center;
+    width:100%;
+  }
+  #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body > span{
+    grid-area:label;
+  }
+  #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body > strong{
+    grid-area:value;
+    align-self:center;
+    justify-self:end;
+    margin:0;
+    font-size:34px;
+    line-height:1;
+    white-space:nowrap;
+  }
+  #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body > small{
+    grid-area:note;
+    max-width:none;
+    margin:0;
+  }
 }
 #incomeAnalytics .monthly-summary-card{
   --monthly-accent:var(--success);
