@@ -214,15 +214,16 @@
         <button type="button" class="qp-background-option" data-qp-bg-mode="off" aria-pressed="false">\
           <span class="qp-background-preview qp-background-preview-off" aria-hidden="true"></span><span>Без фона</span>\
         </button>\
-        <button type="button" class="qp-background-option" data-qp-bg-mode="custom" aria-pressed="false">\
-          <span class="qp-background-preview qp-background-preview-custom" id="qpBackgroundCustomPreview" aria-hidden="true"><b>+</b></span><span>Свой фон</span>\
-        </button>\
+        <div class="qp-background-custom-wrap">\
+          <button type="button" class="qp-background-option" data-qp-bg-mode="custom" aria-pressed="false">\
+            <span class="qp-background-preview qp-background-preview-custom" id="qpBackgroundCustomPreview" aria-hidden="true"><b>+</b></span><span>Свой фон</span>\
+          </button>\
+          <button type="button" class="qp-background-remove" id="qpBackgroundRemove" aria-label="Удалить свой фон" title="Удалить свой фон" hidden>\
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v6m4-6v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>\
+          </button>\
+        </div>\
       </div>\
-      <div class="qp-background-custom-controls" id="qpBackgroundCustomControls" hidden>\
-        <input type="file" id="qpBackgroundFile" accept="image/jpeg,image/png,image/webp,image/avif" hidden>\
-        <button type="button" class="btn-secondary" id="qpBackgroundChoose">Выбрать изображение</button>\
-        <button type="button" class="btn-secondary" id="qpBackgroundRemove" hidden>Удалить свой фон</button>\
-      </div>\
+      <input type="file" id="qpBackgroundFile" accept="image/jpeg,image/png,image/webp,image/avif" hidden>\
       <div class="qp-background-note">Свой фон хранится только на этом устройстве.</div>\
       <div class="qp-background-status" id="qpBackgroundStatus" aria-live="polite"></div>';
     var account=document.getElementById("qpAccountCard");
