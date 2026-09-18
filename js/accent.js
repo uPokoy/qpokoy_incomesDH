@@ -67,9 +67,9 @@
       .qp-background-option.active{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 22%,transparent);}
       .qp-background-custom-wrap{position:relative;width:170px;min-width:0;}
       .qp-background-custom-wrap>.qp-background-option{width:100% !important;}
-      .qp-background-remove{position:absolute;z-index:3;top:12px;right:12px;width:28px;height:28px;padding:0;display:grid;place-items:center;border:1px solid rgba(203,213,225,.34);border-radius:8px;background:rgba(7,11,18,.78);color:#f8fafc;box-shadow:0 2px 8px rgba(0,0,0,.24);cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
-      .qp-background-remove:hover{background:rgba(30,41,59,.94);border-color:rgba(248,250,252,.58);}
-      .qp-background-remove svg{display:block;width:15px;height:15px;pointer-events:none;}
+      .qp-background-remove{position:absolute;z-index:3;top:12px;right:12px;width:28px;height:28px;padding:0;display:grid;place-items:center;border:1px solid rgba(248,113,113,.72);border-radius:50%;background:rgba(7,11,18,.82);color:#ff4d4f;box-shadow:0 2px 8px rgba(0,0,0,.24);cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:21px;font-weight:700;line-height:1;}
+      .qp-background-remove:hover{background:rgba(69,10,10,.92);border-color:#ff4d4f;color:#ff6b6b;}
+      .qp-background-remove::before{content:"×";display:block;transform:translateY(-1px);pointer-events:none;}
       .qp-background-preview{display:block;position:relative;width:100%;height:88px;margin:0 0 7px;overflow:hidden;border-radius:8px;border:1px solid rgba(148,163,184,.18);background:#0b1018;}
       .qp-background-preview-standard{background:radial-gradient(82% 70% at 0% 90%,rgba(67,95,132,.52),transparent 58%),radial-gradient(82% 70% at 100% 10%,rgba(62,89,126,.48),transparent 58%),linear-gradient(145deg,#05080e,#0a1421 48%,#05080e);}
       .qp-background-preview-off{background:#0b1018;}
@@ -222,9 +222,7 @@
           <button type="button" class="qp-background-option" data-qp-bg-mode="custom" aria-pressed="false">\
             <span class="qp-background-preview qp-background-preview-custom" id="qpBackgroundCustomPreview" aria-hidden="true"><b>+</b></span><span>Свой фон</span>\
           </button>\
-          <button type="button" class="qp-background-remove" id="qpBackgroundRemove" aria-label="Удалить свой фон" title="Удалить свой фон" hidden>\
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v6m4-6v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>\
-          </button>\
+          <button type="button" class="qp-background-remove" id="qpBackgroundRemove" aria-label="Удалить свой фон" title="Удалить свой фон" hidden></button>\
         </div>\
       </div>\
       <input type="file" id="qpBackgroundFile" accept="image/jpeg,image/png,image/webp,image/avif" hidden>\
