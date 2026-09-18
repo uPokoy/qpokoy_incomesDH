@@ -116,14 +116,12 @@ const incomeList=document.getElementById('incomeList');
 const incomeTotal=document.getElementById('incomeTotal');
 const incomeRecent=document.getElementById('incomeRecent');
 const incomeRecentToggle=document.getElementById('incomeRecentToggle');
-const incomeRecentToggleText=document.getElementById('incomeRecentToggleText');
 
 function setIncomeRecentCollapsed(collapsed,persist=true){
   if(!incomeRecent||!incomeRecentToggle)return;
   incomeRecent.classList.toggle('is-collapsed',collapsed);
   incomeRecentToggle.setAttribute('aria-expanded',collapsed?'false':'true');
   incomeRecentToggle.setAttribute('title',collapsed?'Показать последние доходы':'Скрыть последние доходы');
-  if(incomeRecentToggleText)incomeRecentToggleText.textContent=collapsed?'Показать':'Скрыть';
   if(persist)localStorage.setItem('incomeRecentCollapsed',collapsed?'1':'0');
 }
 
