@@ -479,7 +479,6 @@ function renderRecentIncomes(){
       <div class="income-recent-amount">${formatMoney(Number(item.amount||0))}</div>
       <div class="income-recent-category">${escapeHtml(item.category||'—')}</div>
       <div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}</div>
-      <div class="income-recent-description">${escapeHtml(item.description||'')}</div>
     </article>
   `).join('');
 }
