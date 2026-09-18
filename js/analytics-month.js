@@ -92,6 +92,9 @@
     const growthEl=document.getElementById('monthlyGrowthValue');
     const growthNoteEl=document.getElementById('monthlyGrowthNote');
     const growthCard=document.getElementById('monthlyGrowthCard');
+    const yearGrowthEl=document.getElementById('monthlyYearGrowthValue');
+    const yearGrowthNoteEl=document.getElementById('monthlyYearGrowthNote');
+    const yearGrowthCard=document.getElementById('monthlyYearGrowthCard');
     const catsEl=document.getElementById('monthlyAnalyticsCategories');
 
     if(titleEl)titleEl.textContent=monthNames[period.month];
@@ -130,6 +133,30 @@
         growthNoteEl.textContent='На '+money(Math.abs(difference))+' меньше, чем в '+monthPrep[prevMonth]+' '+prevYear;
       }else{
         growthNoteEl.textContent='Без изменений по сравнению с '+monthPrep[prevMonth]+' '+prevYear;
+      }
+    }
+
+    const lastYear=period.year-1;
+    const lastYearTotal=monthTotal(data,period.month,lastYear);
+    const yearDifference=total-lastYearTotal;
+    const yearGrowth=lastYearTotal>0?(yearDifference/lastYearTotal*100):null;
+
+    if(yearGrowthCard){
+      yearGrowthCard.classList.remove('positive','negative','neutral');
+      yearGrowthCard.classList.add(yearGrowth===null||yearGrowth===0?'neutral':yearGrowth>0?'positive':'negative');
+    }
+    if(yearGrowthEl){
+      yearGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'+':'')+yearGrowth.toFixed(1)+'%';
+    }
+    if(yearGrowthNoteEl){
+      if(lastYearTotal<=0){
+        yearGrowthNoteEl.textContent='Нет данных за '+monthPrep[period.month]+' '+lastYear;
+      }else if(yearDifference>0){
+        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше, чем в '+monthPrep[period.month]+' '+lastYear;
+      }else if(yearDifference<0){
+        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' меньше, чем в '+monthPrep[period.month]+' '+lastYear;
+      }else{
+        yearGrowthNoteEl.textContent='Без изменений по сравнению с '+monthPrep[period.month]+' '+lastYear;
       }
     }
 
