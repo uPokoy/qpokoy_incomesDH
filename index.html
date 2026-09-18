@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.15.44">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.15.57">
-<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.18.01">
+<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.18.02">
 <title>Доходы</title>
 <!-- qPokoy: Иконки сайта/ярлыков. Интерфейс сайта не изменяется. -->
 <meta name="application-name" content="Доходы">
@@ -309,21 +309,23 @@
   </div>
 
   <section class="income-analytics" id="incomeAnalytics" aria-label="Статистика доходов">
-  <div class="analytics-mode-tabs" id="analyticsModeTabs" role="tablist" aria-label="Период статистики">
-    <button type="button" class="analytics-mode-tab active" id="analyticsModeYear" data-analytics-mode="year" role="tab" aria-selected="true">Год</button>
-    <button type="button" class="analytics-mode-tab" id="analyticsModeMonth" data-analytics-mode="month" role="tab" aria-selected="false">Месяц</button>
+  <div class="analytics-mode-row">
+    <div class="analytics-mode-tabs" id="analyticsModeTabs" role="tablist" aria-label="Период статистики">
+      <button type="button" class="analytics-mode-tab active" id="analyticsModeYear" data-analytics-mode="year" role="tab" aria-selected="true">Год</button>
+      <button type="button" class="analytics-mode-tab" id="analyticsModeMonth" data-analytics-mode="month" role="tab" aria-selected="false">Месяц</button>
+    </div>
+    <div class="analytics-mode-period">
+      <div class="analytics-year-switcher" id="analyticsYearSwitcher" aria-label="Текущий год">
+        <button type="button" id="analyticsYearPrev" aria-label="Предыдущий год">‹</button>
+        <span id="analyticsYearControl"></span>
+        <button type="button" id="analyticsYearNext" aria-label="Следующий год">›</button>
+      </div>
+      <h2 id="monthlyAnalyticsTitle">Месяц</h2>
+    </div>
   </div>
   <div class="analytics-head">
     <div class="analytics-title-block">
-      <div class="analytics-kicker"></div>
-      <h2>
-        <div class="analytics-year-switcher" id="analyticsYearSwitcher" aria-label="Текущий год">
-          <button type="button" id="analyticsYearPrev" aria-label="Предыдущий год">‹</button>
-          <span id="analyticsYearControl"></span>
-          <button type="button" id="analyticsYearNext" aria-label="Следующий год">›</button>
-        </div>
-        <span id="analyticsYear" class="analytics-year-source" aria-hidden="true"></span>
-      </h2>
+      <span id="analyticsYear" class="analytics-year-source" aria-hidden="true"></span>
     </div>
     <div class="analytics-total" id="analyticsTotal">0 ₽</div>
   </div>
@@ -387,10 +389,6 @@
 
   <div class="monthly-analytics" id="monthlyAnalytics" hidden>
     <div class="monthly-analytics-head">
-      <div class="monthly-analytics-title">
-        <h2 id="monthlyAnalyticsTitle">Месяц</h2>
-        <div class="monthly-analytics-period" id="monthlyAnalyticsPeriod"></div>
-      </div>
       <div class="monthly-analytics-total" id="monthlyAnalyticsTotal">0 ₽</div>
     </div>
 
