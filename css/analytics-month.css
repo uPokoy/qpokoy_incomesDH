@@ -429,11 +429,12 @@
   }
 }
 
-/* Match monthly total to annual total size. */
+/* Monthly total uses the exact annual-total typography. */
 @media(min-width:621px){
   #incomeAnalytics .monthly-analytics-total{
     font-size:36px !important;
-    line-height:1.15 !important;
-    font-weight:700 !important;
+    line-height:1.08 !important;
+    font-weight:800 !important;
+    font-variant-numeric:tabular-nums !important;
   }
 }
