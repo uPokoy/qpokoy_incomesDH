@@ -67,6 +67,26 @@
     },0);
   }
 
+  function monthTotalThroughDay(data,month,year,day){
+    const daysInTargetMonth=new Date(year,month+1,0).getDate();
+    const cappedDay=Math.max(1,Math.min(Number(day)||1,daysInTargetMonth));
+    return data.reduce((sum,item)=>{
+      const d=parseDate(item&&item.date);
+      return d&&d.getFullYear()===year&&d.getMonth()===month&&d.getDate()<=cappedDay
+        ?sum+(Number(item.amount)||0)
+        :sum;
+    },0);
+  }
+
+  function dayWord(day){
+    const n=Math.abs(Number(day)||0)%100;
+    const n1=n%10;
+    if(n>10&&n<20)return 'дней';
+    if(n1===1)return 'день';
+    if(n1>=2&&n1<=4)return 'дня';
+    return 'дней';
+  }
+
   function render(){
     const period=readPeriod();
     const data=loadData();
@@ -107,16 +127,27 @@
     if(bestCategoryEl)bestCategoryEl.textContent=best?best[0]:'Нет данных';
     if(bestAmountEl)bestAmountEl.textContent=best?money(best[1]):'0 ₽';
 
+    const now=new Date();
+    const isCurrentMonth=period.year===now.getFullYear()&&period.month===now.getMonth();
     const daysInMonth=new Date(period.year,period.month+1,0).getDate();
-    const average=daysInMonth?total/daysInMonth:0;
+    const elapsedDays=isCurrentMonth?now.getDate():daysInMonth;
+    const comparableTotal=isCurrentMonth
+      ?monthTotalThroughDay(data,period.month,period.year,elapsedDays)
+      :total;
+    const average=elapsedDays?comparableTotal/elapsedDays:0;
     if(averageEl)averageEl.textContent=money(average);
-    if(averageNoteEl)averageNoteEl.textContent='Учитывается '+daysInMonth+' '+(daysInMonth===31?'день':'дней')+' в '+monthPrep[period.month]+' '+period.year;
+    if(averageNoteEl)averageNoteEl.textContent='Учитывается '+elapsedDays+' '+dayWord(elapsedDays)+' в '+monthPrep[period.month]+' '+period.year;
 
     let prevMonth=period.month-1;
     let prevYear=period.year;
     if(prevMonth<0){prevMonth=11;prevYear--;}
-    const previousTotal=monthTotal(data,prevMonth,prevYear);
-    const difference=total-previousTotal;
+    const previousComparisonDay=isCurrentMonth
+      ?Math.min(elapsedDays,new Date(prevYear,prevMonth+1,0).getDate())
+      :null;
+    const previousTotal=isCurrentMonth
+      ?monthTotalThroughDay(data,prevMonth,prevYear,previousComparisonDay)
+      :monthTotal(data,prevMonth,prevYear);
+    const difference=comparableTotal-previousTotal;
     const growth=previousTotal>0?(difference/previousTotal*100):null;
 
     if(growthCard){
@@ -127,21 +158,31 @@
       growthEl.textContent=growth===null?'—':(growth>=0?'+':'')+growth.toFixed(1)+'%';
     }
     if(growthNoteEl){
+      const previousPeriodLabel=isCurrentMonth
+        ?'за 1–'+previousComparisonDay+' '+monthPrep[prevMonth]+' '+prevYear
+        :'в '+monthPrep[prevMonth]+' '+prevYear;
       if(previousTotal<=0){
-        growthNoteEl.textContent='Нет данных за '+monthNames[prevMonth].toLowerCase()+' '+prevYear;
+        growthNoteEl.textContent=isCurrentMonth
+          ?'Нет данных '+previousPeriodLabel
+          :'Нет данных за '+monthNames[prevMonth].toLowerCase()+' '+prevYear;
       }else if(difference>0){
-        growthNoteEl.textContent='На '+money(Math.abs(difference))+' больше, чем в '+monthPrep[prevMonth]+' '+prevYear;
+        growthNoteEl.textContent='На '+money(Math.abs(difference))+' больше, чем '+previousPeriodLabel;
       }else if(difference<0){
-        growthNoteEl.textContent='На '+money(Math.abs(difference))+' меньше, чем в '+monthPrep[prevMonth]+' '+prevYear;
+        growthNoteEl.textContent='На '+money(Math.abs(difference))+' меньше, чем '+previousPeriodLabel;
       }else{
-        growthNoteEl.textContent='Без изменений по сравнению с '+monthPrep[prevMonth]+' '+prevYear;
+        growthNoteEl.textContent='Без изменений по сравнению '+(isCurrentMonth?'с периодом 1–'+previousComparisonDay+' '+monthPrep[prevMonth]+' '+prevYear:'с '+monthPrep[prevMonth]+' '+prevYear);
       }
     }
 
     const lastYear=period.year-1;
     if(yearGrowthLabelEl)yearGrowthLabelEl.textContent='Сравнение с '+monthWith[period.month]+' '+lastYear;
-    const lastYearTotal=monthTotal(data,period.month,lastYear);
-    const yearDifference=total-lastYearTotal;
+    const lastYearComparisonDay=isCurrentMonth
+      ?Math.min(elapsedDays,new Date(lastYear,period.month+1,0).getDate())
+      :null;
+    const lastYearTotal=isCurrentMonth
+      ?monthTotalThroughDay(data,period.month,lastYear,lastYearComparisonDay)
+      :monthTotal(data,period.month,lastYear);
+    const yearDifference=comparableTotal-lastYearTotal;
     const yearGrowth=lastYearTotal>0?(yearDifference/lastYearTotal*100):null;
 
     if(yearGrowthCard){
