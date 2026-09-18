@@ -194,14 +194,21 @@
       yearGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'+':'')+yearGrowth.toFixed(1)+'%';
     }
     if(yearGrowthNoteEl){
+      const currentRangeSuffix=isCurrentMonth
+        ?' за 1–'+lastYearComparisonDay+' '+monthGenitive[period.month]
+        :'';
       if(lastYearTotal<=0){
-        yearGrowthNoteEl.textContent='Нет данных за '+monthNames[period.month].toLowerCase()+' '+lastYear;
+        yearGrowthNoteEl.textContent=isCurrentMonth
+          ?'Нет данных за 1–'+lastYearComparisonDay+' '+monthGenitive[period.month]+' '+lastYear
+          :'Нет данных за '+monthNames[period.month].toLowerCase()+' '+lastYear;
       }else if(yearDifference>0){
-        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше';
+        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше'+currentRangeSuffix;
       }else if(yearDifference<0){
-        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' меньше';
+        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' меньше'+currentRangeSuffix;
       }else{
-        yearGrowthNoteEl.textContent='Без изменений';
+        yearGrowthNoteEl.textContent=isCurrentMonth
+          ?'Без изменений за 1–'+lastYearComparisonDay+' '+monthGenitive[period.month]
+          :'Без изменений';
       }
     }
 
