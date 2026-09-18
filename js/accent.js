@@ -60,7 +60,14 @@
       body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !important;}
 
       .qp-background-settings{display:block !important;margin-top:16px;}
-      .qp-background-settings>.settings-title{display:block !important;position:static !important;width:auto !important;margin:0 0 12px !important;order:-999 !important;text-align:left !important;}
+      .qp-background-settings>.settings-title{display:flex !important;position:relative !important;width:auto !important;margin:0 0 12px !important;order:-999 !important;text-align:left !important;align-items:center !important;gap:7px !important;}
+      .qp-background-help{position:relative;display:inline-flex;align-items:center;}
+      .qp-background-help-btn{width:20px;height:20px;padding:0;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--text-muted) 55%,transparent);border-radius:50%;background:transparent;color:var(--text-muted);font:inherit;font-size:12px;font-weight:700;line-height:1;cursor:pointer;}
+      .qp-background-help-btn:hover,.qp-background-help-btn:focus-visible{color:var(--text);border-color:color-mix(in srgb,var(--text) 65%,transparent);outline:none;}
+      .qp-background-help-tip{position:absolute;z-index:20;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(280px,72vw);padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.28);font-size:12px;font-weight:400;line-height:1.35;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s ease,visibility .12s ease;}
+      .qp-background-help:hover .qp-background-help-tip,
+      .qp-background-help:focus-within .qp-background-help-tip,
+      .qp-background-help.open .qp-background-help-tip{opacity:1;visibility:visible;}
       .qp-background-options{display:grid;grid-template-columns:repeat(3,170px);gap:12px;justify-content:start;align-items:start;max-width:100%;margin-top:0;}
       .qp-background-option{display:flex !important;flex-direction:column !important;align-items:stretch !important;justify-content:flex-start !important;width:170px !important;min-width:0 !important;height:auto !important;padding:7px !important;border:1px solid var(--border);border-radius:12px;background:var(--panel-muted);color:var(--text);cursor:pointer;text-align:center !important;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;}
       .qp-background-option:hover{border-color:color-mix(in srgb,var(--primary) 55%,var(--border));}
@@ -80,7 +87,6 @@
       .qp-background-preview-custom b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(15,23,42,.74);border:1px solid rgba(203,213,225,.36);font-size:19px;font-weight:400;line-height:1;}
       .qp-background-option.has-image .qp-background-preview-custom b{opacity:0;}
       .qp-background-option>span:last-child{display:block !important;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;line-height:1.3;text-align:center !important;}
-      .qp-background-note{margin-top:10px;color:var(--text-muted);font-size:12px;}
       .qp-background-status{min-height:0;margin-top:5px;color:var(--text-muted);font-size:12px;}
       .qp-background-status:empty{display:none;}
       .qp-background-status.error{color:var(--danger);}
@@ -218,7 +224,7 @@
     card.className="settings-card qp-background-settings";
     card.id="qpBackgroundSettings";
     card.innerHTML='\
-      <div class="settings-title">Фон</div>\
+      <div class="settings-title"><span>Фон</span><span class="qp-background-help"><button type="button" class="qp-background-help-btn" id="qpBackgroundHelp" aria-label="Информация о своём фоне" aria-expanded="false">?</button><span class="qp-background-help-tip" role="tooltip">Свой фон хранится только на этом устройстве.</span></span></div>\
       <div class="qp-background-options" role="group" aria-label="Фон сайта">\
         <button type="button" class="qp-background-option" data-qp-bg-mode="standard" aria-pressed="false">\
           <span class="qp-background-preview qp-background-preview-standard" aria-hidden="true"></span><span>Стандартный</span>\
@@ -234,13 +240,28 @@
         </div>\
       </div>\
       <input type="file" id="qpBackgroundFile" accept="image/jpeg,image/png,image/webp,image/avif" hidden>\
-      <div class="qp-background-note">Свой фон хранится только на этом устройстве.</div>\
       <div class="qp-background-status" id="qpBackgroundStatus" aria-live="polite"></div>';
     var account=document.getElementById("qpAccountCard");
     settings.insertBefore(card,account||settings.lastChild);
 
     var file=document.getElementById("qpBackgroundFile");
     var remove=document.getElementById("qpBackgroundRemove");
+    var help=document.getElementById("qpBackgroundHelp");
+    var helpWrap=help&&help.closest(".qp-background-help");
+    if(help&&helpWrap){
+      help.addEventListener("click",function(e){
+        e.stopPropagation();
+        var open=!helpWrap.classList.contains("open");
+        helpWrap.classList.toggle("open",open);
+        help.setAttribute("aria-expanded",open?"true":"false");
+      });
+      document.addEventListener("click",function(e){
+        if(!helpWrap.contains(e.target)){
+          helpWrap.classList.remove("open");
+          help.setAttribute("aria-expanded","false");
+        }
+      });
+    }
 
     document.querySelectorAll("[data-qp-bg-mode]").forEach(function(btn){
       btn.addEventListener("click",function(){
