@@ -439,15 +439,24 @@
   }
 }
 
-/* Compact spacing between analytics controls and cards. */
-@media(min-width:561px){
+/* Compact desktop analytics header: keep the total in the controls row. */
+@media(min-width:760px){
   #incomeAnalytics .analytics-mode-row{
-    margin-bottom:6px;
+    margin-bottom:10px;
   }
-  #incomeAnalytics:not(.is-monthly) > .analytics-head{
-    margin-bottom:8px !important;
-  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-head,
   #incomeAnalytics .monthly-analytics-head{
-    margin-bottom:8px !important;
+    position:relative !important;
+    height:0 !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-head .analytics-total,
+  #incomeAnalytics .monthly-analytics-head .monthly-analytics-total{
+    position:absolute !important;
+    right:0 !important;
+    bottom:10px !important;
+    margin:0 !important;
   }
 }
