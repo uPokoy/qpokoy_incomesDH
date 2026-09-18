@@ -62,7 +62,7 @@
       .qp-background-settings{display:block !important;margin-top:16px;}
       .qp-background-settings>.settings-title{display:block !important;position:static !important;width:auto !important;margin:0 0 12px !important;order:-999 !important;text-align:left !important;}
       .qp-background-help{position:relative;display:inline-flex;align-items:center;}
-      .qp-background-custom-wrap>.qp-background-help{position:absolute;z-index:6;left:calc(100% + 8px);top:37px;transform:none;}
+      .qp-background-custom-wrap>.qp-background-help{position:absolute;z-index:6;left:calc(100% + 8px);top:0;transform:none;}
       .qp-background-help-btn{width:28px !important;min-width:28px !important;max-width:28px !important;height:28px !important;min-height:28px !important;max-height:28px !important;padding:0 !important;display:grid !important;place-items:center;border:1px solid color-mix(in srgb,var(--text-muted) 55%,transparent);border-radius:8px;background:transparent;color:var(--text-muted);font:inherit;font-size:12px;font-weight:700;line-height:1;cursor:pointer;box-sizing:border-box;}
       .qp-background-help-btn:hover,.qp-background-help-btn:focus-visible{color:var(--text);border-color:color-mix(in srgb,var(--text) 65%,transparent);outline:none;}
       .qp-background-help-tip{position:absolute;z-index:20;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(280px,72vw);padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.28);font-size:12px;font-weight:400;line-height:1.35;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s ease,visibility .12s ease;}
@@ -95,7 +95,7 @@
         .qp-background-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
         .qp-background-option{width:auto !important;padding:5px !important;border-radius:10px;}
         .qp-background-custom-wrap{width:auto;}
-        .qp-background-custom-wrap>.qp-background-help{left:auto;right:-30px;top:24px;}
+        .qp-background-custom-wrap>.qp-background-help{left:auto;right:-30px;top:0;}
         .qp-background-help-btn{width:26px !important;min-width:26px !important;max-width:26px !important;height:26px !important;min-height:26px !important;max-height:26px !important;}
         .qp-background-custom-caption{left:5px;right:5px;bottom:5px;font-size:10px;}
         .qp-background-remove{left:calc(50% + 25px) !important;width:22px !important;min-width:22px !important;height:22px !important;font-size:19px !important;}
