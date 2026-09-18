@@ -82,6 +82,7 @@
     });
     const categories=Object.entries(categoriesMap).sort((a,b)=>b[1]-a[1]);
 
+    const titleEl=document.getElementById('monthlyAnalyticsTitle');
     const periodEl=document.getElementById('monthlyAnalyticsPeriod');
     const totalEl=document.getElementById('monthlyAnalyticsTotal');
     const bestCategoryEl=document.getElementById('monthlyBestCategory');
@@ -93,7 +94,8 @@
     const growthCard=document.getElementById('monthlyGrowthCard');
     const catsEl=document.getElementById('monthlyAnalyticsCategories');
 
-    if(periodEl)periodEl.textContent=monthNames[period.month]+' '+period.year;
+    if(titleEl)titleEl.textContent=monthNames[period.month];
+    if(periodEl)periodEl.textContent=String(period.year);
     if(totalEl)totalEl.textContent=money(total);
 
     const best=categories[0]||null;
