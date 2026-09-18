@@ -1465,3 +1465,117 @@ html[data-theme="dark"] .qp-confirm-message{color:#9aa5b8}
 html[data-theme="dark"] .qp-confirm-btn{background:#1b2232;color:#edf1f7;border-color:rgba(255,255,255,.12)}
 html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 @media(max-width:520px){.qp-confirm-dialog{padding:20px}.qp-confirm-actions{flex-direction:column-reverse}.qp-confirm-btn{width:100%;min-height:44px}}
+
+/* Home: four most recently added incomes, styled like mobile history cards. */
+#income .income-recent{
+  margin:0 0 24px;
+}
+#income .income-recent-title{
+  margin:0 0 12px;
+  color:var(--text);
+  font-size:16px;
+  line-height:1.3;
+  font-weight:700;
+}
+#income .income-recent-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+#income .income-recent-card{
+  min-width:0;
+  display:grid;
+  grid-template-columns:max-content minmax(0,1fr);
+  grid-template-areas:
+    "amount category"
+    "date date"
+    "description description";
+  align-items:center;
+  gap:8px;
+  min-height:118px;
+  padding:14px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--panel);
+  box-shadow:var(--shadow-sm);
+}
+#income .income-recent-amount{
+  grid-area:amount;
+  min-width:0;
+  color:var(--text);
+  font-size:22px;
+  line-height:1.12;
+  font-weight:750;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;
+  white-space:nowrap;
+}
+#income .income-recent-category{
+  grid-area:category;
+  justify-self:start;
+  align-self:center;
+  width:max-content;
+  max-width:100%;
+  padding:5px 9px;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--primary) 28%,var(--border));
+  border-radius:999px;
+  background:color-mix(in srgb,var(--primary) 10%,transparent);
+  color:var(--primary);
+  font-size:12px;
+  line-height:1.15;
+  font-weight:650;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#income .income-recent-date{
+  grid-area:date;
+  color:var(--text-muted);
+  font-size:15px;
+  line-height:1.25;
+  font-weight:500;
+  white-space:nowrap;
+}
+#income .income-recent-description{
+  grid-area:description;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+  color:var(--text);
+  font-size:16px;
+  line-height:1.38;
+  overflow-wrap:anywhere;
+}
+#income .income-recent-description:empty{
+  display:none;
+}
+#income .income-recent-empty{
+  grid-column:1/-1;
+  padding:18px;
+  border:1px dashed var(--border);
+  border-radius:16px;
+  color:var(--text-muted);
+  text-align:center;
+}
+@media(max-width:1050px){
+  #income .income-recent-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:560px){
+  #income .income-recent{
+    margin-bottom:18px;
+  }
+  #income .income-recent-title{
+    margin-bottom:10px;
+  }
+  #income .income-recent-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  #income .income-recent-card{
+    min-height:0;
+  }
+}
