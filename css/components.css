@@ -1466,9 +1466,64 @@ html[data-theme="dark"] .qp-confirm-btn{background:#1b2232;color:#edf1f7;border-
 html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 @media(max-width:520px){.qp-confirm-dialog{padding:20px}.qp-confirm-actions{flex-direction:column-reverse}.qp-confirm-btn{width:100%;min-height:44px}}
 
-/* Home: four most recently added incomes, styled like mobile history cards. */
-#income .income-recent{
-  margin:0 0 24px;
+/* Home: four most recently added incomes inside the top summary card. */
+#income .income-top{
+  align-items:start;
+  row-gap:18px;
+}
+#income .income-top > .income-recent{
+  grid-column:1/-1;
+  width:100%;
+  min-width:0;
+  margin:0;
+  padding-top:14px;
+  border-top:1px solid color-mix(in srgb,var(--border) 82%,transparent);
+}
+#income .income-recent-controls{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  margin:0 0 10px;
+}
+#income .income-recent-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:30px;
+  padding:0 10px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--panel-muted);
+  color:var(--text-muted);
+  font:inherit;
+  font-size:12px;
+  cursor:pointer;
+}
+#income .income-recent-toggle:hover{
+  color:var(--text);
+  background:var(--active);
+}
+#income .income-recent-toggle svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  transition:transform .18s ease;
+}
+#income .income-recent.is-collapsed{
+  padding-top:8px;
+}
+#income .income-recent.is-collapsed .income-recent-controls{
+  margin-bottom:0;
+}
+#income .income-recent.is-collapsed .income-recent-grid{
+  display:none;
+}
+#income .income-recent.is-collapsed .income-recent-toggle svg{
+  transform:rotate(180deg);
 }
 #income .income-recent-grid{
   display:grid;
@@ -1543,8 +1598,12 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   }
 }
 @media(max-width:560px){
-  #income .income-recent{
-    margin-bottom:18px;
+  #income .income-top > .income-recent{
+    width:100%;
+    padding-top:12px;
+  }
+  #income .income-recent-controls{
+    margin-bottom:8px;
   }
   #income .income-recent-grid{
     grid-template-columns:1fr;
