@@ -447,6 +447,28 @@ function openHistoryEdit(id){
   incomeForm.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
+function openRecentIncomeEdit(id){
+  if(!window.matchMedia('(min-width:761px)').matches)return;
+  const income=incomes.find(item=>String(item.id)===String(id));
+  if(!income)return;
+
+  restoreIncomeFormHome();
+  editingIncomeId=income.id;
+  incomeDate.value=formatDateShort(income.date||'');
+  incomeAmount.value=income.amount??'';
+  incomeDescription.value=income.description||'';
+  incomeCategory.value=income.category||'';
+  categoryValue.textContent=income.category||'Выберите категорию';
+  categoryOptions.forEach(o=>o.classList.toggle('selected',o.dataset.value===income.category));
+  formTitle.textContent='Редактировать доход';
+  saveBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg>';
+  cancelBtn.style.display='inline-flex';
+  incomeForm.hidden=false;
+  requestAnimationFrame(()=>{
+    setTimeout(()=>incomeForm.scrollIntoView({behavior:'smooth',block:'center'}),50);
+  });
+}
+
 function syncAppPeriod(){
   AppState.period=getSelectedIncomePeriod();
   return AppState.period;
@@ -492,13 +514,35 @@ function renderRecentIncomes(){
   }
 
   host.innerHTML=latestAdded.map(item=>`
-    <article class="income-recent-card">
+    <article class="income-recent-card" data-id="${escapeHtml(item.id)}" tabindex="-1">
       <div class="income-recent-amount">${formatMoney(Number(item.amount||0))}</div>
       <div class="income-recent-category">${escapeHtml(item.category||'—')}</div>
       <div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}</div>
+      <button class="income-recent-edit" data-id="${escapeHtml(item.id)}" type="button" title="Редактировать" aria-label="Редактировать">
+        <span class="history-action-pencil" aria-hidden="true">✎</span>
+      </button>
     </article>
   `).join('');
 }
+
+const incomeRecentGrid=document.getElementById('incomeRecentGrid');
+incomeRecentGrid?.addEventListener('click',e=>{
+  if(!window.matchMedia('(min-width:761px)').matches)return;
+
+  const editButton=e.target.closest('.income-recent-edit');
+  if(editButton){
+    e.stopPropagation();
+    openRecentIncomeEdit(editButton.dataset.id);
+    return;
+  }
+
+  const card=e.target.closest('.income-recent-card');
+  if(!card)return;
+  incomeRecentGrid.querySelectorAll('.income-recent-card.is-selected').forEach(item=>{
+    if(item!==card)item.classList.remove('is-selected');
+  });
+  card.classList.add('is-selected');
+});
 
 window.renderIncomes=function renderIncomes(filteredData=null){
   clearHistoryNativeSwipeState();
