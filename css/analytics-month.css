@@ -438,3 +438,16 @@
     font-variant-numeric:tabular-nums !important;
   }
 }
+
+/* Compact spacing between analytics controls and cards. */
+@media(min-width:561px){
+  #incomeAnalytics .analytics-mode-row{
+    margin-bottom:6px;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-head{
+    margin-bottom:8px !important;
+  }
+  #incomeAnalytics .monthly-analytics-head{
+    margin-bottom:8px !important;
+  }
+}
