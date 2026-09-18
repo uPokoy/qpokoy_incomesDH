@@ -357,3 +357,63 @@
   }
   #incomeAnalytics .monthly-category-value{font-size:20px}
 }
+
+/* Period label directly after the Year / Month switcher. */
+#incomeAnalytics .analytics-mode-row{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:0 0 18px;
+}
+#incomeAnalytics .analytics-mode-row .analytics-mode-tabs{
+  flex:0 0 auto;
+  margin:0;
+}
+#incomeAnalytics .analytics-mode-period{
+  min-width:0;
+  min-height:40px;
+  display:flex;
+  align-items:center;
+}
+#incomeAnalytics .analytics-mode-period #monthlyAnalyticsTitle{
+  margin:0;
+  color:var(--text);
+  font-size:24px;
+  font-weight:700;
+  line-height:1;
+  white-space:nowrap;
+}
+#incomeAnalytics:not(.is-monthly) .analytics-mode-period #monthlyAnalyticsTitle{
+  display:none !important;
+}
+#incomeAnalytics.is-monthly .analytics-mode-period .analytics-year-switcher{
+  display:none !important;
+}
+#incomeAnalytics:not(.is-monthly) > .analytics-head .analytics-title-block{
+  display:none !important;
+}
+#incomeAnalytics:not(.is-monthly) > .analytics-head{
+  justify-content:flex-end !important;
+}
+#incomeAnalytics .monthly-analytics-head{
+  justify-content:flex-end !important;
+}
+@media(max-width:560px){
+  #incomeAnalytics .analytics-mode-row{
+    gap:10px;
+    margin-bottom:14px;
+    flex-wrap:nowrap;
+  }
+  #incomeAnalytics .analytics-mode-row .analytics-mode-tabs{
+    width:min(220px,64vw);
+  }
+  #incomeAnalytics .analytics-mode-period #monthlyAnalyticsTitle{
+    font-size:20px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #incomeAnalytics .analytics-mode-period .analytics-year-switcher{
+    flex:0 0 auto;
+  }
+}
+
