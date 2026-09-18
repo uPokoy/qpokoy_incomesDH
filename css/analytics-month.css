@@ -74,18 +74,13 @@
   margin-bottom:16px;
 }
 
-/* Desktop monthly layout: the first two summary cards fill the row.
-   Remaining cards keep the same compact column width as category cards. */
+/* Desktop monthly layout: two wide summary cards per row. */
 @media(min-width:901px){
   #incomeAnalytics .monthly-summary-cards{
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
-  #incomeAnalytics .monthly-summary-card:nth-child(1),
-  #incomeAnalytics .monthly-summary-card:nth-child(2){
+  #incomeAnalytics .monthly-summary-card{
     grid-column:span 2;
-  }
-  #incomeAnalytics .monthly-summary-card:nth-child(n+3){
-    grid-column:span 1;
   }
 }
 #incomeAnalytics .monthly-summary-card{
