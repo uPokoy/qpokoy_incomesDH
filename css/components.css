@@ -1468,7 +1468,6 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 
 /* Home: four most recently added incomes inside the top summary card. */
 #income .income-top{
-  align-items:start;
   row-gap:18px;
 }
 #income .income-top > .income-recent{
