@@ -501,25 +501,55 @@ function getVisibleIncomes(source=incomes){
   return result;
 }
 
+const RECENT_INCOME_PAGE_SIZE=4;
+let recentIncomePage=0;
+let recentIncomePeriodKey='';
+
 function renderRecentIncomes(period=getSelectedIncomePeriod()){
   const host=document.getElementById('incomeRecentGrid');
   if(!host)return;
 
+  const pager=document.getElementById('incomeRecentPager');
+  const prevBtn=document.getElementById('incomeRecentPrev');
+  const nextBtn=document.getElementById('incomeRecentNext');
+  const indicator=document.getElementById('incomeRecentPageIndicator');
   const selectedMonth=Number(period?.month);
   const selectedYear=Number(period?.year);
-  const latestAdded=incomes
+  const periodKey=`${selectedYear}-${selectedMonth}`;
+
+  if(recentIncomePeriodKey!==periodKey){
+    recentIncomePeriodKey=periodKey;
+    recentIncomePage=0;
+  }
+
+  // Keep the existing logic: newest added records first, but only
+  // inside the currently selected month/year.
+  const ordered=incomes
     .filter(item=>{
       const d=textDateToDate(item.date);
       return d&&d.getMonth()===selectedMonth&&d.getFullYear()===selectedYear;
     })
-    .slice(-4)
+    .slice()
     .reverse();
-  if(!latestAdded.length){
+
+  const pageCount=Math.max(1,Math.ceil(ordered.length/RECENT_INCOME_PAGE_SIZE));
+  recentIncomePage=Math.max(0,Math.min(recentIncomePage,pageCount-1));
+  const pageStart=recentIncomePage*RECENT_INCOME_PAGE_SIZE;
+  const visible=ordered.slice(pageStart,pageStart+RECENT_INCOME_PAGE_SIZE);
+
+  if(pager){
+    pager.hidden=ordered.length<=RECENT_INCOME_PAGE_SIZE;
+  }
+  if(prevBtn) prevBtn.disabled=recentIncomePage===0;
+  if(nextBtn) nextBtn.disabled=recentIncomePage>=pageCount-1;
+  if(indicator) indicator.textContent=ordered.length>RECENT_INCOME_PAGE_SIZE?`${recentIncomePage+1} / ${pageCount}`:'';
+
+  if(!visible.length){
     host.innerHTML='<div class="income-recent-empty">Пока нет доходов</div>';
     return;
   }
 
-  host.innerHTML=latestAdded.map(item=>`
+  host.innerHTML=visible.map(item=>`
     <article class="income-recent-card" data-id="${escapeHtml(item.id)}" tabindex="-1">
       <div class="income-recent-amount">${formatMoney(Number(item.amount||0))}</div>
       <div class="income-recent-category">${escapeHtml(item.category||'—')}</div>
@@ -532,6 +562,19 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
 }
 
 const incomeRecentGrid=document.getElementById('incomeRecentGrid');
+const incomeRecentPrev=document.getElementById('incomeRecentPrev');
+const incomeRecentNext=document.getElementById('incomeRecentNext');
+
+incomeRecentPrev?.addEventListener('click',()=>{
+  if(recentIncomePage<=0)return;
+  recentIncomePage--;
+  renderRecentIncomes(getSelectedIncomePeriod());
+});
+
+incomeRecentNext?.addEventListener('click',()=>{
+  recentIncomePage++;
+  renderRecentIncomes(getSelectedIncomePeriod());
+});
 incomeRecentGrid?.addEventListener('click',e=>{
   if(!window.matchMedia('(min-width:761px)').matches)return;
 
