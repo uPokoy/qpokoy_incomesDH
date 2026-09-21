@@ -611,6 +611,9 @@
 
 /* Final desktop-only compact height: placed after the base card rule. */
 @media(min-width:901px){
+  #incomeAnalytics .monthly-summary-cards{
+    margin-top:14px;
+  }
   #incomeAnalytics .monthly-summary-card{
     min-height:146px;
     padding:16px 28px;
