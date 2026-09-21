@@ -1769,6 +1769,16 @@ body.qp-auth-locked #income .income-recent-pager{
     align-items:center !important;
   }
 
+  /* Trial only for “Лучший месяц”: bring the month and amount closer together. */
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body{
+    grid-template-columns:150px auto !important;
+    column-gap:18px !important;
+    justify-content:start !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > b{
+    justify-self:start !important;
+  }
+
   #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span,
   #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > span{
     grid-area:label !important;
