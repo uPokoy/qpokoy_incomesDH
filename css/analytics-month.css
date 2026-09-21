@@ -661,3 +661,20 @@
 #incomeAnalytics .monthly-summary-info:hover + .monthly-summary-tooltip,
 #incomeAnalytics .monthly-summary-info:focus + .monthly-summary-tooltip,
 #incomeAnalytics .monthly-summary-info[aria-expanded="true"] + .monthly-summary-tooltip{display:block;}
+
+/* Desktop-only secondary text contrast for monthly analytics. */
+@media(min-width:901px){
+  #incomeAnalytics .monthly-summary-card-body > span,
+  #incomeAnalytics .monthly-summary-card-label{
+    color:color-mix(in srgb,var(--text) 72%,var(--text-muted));
+    font-size:13px;
+  }
+  #incomeAnalytics .monthly-summary-card-body small{
+    color:color-mix(in srgb,var(--text) 64%,var(--text-muted));
+    font-size:12px;
+  }
+  #incomeAnalytics .monthly-category-name{
+    color:color-mix(in srgb,var(--text) 72%,var(--text-muted));
+    font-size:13px;
+  }
+}
