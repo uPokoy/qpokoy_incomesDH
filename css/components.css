@@ -2118,3 +2118,14 @@ body.qp-auth-locked #income .income-recent-pager{
     line-height:1 !important;
   }
 }
+
+
+/* Desktop experiment: compact width for best-month card. */
+@media (min-width:901px){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best{
+    width:min(390px,100%) !important;
+    max-width:390px !important;
+    justify-self:start !important;
+    box-sizing:border-box !important;
+  }
+}
