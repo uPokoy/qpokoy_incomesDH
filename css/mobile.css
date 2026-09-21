@@ -110,3 +110,278 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   html[data-theme="dark"] body.qp-bg-standard::before{width:76vw;height:38vw;left:-12vw;bottom:-11vw;}
   html[data-theme="dark"] body.qp-bg-standard::after{width:78vw;height:34vw;right:-14vw;top:-8vw;}
 }
+
+
+/* Mobile: carry the approved desktop analytics/recent-income visual system over
+   without changing mobile data logic, navigation, or history swipe actions. */
+@media (max-width:560px){
+
+  /* Recent incomes: desktop-style compact cards, two per row on mobile. */
+  #income .income-recent-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  #income .income-recent-card{
+    min-height:92px !important;
+    padding:12px !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "date category"
+      "amount amount" !important;
+    column-gap:8px !important;
+    row-gap:8px !important;
+    border:1px solid var(--border) !important;
+    border-radius:16px !important;
+    background:var(--panel) !important;
+    box-shadow:var(--shadow-sm) !important;
+  }
+  #income .income-recent-date{
+    margin-left:6px !important;
+    font-size:14px !important;
+    line-height:1.2 !important;
+    white-space:nowrap !important;
+  }
+  #income .income-recent-amount{
+    margin-left:6px !important;
+    font-size:24px !important;
+    line-height:1.08 !important;
+    white-space:nowrap !important;
+  }
+  #income .income-recent-category{
+    justify-self:end !important;
+    max-width:88px !important;
+    padding:5px 8px !important;
+    font-size:11px !important;
+  }
+
+  /* Monthly analytics cards: same horizontal desktop composition. */
+  #incomeAnalytics .monthly-summary-cards{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    margin-top:12px !important;
+  }
+  #incomeAnalytics .monthly-summary-card{
+    min-height:132px !important;
+    padding:16px !important;
+    display:grid !important;
+    grid-template-columns:50px minmax(0,1fr) !important;
+    align-items:center !important;
+    column-gap:14px !important;
+    border-radius:18px !important;
+  }
+  #incomeAnalytics .monthly-summary-card .monthly-summary-card-icon{
+    width:50px !important;
+    height:50px !important;
+    min-width:50px !important;
+    margin:0 !important;
+    border-radius:14px !important;
+  }
+  #incomeAnalytics .monthly-summary-card .monthly-summary-card-icon svg{
+    width:26px !important;
+    height:26px !important;
+  }
+  #incomeAnalytics .monthly-summary-card .monthly-summary-card-body{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics .monthly-summary-best .monthly-summary-card-body{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "label amount"
+      "category amount" !important;
+    column-gap:12px !important;
+    row-gap:6px !important;
+    align-items:center !important;
+  }
+  #incomeAnalytics .monthly-summary-best .monthly-summary-card-body > span{
+    grid-area:label !important;
+    margin:0 !important;
+  }
+  #incomeAnalytics .monthly-summary-best .monthly-best-category-row{
+    grid-area:category !important;
+    margin:0 !important;
+  }
+  #incomeAnalytics .monthly-summary-best .monthly-summary-card-body > b{
+    grid-area:amount !important;
+    align-self:center !important;
+    justify-self:end !important;
+    margin:0 !important;
+    font-size:30px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics .monthly-summary-average .monthly-summary-card-body,
+  #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "label value"
+      "note value" !important;
+    column-gap:12px !important;
+    row-gap:7px !important;
+    align-items:center !important;
+  }
+  #incomeAnalytics .monthly-summary-average .monthly-summary-card-body > span,
+  #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body > .monthly-summary-card-label{
+    grid-area:label !important;
+    margin:0 !important;
+  }
+  #incomeAnalytics .monthly-summary-average .monthly-summary-card-body > small,
+  #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body > small{
+    grid-area:note !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+  #incomeAnalytics .monthly-summary-average .monthly-summary-card-body > strong,
+  #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body > strong{
+    grid-area:value !important;
+    align-self:center !important;
+    justify-self:end !important;
+    margin:0 !important;
+    font-size:30px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+  }
+
+  /* Keep the info icon attached to its label on narrow screens. */
+  #incomeAnalytics .monthly-summary-card-label{
+    display:flex !important;
+    align-items:center !important;
+    width:auto !important;
+    max-width:100% !important;
+    gap:5px !important;
+    white-space:normal !important;
+  }
+  #incomeAnalytics .monthly-summary-card-label > span:first-child{
+    min-width:0 !important;
+    flex:0 1 auto !important;
+    white-space:normal !important;
+  }
+
+  /* Annual analytics cards: same approved desktop visual composition. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card{
+    width:100% !important;
+    min-height:132px !important;
+    height:auto !important;
+    padding:16px !important;
+    display:grid !important;
+    grid-template-columns:50px minmax(0,1fr) !important;
+    align-items:center !important;
+    column-gap:14px !important;
+    gap:14px !important;
+    border-radius:18px !important;
+    transform:none !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-icon{
+    width:50px !important;
+    height:50px !important;
+    min-width:50px !important;
+    flex:0 0 50px !important;
+    margin:0 !important;
+    border-radius:14px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-icon svg{
+    width:26px !important;
+    height:26px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-body{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "label amount"
+      "month amount" !important;
+    column-gap:12px !important;
+    row-gap:6px !important;
+    align-items:center !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > span{
+    grid-area:label !important;
+    margin:0 !important;
+    font-size:12px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > strong,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > strong{
+    grid-area:month !important;
+    margin:0 !important;
+    font-size:22px !important;
+    line-height:1.1 !important;
+    white-space:nowrap !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > b,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > b{
+    grid-area:amount !important;
+    align-self:center !important;
+    justify-self:end !important;
+    margin:0 !important;
+    font-size:30px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:"label value" !important;
+    column-gap:12px !important;
+    align-items:center !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body > span{
+    grid-area:label !important;
+    margin:0 !important;
+    font-size:12px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body > strong{
+    grid-area:value !important;
+    justify-self:end !important;
+    margin:0 !important;
+    font-size:30px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "label value"
+      "note value" !important;
+    column-gap:12px !important;
+    row-gap:7px !important;
+    align-items:center !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > span{
+    grid-area:label !important;
+    margin:0 !important;
+    font-size:12px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > small{
+    grid-area:note !important;
+    max-width:none !important;
+    margin:0 !important;
+    font-size:11px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > strong{
+    grid-area:value !important;
+    justify-self:end !important;
+    margin:0 !important;
+    font-size:30px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+  }
+}
