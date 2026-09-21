@@ -108,6 +108,7 @@
     const periodEl=document.getElementById('monthlyAnalyticsPeriod');
     const totalEl=document.getElementById('monthlyAnalyticsTotal');
     const bestCategoryEl=document.getElementById('monthlyBestCategory');
+    const bestShareEl=document.getElementById('monthlyBestShare');
     const bestAmountEl=document.getElementById('monthlyBestAmount');
     const averageEl=document.getElementById('monthlyAverageDay');
     const averageNoteEl=document.getElementById('monthlyAverageDayNote');
@@ -129,7 +130,11 @@
 
     const best=categories[0]||null;
     const bestPct=best&&total?Math.round(best[1]/total*100):0;
-    if(bestCategoryEl)bestCategoryEl.textContent=best?best[0]+' '+bestPct+'%':'Нет данных';
+    if(bestCategoryEl)bestCategoryEl.textContent=best?best[0]:'Нет данных';
+    if(bestShareEl){
+      bestShareEl.textContent=best?bestPct+'%':'0%';
+      bestShareEl.hidden=!best;
+    }
     if(bestAmountEl)bestAmountEl.textContent=best?money(best[1]):'0 ₽';
 
     const now=new Date();
