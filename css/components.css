@@ -1618,6 +1618,7 @@ body.qp-auth-locked #income .income-recent-pager{
 #income .income-recent-amount{
   grid-area:amount;
   min-width:0;
+  margin-left:10px;
   color:var(--text);
   font-size:26px;
   line-height:1.12;
@@ -1646,6 +1647,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 #income .income-recent-date{
   grid-area:date;
+  margin-left:10px;
   color:var(--text-muted);
   font-size:15px;
   line-height:1.25;
