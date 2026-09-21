@@ -505,11 +505,53 @@ const RECENT_INCOME_PAGE_SIZE=4;
 let recentIncomePage=0;
 let recentIncomePeriodKey='';
 
+function ensureRecentIncomePager(){
+  const controls=document.querySelector('#income .income-recent-controls');
+  if(!controls)return null;
+
+  let pager=document.getElementById('incomeRecentPager');
+  if(!pager){
+    pager=document.createElement('div');
+    pager.className='income-recent-pager';
+    pager.id='incomeRecentPager';
+    pager.setAttribute('aria-label','Перелистывание последних доходов');
+    pager.innerHTML=`
+      <button type="button" class="income-recent-page-btn" id="incomeRecentPrev" aria-label="Предыдущие 4 дохода" title="Предыдущие 4 дохода">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+      </button>
+      <span class="income-recent-page-indicator" id="incomeRecentPageIndicator" aria-live="polite">1 / 1</span>
+      <button type="button" class="income-recent-page-btn" id="incomeRecentNext" aria-label="Следующие 4 дохода" title="Следующие 4 дохода">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>`;
+    controls.appendChild(pager);
+  }
+
+  pager.hidden=false;
+  pager.removeAttribute('hidden');
+
+  if(!pager.dataset.bound){
+    pager.addEventListener('click',event=>{
+      const prev=event.target.closest('#incomeRecentPrev');
+      const next=event.target.closest('#incomeRecentNext');
+      if(prev){
+        if(recentIncomePage<=0)return;
+        recentIncomePage--;
+        renderRecentIncomes(getSelectedIncomePeriod());
+      }else if(next){
+        recentIncomePage++;
+        renderRecentIncomes(getSelectedIncomePeriod());
+      }
+    });
+    pager.dataset.bound='1';
+  }
+  return pager;
+}
+
 function renderRecentIncomes(period=getSelectedIncomePeriod()){
   const host=document.getElementById('incomeRecentGrid');
   if(!host)return;
 
-  const pager=document.getElementById('incomeRecentPager');
+  const pager=ensureRecentIncomePager();
   const prevBtn=document.getElementById('incomeRecentPrev');
   const nextBtn=document.getElementById('incomeRecentNext');
   const indicator=document.getElementById('incomeRecentPageIndicator');
@@ -522,8 +564,6 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
     recentIncomePage=0;
   }
 
-  // Keep the existing logic: newest added records first, but only
-  // inside the currently selected month/year.
   const ordered=incomes
     .filter(item=>{
       const d=textDateToDate(item.date);
@@ -539,6 +579,7 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
 
   if(pager){
     pager.hidden=false;
+    pager.removeAttribute('hidden');
   }
   if(prevBtn) prevBtn.disabled=recentIncomePage===0;
   if(nextBtn) nextBtn.disabled=recentIncomePage>=pageCount-1;
@@ -562,19 +603,7 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
 }
 
 const incomeRecentGrid=document.getElementById('incomeRecentGrid');
-const incomeRecentPrev=document.getElementById('incomeRecentPrev');
-const incomeRecentNext=document.getElementById('incomeRecentNext');
-
-incomeRecentPrev?.addEventListener('click',()=>{
-  if(recentIncomePage<=0)return;
-  recentIncomePage--;
-  renderRecentIncomes(getSelectedIncomePeriod());
-});
-
-incomeRecentNext?.addEventListener('click',()=>{
-  recentIncomePage++;
-  renderRecentIncomes(getSelectedIncomePeriod());
-});
+ensureRecentIncomePager();
 incomeRecentGrid?.addEventListener('click',e=>{
   if(!window.matchMedia('(min-width:761px)').matches)return;
 
