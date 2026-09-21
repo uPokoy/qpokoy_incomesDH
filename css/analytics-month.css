@@ -88,22 +88,32 @@
   }
   #incomeAnalytics .monthly-summary-card .monthly-summary-card-icon{
     align-self:center;
+    width:52px;
+    height:52px;
+    min-width:52px;
+    border-radius:14px;
+  }
+  #incomeAnalytics .monthly-summary-card .monthly-summary-card-icon svg{
+    width:27px;
+    height:27px;
   }
   #incomeAnalytics .monthly-summary-card .monthly-summary-card-body{
-    margin-top:0;
+    width:calc(100% - 8px);
+    margin:0 0 0 8px;
   }
 
   /* Comparison cards: content stays left, the main percentage uses the free space on the right. */
   #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body{
     display:grid;
-    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-columns:200px auto;
     grid-template-areas:
       "label value"
       "note value";
-    column-gap:28px;
+    column-gap:18px;
     row-gap:8px;
     align-items:center;
-    width:100%;
+    justify-content:start;
+    width:calc(100% - 8px);
   }
   #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body > .monthly-summary-card-label{
     grid-area:label;
@@ -111,7 +121,7 @@
   #incomeAnalytics .monthly-summary-growth .monthly-summary-card-body > strong{
     grid-area:value;
     align-self:center;
-    justify-self:end;
+    justify-self:start;
     margin:0;
     font-size:34px;
     line-height:1;
@@ -126,15 +136,16 @@
   /* Best category: compact horizontal composition. */
   #incomeAnalytics .monthly-summary-best .monthly-summary-card-body{
     display:grid;
-    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-columns:190px auto;
     grid-template-areas:
       "label amount"
       "category amount";
-    column-gap:28px;
+    column-gap:18px;
     row-gap:6px;
     align-items:center;
-    width:100%;
-    margin-top:0;
+    justify-content:start;
+    width:calc(100% - 8px);
+    margin:0 0 0 8px;
   }
   #incomeAnalytics .monthly-summary-best .monthly-summary-card-body > span{
     grid-area:label;
@@ -147,7 +158,7 @@
   #incomeAnalytics .monthly-summary-best .monthly-summary-card-body > b{
     grid-area:amount;
     align-self:center;
-    justify-self:end;
+    justify-self:start;
     margin:0;
     font-size:34px;
     line-height:1;
@@ -156,14 +167,15 @@
 
   #incomeAnalytics .monthly-summary-average .monthly-summary-card-body{
     display:grid;
-    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-columns:190px auto;
     grid-template-areas:
       "label value"
       "note value";
-    column-gap:28px;
+    column-gap:18px;
     row-gap:8px;
     align-items:center;
-    width:100%;
+    justify-content:start;
+    width:calc(100% - 8px);
   }
   #incomeAnalytics .monthly-summary-average .monthly-summary-card-body > span{
     grid-area:label;
@@ -171,7 +183,7 @@
   #incomeAnalytics .monthly-summary-average .monthly-summary-card-body > strong{
     grid-area:value;
     align-self:center;
-    justify-self:end;
+    justify-self:start;
     margin:0;
     font-size:34px;
     line-height:1;
