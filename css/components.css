@@ -2424,3 +2424,107 @@ body.qp-auth-locked #income .income-recent-pager{
     padding:14px 16px !important;
   }
 }
+
+
+/* Annual desktop palette: restrained premium banking treatment. */
+@media (min-width:901px){
+  /* Summary cards: neutral surfaces; semantic color stays in the data itself. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card{
+    border-color:color-mix(in srgb,var(--border) 92%,#64748b 8%) !important;
+    background:color-mix(in srgb,var(--panel-muted) 97%,#64748b 3%) !important;
+    box-shadow:none !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::after{
+    background:rgba(148,163,184,.045) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-icon{
+    background:rgba(148,163,184,.075) !important;
+    border:1px solid rgba(148,163,184,.08) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best .analytics-card-icon{
+    color:color-mix(in srgb,var(--success) 58%,var(--text-muted)) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-worst .analytics-card-icon{
+    color:color-mix(in srgb,var(--danger) 58%,var(--text-muted)) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average .analytics-card-icon{
+    color:color-mix(in srgb,#60a5fa 55%,var(--text-muted)) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth .analytics-card-icon{
+    color:color-mix(in srgb,var(--danger) 58%,var(--text-muted)) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth:has(#analyticsGrowth.positive) .analytics-card-icon{
+    color:color-mix(in srgb,var(--success) 58%,var(--text-muted)) !important;
+  }
+
+  /* Mini charts are now subtle texture instead of a bright decoration. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::before{
+    opacity:.16 !important;
+    filter:saturate(.45) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > strong.positive{
+    color:color-mix(in srgb,var(--success) 74%,var(--text)) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > strong.negative{
+    color:color-mix(in srgb,var(--danger) 78%,var(--text)) !important;
+  }
+
+  /* Central total: muted steel/blue ring instead of a multicolor rainbow. */
+  #incomeAnalytics:not(.is-monthly) .annual-total-card{
+    border-color:color-mix(in srgb,var(--border) 88%,#64748b 12%) !important;
+    background:
+      radial-gradient(circle at 50% 34%,rgba(100,116,139,.055),transparent 50%),
+      var(--panel-muted) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-card::after{
+    background:rgba(100,116,139,.05) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-ring{
+    background:
+      radial-gradient(circle,var(--panel-muted) 0 61%,transparent 62%),
+      conic-gradient(
+        from -55deg,
+        #62748a 0 44%,
+        #486b88 44% 76%,
+        #46515f 76% 88%,
+        color-mix(in srgb,var(--border) 70%,transparent) 88% 100%
+      ) !important;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb,var(--border) 88%,transparent),
+      0 10px 24px rgba(0,0,0,.10) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-ring-inner{
+    border-color:color-mix(in srgb,var(--border) 82%,transparent) !important;
+    background:color-mix(in srgb,var(--panel) 96%,#64748b 4%) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-meta > span{
+    border-color:color-mix(in srgb,var(--border) 92%,transparent) !important;
+    background:color-mix(in srgb,var(--panel) 88%,#64748b 12%) !important;
+  }
+
+  /* Category cards: one calm surface system, accent only for icon and share. */
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    border-color:color-mix(in srgb,var(--border) 90%,#64748b 10%) !important;
+    background:color-mix(in srgb,var(--panel-muted) 97%,#64748b 3%) !important;
+    box-shadow:none !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
+    background:rgba(148,163,184,.045) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:hover{
+    border-color:color-mix(in srgb,var(--border) 72%,#94a3b8 28%) !important;
+    background:color-mix(in srgb,var(--panel-muted) 95%,#64748b 5%) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-icon{
+    background:rgba(148,163,184,.075) !important;
+    border:1px solid rgba(148,163,184,.08) !important;
+    color:color-mix(in srgb,var(--category) 62%,var(--text-muted)) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-share{
+    border-color:rgba(148,163,184,.14) !important;
+    background:rgba(148,163,184,.07) !important;
+    color:color-mix(in srgb,var(--category) 68%,var(--text-muted)) !important;
+  }
+}
