@@ -1879,3 +1879,107 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   }
 }
 
+
+
+/* Annual category cards desktop: minimalist option 3. */
+@media(min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panels{
+    gap:16px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    min-height:112px !important;
+    height:112px !important;
+    padding:18px !important;
+    display:grid !important;
+    grid-template-columns:20px minmax(0,1fr) auto !important;
+    grid-template-rows:24px minmax(0,1fr) !important;
+    column-gap:9px !important;
+    row-gap:12px !important;
+    align-items:center !important;
+    overflow:hidden !important;
+    border:1px solid color-mix(in srgb,var(--category) 48%,var(--border)) !important;
+    border-radius:16px !important;
+    background:color-mix(in srgb,var(--panel-muted) 96%,var(--category) 4%) !important;
+    box-shadow:inset 0 0 24px color-mix(in srgb,var(--category) 5%,transparent) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
+    display:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:hover{
+    transform:translateY(-1px) !important;
+    border-color:color-mix(in srgb,var(--category) 75%,var(--border)) !important;
+    background:color-mix(in srgb,var(--panel-muted) 94%,var(--category) 6%) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-icon{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    width:20px !important;
+    height:20px !important;
+    min-width:20px !important;
+    flex:0 0 20px !important;
+    margin:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    color:var(--category) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-icon svg{
+    width:18px !important;
+    height:18px !important;
+    stroke-width:1.9 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-body{
+    display:contents !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-name{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    align-self:center !important;
+    min-width:0 !important;
+    margin:0 !important;
+    overflow:hidden !important;
+    color:color-mix(in srgb,var(--text) 82%,var(--text-muted)) !important;
+    font-size:13px !important;
+    font-weight:600 !important;
+    line-height:1.2 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-value{
+    grid-column:1 / 4 !important;
+    grid-row:2 !important;
+    align-self:end !important;
+    margin:0 !important;
+    color:var(--text) !important;
+    font-size:21px !important;
+    font-weight:700 !important;
+    line-height:1.08 !important;
+    letter-spacing:-.02em !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-share{
+    position:static !important;
+    grid-column:3 !important;
+    grid-row:1 !important;
+    align-self:center !important;
+    justify-self:end !important;
+    min-width:44px !important;
+    height:28px !important;
+    padding:0 9px !important;
+    border:1px solid color-mix(in srgb,var(--category) 30%,transparent) !important;
+    border-radius:9px !important;
+    background:color-mix(in srgb,var(--category) 9%,transparent) !important;
+    color:var(--category) !important;
+    font-size:12px !important;
+    font-weight:650 !important;
+    line-height:1 !important;
+  }
+}
