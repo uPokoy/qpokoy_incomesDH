@@ -1509,6 +1509,54 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   color:var(--text);
   background:var(--active);
 }
+#income .income-recent-pager{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-left:auto;
+}
+#income .income-recent-pager[hidden]{
+  display:none !important;
+}
+#income .income-recent-page-btn{
+  width:30px;
+  height:30px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--panel-muted);
+  color:var(--text-muted);
+  cursor:pointer;
+  transition:color .15s ease,background .15s ease,border-color .15s ease,opacity .15s ease;
+}
+#income .income-recent-page-btn:hover:not(:disabled){
+  color:var(--text);
+  background:var(--active);
+  border-color:color-mix(in srgb,var(--primary) 30%,var(--border));
+}
+#income .income-recent-page-btn:disabled{
+  opacity:.38;
+  cursor:default;
+}
+#income .income-recent-page-btn svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#income .income-recent-page-indicator{
+  min-width:34px;
+  color:var(--text-muted);
+  font-size:12px;
+  line-height:1;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+}
 #income .income-recent-toggle svg{
   width:16px;
   height:16px;
@@ -1528,6 +1576,9 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 }
 #income .income-recent.is-collapsed .income-recent-grid{
   display:none;
+}
+#income .income-recent.is-collapsed .income-recent-pager{
+  display:none !important;
 }
 #income .income-recent.is-collapsed .income-recent-toggle svg{
   transform:rotate(0deg);
