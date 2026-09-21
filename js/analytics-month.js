@@ -112,6 +112,7 @@
     const bestAmountEl=document.getElementById('monthlyBestAmount');
     const averageEl=document.getElementById('monthlyAverageDay');
     const averageNoteEl=document.getElementById('monthlyAverageDayNote');
+    const growthLabelEl=document.getElementById('monthlyGrowthLabel');
     const growthEl=document.getElementById('monthlyGrowthValue');
     const growthNoteEl=document.getElementById('monthlyGrowthNote');
     const growthTooltipEl=document.getElementById('monthlyGrowthTooltip');
@@ -156,6 +157,7 @@
     let prevMonth=period.month-1;
     let prevYear=period.year;
     if(prevMonth<0){prevMonth=11;prevYear--;}
+    if(growthLabelEl)growthLabelEl.textContent='Сравнение с '+monthWith[prevMonth];
     const previousComparisonDay=isCurrentMonth
       ?Math.min(elapsedDays,new Date(prevYear,prevMonth+1,0).getDate())
       :null;
