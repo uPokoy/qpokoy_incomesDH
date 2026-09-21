@@ -1510,13 +1510,15 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   background:var(--active);
 }
 #income .income-recent-pager{
-  display:flex;
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
   align-items:center;
   gap:7px;
-  margin-left:auto;
+  margin-left:8px;
 }
 #income .income-recent-pager[hidden]{
-  display:none !important;
+  display:flex !important;
 }
 #income .income-recent-page-btn{
   width:30px;
