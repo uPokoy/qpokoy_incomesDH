@@ -85,8 +85,9 @@
     grid-template-columns:auto minmax(0,1fr);
     align-items:center;
     column-gap:18px;
-    padding-top:22px;
-    padding-bottom:22px;
+    min-height:146px;
+    padding-top:16px;
+    padding-bottom:16px;
   }
   #incomeAnalytics .monthly-summary-card .monthly-summary-card-icon{
     align-self:center;
