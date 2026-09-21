@@ -81,6 +81,18 @@
   }
   #incomeAnalytics .monthly-summary-card{
     grid-column:span 2;
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:center;
+    column-gap:18px;
+    padding-top:22px;
+    padding-bottom:22px;
+  }
+  #incomeAnalytics .monthly-summary-card .monthly-summary-card-icon{
+    align-self:center;
+  }
+  #incomeAnalytics .monthly-summary-card .monthly-summary-card-body{
+    margin-top:0;
   }
 
   /* Comparison cards: content stays left, the main percentage uses the free space on the right. */
@@ -114,17 +126,6 @@
   }
 
   /* Best category: compact horizontal composition. */
-  #incomeAnalytics .monthly-summary-best{
-    display:grid;
-    grid-template-columns:auto minmax(0,1fr);
-    align-items:center;
-    column-gap:18px;
-    padding-top:22px;
-    padding-bottom:22px;
-  }
-  #incomeAnalytics .monthly-summary-best .monthly-summary-card-icon{
-    align-self:center;
-  }
   #incomeAnalytics .monthly-summary-best .monthly-summary-card-body{
     display:grid;
     grid-template-columns:minmax(0,1fr) auto;
