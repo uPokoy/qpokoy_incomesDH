@@ -1619,7 +1619,7 @@ body.qp-auth-locked #income .income-recent-pager{
   grid-area:amount;
   min-width:0;
   color:var(--text);
-  font-size:22px;
+  font-size:26px;
   line-height:1.12;
   font-weight:750;
   font-variant-numeric:tabular-nums;
