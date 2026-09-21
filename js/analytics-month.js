@@ -220,9 +220,10 @@
       if(!categories.length){
         catsEl.innerHTML='<div class="monthly-analytics-empty">Нет доходов за выбранный месяц</div>';
       }else{
-        catsEl.innerHTML=categories.map(([name,value],index)=>{
+        const remainingCategories=categories.slice(1);
+        catsEl.innerHTML=remainingCategories.map(([name,value],index)=>{
           const pct=total?Math.round(value/total*100):0;
-          const tone=categoryTone(name,index);
+          const tone=categoryTone(name,index+1);
           return '<div class="monthly-category-card '+tone+'">'+
             '<div class="monthly-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg></div>'+
             '<span class="monthly-category-share">'+pct+'%</span>'+
