@@ -1774,6 +1774,19 @@ body.qp-auth-locked #income .income-recent-pager{
     grid-template-columns:150px auto !important;
     column-gap:18px !important;
     justify-content:start !important;
+    width:calc(100% - 8px) !important;
+    margin-left:8px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-icon{
+    width:52px !important;
+    height:52px !important;
+    min-width:52px !important;
+    flex:0 0 52px !important;
+    border-radius:14px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-icon svg{
+    width:27px !important;
+    height:27px !important;
   }
   #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > b{
     justify-self:start !important;
