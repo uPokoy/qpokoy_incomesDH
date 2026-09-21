@@ -678,3 +678,91 @@
     font-size:13px;
   }
 }
+
+
+/* Desktop monthly category cards: match annual compact cards. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly .monthly-category-card{
+    min-height:112px !important;
+    height:112px !important;
+    padding:16px 18px !important;
+    display:grid !important;
+    grid-template-columns:34px minmax(0,1fr) auto !important;
+    grid-template-rows:34px minmax(0,1fr) !important;
+    column-gap:10px !important;
+    row-gap:8px !important;
+    align-items:center !important;
+    overflow:hidden !important;
+    border:1px solid color-mix(in srgb,var(--monthly-category) 28%,var(--border)) !important;
+    border-radius:16px !important;
+    background:var(--panel-muted) !important;
+    box-shadow:none !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-card::after{
+    width:120px !important;
+    height:120px !important;
+    right:-44px !important;
+    bottom:-72px !important;
+    background:var(--monthly-category-soft) !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-icon{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    width:34px !important;
+    height:34px !important;
+    margin:0 !important;
+    border-radius:10px !important;
+    background:color-mix(in srgb,var(--monthly-category) 14%,transparent) !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-icon svg{
+    width:18px !important;
+    height:18px !important;
+    stroke-width:1.8 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-name{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    align-self:center !important;
+    min-width:0 !important;
+    margin:0 !important;
+    color:color-mix(in srgb,var(--text) 82%,var(--text-muted)) !important;
+    font-size:13px !important;
+    font-weight:600 !important;
+    line-height:1.2 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-value{
+    grid-column:1 / 4 !important;
+    grid-row:2 !important;
+    align-self:start !important;
+    margin:4px 0 0 !important;
+    color:var(--text) !important;
+    font-size:21px !important;
+    font-weight:700 !important;
+    line-height:1.08 !important;
+    letter-spacing:-.02em !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-share{
+    position:static !important;
+    grid-column:3 !important;
+    grid-row:1 !important;
+    align-self:center !important;
+    justify-self:end !important;
+    min-width:44px !important;
+    height:28px !important;
+    padding:0 9px !important;
+    border:1px solid color-mix(in srgb,var(--monthly-category) 30%,transparent) !important;
+    border-radius:9px !important;
+    background:color-mix(in srgb,var(--monthly-category) 9%,transparent) !important;
+    color:var(--monthly-category) !important;
+    font-size:12px !important;
+    font-weight:650 !important;
+    line-height:1 !important;
+  }
+}
