@@ -1,5 +1,5 @@
 @import url("./mobile-base.css?v=dev-2026.09.15.57");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.21.02");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.21.03");
 @import url("./oauth-brand.css?v=dev-2026.09.15.57");
 
 @media (max-width:560px){
@@ -383,5 +383,18 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     font-size:30px !important;
     line-height:1 !important;
     white-space:nowrap !important;
+  }
+}
+
+
+/* DEV build label: one source of truth; never let imported mobile CSS replace it. */
+@media (max-width:560px){
+  #qPokoyDevVersion{
+    font-size:12px !important;
+    line-height:1.2 !important;
+  }
+  #qPokoyDevVersion::after{
+    content:none !important;
+    display:none !important;
   }
 }
