@@ -1967,7 +1967,7 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel-value{
     grid-column:1 / 4 !important;
     grid-row:2 !important;
-    align-self:end !important;
+    align-self:start !important;
     margin:0 !important;
     color:var(--text) !important;
     font-size:21px !important;
