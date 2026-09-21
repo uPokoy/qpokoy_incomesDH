@@ -622,13 +622,19 @@
   position:relative;
   display:inline-flex;
   align-items:center;
+  justify-self:start;
+  width:max-content;
+  max-width:100%;
   gap:5px;
   min-width:0;
   color:var(--text-muted);
   font-size:12px;
   line-height:1.3;
 }
-#incomeAnalytics .monthly-summary-card-label > span:first-child{min-width:0;}
+#incomeAnalytics .monthly-summary-card-label > span:first-child{
+  min-width:0;
+  flex:0 1 auto;
+}
 #incomeAnalytics .monthly-summary-info{
   display:grid;
   place-items:center;
