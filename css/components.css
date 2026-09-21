@@ -1750,46 +1750,33 @@ body.qp-auth-locked #income .income-recent-pager{
 
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-icon{
     align-self:center !important;
-  }
-
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-body{
-    width:100% !important;
-    margin:0 !important;
-  }
-
-  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body,
-  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body{
-    display:grid !important;
-    grid-template-columns:minmax(0,1fr) auto !important;
-    grid-template-areas:
-      "label amount"
-      "month amount" !important;
-    column-gap:28px !important;
-    row-gap:6px !important;
-    align-items:center !important;
-  }
-
-  /* Trial only for “Лучший месяц”: bring the month and amount closer together. */
-  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body{
-    grid-template-columns:150px auto !important;
-    column-gap:18px !important;
-    justify-content:start !important;
-    width:calc(100% - 8px) !important;
-    margin-left:8px !important;
-  }
-  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-icon{
     width:52px !important;
     height:52px !important;
     min-width:52px !important;
     flex:0 0 52px !important;
     border-radius:14px !important;
   }
-  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-icon svg{
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-icon svg{
     width:27px !important;
     height:27px !important;
   }
-  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > b{
-    justify-self:start !important;
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-body{
+    width:calc(100% - 8px) !important;
+    margin:0 0 0 8px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body{
+    display:grid !important;
+    grid-template-columns:150px auto !important;
+    grid-template-areas:
+      "label amount"
+      "month amount" !important;
+    column-gap:18px !important;
+    row-gap:6px !important;
+    align-items:center !important;
+    justify-content:start !important;
   }
 
   #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span,
@@ -1815,7 +1802,7 @@ body.qp-auth-locked #income .income-recent-pager{
   #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > b{
     grid-area:amount !important;
     align-self:center !important;
-    justify-self:end !important;
+    justify-self:start !important;
     margin:0 !important;
     color:var(--text) !important;
     font-size:34px !important;
@@ -1826,10 +1813,11 @@ body.qp-auth-locked #income .income-recent-pager{
 
   #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body{
     display:grid !important;
-    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-columns:150px auto !important;
     grid-template-areas:"label value" !important;
-    column-gap:28px !important;
+    column-gap:18px !important;
     align-items:center !important;
+    justify-content:start !important;
   }
 
   #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body > span{
@@ -1842,7 +1830,7 @@ body.qp-auth-locked #income .income-recent-pager{
   #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body > strong{
     grid-area:value !important;
     align-self:center !important;
-    justify-self:end !important;
+    justify-self:start !important;
     margin:0 !important;
     color:var(--text) !important;
     font-size:34px !important;
@@ -1852,13 +1840,14 @@ body.qp-auth-locked #income .income-recent-pager{
 
   #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body{
     display:grid !important;
-    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-columns:150px auto !important;
     grid-template-areas:
       "label value"
       "note value" !important;
-    column-gap:28px !important;
+    column-gap:18px !important;
     row-gap:8px !important;
     align-items:center !important;
+    justify-content:start !important;
   }
 
   #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > span{
@@ -1871,7 +1860,7 @@ body.qp-auth-locked #income .income-recent-pager{
   #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > strong{
     grid-area:value !important;
     align-self:center !important;
-    justify-self:end !important;
+    justify-self:start !important;
     margin:0 !important;
     font-size:34px !important;
     line-height:1 !important;
