@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.21.07';
+const qPokoyDevVersion='dev-2026.09.21.08';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -735,10 +735,17 @@ window.renderIncomeAnalytics=function(){
   const worstEl=document.getElementById('analyticsWorst');
   const worstAmountEl=document.getElementById('analyticsWorstAmount');
   const catsEl=document.getElementById('analyticsCategories');
+  const annualHeroTotalEl=document.getElementById('annualHeroTotal');
+  const annualHeroYearEl=document.getElementById('annualHeroYear');
+  const annualHeroMonthsEl=document.getElementById('annualHeroMonths');
+  const annualHeroCategoriesEl=document.getElementById('annualHeroCategories');
   if(!yearEl||!totalEl||!avgActiveEl||!bestEl||!worstEl||!growthEl)return;
 
   yearEl.textContent=a.year;
   totalEl.textContent=formatMoney(a.total);
+  if(annualHeroTotalEl) annualHeroTotalEl.textContent=formatMoney(a.total);
+  if(annualHeroYearEl) annualHeroYearEl.textContent='за '+a.year+' год';
+  if(annualHeroMonthsEl) annualHeroMonthsEl.textContent=String(a.monthTotals.filter(value=>value>0).length);
   qPokoyFitAnalyticsTotal();
   if(avgActiveEl) avgActiveEl.textContent=formatMoney(a.averageActive);
   const previous=calculateIncomeAnalytics(year-1);
@@ -767,6 +774,7 @@ window.renderIncomeAnalytics=function(){
   }
 
   const categories=Object.entries(a.categoryTotals).sort((x,y)=>y[1]-x[1]);
+  if(annualHeroCategoriesEl) annualHeroCategoriesEl.textContent=String(categories.length);
   const catMax=Math.max(...categories.map(x=>x[1]),1);
   catsEl.innerHTML=categories.length?categories.map(([name,value])=>{
     const pct=a.total?value/a.total*100:0;
