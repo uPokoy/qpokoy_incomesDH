@@ -1245,10 +1245,10 @@ main{
 }
 @media(min-width:901px){
   #incomeAnalytics:not(.is-monthly) .analytics-category-panels{
-    grid-template-columns:repeat(12,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   }
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
-    grid-column:span 4;
+    grid-column:auto;
   }
 }
 @media(max-width:900px){
