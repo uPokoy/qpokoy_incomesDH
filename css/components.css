@@ -1658,17 +1658,12 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 }
 
 
-/* Annual analytics desktop: best and worst month fill the first row like monthly summary cards. */
+/* Annual analytics desktop: two wide summary cards per row. */
 @media(min-width:901px){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards{
     grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   }
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best,
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-worst{
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card{
     grid-column:span 2;
-  }
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average,
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth{
-    grid-column:span 1;
   }
 }
