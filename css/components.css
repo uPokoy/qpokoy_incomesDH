@@ -1520,6 +1520,13 @@ html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
 #income .income-recent-pager[hidden]{
   display:flex !important;
 }
+
+/* Hide recent-income pagination during the initial auth/loading check.
+   Prevents the controls from flashing alone on the background during refresh. */
+body.qp-auth-checking #income .income-recent-pager,
+body.qp-auth-locked #income .income-recent-pager{
+  display:none !important;
+}
 #income .income-recent-page-btn{
   width:30px;
   height:30px;
