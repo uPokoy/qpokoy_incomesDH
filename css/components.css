@@ -2528,3 +2528,88 @@ body.qp-auth-locked #income .income-recent-pager{
     color:color-mix(in srgb,var(--category) 68%,var(--text-muted)) !important;
   }
 }
+
+
+/* Annual desktop palette: balanced color after muted pass. */
+@media (min-width:901px){
+  /* Bring back controlled color in summary cards. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card{
+    border-color:color-mix(in srgb,var(--card-accent,var(--border)) 22%,var(--border)) !important;
+    background:var(--panel-muted) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best{
+    --card-accent:var(--success);
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-worst{
+    --card-accent:var(--danger);
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average{
+    --card-accent:#3b82f6;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth{
+    --card-accent:var(--danger);
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth:has(#analyticsGrowth.positive){
+    --card-accent:var(--success);
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::after{
+    background:color-mix(in srgb,var(--card-accent,var(--text-muted)) 8%,transparent) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-icon{
+    background:color-mix(in srgb,var(--card-accent,var(--text-muted)) 12%,transparent) !important;
+    border-color:color-mix(in srgb,var(--card-accent,var(--border)) 16%,transparent) !important;
+    color:color-mix(in srgb,var(--card-accent,var(--text-muted)) 76%,var(--text-muted)) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::before{
+    opacity:.27 !important;
+    filter:saturate(.72) !important;
+  }
+
+  /* More lively but still mature central ring. */
+  #incomeAnalytics:not(.is-monthly) .annual-total-card{
+    border-color:color-mix(in srgb,#4f6f8f 24%,var(--border)) !important;
+    background:
+      radial-gradient(circle at 50% 34%,rgba(64,95,126,.075),transparent 50%),
+      var(--panel-muted) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-card::after{
+    background:rgba(72,105,138,.065) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-ring{
+    background:
+      radial-gradient(circle,var(--panel-muted) 0 61%,transparent 62%),
+      conic-gradient(
+        from -55deg,
+        #4f7d6b 0 28%,
+        #4b78a8 28% 66%,
+        #6c5a8d 66% 86%,
+        color-mix(in srgb,var(--border) 72%,transparent) 86% 100%
+      ) !important;
+  }
+
+  /* Category cards: restore category identity without strong colored panels. */
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    border-color:color-mix(in srgb,var(--category) 17%,var(--border)) !important;
+    background:var(--panel-muted) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
+    background:color-mix(in srgb,var(--category) 7%,transparent) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:hover{
+    border-color:color-mix(in srgb,var(--category) 32%,var(--border)) !important;
+    background:var(--panel-muted) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-icon{
+    background:color-mix(in srgb,var(--category) 11%,transparent) !important;
+    border-color:color-mix(in srgb,var(--category) 15%,transparent) !important;
+    color:color-mix(in srgb,var(--category) 78%,var(--text-muted)) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-share{
+    border-color:color-mix(in srgb,var(--category) 18%,transparent) !important;
+    background:color-mix(in srgb,var(--category) 8%,transparent) !important;
+    color:color-mix(in srgb,var(--category) 82%,var(--text-muted)) !important;
+  }
+}
