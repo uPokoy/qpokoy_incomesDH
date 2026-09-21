@@ -85,9 +85,6 @@
     grid-template-columns:auto minmax(0,1fr);
     align-items:center;
     column-gap:18px;
-    min-height:146px;
-    padding-top:16px;
-    padding-bottom:16px;
   }
   #incomeAnalytics .monthly-summary-card .monthly-summary-card-icon{
     align-self:center;
@@ -571,5 +568,13 @@
     right:0 !important;
     bottom:10px !important;
     margin:0 !important;
+  }
+}
+
+/* Final desktop-only compact height: placed after the base card rule. */
+@media(min-width:901px){
+  #incomeAnalytics .monthly-summary-card{
+    min-height:146px;
+    padding:16px 28px;
   }
 }
