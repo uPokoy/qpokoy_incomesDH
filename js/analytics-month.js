@@ -113,10 +113,12 @@
     const averageNoteEl=document.getElementById('monthlyAverageDayNote');
     const growthEl=document.getElementById('monthlyGrowthValue');
     const growthNoteEl=document.getElementById('monthlyGrowthNote');
+    const growthTooltipEl=document.getElementById('monthlyGrowthTooltip');
     const growthCard=document.getElementById('monthlyGrowthCard');
     const yearGrowthLabelEl=document.getElementById('monthlyYearGrowthLabel');
     const yearGrowthEl=document.getElementById('monthlyYearGrowthValue');
     const yearGrowthNoteEl=document.getElementById('monthlyYearGrowthNote');
+    const yearGrowthTooltipEl=document.getElementById('monthlyYearGrowthTooltip');
     const yearGrowthCard=document.getElementById('monthlyYearGrowthCard');
     const catsEl=document.getElementById('monthlyAnalyticsCategories');
 
@@ -161,17 +163,16 @@
     if(growthNoteEl){
       const previousPeriodLabel=isCurrentMonth
         ?'за 1–'+previousComparisonDay+' '+monthGenitive[prevMonth]+' '+prevYear
-        :'в '+monthPrep[prevMonth]+' '+prevYear;
+        :'за '+monthNames[prevMonth].toLowerCase()+' '+prevYear;
+      if(growthTooltipEl)growthTooltipEl.textContent='Сравнение '+previousPeriodLabel;
       if(previousTotal<=0){
-        growthNoteEl.textContent=isCurrentMonth
-          ?'Нет данных '+previousPeriodLabel
-          :'Нет данных за '+monthNames[prevMonth].toLowerCase()+' '+prevYear;
+        growthNoteEl.textContent='Нет данных';
       }else if(difference>0){
-        growthNoteEl.textContent='На '+money(Math.abs(difference))+' больше, чем '+previousPeriodLabel;
+        growthNoteEl.textContent='На '+money(Math.abs(difference))+' больше';
       }else if(difference<0){
-        growthNoteEl.textContent='На '+money(Math.abs(difference))+' меньше, чем '+previousPeriodLabel;
+        growthNoteEl.textContent='На '+money(Math.abs(difference))+' меньше';
       }else{
-        growthNoteEl.textContent='Без изменений по сравнению '+(isCurrentMonth?'с периодом 1–'+previousComparisonDay+' '+monthGenitive[prevMonth]+' '+prevYear:'с '+monthPrep[prevMonth]+' '+prevYear);
+        growthNoteEl.textContent='Без изменений';
       }
     }
 
@@ -194,21 +195,18 @@
       yearGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'+':'')+yearGrowth.toFixed(1)+'%';
     }
     if(yearGrowthNoteEl){
-      const currentRangeSuffix=isCurrentMonth
-        ?' за 1–'+lastYearComparisonDay+' '+monthGenitive[period.month]
-        :'';
+      const comparisonPeriod=isCurrentMonth
+        ?'за 1–'+lastYearComparisonDay+' '+monthGenitive[period.month]+' '+lastYear
+        :'за '+monthNames[period.month].toLowerCase()+' '+lastYear;
+      if(yearGrowthTooltipEl)yearGrowthTooltipEl.textContent='Сравнение '+comparisonPeriod;
       if(lastYearTotal<=0){
-        yearGrowthNoteEl.textContent=isCurrentMonth
-          ?'Нет данных за 1–'+lastYearComparisonDay+' '+monthGenitive[period.month]+' '+lastYear
-          :'Нет данных за '+monthNames[period.month].toLowerCase()+' '+lastYear;
+        yearGrowthNoteEl.textContent='Нет данных';
       }else if(yearDifference>0){
-        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше'+currentRangeSuffix;
+        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше';
       }else if(yearDifference<0){
-        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' меньше'+currentRangeSuffix;
+        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' меньше';
       }else{
-        yearGrowthNoteEl.textContent=isCurrentMonth
-          ?'Без изменений за 1–'+lastYearComparisonDay+' '+monthGenitive[period.month]
-          :'Без изменений';
+        yearGrowthNoteEl.textContent='Без изменений';
       }
     }
 
@@ -249,6 +247,16 @@
     }
     if(monthlyMode)render();
   }
+
+  root.addEventListener('click',event=>{
+    const button=event.target.closest('.monthly-summary-info');
+    if(!button)return;
+    const expanded=button.getAttribute('aria-expanded')==='true';
+    root.querySelectorAll('.monthly-summary-info').forEach(item=>{
+      if(item!==button)item.setAttribute('aria-expanded','false');
+    });
+    button.setAttribute('aria-expanded',expanded?'false':'true');
+  });
 
   yearBtn.addEventListener('click',()=>setMode('year',true));
   monthBtn.addEventListener('click',()=>setMode('month',true));
