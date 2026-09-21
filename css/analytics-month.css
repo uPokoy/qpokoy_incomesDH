@@ -620,25 +620,29 @@
 /* Period tooltips for the two comparison cards. */
 #incomeAnalytics .monthly-summary-card-label{
   position:relative;
-  display:block;
+  display:inline-flex;
+  align-items:center;
   justify-self:start;
-  width:auto;
-  max-width:100%;
+  width:max-content;
+  max-width:none;
+  gap:5px;
   min-width:0;
   color:var(--text-muted);
   font-size:12px;
   line-height:1.3;
+  white-space:nowrap;
 }
 #incomeAnalytics .monthly-summary-card-label > span:first-child{
   display:inline;
+  flex:0 0 auto;
 }
 #incomeAnalytics .monthly-summary-info{
-  display:inline-grid;
+  display:grid;
   place-items:center;
   width:16px;
   height:16px;
-  margin-left:5px;
-  vertical-align:middle;
+  flex:0 0 16px;
+  margin:0;
   transform:translateY(-1px);
   padding:0;
   border:1px solid color-mix(in srgb,var(--text-muted) 50%,transparent);
