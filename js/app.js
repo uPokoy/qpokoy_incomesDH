@@ -501,13 +501,19 @@ function getVisibleIncomes(source=incomes){
   return result;
 }
 
-function renderRecentIncomes(){
+function renderRecentIncomes(period=getSelectedIncomePeriod()){
   const host=document.getElementById('incomeRecentGrid');
   if(!host)return;
 
-  // IncomeStore appends new records to the end, so these are the four
-  // most recently added incomes regardless of the selected analytics period.
-  const latestAdded=incomes.slice(-4).reverse();
+  const selectedMonth=Number(period?.month);
+  const selectedYear=Number(period?.year);
+  const latestAdded=incomes
+    .filter(item=>{
+      const d=textDateToDate(item.date);
+      return d&&d.getMonth()===selectedMonth&&d.getFullYear()===selectedYear;
+    })
+    .slice(-4)
+    .reverse();
   if(!latestAdded.length){
     host.innerHTML='<div class="income-recent-empty">Пока нет доходов</div>';
     return;
@@ -548,8 +554,8 @@ window.renderIncomes=function renderIncomes(filteredData=null){
   clearHistoryNativeSwipeState();
   const latest=IncomeStore.load();
   if(Array.isArray(latest)) incomes.splice(0,incomes.length,...latest);
-  renderRecentIncomes();
   const period=syncAppPeriod();
+  renderRecentIncomes(period);
   const selectedYear=period.year;
   const selectedMonth=period.month;
   const total=incomes.reduce((sum,item)=>{
