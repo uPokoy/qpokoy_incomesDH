@@ -1247,11 +1247,8 @@ main{
   #incomeAnalytics:not(.is-monthly) .analytics-category-panels{
     grid-template-columns:repeat(12,minmax(0,1fr)) !important;
   }
-  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:nth-child(-n+3){
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
     grid-column:span 4;
-  }
-  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:nth-child(n+4){
-    grid-column:span 3;
   }
 }
 @media(max-width:900px){
