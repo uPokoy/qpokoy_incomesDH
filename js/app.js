@@ -653,7 +653,9 @@ window.renderIncomeAnalytics=function(){
   const growthEl=document.getElementById('analyticsGrowth');
   const growthCaptionEl=document.getElementById('analyticsGrowthCaption');
   const bestEl=document.getElementById('analyticsBest');
+  const bestAmountEl=document.getElementById('analyticsBestAmount');
   const worstEl=document.getElementById('analyticsWorst');
+  const worstAmountEl=document.getElementById('analyticsWorstAmount');
   const catsEl=document.getElementById('analyticsCategories');
   if(!yearEl||!totalEl||!avgActiveEl||!bestEl||!worstEl||!growthEl)return;
 
@@ -669,8 +671,22 @@ window.renderIncomeAnalytics=function(){
   growthEl.classList.toggle('negative',growth!==null&&growth<0);
   growthEl.classList.toggle('neutral',growth===0||growth===null);
   if(growthCaptionEl) growthCaptionEl.textContent=hasPrevious?`по сравнению с ${year-1} годом`:'нет данных за предыдущий год';
-  bestEl.textContent=a.best>=0?`${fullNames[a.best]} ${formatMoney(a.monthTotals[a.best])}`:'—';
-  worstEl.textContent=a.worst>=0?`${fullNames[a.worst]} ${formatMoney(a.monthTotals[a.worst])}`:'—';
+  if(a.best>=0){
+    bestEl.textContent=fullNames[a.best];
+    if(bestAmountEl) bestAmountEl.textContent=formatMoney(a.monthTotals[a.best]);
+    else bestEl.textContent+=' '+formatMoney(a.monthTotals[a.best]);
+  }else{
+    bestEl.textContent='—';
+    if(bestAmountEl) bestAmountEl.textContent='0 ₽';
+  }
+  if(a.worst>=0){
+    worstEl.textContent=fullNames[a.worst];
+    if(worstAmountEl) worstAmountEl.textContent=formatMoney(a.monthTotals[a.worst]);
+    else worstEl.textContent+=' '+formatMoney(a.monthTotals[a.worst]);
+  }else{
+    worstEl.textContent='—';
+    if(worstAmountEl) worstAmountEl.textContent='0 ₽';
+  }
 
   const categories=Object.entries(a.categoryTotals).sort((x,y)=>y[1]-x[1]);
   const catMax=Math.max(...categories.map(x=>x[1]),1);
