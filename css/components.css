@@ -2613,3 +2613,17 @@ body.qp-auth-locked #income .income-recent-pager{
     color:color-mix(in srgb,var(--category) 82%,var(--text-muted)) !important;
   }
 }
+
+
+/* Annual desktop surfaces: match recent-income card background exactly. */
+@media (min-width:901px){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card,
+  #incomeAnalytics:not(.is-monthly) .annual-total-card,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    background:var(--panel) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:hover{
+    background:var(--panel) !important;
+  }
+}
