@@ -120,6 +120,7 @@
     const yearGrowthNoteEl=document.getElementById('monthlyYearGrowthNote');
     const yearGrowthTooltipEl=document.getElementById('monthlyYearGrowthTooltip');
     const yearGrowthCard=document.getElementById('monthlyYearGrowthCard');
+    const yearGrowthInfoEl=yearGrowthCard?yearGrowthCard.querySelector('.monthly-summary-info'):null;
     const catsEl=document.getElementById('monthlyAnalyticsCategories');
 
     if(titleEl)titleEl.textContent=monthNames[period.month];
@@ -132,6 +133,11 @@
 
     const now=new Date();
     const isCurrentMonth=period.year===now.getFullYear()&&period.month===now.getMonth();
+    if(yearGrowthInfoEl){
+      yearGrowthInfoEl.style.display=isCurrentMonth?'':'none';
+      if(!isCurrentMonth)yearGrowthInfoEl.setAttribute('aria-expanded','false');
+    }
+    if(yearGrowthTooltipEl&&!isCurrentMonth)yearGrowthTooltipEl.textContent='';
     const daysInMonth=new Date(period.year,period.month+1,0).getDate();
     const elapsedDays=isCurrentMonth?now.getDate():daysInMonth;
     const comparableTotal=isCurrentMonth
