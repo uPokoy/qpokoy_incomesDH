@@ -2069,3 +2069,52 @@ body.qp-auth-locked #income .income-recent-pager{
     line-height:1 !important;
   }
 }
+
+
+/* Desktop experiment: best-month card with amount on a lower row. */
+@media (min-width:901px){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best{
+    align-items:center !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best .analytics-card-icon{
+    align-self:start !important;
+    margin-top:8px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-template-areas:
+      "label"
+      "month"
+      "amount" !important;
+    row-gap:4px !important;
+    align-items:start !important;
+    justify-content:stretch !important;
+    width:100% !important;
+    margin-left:8px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span{
+    grid-area:label !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > strong{
+    grid-area:month !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > b{
+    grid-area:amount !important;
+    width:100% !important;
+    margin:8px 0 0 !important;
+    padding-top:10px !important;
+    border-top:1px solid color-mix(in srgb,var(--border) 82%,transparent) !important;
+    justify-self:stretch !important;
+    text-align:center !important;
+    font-size:32px !important;
+    line-height:1 !important;
+  }
+}
