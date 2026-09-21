@@ -128,7 +128,8 @@
     if(totalEl)totalEl.textContent=money(total);
 
     const best=categories[0]||null;
-    if(bestCategoryEl)bestCategoryEl.textContent=best?best[0]:'Нет данных';
+    const bestPct=best&&total?Math.round(best[1]/total*100):0;
+    if(bestCategoryEl)bestCategoryEl.textContent=best?best[0]+' '+bestPct+'%':'Нет данных';
     if(bestAmountEl)bestAmountEl.textContent=best?money(best[1]):'0 ₽';
 
     const now=new Date();
