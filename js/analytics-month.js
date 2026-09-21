@@ -152,7 +152,7 @@
       :total;
     const average=elapsedDays?comparableTotal/elapsedDays:0;
     if(averageEl)averageEl.textContent=money(average);
-    if(averageNoteEl)averageNoteEl.textContent='Учитывается '+elapsedDays+' '+dayWord(elapsedDays)+' в '+monthPrep[period.month]+' '+period.year;
+    if(averageNoteEl)averageNoteEl.textContent='Учитывается '+elapsedDays+' '+dayWord(elapsedDays)+' в '+monthPrep[period.month];
 
     let prevMonth=period.month-1;
     let prevYear=period.year;
