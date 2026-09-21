@@ -538,11 +538,11 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
   const visible=ordered.slice(pageStart,pageStart+RECENT_INCOME_PAGE_SIZE);
 
   if(pager){
-    pager.hidden=ordered.length<=RECENT_INCOME_PAGE_SIZE;
+    pager.hidden=false;
   }
   if(prevBtn) prevBtn.disabled=recentIncomePage===0;
   if(nextBtn) nextBtn.disabled=recentIncomePage>=pageCount-1;
-  if(indicator) indicator.textContent=ordered.length>RECENT_INCOME_PAGE_SIZE?`${recentIncomePage+1} / ${pageCount}`:'';
+  if(indicator) indicator.textContent=`${recentIncomePage+1} / ${pageCount}`;
 
   if(!visible.length){
     host.innerHTML='<div class="income-recent-empty">Пока нет доходов</div>';
