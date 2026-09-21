@@ -113,7 +113,18 @@
     margin:0;
   }
 
-  /* First row: use the right side for the key amount as well. */
+  /* Best category: compact horizontal composition. */
+  #incomeAnalytics .monthly-summary-best{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:center;
+    column-gap:18px;
+    padding-top:22px;
+    padding-bottom:22px;
+  }
+  #incomeAnalytics .monthly-summary-best .monthly-summary-card-icon{
+    align-self:center;
+  }
   #incomeAnalytics .monthly-summary-best .monthly-summary-card-body{
     display:grid;
     grid-template-columns:minmax(0,1fr) auto;
@@ -121,12 +132,14 @@
       "label amount"
       "category amount";
     column-gap:28px;
-    row-gap:8px;
+    row-gap:6px;
     align-items:center;
     width:100%;
+    margin-top:0;
   }
   #incomeAnalytics .monthly-summary-best .monthly-summary-card-body > span{
     grid-area:label;
+    margin:0;
   }
   #incomeAnalytics .monthly-summary-best .monthly-summary-card-body > strong{
     grid-area:category;
