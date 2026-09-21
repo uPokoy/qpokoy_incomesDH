@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.21.01">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.21.06">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.21.07">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.15.57">
 <link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.21.01">
 <title>Доходы</title>
@@ -256,6 +256,15 @@
         <button type="button" class="income-recent-toggle" id="incomeRecentToggle" aria-expanded="true" aria-controls="incomeRecentGrid" title="Скрыть последние доходы">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
         </button>
+        <div class="income-recent-pager" id="incomeRecentPager" hidden aria-label="Перелистывание последних доходов">
+          <button type="button" class="income-recent-page-btn" id="incomeRecentPrev" aria-label="Предыдущие 4 дохода" title="Предыдущие 4 дохода">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+          </button>
+          <span class="income-recent-page-indicator" id="incomeRecentPageIndicator" aria-live="polite"></span>
+          <button type="button" class="income-recent-page-btn" id="incomeRecentNext" aria-label="Следующие 4 дохода" title="Следующие 4 дохода">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          </button>
+        </div>
       </div>
       <div class="income-recent-grid" id="incomeRecentGrid"></div>
     </section>
@@ -556,7 +565,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.21.01"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.21.02"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
