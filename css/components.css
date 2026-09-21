@@ -2627,3 +2627,76 @@ body.qp-auth-locked #income .income-recent-pager{
     background:var(--panel) !important;
   }
 }
+
+
+/* Annual desktop compact step sparklines. */
+.analytics-mini-step{
+  display:none;
+}
+@media (min-width:901px){
+  /* Replace the old decorative slashes in the right-side annual cards. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average::before,
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth::before{
+    display:none !important;
+    content:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth{
+    position:relative !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-mini-step{
+    position:absolute;
+    z-index:2;
+    right:16px;
+    bottom:16px;
+    width:78px;
+    height:30px;
+    display:block;
+    opacity:.78;
+    pointer-events:none;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-mini-step svg{
+    width:100%;
+    height:100%;
+    overflow:visible;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-mini-step path{
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-mini-step circle{
+    fill:currentColor;
+    filter:drop-shadow(0 0 3px currentColor);
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-mini-step-average{
+    color:color-mix(in srgb,#60a5fa 72%,var(--text-muted));
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-mini-step-growth{
+    color:color-mix(in srgb,var(--danger) 78%,var(--text-muted));
+    transform-origin:center;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth:has(#analyticsGrowth.positive) .analytics-mini-step-growth{
+    color:color-mix(in srgb,var(--success) 78%,var(--text-muted));
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth:has(#analyticsGrowth.negative) .analytics-mini-step-growth svg{
+    transform:scaleY(-1);
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth:has(#analyticsGrowth.neutral) .analytics-mini-step-growth{
+    color:var(--text-muted);
+    opacity:.48;
+  }
+
+  /* Reserve a small area so values never collide with the sparkline. */
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body{
+    width:calc(100% - 86px) !important;
+    max-width:calc(100% - 86px) !important;
+  }
+}
