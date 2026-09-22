@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.22.01';
+const qPokoyDevVersion='dev-2026.09.22.02';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -735,8 +735,8 @@ window.renderIncomeAnalytics=function(){
   const worstEl=document.getElementById('analyticsWorst');
   const worstAmountEl=document.getElementById('analyticsWorstAmount');
   const catsEl=document.getElementById('analyticsCategories');
+  const annualHeroTitleEl=document.getElementById('annualHeroTitle');
   const annualHeroTotalEl=document.getElementById('annualHeroTotal');
-  const annualHeroYearEl=document.getElementById('annualHeroYear');
   const annualHeroTotalMobileEl=document.getElementById('annualHeroTotalMobile');
   const annualHeroYearMobileEl=document.getElementById('annualHeroYearMobile');
   const annualHeroMonthsEl=document.getElementById('annualHeroMonths');
@@ -748,8 +748,8 @@ window.renderIncomeAnalytics=function(){
 
   yearEl.textContent=a.year;
   totalEl.textContent=formatMoney(a.total);
+  if(annualHeroTitleEl) annualHeroTitleEl.textContent='Общий доход за '+a.year;
   if(annualHeroTotalEl) annualHeroTotalEl.textContent=formatMoney(a.total);
-  if(annualHeroYearEl) annualHeroYearEl.textContent='за '+a.year+' год';
   if(annualHeroTotalMobileEl) annualHeroTotalMobileEl.textContent=formatMoney(a.total);
   if(annualHeroYearMobileEl) annualHeroYearMobileEl.textContent='за '+a.year+' год';
   if(annualHeroMonthsEl) annualHeroMonthsEl.textContent=String(a.monthTotals.filter(value=>value>0).length);
