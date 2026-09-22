@@ -1718,3 +1718,11 @@
     max-width:calc(100% - 72px) !important;
   }
 }
+
+
+/* Prevent monthly comparison badges from flashing over the auth/loading background on refresh. */
+body.qp-auth-checking #incomeAnalytics .monthly-corner-percent,
+body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
+  display:none !important;
+  visibility:hidden !important;
+}
