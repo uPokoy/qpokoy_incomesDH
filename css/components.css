@@ -2993,3 +2993,51 @@ body.qp-auth-locked #income .income-recent-pager{
     white-space:nowrap;
   }
 }
+
+
+/* Annual total — fit exactly inside the two-row desktop analytics grid. */
+@media (min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .annual-total-card{
+    min-height:238px !important;
+    height:238px !important;
+    max-height:238px !important;
+    padding:12px !important;
+    gap:7px !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-copy > strong{
+    font-size:clamp(23px,2vw,29px) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-bars{
+    height:58px !important;
+    margin-top:8px !important;
+    gap:4px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-months{
+    margin-top:4px !important;
+    gap:4px !important;
+    font-size:6.5px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-meta{
+    margin-top:0 !important;
+    gap:7px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-meta > span{
+    min-height:43px !important;
+    padding:5px 8px !important;
+    grid-template-columns:25px minmax(0,1fr) !important;
+    column-gap:7px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-meta-icon{
+    width:20px !important;
+    height:20px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-meta b{
+    font-size:15px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-meta small{
+    margin-top:2px !important;
+    font-size:7.5px !important;
+  }
+}
