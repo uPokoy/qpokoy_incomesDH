@@ -1402,3 +1402,19 @@
     font-size:13px !important;
   }
 }
+
+
+/* Monthly best-category share badge: pin it to the card's top-right corner. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body{
+    position:static !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-share{
+    position:absolute !important;
+    z-index:3 !important;
+    top:15px !important;
+    right:17px !important;
+    margin:0 !important;
+  }
+}
