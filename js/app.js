@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.21.14';
+const qPokoyDevVersion='dev-2026.09.22.01';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -737,14 +737,21 @@ window.renderIncomeAnalytics=function(){
   const catsEl=document.getElementById('analyticsCategories');
   const annualHeroTotalEl=document.getElementById('annualHeroTotal');
   const annualHeroYearEl=document.getElementById('annualHeroYear');
+  const annualHeroTotalMobileEl=document.getElementById('annualHeroTotalMobile');
+  const annualHeroYearMobileEl=document.getElementById('annualHeroYearMobile');
   const annualHeroMonthsEl=document.getElementById('annualHeroMonths');
   const annualHeroCategoriesEl=document.getElementById('annualHeroCategories');
+  const annualHeroGrowthEl=document.getElementById('annualHeroGrowth');
+  const annualHeroGrowthCaptionEl=document.getElementById('annualHeroGrowthCaption');
+  const annualHeroBarsEl=document.getElementById('annualHeroBars');
   if(!yearEl||!totalEl||!avgActiveEl||!bestEl||!worstEl||!growthEl)return;
 
   yearEl.textContent=a.year;
   totalEl.textContent=formatMoney(a.total);
   if(annualHeroTotalEl) annualHeroTotalEl.textContent=formatMoney(a.total);
   if(annualHeroYearEl) annualHeroYearEl.textContent='за '+a.year+' год';
+  if(annualHeroTotalMobileEl) annualHeroTotalMobileEl.textContent=formatMoney(a.total);
+  if(annualHeroYearMobileEl) annualHeroYearMobileEl.textContent='за '+a.year+' год';
   if(annualHeroMonthsEl) annualHeroMonthsEl.textContent=String(a.monthTotals.filter(value=>value>0).length);
   qPokoyFitAnalyticsTotal();
   if(avgActiveEl) avgActiveEl.textContent=formatMoney(a.averageActive);
@@ -756,6 +763,24 @@ window.renderIncomeAnalytics=function(){
   growthEl.classList.toggle('negative',growth!==null&&growth<0);
   growthEl.classList.toggle('neutral',growth===0||growth===null);
   if(growthCaptionEl) growthCaptionEl.textContent=hasPrevious?`по сравнению с ${year-1} годом`:'нет данных за предыдущий год';
+
+  if(annualHeroGrowthEl){
+    annualHeroGrowthEl.textContent=growth===null?'—':`${growth>=0?'↑ +':'↓ '}${Math.abs(growth).toFixed(1)}%`;
+    annualHeroGrowthEl.classList.toggle('positive',growth!==null&&growth>0);
+    annualHeroGrowthEl.classList.toggle('negative',growth!==null&&growth<0);
+    annualHeroGrowthEl.classList.toggle('neutral',growth===0||growth===null);
+  }
+  if(annualHeroGrowthCaptionEl){
+    annualHeroGrowthCaptionEl.textContent=hasPrevious?`к ${year-1} году`:`нет данных за ${year-1}`;
+  }
+  if(annualHeroBarsEl){
+    const annualMax=Math.max(...a.monthTotals,1);
+    annualHeroBarsEl.innerHTML=a.monthTotals.map((value,index)=>{
+      const height=value>0?Math.max(8,(value/annualMax)*100):4;
+      const hue=174+index*9;
+      return `<span class="annual-total-bar${value>0?'':' is-zero'}" style="--bar-height:${height.toFixed(1)}%;--bar-hue:${hue}" title="${fullNames[index]}: ${formatMoney(value)}" aria-label="${fullNames[index]}: ${formatMoney(value)}"></span>`;
+    }).join('');
+  }
   if(a.best>=0){
     bestEl.textContent=fullNames[a.best];
     if(bestAmountEl) bestAmountEl.textContent=formatMoney(a.monthTotals[a.best]);

@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.21.01">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.21.26">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.22.01">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.21.05">
 <link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.21.06">
 <title>Доходы</title>
@@ -149,7 +149,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.21.14"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.22.01"></script>
 
 
 
@@ -231,7 +231,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.21.14</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.22.01</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -377,16 +377,55 @@
 
 
     <div class="annual-total-card" id="annualTotalCard" aria-label="Общий доход за год">
+      <div class="annual-total-desktop">
+        <div class="annual-total-desktop-head">
+          <div class="annual-total-copy">
+            <span>Общий доход</span>
+            <strong id="annualHeroTotal">0 ₽</strong>
+            <small id="annualHeroYear">за год</small>
+          </div>
+          <div class="annual-total-growth">
+            <div class="annual-total-growth-row">
+              <svg class="annual-total-growth-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 18v-4M10 18V9M15 18V6M20 18V3"/>
+              </svg>
+              <strong id="annualHeroGrowth">—</strong>
+            </div>
+            <small id="annualHeroGrowthCaption">к прошлому году</small>
+          </div>
+        </div>
+
+        <div class="annual-total-bars" id="annualHeroBars" aria-label="Доход по месяцам"></div>
+        <div class="annual-total-months" aria-hidden="true">
+          <span>Янв</span><span>Фев</span><span>Мар</span><span>Апр</span>
+          <span>Май</span><span>Июн</span><span>Июл</span><span>Авг</span>
+          <span>Сен</span><span>Окт</span><span>Ноя</span><span>Дек</span>
+        </div>
+      </div>
+
       <div class="annual-total-ring" aria-hidden="true">
         <div class="annual-total-ring-inner">
           <span>Общий доход</span>
-          <strong id="annualHeroTotal">0 ₽</strong>
-          <small id="annualHeroYear">за год</small>
+          <strong id="annualHeroTotalMobile">0 ₽</strong>
+          <small id="annualHeroYearMobile">за год</small>
         </div>
       </div>
+
       <div class="annual-total-meta">
-        <span><b id="annualHeroMonths">0</b><small>мес. с доходом</small></span>
-        <span><b id="annualHeroCategories">0</b><small>категорий</small></span>
+        <span>
+          <svg class="annual-total-meta-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="5" width="16" height="15" rx="2"/>
+            <path d="M8 3v4M16 3v4M4 10h16"/>
+          </svg>
+          <b id="annualHeroMonths">0</b><small>мес. с доходом</small>
+        </span>
+        <span>
+          <svg class="annual-total-meta-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m12 3 8 4-8 4-8-4 8-4Z"/>
+            <path d="m4 12 8 4 8-4M4 17l8 4 8-4"/>
+          </svg>
+          <b id="annualHeroCategories">0</b><small>категорий</small>
+        </span>
       </div>
     </div>
 
@@ -592,7 +631,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.21.18"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.22.01"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
