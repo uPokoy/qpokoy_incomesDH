@@ -3090,3 +3090,16 @@ body.qp-auth-locked #income .income-recent-pager{
     z-index:2 !important;
   }
 }
+
+
+/* Annual monthly bars follow the accent color from Appearance settings. */
+@media (min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .annual-total-bar{
+    background:linear-gradient(
+      180deg,
+      color-mix(in srgb,var(--primary) 72%,white),
+      color-mix(in srgb,var(--primary) 88%,black)
+    ) !important;
+    box-shadow:0 0 12px color-mix(in srgb,var(--primary) 18%,transparent) !important;
+  }
+}
