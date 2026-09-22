@@ -788,3 +788,397 @@
     line-height:1 !important;
   }
 }
+
+
+/* Monthly desktop uses the same composition and visual hierarchy as annual analytics. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly .monthly-analytics-head{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-cards{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(270px,1.12fr) minmax(0,1fr) !important;
+    grid-template-rows:112px 112px !important;
+    gap:14px !important;
+    align-items:stretch !important;
+    margin:14px 0 14px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card{
+    width:auto !important;
+    max-width:none !important;
+    min-width:0 !important;
+    min-height:112px !important;
+    height:112px !important;
+    grid-column:auto !important;
+    padding:14px 16px !important;
+    display:grid !important;
+    grid-template-columns:44px minmax(0,1fr) !important;
+    align-items:center !important;
+    gap:12px !important;
+    border-radius:18px !important;
+    background:var(--panel) !important;
+    box-shadow:none !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card::after{
+    width:120px !important;
+    height:120px !important;
+    right:-46px !important;
+    bottom:-72px !important;
+    opacity:.72 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best{
+    grid-column:1 !important;
+    grid-row:1 !important;
+  }
+  #incomeAnalytics.is-monthly #monthlyGrowthCard{
+    grid-column:1 !important;
+    grid-row:2 !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-average{
+    grid-column:3 !important;
+    grid-row:1 !important;
+  }
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard{
+    grid-column:3 !important;
+    grid-row:2 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-icon{
+    width:44px !important;
+    height:44px !important;
+    min-width:44px !important;
+    margin:0 !important;
+    border-radius:12px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-icon svg{
+    width:23px !important;
+    height:23px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-body,
+  #incomeAnalytics.is-monthly .monthly-summary-card .monthly-summary-card-body{
+    width:calc(100% - 76px) !important;
+    max-width:calc(100% - 76px) !important;
+    margin:0 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-body > span,
+  #incomeAnalytics.is-monthly .monthly-summary-card-label{
+    width:auto !important;
+    max-width:100% !important;
+    margin:0 !important;
+    color:var(--text-muted) !important;
+    font-size:12px !important;
+    line-height:1.25 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-body > strong{
+    margin-top:8px !important;
+    font-size:22px !important;
+    line-height:1.05 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-body > b{
+    margin-top:5px !important;
+    font-size:17px !important;
+    line-height:1.05 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-body small{
+    max-width:100% !important;
+    margin-top:5px !important;
+    color:var(--text-muted) !important;
+    font-size:10px !important;
+    line-height:1.2 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-best-category-row{
+    margin-top:7px !important;
+    gap:7px !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-best-category-row strong{
+    margin:0 !important;
+    font-size:19px !important;
+    line-height:1.05 !important;
+    white-space:nowrap !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-best-share{
+    height:25px !important;
+    min-width:42px !important;
+    padding:0 8px !important;
+    font-size:11px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-info{
+    display:none !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-tooltip{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card{
+    position:relative !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card::before{
+    content:"" !important;
+    position:absolute !important;
+    z-index:2 !important;
+    right:16px !important;
+    bottom:14px !important;
+    width:62px !important;
+    height:30px !important;
+    opacity:.30 !important;
+    pointer-events:none !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best::before{
+    color:var(--success) !important;
+    background:
+      linear-gradient(currentColor,currentColor) 0 100%/7px 25% no-repeat,
+      linear-gradient(currentColor,currentColor) 13px 100%/7px 42% no-repeat,
+      linear-gradient(currentColor,currentColor) 26px 100%/7px 56% no-repeat,
+      linear-gradient(currentColor,currentColor) 39px 100%/7px 68% no-repeat,
+      linear-gradient(currentColor,currentColor) 52px 100%/7px 82% no-repeat !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average::before{
+    color:color-mix(in srgb,#60a5fa 78%,var(--text-muted)) !important;
+    background:
+      linear-gradient(currentColor,currentColor) 0 100%/7px 48% no-repeat,
+      linear-gradient(currentColor,currentColor) 13px 100%/7px 55% no-repeat,
+      linear-gradient(currentColor,currentColor) 26px 100%/7px 50% no-repeat,
+      linear-gradient(currentColor,currentColor) 39px 100%/7px 46% no-repeat,
+      linear-gradient(currentColor,currentColor) 52px 100%/7px 53% no-repeat !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-growth::before{
+    color:var(--danger) !important;
+    background:
+      linear-gradient(currentColor,currentColor) 0 100%/7px 78% no-repeat,
+      linear-gradient(currentColor,currentColor) 13px 100%/7px 62% no-repeat,
+      linear-gradient(currentColor,currentColor) 26px 100%/7px 48% no-repeat,
+      linear-gradient(currentColor,currentColor) 39px 100%/7px 30% no-repeat,
+      linear-gradient(currentColor,currentColor) 52px 100%/7px 18% no-repeat !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-growth.positive::before{
+    color:var(--success) !important;
+    background:
+      linear-gradient(currentColor,currentColor) 0 100%/7px 18% no-repeat,
+      linear-gradient(currentColor,currentColor) 13px 100%/7px 30% no-repeat,
+      linear-gradient(currentColor,currentColor) 26px 100%/7px 48% no-repeat,
+      linear-gradient(currentColor,currentColor) 39px 100%/7px 62% no-repeat,
+      linear-gradient(currentColor,currentColor) 52px 100%/7px 78% no-repeat !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-growth.neutral::before{
+    color:var(--text-muted) !important;
+    opacity:.18 !important;
+    background:
+      linear-gradient(currentColor,currentColor) 0 100%/7px 45% no-repeat,
+      linear-gradient(currentColor,currentColor) 13px 100%/7px 45% no-repeat,
+      linear-gradient(currentColor,currentColor) 26px 100%/7px 45% no-repeat,
+      linear-gradient(currentColor,currentColor) 39px 100%/7px 45% no-repeat,
+      linear-gradient(currentColor,currentColor) 52px 100%/7px 45% no-repeat !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-card{
+    grid-column:2 !important;
+    grid-row:1 / span 2 !important;
+    min-width:0 !important;
+    height:238px !important;
+    padding:12px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:7px !important;
+    overflow:hidden !important;
+    border:1px solid color-mix(in srgb,var(--primary) 22%,var(--border)) !important;
+    border-radius:20px !important;
+    background:var(--panel) !important;
+    box-shadow:none !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-head{
+    position:relative !important;
+    min-height:42px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyHeroTotal{
+    position:absolute !important;
+    left:calc(50% - 10px) !important;
+    top:0 !important;
+    transform:translateX(-50%) !important;
+    margin:0 !important;
+    color:var(--text) !important;
+    font-size:clamp(31px,2.7vw,38px) !important;
+    font-weight:780 !important;
+    line-height:1 !important;
+    letter-spacing:-.04em !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-growth{
+    position:absolute !important;
+    top:0 !important;
+    right:0 !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyHeroGrowth{
+    min-width:62px !important;
+    padding:6px 9px !important;
+    display:block !important;
+    border:1px solid color-mix(in srgb,var(--success) 32%,transparent) !important;
+    border-radius:9px !important;
+    background:color-mix(in srgb,var(--success) 19%,transparent) !important;
+    color:color-mix(in srgb,var(--success) 82%,white) !important;
+    font-size:13px !important;
+    font-weight:750 !important;
+    line-height:1 !important;
+    text-align:center !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyHeroGrowth.negative{
+    border-color:color-mix(in srgb,var(--danger) 34%,transparent) !important;
+    background:color-mix(in srgb,var(--danger) 18%,transparent) !important;
+    color:color-mix(in srgb,var(--danger) 80%,white) !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyHeroGrowth.neutral{
+    border-color:color-mix(in srgb,var(--border) 88%,transparent) !important;
+    background:color-mix(in srgb,var(--panel-muted) 82%,transparent) !important;
+    color:var(--text-muted) !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-bars{
+    flex:1 1 auto !important;
+    min-height:76px !important;
+    padding:0 2px !important;
+    display:grid !important;
+    grid-template-columns:repeat(var(--monthly-days,31),minmax(0,1fr)) !important;
+    align-items:end !important;
+    gap:2px !important;
+    border-bottom:1px solid color-mix(in srgb,var(--border) 82%,transparent) !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-bar{
+    width:100% !important;
+    height:var(--bar-height,3%) !important;
+    min-height:3px !important;
+    border-radius:3px 3px 1px 1px !important;
+    background:linear-gradient(
+      180deg,
+      color-mix(in srgb,var(--primary) 72%,white),
+      color-mix(in srgb,var(--primary) 88%,black)
+    ) !important;
+    box-shadow:0 0 10px color-mix(in srgb,var(--primary) 16%,transparent) !important;
+    opacity:.88 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-bar.is-zero{
+    opacity:.16 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-days{
+    flex:0 0 11px !important;
+    display:grid !important;
+    grid-template-columns:repeat(var(--monthly-days,31),minmax(0,1fr)) !important;
+    gap:2px !important;
+    color:var(--text-muted) !important;
+    font-size:6px !important;
+    line-height:1 !important;
+    text-align:center !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-meta{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:7px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-meta > span{
+    min-width:0 !important;
+    min-height:43px !important;
+    padding:5px 8px !important;
+    display:grid !important;
+    grid-template-columns:25px minmax(0,1fr) !important;
+    grid-template-rows:auto auto !important;
+    column-gap:7px !important;
+    align-items:center !important;
+    border:1px solid color-mix(in srgb,var(--border) 90%,transparent) !important;
+    border-radius:11px !important;
+    background:color-mix(in srgb,var(--panel-muted) 78%,transparent) !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-meta-icon{
+    grid-column:1 !important;
+    grid-row:1 / 3 !important;
+    width:20px !important;
+    height:20px !important;
+    fill:none !important;
+    stroke:#79b7ee !important;
+    stroke-width:1.8 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-meta b{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    align-self:end !important;
+    color:var(--text) !important;
+    font-size:15px !important;
+    line-height:1 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-total-meta small{
+    grid-column:2 !important;
+    grid-row:2 !important;
+    align-self:start !important;
+    margin-top:2px !important;
+    color:var(--text-muted) !important;
+    font-size:7.5px !important;
+    line-height:1.1 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-panels{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    gap:16px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-card{
+    min-height:112px !important;
+    height:112px !important;
+    padding:16px 18px !important;
+    display:grid !important;
+    grid-template-columns:34px minmax(0,1fr) auto !important;
+    grid-template-rows:34px minmax(0,1fr) !important;
+    column-gap:10px !important;
+    row-gap:8px !important;
+    align-items:center !important;
+    overflow:hidden !important;
+    border-radius:16px !important;
+    background:var(--panel) !important;
+    box-shadow:none !important;
+  }
+}
+
+@media(max-width:900px){
+  #incomeAnalytics .monthly-total-card{
+    display:none !important;
+  }
+}

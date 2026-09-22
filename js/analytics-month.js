@@ -124,10 +124,18 @@
     const yearGrowthCard=document.getElementById('monthlyYearGrowthCard');
     const yearGrowthInfoEl=yearGrowthCard?yearGrowthCard.querySelector('.monthly-summary-info'):null;
     const catsEl=document.getElementById('monthlyAnalyticsCategories');
+    const heroTotalEl=document.getElementById('monthlyHeroTotal');
+    const heroGrowthEl=document.getElementById('monthlyHeroGrowth');
+    const heroBarsEl=document.getElementById('monthlyHeroBars');
+    const heroDaysLabelsEl=document.getElementById('monthlyHeroDaysLabels');
+    const heroIncomeDaysEl=document.getElementById('monthlyHeroIncomeDays');
+    const heroCategoriesEl=document.getElementById('monthlyHeroCategories');
 
     if(titleEl)titleEl.textContent=monthNames[period.month];
     if(periodEl)periodEl.textContent=String(period.year);
     if(totalEl)totalEl.textContent=money(total);
+    if(heroTotalEl)heroTotalEl.textContent=money(total);
+    if(heroCategoriesEl)heroCategoriesEl.textContent=String(categories.length);
 
     const best=categories[0]||null;
     const bestPct=best&&total?Math.round(best[1]/total*100):0;
@@ -146,6 +154,29 @@
     }
     if(yearGrowthTooltipEl&&!isCurrentMonth)yearGrowthTooltipEl.textContent='';
     const daysInMonth=new Date(period.year,period.month+1,0).getDate();
+    if(heroBarsEl&&heroDaysLabelsEl){
+      const dayTotals=Array(daysInMonth).fill(0);
+      monthData.forEach(item=>{
+        const d=parseDate(item&&item.date);
+        if(!d)return;
+        const day=d.getDate();
+        if(day>=1&&day<=daysInMonth)dayTotals[day-1]+=Number(item.amount)||0;
+      });
+      const dayMax=Math.max(...dayTotals,1);
+      heroBarsEl.style.setProperty('--monthly-days',String(daysInMonth));
+      heroDaysLabelsEl.style.setProperty('--monthly-days',String(daysInMonth));
+      heroBarsEl.innerHTML=dayTotals.map((value,index)=>{
+        const height=value>0?Math.max(8,(value/dayMax)*100):3;
+        const day=index+1;
+        return '<span class="monthly-total-bar'+(value>0?'':' is-zero')+'" style="--bar-height:'+height.toFixed(1)+'%" title="'+day+' '+monthGenitive[period.month]+': '+escapeText(money(value))+'" aria-label="'+day+' '+monthGenitive[period.month]+': '+escapeText(money(value))+'"></span>';
+      }).join('');
+      heroDaysLabelsEl.innerHTML=dayTotals.map((value,index)=>{
+        const day=index+1;
+        const show=day===1||day===5||day===10||day===15||day===20||day===25||day===daysInMonth;
+        return '<span>'+ (show?day:'') +'</span>';
+      }).join('');
+      if(heroIncomeDaysEl)heroIncomeDaysEl.textContent=String(dayTotals.filter(value=>value>0).length);
+    }
     const elapsedDays=isCurrentMonth?now.getDate():daysInMonth;
     const comparableTotal=isCurrentMonth
       ?monthTotalThroughDay(data,period.month,period.year,elapsedDays)
@@ -207,6 +238,12 @@
     }
     if(yearGrowthEl){
       yearGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'+':'')+yearGrowth.toFixed(1)+'%';
+    }
+    if(heroGrowthEl){
+      heroGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'↑ +':'↓ ')+Math.abs(yearGrowth).toFixed(1)+'%';
+      heroGrowthEl.classList.toggle('positive',yearGrowth!==null&&yearGrowth>0);
+      heroGrowthEl.classList.toggle('negative',yearGrowth!==null&&yearGrowth<0);
+      heroGrowthEl.classList.toggle('neutral',yearGrowth===null||yearGrowth===0);
     }
     if(yearGrowthNoteEl){
       const comparisonPeriod=isCurrentMonth

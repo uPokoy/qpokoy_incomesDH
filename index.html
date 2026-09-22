@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.21.01">
 <link rel="stylesheet" href="css/components.css?v=dev-2026.09.22.06">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.21.05">
-<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.21.06">
+<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.22.13">
 <title>Доходы</title>
 <!-- qPokoy: Иконки сайта/ярлыков. Интерфейс сайта не изменяется. -->
 <meta name="application-name" content="Доходы">
@@ -149,7 +149,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.22.10"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.22.13"></script>
 
 
 
@@ -231,7 +231,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.22.10</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.22.13</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -486,6 +486,33 @@
         </div>
       </div>
 
+      <div class="monthly-total-card" id="monthlyTotalCard" aria-label="Общий доход за месяц">
+        <div class="monthly-total-head">
+          <strong id="monthlyHeroTotal">0 ₽</strong>
+          <div class="monthly-total-growth">
+            <strong id="monthlyHeroGrowth">—</strong>
+          </div>
+        </div>
+        <div class="monthly-total-bars" id="monthlyHeroBars" aria-label="Доход по дням месяца"></div>
+        <div class="monthly-total-days" id="monthlyHeroDaysLabels" aria-hidden="true"></div>
+        <div class="monthly-total-meta">
+          <span>
+            <svg class="monthly-total-meta-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="5" width="16" height="15" rx="2"/>
+              <path d="M8 3v4M16 3v4M4 10h16"/>
+            </svg>
+            <b id="monthlyHeroIncomeDays">0</b><small>дней с доходом</small>
+          </span>
+          <span>
+            <svg class="monthly-total-meta-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 3 8 4-8 4-8-4 8-4Z"/>
+              <path d="m4 12 8 4 8-4M4 17l8 4 8-4"/>
+            </svg>
+            <b id="monthlyHeroCategories">0</b><small>категорий</small>
+          </span>
+        </div>
+      </div>
+
       <div class="monthly-summary-card monthly-summary-average">
         <div class="monthly-summary-card-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
@@ -625,7 +652,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.22.10"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.22.13"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
@@ -635,7 +662,7 @@
 
 <script src="js/clear-data.js"></script>
 <script id="statistics-year-inline-v90-js" src="js/analytics-year.js"></script>
-<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.22.10"></script>
+<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.22.13"></script>
 
 
 <script id="qPokoyInlineNotice" src="js/notice.js"></script>
