@@ -3041,3 +3041,21 @@ body.qp-auth-locked #income .income-recent-pager{
     font-size:7.5px !important;
   }
 }
+
+
+/* Annual total — let the monthly chart use all free vertical space. */
+@media (min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .annual-total-desktop{
+    flex:1 1 auto !important;
+    min-height:0 !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-bars{
+    flex:1 1 auto !important;
+    height:auto !important;
+    min-height:76px !important;
+    margin-top:6px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-months{
+    flex:0 0 auto !important;
+  }
+}
