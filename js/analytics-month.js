@@ -203,7 +203,7 @@
       growthCard.classList.add(growth===null||growth===0?'neutral':growth>0?'positive':'negative');
     }
     if(growthEl){
-      growthEl.textContent=growth===null?'—':(growth>=0?'+':'')+growth.toFixed(1)+'%';
+      growthEl.textContent=growth===null?'—':(growth>=0?'+':'')+Math.trunc(growth)+'%';
     }
     if(growthNoteEl){
       const previousPeriodLabel=isCurrentMonth
@@ -237,7 +237,7 @@
       yearGrowthCard.classList.add(yearGrowth===null||yearGrowth===0?'neutral':yearGrowth>0?'positive':'negative');
     }
     if(yearGrowthEl){
-      yearGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'+':'')+yearGrowth.toFixed(1)+'%';
+      yearGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'+':'')+Math.trunc(yearGrowth)+'%';
     }
     if(heroGrowthEl){
       heroGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'↑ +':'↓ ')+Math.abs(yearGrowth).toFixed(1)+'%';
