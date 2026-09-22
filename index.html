@@ -149,7 +149,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.22.09"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.22.10"></script>
 
 
 
@@ -231,7 +231,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.22.09</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.22.10</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -326,11 +326,11 @@
     </div>
   </div>
 
-  <section class="income-analytics" id="incomeAnalytics" aria-label="Статистика доходов">
+  <section class="income-analytics is-monthly" id="incomeAnalytics" aria-label="Статистика доходов">
   <div class="analytics-mode-row">
     <div class="analytics-mode-tabs" id="analyticsModeTabs" role="tablist" aria-label="Период статистики">
-      <button type="button" class="analytics-mode-tab active" id="analyticsModeYear" data-analytics-mode="year" role="tab" aria-selected="true">Год</button>
-      <button type="button" class="analytics-mode-tab" id="analyticsModeMonth" data-analytics-mode="month" role="tab" aria-selected="false">Месяц</button>
+      <button type="button" class="analytics-mode-tab active" id="analyticsModeMonth" data-analytics-mode="month" role="tab" aria-selected="true">Месяц</button>
+      <button type="button" class="analytics-mode-tab" id="analyticsModeYear" data-analytics-mode="year" role="tab" aria-selected="false">Год</button>
     </div>
     <div class="analytics-mode-period">
       <div class="analytics-year-switcher" id="analyticsYearSwitcher" aria-label="Текущий год">
@@ -466,7 +466,7 @@
     </div>
   </div>
 
-  <div class="monthly-analytics" id="monthlyAnalytics" hidden>
+  <div class="monthly-analytics" id="monthlyAnalytics">
     <div class="monthly-analytics-head">
       <div class="monthly-analytics-total" id="monthlyAnalyticsTotal">0 ₽</div>
     </div>
@@ -625,7 +625,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.22.09"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.22.10"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
@@ -635,7 +635,7 @@
 
 <script src="js/clear-data.js"></script>
 <script id="statistics-year-inline-v90-js" src="js/analytics-year.js"></script>
-<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.21.02"></script>
+<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.22.10"></script>
 
 
 <script id="qPokoyInlineNotice" src="js/notice.js"></script>

@@ -297,7 +297,6 @@
     new MutationObserver(scheduleRender).observe(list,{childList:true,subtree:true});
   }
 
-  const saved=(()=>{try{return localStorage.getItem(MODE_KEY);}catch(e){return null;}})();
-  setMode(saved==='month'?'month':'year',false);
+  setMode('month',false);
   render();
 })();
