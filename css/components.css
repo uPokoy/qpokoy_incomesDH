@@ -3059,3 +3059,34 @@ body.qp-auth-locked #income .income-recent-pager{
     flex:0 0 auto !important;
   }
 }
+
+
+/* Annual total — larger amount, positioned closer to the visual center. */
+@media (min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .annual-total-desktop-head{
+    position:relative !important;
+    min-height:42px !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-copy{
+    position:absolute !important;
+    left:50% !important;
+    top:0 !important;
+    transform:translateX(-50%) !important;
+    align-items:center !important;
+    text-align:center !important;
+    pointer-events:none !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-copy > strong{
+    margin-top:0 !important;
+    font-size:clamp(31px,2.7vw,38px) !important;
+    font-weight:780 !important;
+    line-height:1 !important;
+    letter-spacing:-.04em !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .annual-total-growth{
+    position:absolute !important;
+    top:0 !important;
+    right:0 !important;
+    z-index:2 !important;
+  }
+}
