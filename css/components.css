@@ -3069,7 +3069,7 @@ body.qp-auth-locked #income .income-recent-pager{
   }
   #incomeAnalytics:not(.is-monthly) .annual-total-copy{
     position:absolute !important;
-    left:50% !important;
+    left:calc(50% - 10px) !important;
     top:0 !important;
     transform:translateX(-50%) !important;
     align-items:center !important;
