@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.22.07';
+const qPokoyDevVersion='dev-2026.09.22.08';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -741,7 +741,6 @@ window.renderIncomeAnalytics=function(){
   const annualHeroMonthsEl=document.getElementById('annualHeroMonths');
   const annualHeroCategoriesEl=document.getElementById('annualHeroCategories');
   const annualHeroGrowthEl=document.getElementById('annualHeroGrowth');
-  const annualHeroGrowthCaptionEl=document.getElementById('annualHeroGrowthCaption');
   const annualHeroBarsEl=document.getElementById('annualHeroBars');
   if(!yearEl||!totalEl||!avgActiveEl||!bestEl||!worstEl||!growthEl)return;
 
@@ -767,9 +766,6 @@ window.renderIncomeAnalytics=function(){
     annualHeroGrowthEl.classList.toggle('positive',growth!==null&&growth>0);
     annualHeroGrowthEl.classList.toggle('negative',growth!==null&&growth<0);
     annualHeroGrowthEl.classList.toggle('neutral',growth===0||growth===null);
-  }
-  if(annualHeroGrowthCaptionEl){
-    annualHeroGrowthCaptionEl.textContent=hasPrevious?`к ${year-1} году`:`нет данных за ${year-1}`;
   }
   if(annualHeroBarsEl){
     const annualMax=Math.max(...a.monthTotals,1);
