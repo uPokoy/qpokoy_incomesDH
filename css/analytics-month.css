@@ -1664,3 +1664,57 @@
     right:16px !important;
   }
 }
+
+
+/* Comparison badges live directly on the card so they cannot be clipped by the text body. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-body{
+    position:relative !important;
+    padding-right:0 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-corner-percent{
+    position:absolute !important;
+    z-index:4 !important;
+    top:14px !important;
+    right:16px !important;
+    min-width:44px !important;
+    height:28px !important;
+    margin:0 !important;
+    padding:0 9px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border:1px solid color-mix(in srgb,var(--danger) 30%,transparent) !important;
+    border-radius:9px !important;
+    background:color-mix(in srgb,var(--danger) 9%,transparent) !important;
+    color:var(--danger) !important;
+    font-size:12px !important;
+    font-weight:650 !important;
+    line-height:1 !important;
+    box-sizing:border-box !important;
+    white-space:nowrap !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard.positive .monthly-corner-percent,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard.positive .monthly-corner-percent{
+    border-color:color-mix(in srgb,var(--success) 30%,transparent) !important;
+    background:color-mix(in srgb,var(--success) 9%,transparent) !important;
+    color:var(--success) !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard.neutral .monthly-corner-percent,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard.neutral .monthly-corner-percent{
+    border-color:color-mix(in srgb,var(--text-muted) 26%,transparent) !important;
+    background:color-mix(in srgb,var(--text-muted) 8%,transparent) !important;
+    color:var(--text-muted) !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-label,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-label{
+    max-width:calc(100% - 72px) !important;
+  }
+}
