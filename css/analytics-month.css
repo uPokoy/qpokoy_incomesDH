@@ -1643,3 +1643,24 @@
     box-sizing:border-box !important;
   }
 }
+
+
+/* Fix comparison percentage badges: anchor them to the card, not the text body. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-body{
+    position:static !important;
+    padding-right:58px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-label,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-label{
+    max-width:calc(100% - 6px) !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthValue,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthValue{
+    top:14px !important;
+    right:16px !important;
+  }
+}
