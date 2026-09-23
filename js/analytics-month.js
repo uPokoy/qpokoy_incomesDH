@@ -213,11 +213,11 @@
       if(previousTotal<=0){
         growthNoteEl.textContent='Нет данных';
       }else if(difference>0){
-        growthNoteEl.textContent='На '+money(Math.abs(difference))+' больше';
+        growthNoteEl.textContent='↑ '+money(Math.abs(difference));
       }else if(difference<0){
-        growthNoteEl.textContent='На '+money(Math.abs(difference))+' меньше';
+        growthNoteEl.textContent='↓ '+money(Math.abs(difference));
       }else{
-        growthNoteEl.textContent='Без изменений';
+        growthNoteEl.textContent='— 0 ₽';
       }
     }
 
@@ -253,11 +253,11 @@
       if(lastYearTotal<=0){
         yearGrowthNoteEl.textContent='Нет данных';
       }else if(yearDifference>0){
-        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' больше';
+        yearGrowthNoteEl.textContent='↑ '+money(Math.abs(yearDifference));
       }else if(yearDifference<0){
-        yearGrowthNoteEl.textContent='На '+money(Math.abs(yearDifference))+' меньше';
+        yearGrowthNoteEl.textContent='↓ '+money(Math.abs(yearDifference));
       }else{
-        yearGrowthNoteEl.textContent='Без изменений';
+        yearGrowthNoteEl.textContent='— 0 ₽';
       }
     }
 
