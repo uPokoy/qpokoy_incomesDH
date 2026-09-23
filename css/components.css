@@ -3452,6 +3452,7 @@ body.qp-auth-locked #income .income-recent-pager{
     flex:0 0 48px;
     margin-left:auto !important;
     transform:none !important;
+    box-shadow:none !important;
   }
   #income .income-recent-controls > .add-income-btn:hover{
     transform:none !important;
