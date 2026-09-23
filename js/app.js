@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.38';
+const qPokoyDevVersion='dev-2026.09.23.39';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1612,6 +1612,21 @@ document.addEventListener('mouseup',()=>{
   },{passive:true});
 
   window.qPokoySetAnalyticsSettingsOpen=setOpen;
+
+  // Close settings before actions that change the dashboard context.
+  // Capture phase lets the original click continue normally afterwards.
+  document.addEventListener('click',event=>{
+    if(!analytics.classList.contains('is-settings-open'))return;
+    const target=event.target.closest(
+      '#monthPrev, #monthNext, #chartYearPrev, #chartYearNext, '+
+      '#analyticsYearPrev, #analyticsYearNext, '+
+      '#analyticsModeMonth, #analyticsModeYear, '+
+      '.income-chart-bar, .annual-total-bar, '+
+      '#openIncomeForm, #incomeRecentToggle'
+    );
+    if(!target)return;
+    setOpen(false);
+  },true);
 })();
 
 (function(){
