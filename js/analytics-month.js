@@ -277,7 +277,7 @@
         if(monthlyCategoriesToggleEl)monthlyCategoriesToggleEl.hidden=true;
       }else if(desktopCategories){
         let visibleCategories=categories.map(([name,value])=>({name,value,grouped:false,count:1}));
-        if(!expanded&&categories.length>3){
+        if(!expanded&&categories.length>4){
           const rest=categories.slice(3);
           const restTotal=rest.reduce((sum,item)=>sum+item[1],0);
           visibleCategories=[
@@ -286,8 +286,8 @@
           ];
         }
 
-        catsEl.classList.toggle('is-collapsed',!expanded&&categories.length>3);
-        catsEl.classList.toggle('is-expanded',expanded&&categories.length>3);
+        catsEl.classList.toggle('is-collapsed',!expanded&&categories.length>4);
+        catsEl.classList.toggle('is-expanded',expanded&&categories.length>4);
         catsEl.innerHTML=visibleCategories.map((item,index)=>{
           const pct=total?Math.round(item.value/total*100):0;
           const tone=item.grouped?'category-grouped':categoryTone(item.name,index);
@@ -301,7 +301,7 @@
         }).join('');
 
         if(monthlyCategoriesToggleEl){
-          const canToggle=categories.length>3;
+          const canToggle=categories.length>4;
           monthlyCategoriesToggleEl.hidden=!canToggle;
           const toggleLabel=expanded?'Свернуть категории':'Показать все категории';
           monthlyCategoriesToggleEl.setAttribute('aria-label',toggleLabel);
