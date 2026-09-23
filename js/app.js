@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.10';
+const qPokoyDevVersion='dev-2026.09.23.11';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -730,6 +730,7 @@ window.renderIncomeAnalytics=function(){
   const avgActiveEl=document.getElementById('analyticsAverageActive');
   const growthEl=document.getElementById('analyticsGrowth');
   const growthCaptionEl=document.getElementById('analyticsGrowthCaption');
+  const growthTooltipEl=document.getElementById('analyticsGrowthTooltip');
   const bestEl=document.getElementById('analyticsBest');
   const bestAmountEl=document.getElementById('analyticsBestAmount');
   const bestShareEl=document.getElementById('analyticsBestShare');
@@ -761,7 +762,9 @@ window.renderIncomeAnalytics=function(){
   growthEl.classList.toggle('positive',growth!==null&&growth>0);
   growthEl.classList.toggle('negative',growth!==null&&growth<0);
   growthEl.classList.toggle('neutral',growth===0||growth===null);
-  if(growthCaptionEl) growthCaptionEl.textContent=hasPrevious?`по сравнению с ${year-1} годом`:'нет данных за предыдущий год';
+  const growthCaption=hasPrevious?`по сравнению с ${year-1} годом`:'нет данных за предыдущий год';
+  if(growthCaptionEl) growthCaptionEl.textContent=growthCaption;
+  if(growthTooltipEl) growthTooltipEl.textContent=growthCaption;
 
   if(annualHeroGrowthEl){
     annualHeroGrowthEl.textContent=growth===null?'—':`${growth>=0?'↑ +':'↓ '}${Math.abs(growth).toFixed(1)}%`;
