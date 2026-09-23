@@ -3540,3 +3540,194 @@ body.qp-auth-locked #income .income-recent-pager{
     margin-bottom:14px !important;
   }
 }
+
+
+/* Horizontal settings tabs: compact selected layout. */
+@media(min-width:901px){
+  #incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings{
+    display:block !important;
+    width:100%;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-heading{
+    margin:0 0 12px;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-title{
+    color:var(--text);
+    font-size:21px;
+    font-weight:700;
+    line-height:1.15;
+    letter-spacing:-.02em;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-subtitle{
+    margin-top:4px;
+    color:var(--text-muted);
+    font-size:12px;
+    line-height:1.35;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:0;
+    margin:0 0 12px;
+    padding:3px;
+    border:1px solid var(--border);
+    border-radius:11px;
+    background:color-mix(in srgb,var(--panel-muted) 92%,transparent);
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tab{
+    min-width:0;
+    height:36px;
+    padding:0 12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border:1px solid transparent;
+    border-radius:8px !important;
+    background:transparent;
+    color:var(--text-muted);
+    font-size:12px;
+    font-weight:600;
+    line-height:1;
+    cursor:pointer;
+    box-shadow:none;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tab:hover{
+    color:var(--text);
+    background:color-mix(in srgb,var(--panel) 82%,var(--primary) 18%);
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tab.active{
+    color:var(--text);
+    border-color:color-mix(in srgb,var(--primary) 72%,var(--border));
+    background:color-mix(in srgb,var(--primary) 17%,var(--panel));
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 14%,transparent);
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tab svg{
+    width:16px;
+    height:16px;
+    flex:0 0 16px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+
+  /* All old cards are hidden first; the chosen tab reveals only its content. */
+  #incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings > .settings-card{
+    display:none !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:20px !important;
+    border:1px solid var(--border) !important;
+    border-radius:14px !important;
+    background:color-mix(in srgb,var(--panel) 97%,var(--primary) 3%) !important;
+    box-shadow:none !important;
+  }
+
+  /* Appearance: interface color + background become one visual panel. */
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] > #qpAppearanceCard,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] > #qpBackgroundSettings{
+    display:block !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] > #qpAppearanceCard{
+    border-bottom:0 !important;
+    border-radius:14px 14px 0 0 !important;
+    padding-bottom:14px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] > #qpBackgroundSettings{
+    margin-top:0 !important;
+    padding-top:16px !important;
+    border-top:1px solid color-mix(in srgb,var(--border) 82%,transparent) !important;
+    border-radius:0 0 14px 14px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] #qpAppearanceCard .qp-category-manager{
+    display:none !important;
+  }
+
+  /* Category manager shares the original appearance card technically,
+     but becomes the only visible content in its tab. */
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] > #qpAppearanceCard{
+    display:block !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] #qpAppearanceCard > .settings-row,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] #qpAppearanceCard > .nav-label-mode-title,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] #qpAppearanceCard > .nav-label-mode-options{
+    display:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] #qpAppearanceCard .qp-category-manager{
+    display:block !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] > #qpDataCard{
+    display:block !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="account"] > #qpAccountCard{
+    display:block !important;
+  }
+
+  /* Bottom-panel appearance options are not part of the desktop settings anymore. */
+  #incomeAnalytics .analytics-settings-host .nav-label-mode-title,
+  #incomeAnalytics .analytics-settings-host .nav-label-mode-options{
+    display:none !important;
+  }
+
+  /* Compact content matching the reference. */
+  #incomeAnalytics .analytics-settings-host #qpAppearanceCard .settings-row{
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpAppearanceCard .settings-row > div:first-child{
+    margin:0 0 10px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpAppearanceCard .settings-title,
+  #incomeAnalytics .analytics-settings-host #qpBackgroundSettings > .settings-title,
+  #incomeAnalytics .analytics-settings-host #qpDataCard > .settings-title,
+  #incomeAnalytics .analytics-settings-host #qpAccountCard > .settings-title,
+  #incomeAnalytics .analytics-settings-host .qp-category-manager-title{
+    margin:0 0 10px !important;
+    color:var(--text) !important;
+    font-size:15px !important;
+    font-weight:650 !important;
+    line-height:1.2 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpBackgroundSettings .qp-background-options{
+    margin-top:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpDataCard > div[style]{
+    margin-top:10px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpAccountCard .qp-account-row{
+    margin-top:10px !important;
+  }
+}
