@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.22';
+const qPokoyDevVersion='dev-2026.09.23.23';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -840,12 +840,18 @@ window.renderIncomeAnalytics=function(){
         ?'category-grouped'
         :(name==='Зарплата'?'salary':(name==='Аванс'?'advance':(name==='Другое'?'other':'pension')));
       const displayName=item.grouped?'Другие ('+item.count+')':name;
+      const categoryVisual=desktopCategories&&!item.grouped&&typeof window.qPokoyCategoryVisual==='function'
+        ?window.qPokoyCategoryVisual(name,0)
+        :null;
+      const categoryIcon=item.grouped
+        ?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>'
+        :(categoryVisual&&categoryVisual.icon
+          ?categoryVisual.icon
+          :'<svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg>');
       const tag=item.grouped?'div':'button';
       const attrs=item.grouped?'':` type="button" data-category="${escapeHtml(name)}"`;
       return `<${tag}${attrs} class="analytics-category-panel ${categoryClass}">
-        <span class="analytics-category-panel-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg>
-        </span>
+        <span class="analytics-category-panel-icon" aria-hidden="true">${categoryIcon}</span>
         <span class="analytics-category-panel-body">
           <span class="analytics-category-panel-name">${escapeHtml(displayName)}</span>
           <strong class="analytics-category-panel-value">${formatMoney(value)}</strong>
