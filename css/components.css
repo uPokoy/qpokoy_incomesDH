@@ -3825,3 +3825,57 @@ body.qp-auth-locked #income .income-recent-pager{
     height:0;
   }
 }
+
+
+/* Settings cleanup: three tabs, merged account/data, fixed gear-close position. */
+@media(min-width:901px){
+  #incomeAnalytics .analytics-settings-host .qp-settings-heading{
+    display:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    margin-top:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle,
+  #incomeAnalytics .analytics-settings-toggle.is-active{
+    position:relative !important;
+    z-index:42 !important;
+    top:auto !important;
+    right:auto !important;
+    width:38px !important;
+    min-width:38px !important;
+    max-width:38px !important;
+    height:38px !important;
+    min-height:38px !important;
+    max-height:38px !important;
+    margin-left:auto !important;
+    padding:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle .analytics-settings-gear-icon,
+  #incomeAnalytics .analytics-settings-toggle .analytics-settings-close-icon{
+    width:19px !important;
+    height:19px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle.is-active .analytics-settings-close-icon{
+    width:19px !important;
+    height:19px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] > #qpDataCard,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] > #qpAccountCard{
+    display:block !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] > #qpAccountCard{
+    margin-top:12px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] .nav-label-mode-title,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] .nav-label-mode-options{
+    display:none !important;
+  }
+}
