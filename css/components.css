@@ -3311,3 +3311,35 @@ body.qp-auth-locked #income .income-recent-pager{
     text-transform:none !important;
   }
 }
+
+
+/* Home recent header: temporary desktop entry point to full history. */
+#income .income-recent-history{
+  display:none;
+}
+@media(min-width:761px){
+  #income .income-recent-history{
+    height:30px;
+    margin-left:8px;
+    padding:0 11px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--border);
+    border-radius:9px;
+    background:var(--panel-muted);
+    color:var(--text-muted);
+    font:inherit;
+    font-size:12px;
+    font-weight:600;
+    line-height:1;
+    white-space:nowrap;
+    cursor:pointer;
+    transition:color .15s ease,background .15s ease,border-color .15s ease;
+  }
+  #income .income-recent-history:hover{
+    color:var(--text);
+    background:var(--active);
+    border-color:color-mix(in srgb,var(--primary) 30%,var(--border));
+  }
+}
