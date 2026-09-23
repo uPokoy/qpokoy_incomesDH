@@ -1743,3 +1743,47 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
     font-variant-numeric:tabular-nums !important;
   }
 }
+
+
+/* Monthly comparison amount: custom trend icon that matches the card style. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly #monthlyGrowthNote,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote{
+    display:flex !important;
+    align-items:center !important;
+    gap:7px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthNote::before,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote::before{
+    content:"" !important;
+    width:18px !important;
+    height:18px !important;
+    flex:0 0 18px !important;
+    background:var(--text-muted) !important;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 7l6 6 4-4 4 4M14 13h5V8' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat !important;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 7l6 6 4-4 4 4M14 13h5V8' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard.negative #monthlyGrowthNote::before,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard.negative #monthlyYearGrowthNote::before{
+    background:var(--danger) !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard.positive #monthlyGrowthNote::before,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard.positive #monthlyYearGrowthNote::before{
+    background:var(--success) !important;
+    transform:scaleY(-1) !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard.neutral #monthlyGrowthNote::before,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard.neutral #monthlyYearGrowthNote::before{
+    width:16px !important;
+    height:2px !important;
+    flex-basis:16px !important;
+    -webkit-mask:none !important;
+    mask:none !important;
+    border-radius:999px !important;
+    background:var(--text-muted) !important;
+  }
+}

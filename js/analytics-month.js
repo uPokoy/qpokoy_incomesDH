@@ -213,9 +213,9 @@
       if(previousTotal<=0){
         growthNoteEl.textContent='Нет данных';
       }else if(difference>0){
-        growthNoteEl.textContent='↑ '+money(Math.abs(difference));
+        growthNoteEl.textContent=money(Math.abs(difference));
       }else if(difference<0){
-        growthNoteEl.textContent='↓ '+money(Math.abs(difference));
+        growthNoteEl.textContent=money(Math.abs(difference));
       }else{
         growthNoteEl.textContent='— 0 ₽';
       }
@@ -253,9 +253,9 @@
       if(lastYearTotal<=0){
         yearGrowthNoteEl.textContent='Нет данных';
       }else if(yearDifference>0){
-        yearGrowthNoteEl.textContent='↑ '+money(Math.abs(yearDifference));
+        yearGrowthNoteEl.textContent=money(Math.abs(yearDifference));
       }else if(yearDifference<0){
-        yearGrowthNoteEl.textContent='↓ '+money(Math.abs(yearDifference));
+        yearGrowthNoteEl.textContent=money(Math.abs(yearDifference));
       }else{
         yearGrowthNoteEl.textContent='— 0 ₽';
       }
