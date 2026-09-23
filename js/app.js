@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.23';
+const qPokoyDevVersion='dev-2026.09.23.24';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -116,6 +116,7 @@ const incomeList=document.getElementById('incomeList');
 const incomeTotal=document.getElementById('incomeTotal');
 const incomeRecent=document.getElementById('incomeRecent');
 const incomeRecentToggle=document.getElementById('incomeRecentToggle');
+const incomeRecentHistory=document.getElementById('incomeRecentHistory');
 
 function setIncomeRecentCollapsed(collapsed,persist=true){
   if(!incomeRecent||!incomeRecentToggle)return;
@@ -129,6 +130,11 @@ if(incomeRecent&&incomeRecentToggle){
   setIncomeRecentCollapsed(localStorage.getItem('incomeRecentCollapsed')==='1',false);
   incomeRecentToggle.addEventListener('click',()=>{
     setIncomeRecentCollapsed(!incomeRecent.classList.contains('is-collapsed'));
+  });
+}
+if(incomeRecentHistory){
+  incomeRecentHistory.addEventListener('click',()=>{
+    document.getElementById('historyNavItem')?.click();
   });
 }
 
