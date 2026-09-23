@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.18';
+const qPokoyDevVersion='dev-2026.09.23.19';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -857,7 +857,9 @@ window.renderIncomeAnalytics=function(){
     if(annualCategoriesToggleEl){
       const canToggle=desktopCategories&&categories.length>3;
       annualCategoriesToggleEl.hidden=!canToggle;
-      annualCategoriesToggleEl.textContent=expanded?'Свернуть категории':'Показать все категории';
+      const toggleLabel=expanded?'Свернуть категории':'Показать все категории';
+      annualCategoriesToggleEl.setAttribute('aria-label',toggleLabel);
+      annualCategoriesToggleEl.title=toggleLabel;
       annualCategoriesToggleEl.setAttribute('aria-expanded',expanded?'true':'false');
       annualCategoriesToggleEl.onclick=canToggle?()=>{
         catsEl.dataset.categoriesExpanded=expanded?'false':'true';
