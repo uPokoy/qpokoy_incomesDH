@@ -44,3 +44,21 @@
     margin:5px 0 0!important;font-size:22px!important;font-weight:700!important;line-height:1.05!important
   }
 }
+
+/* Average card info control: keep the title and info button on one line. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-label{
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:5px !important;
+    width:max-content !important;
+    max-width:100% !important;
+    margin:0 0 4px !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-info{
+    display:grid !important;
+    flex:0 0 16px !important;
+  }
+}
