@@ -3212,3 +3212,62 @@ body.qp-auth-locked #income .income-recent-pager{
     display:none !important;
   }
 }
+
+
+/* Annual best/worst: month name on the same line as the label. */
+@media(min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body{
+    display:grid !important;
+    grid-template-columns:max-content max-content !important;
+    grid-template-areas:
+      "label month"
+      "amount amount" !important;
+    column-gap:5px !important;
+    row-gap:6px !important;
+    align-items:center !important;
+    justify-content:start !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > span{
+    grid-area:label !important;
+    display:block !important;
+    margin:0 !important;
+    font-size:12px !important;
+    line-height:1.25 !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > strong,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > strong{
+    grid-area:month !important;
+    display:block !important;
+    margin:0 !important;
+    font-size:12px !important;
+    font-weight:700 !important;
+    line-height:1.25 !important;
+    text-transform:lowercase !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > strong{
+    color:color-mix(in srgb,var(--success) 74%,var(--text)) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > strong{
+    color:color-mix(in srgb,var(--danger) 74%,var(--text)) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > b,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > b{
+    grid-area:amount !important;
+    display:block !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-hint,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-hint{
+    display:none !important;
+  }
+}
