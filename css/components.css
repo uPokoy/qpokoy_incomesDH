@@ -3936,3 +3936,30 @@ body.qp-auth-locked #income .income-recent-pager{
     white-space:nowrap !important;
   }
 }
+
+
+/* Settings geometry: tabs match close button and content width. */
+@media(min-width:901px){
+  #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
+    box-sizing:border-box !important;
+    width:calc(100% - 12px) !important;
+    height:38px !important;
+    min-height:38px !important;
+    max-height:38px !important;
+    padding:2px !important;
+    margin:6px 12px 18px 0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tab{
+    height:32px !important;
+    min-height:32px !important;
+    max-height:32px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings > .settings-card{
+    box-sizing:border-box !important;
+    width:calc(100% - 12px) !important;
+    max-width:calc(100% - 12px) !important;
+    margin-right:12px !important;
+  }
+}
