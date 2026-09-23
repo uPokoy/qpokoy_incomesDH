@@ -62,3 +62,23 @@
     flex:0 0 16px !important;
   }
 }
+
+
+/* Best category percentage: pin to the card corner like comparison badges. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly .monthly-summary-best{
+    position:relative!important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body{
+    position:static!important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-share{
+    position:absolute!important;
+    z-index:4!important;
+    top:14px!important;
+    right:16px!important;
+    margin:0!important;
+  }
+}
