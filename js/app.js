@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.24';
+const qPokoyDevVersion='dev-2026.09.23.25';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -117,13 +117,40 @@ const incomeTotal=document.getElementById('incomeTotal');
 const incomeRecent=document.getElementById('incomeRecent');
 const incomeRecentToggle=document.getElementById('incomeRecentToggle');
 const incomeRecentHistory=document.getElementById('incomeRecentHistory');
+const incomeRecentHistoryPanel=document.getElementById('incomeRecentHistoryPanel');
+const historyPage=document.getElementById('history');
+const historySearchWrap=document.getElementById('historySearchWrap');
+const incomeTableSection=document.getElementById('incomeTableSection');
 
 function setIncomeRecentCollapsed(collapsed,persist=true){
   if(!incomeRecent||!incomeRecentToggle)return;
   incomeRecent.classList.toggle('is-collapsed',collapsed);
   incomeRecentToggle.setAttribute('aria-expanded',collapsed?'false':'true');
-  incomeRecentToggle.setAttribute('title',collapsed?'Показать последние доходы':'Скрыть последние доходы');
+  const historyOpen=incomeRecent.classList.contains('is-history-open');
+  incomeRecentToggle.setAttribute('title',collapsed
+    ?(historyOpen?'Показать историю':'Показать последние доходы')
+    :(historyOpen?'Скрыть историю':'Скрыть последние доходы'));
   if(persist)localStorage.setItem('incomeRecentCollapsed',collapsed?'1':'0');
+}
+
+function setIncomeRecentHistoryOpen(open){
+  if(!incomeRecent||!incomeRecentHistory||!incomeRecentHistoryPanel||!historyPage)return;
+  const next=!!open;
+  incomeRecent.classList.toggle('is-history-open',next);
+  incomeRecentHistoryPanel.hidden=!next;
+  incomeRecentHistory.textContent=next?'Последние доходы':'Вся история';
+  incomeRecentHistory.setAttribute('aria-pressed',next?'true':'false');
+
+  if(next){
+    if(historySearchWrap)incomeRecentHistoryPanel.appendChild(historySearchWrap);
+    if(incomeTableSection)incomeRecentHistoryPanel.appendChild(incomeTableSection);
+    if(typeof window.renderIncomes==='function')window.renderIncomes();
+  }else{
+    if(historySearchWrap)historyPage.appendChild(historySearchWrap);
+    if(incomeTableSection)historyPage.appendChild(incomeTableSection);
+  }
+
+  setIncomeRecentCollapsed(incomeRecent.classList.contains('is-collapsed'),false);
 }
 
 if(incomeRecent&&incomeRecentToggle){
@@ -134,9 +161,19 @@ if(incomeRecent&&incomeRecentToggle){
 }
 if(incomeRecentHistory){
   incomeRecentHistory.addEventListener('click',()=>{
-    document.getElementById('historyNavItem')?.click();
+    setIncomeRecentHistoryOpen(!incomeRecent.classList.contains('is-history-open'));
   });
 }
+
+// The old History navigation remains functional while this transition is in progress.
+// Restore its DOM before leaving the main page so that the standalone page is never empty.
+document.querySelectorAll('.nav-item[data-page]').forEach(item=>{
+  item.addEventListener('click',()=>{
+    if(item.dataset.page!=='income'&&incomeRecent?.classList.contains('is-history-open')){
+      setIncomeRecentHistoryOpen(false);
+    }
+  },true);
+});
 
 /* Автоподгонка главной суммы под доступную ширину.
    Обычные суммы сохраняют исходный размер шрифта; уменьшаем его
