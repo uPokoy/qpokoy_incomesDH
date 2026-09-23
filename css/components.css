@@ -3498,7 +3498,8 @@ body.qp-auth-locked #income .income-recent-pager{
   #incomeAnalytics.is-settings-open > .analytics-category-panels,
   #incomeAnalytics.is-settings-open > .analytics-categories-toggle,
   #incomeAnalytics.is-settings-open > .monthly-analytics{
-    display:none !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
   }
 
   #incomeAnalytics.is-settings-open .analytics-settings-host{
@@ -3729,5 +3730,98 @@ body.qp-auth-locked #income .income-recent-pager{
 
   #incomeAnalytics .analytics-settings-host #qpAccountCard .qp-account-row{
     margin-top:10px !important;
+  }
+}
+
+
+/* Settings overlay: cover the Month / Year analytics window without resizing it. */
+@media(min-width:901px){
+  #incomeAnalytics{
+    position:relative !important;
+    overflow:hidden !important;
+  }
+
+  #incomeAnalytics .analytics-settings-close-icon{
+    display:none;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle.is-active{
+    position:absolute !important;
+    z-index:42 !important;
+    top:18px !important;
+    right:18px !important;
+    margin:0 !important;
+    color:var(--text) !important;
+    background:var(--panel-muted) !important;
+    border-color:var(--border) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle.is-active .analytics-settings-gear-icon{
+    display:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle.is-active .analytics-settings-close-icon{
+    display:block !important;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle.is-active .analytics-settings-close-icon{
+    width:18px !important;
+    height:18px !important;
+    stroke-width:2 !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    position:absolute !important;
+    z-index:40 !important;
+    inset:0 !important;
+    width:auto !important;
+    height:auto !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:20px 64px 20px 24px !important;
+    overflow:auto !important;
+    box-sizing:border-box !important;
+    border-radius:inherit !important;
+    background:var(--panel) !important;
+    box-shadow:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host #settings.analytics-inline-settings{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host .qp-settings-heading{
+    padding-right:8px !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    scrollbar-width:thin;
+    scrollbar-color:color-mix(in srgb,var(--text-muted) 45%,transparent) transparent;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host::-webkit-scrollbar{
+    width:8px;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host::-webkit-scrollbar-track{
+    background:transparent;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host::-webkit-scrollbar-thumb{
+    border:2px solid transparent;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--text-muted) 45%,transparent);
+    background-clip:padding-box;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host::-webkit-scrollbar-button{
+    display:none;
+    width:0;
+    height:0;
   }
 }
