@@ -3443,8 +3443,19 @@ body.qp-auth-locked #income .income-recent-pager{
     position:relative;
     padding-bottom:40px;
   }
+  #income .income-recent-controls{
+    min-height:48px;
+  }
   #income .income-recent-controls > .add-income-btn{
-    margin-left:auto;
+    position:absolute !important;
+    top:14px;
+    right:0;
+    z-index:3;
+    margin:0 !important;
+    transform:none !important;
+  }
+  #income .income-recent-controls > .add-income-btn:hover{
+    transform:none !important;
   }
   #income .income-recent-bottom-actions{
     position:absolute;
