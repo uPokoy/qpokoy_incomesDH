@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.34';
+const qPokoyDevVersion='dev-2026.09.23.35';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1575,7 +1575,7 @@ document.addEventListener('mouseup',()=>{
       host.appendChild(settings);
       settings.classList.add('analytics-inline-settings');
       settings.style.removeProperty('display');
-      if(typeof window.qPokoySetSettingsTab==='function')window.qPokoySetSettingsTab('appearance');
+      if(typeof window.qPokoySetSettingsTab==='function')window.qPokoySetSettingsTab('categories');
     }else{
       host.hidden=true;
       restoreSettingsHome();
@@ -1603,11 +1603,11 @@ document.addEventListener('mouseup',()=>{
   const settings=document.getElementById('settings');
   if(!settings)return;
 
-  const allowed=['appearance','categories','data','account'];
+  const allowed=['categories','appearance','data'];
   const buttons=[...settings.querySelectorAll('.qp-settings-tab[data-settings-tab-target]')];
 
   function setTab(tab){
-    const next=allowed.includes(tab)?tab:'appearance';
+    const next=allowed.includes(tab)?tab:'categories';
     settings.dataset.settingsTab=next;
     buttons.forEach(btn=>{
       const active=btn.dataset.settingsTabTarget===next;
@@ -1622,7 +1622,7 @@ document.addEventListener('mouseup',()=>{
     setTab(btn.dataset.settingsTabTarget);
   }));
 
-  setTab('appearance');
+  setTab('categories');
   window.qPokoySetSettingsTab=setTab;
 })();
 
