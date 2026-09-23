@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.23.30">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.23.31">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.23.33">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.21.05">
 <link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.23.04">
 <link rel="stylesheet" href="css/monthly-card-alignment.css?v=dev-2026.09.23.22">
@@ -150,7 +150,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.23.32"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.23.33"></script>
 
 
 
@@ -232,7 +232,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.23.32</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.23.33</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -585,13 +585,32 @@
 <div class="income-list" id="incomeList"></div>
   </div>
 </section>
-      <section id="settings" class="page">
+      <section id="settings" class="page" data-settings-tab="appearance">
+        <div class="qp-settings-heading">
+          <div class="qp-settings-title">Настройки</div>
+          <div class="qp-settings-subtitle">Все важные настройки в одном месте</div>
+        </div>
 
+        <div class="qp-settings-tabs" role="tablist" aria-label="Разделы настроек">
+          <button type="button" class="qp-settings-tab active" data-settings-tab-target="appearance" role="tab" aria-selected="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h4a5 5 0 0 0 0-10h-4Z"/><circle cx="7.5" cy="10" r="1"/><circle cx="9" cy="6.5" r="1"/><circle cx="14" cy="6.5" r="1"/></svg>
+            <span>Внешний вид</span>
+          </button>
+          <button type="button" class="qp-settings-tab" data-settings-tab-target="categories" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>
+            <span>Категории</span>
+          </button>
+          <button type="button" class="qp-settings-tab" data-settings-tab-target="data" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"/></svg>
+            <span>Данные</span>
+          </button>
+          <button type="button" class="qp-settings-tab" data-settings-tab-target="account" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            <span>Аккаунт</span>
+          </button>
+        </div>
 
-
-
-
-        <div class="settings-card">
+        <div class="settings-card" id="qpAppearanceCard">
 <div class="settings-row">
     <div>
       <div class="settings-title">Цвет интерфейса</div>
@@ -626,7 +645,7 @@
   </div>
 </div>
 
-<div class="settings-card" style="margin-top:16px;">
+<div class="settings-card" id="qpDataCard" style="margin-top:16px;">
         <div class="settings-title">Данные</div>
         <div class="settings-card-subtitle"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
@@ -652,7 +671,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.23.32"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.23.33"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
