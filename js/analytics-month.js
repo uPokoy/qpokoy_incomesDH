@@ -124,6 +124,7 @@
     const yearGrowthCard=document.getElementById('monthlyYearGrowthCard');
     const yearGrowthInfoEl=yearGrowthCard?yearGrowthCard.querySelector('.monthly-summary-info'):null;
     const catsEl=document.getElementById('monthlyAnalyticsCategories');
+    const monthlyCategoriesToggleEl=document.getElementById('monthlyCategoriesToggle');
     const heroTotalEl=document.getElementById('monthlyHeroTotal');
     const heroGrowthEl=document.getElementById('monthlyHeroGrowth');
     const heroBarsEl=document.getElementById('monthlyHeroBars');
@@ -262,9 +263,56 @@
     }
 
     if(catsEl){
+      const desktopCategories=window.matchMedia('(min-width:901px)').matches;
+      const periodKey=period.year+'-'+period.month;
+      if(catsEl.dataset.categoryPeriod!==periodKey){
+        catsEl.dataset.categoryPeriod=periodKey;
+        catsEl.dataset.categoriesExpanded='false';
+      }
+      const expanded=desktopCategories&&catsEl.dataset.categoriesExpanded==='true';
+
       if(!categories.length){
+        catsEl.classList.remove('is-collapsed','is-expanded');
         catsEl.innerHTML='<div class="monthly-analytics-empty">Нет доходов за выбранный месяц</div>';
+        if(monthlyCategoriesToggleEl)monthlyCategoriesToggleEl.hidden=true;
+      }else if(desktopCategories){
+        let visibleCategories=categories.map(([name,value])=>({name,value,grouped:false,count:1}));
+        if(!expanded&&categories.length>3){
+          const rest=categories.slice(3);
+          const restTotal=rest.reduce((sum,item)=>sum+item[1],0);
+          visibleCategories=[
+            ...categories.slice(0,3).map(([name,value])=>({name,value,grouped:false,count:1})),
+            {name:'Другие',value:restTotal,grouped:true,count:rest.length}
+          ];
+        }
+
+        catsEl.classList.toggle('is-collapsed',!expanded&&categories.length>3);
+        catsEl.classList.toggle('is-expanded',expanded&&categories.length>3);
+        catsEl.innerHTML=visibleCategories.map((item,index)=>{
+          const pct=total?Math.round(item.value/total*100):0;
+          const tone=item.grouped?'category-grouped':categoryTone(item.name,index);
+          const displayName=item.grouped?'Другие ('+item.count+')':item.name;
+          return '<div class="monthly-category-card '+tone+'">'+
+            '<div class="monthly-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg></div>'+
+            '<span class="monthly-category-share">'+pct+'%</span>'+
+            '<span class="monthly-category-name">'+escapeText(displayName)+'</span>'+
+            '<strong class="monthly-category-value">'+escapeText(money(item.value))+'</strong>'+
+          '</div>';
+        }).join('');
+
+        if(monthlyCategoriesToggleEl){
+          const canToggle=categories.length>3;
+          monthlyCategoriesToggleEl.hidden=!canToggle;
+          monthlyCategoriesToggleEl.textContent=expanded?'Свернуть категории':'Показать все категории';
+          monthlyCategoriesToggleEl.setAttribute('aria-expanded',expanded?'true':'false');
+          monthlyCategoriesToggleEl.onclick=canToggle?()=>{
+            catsEl.dataset.categoriesExpanded=expanded?'false':'true';
+            render();
+          }:null;
+        }
       }else{
+        // Keep the established mobile behavior unchanged.
+        catsEl.classList.remove('is-collapsed','is-expanded');
         const remainingCategories=categories.slice(1);
         catsEl.innerHTML=remainingCategories.map(([name,value],index)=>{
           const pct=total?Math.round(value/total*100):0;
@@ -276,6 +324,7 @@
             '<strong class="monthly-category-value">'+escapeText(money(value))+'</strong>'+
           '</div>';
         }).join('');
+        if(monthlyCategoriesToggleEl)monthlyCategoriesToggleEl.hidden=true;
       }
     }
   }
