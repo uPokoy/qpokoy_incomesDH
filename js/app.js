@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.28';
+const qPokoyDevVersion='dev-2026.09.23.29';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -187,6 +187,14 @@ if(incomeRecent&&incomeRecentToggle){
     event.preventDefault();
     event.stopPropagation();
     const collapsed=incomeRecent.classList.contains('is-collapsed');
+
+    // The chevron always returns this shell to the "Последние доходы" mode.
+    // If full history is open, close it first; then apply the requested
+    // collapse/expand state so the next visible content is the recent cards.
+    if(incomeRecent.classList.contains('is-history-open')){
+      setIncomeRecentHistoryOpen(false);
+    }
+
     setIncomeRecentCollapsed(!collapsed,true);
   });
 }
