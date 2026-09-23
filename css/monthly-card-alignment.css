@@ -170,3 +170,89 @@
     background:rgba(148,163,184,.07) !important;
   }
 }
+
+
+/* Desktop category palette: restrained financial tones only. */
+@media(min-width:901px){
+  /* Annual categories */
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel.salary{
+    --category:#3f8f72 !important;
+    --category-soft:rgba(63,143,114,.075) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel.advance{
+    --category:#4b78a8 !important;
+    --category-soft:rgba(75,120,168,.075) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel.other{
+    --category:#5f7187 !important;
+    --category-soft:rgba(95,113,135,.075) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel.pension{
+    --category:#667085 !important;
+    --category-soft:rgba(102,112,133,.075) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped){
+    border-color:color-mix(in srgb,var(--category) 32%,var(--border)) !important;
+    background:color-mix(in srgb,var(--panel) 98%,var(--category) 2%) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped)::after{
+    background:var(--category-soft) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped) .analytics-category-panel-icon{
+    color:var(--category) !important;
+    background:color-mix(in srgb,var(--category) 10%,transparent) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped) .analytics-category-panel-share{
+    color:var(--category) !important;
+    background:color-mix(in srgb,var(--category) 7%,transparent) !important;
+    border-color:color-mix(in srgb,var(--category) 20%,transparent) !important;
+  }
+
+  /* Monthly categories */
+  #incomeAnalytics.is-monthly .monthly-category-card.salary,
+  #incomeAnalytics.is-monthly .monthly-category-card.teal{
+    --monthly-category:#3f8f72 !important;
+    --monthly-category-soft:rgba(63,143,114,.075) !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-category-card.advance,
+  #incomeAnalytics.is-monthly .monthly-category-card.blue{
+    --monthly-category:#4b78a8 !important;
+    --monthly-category-soft:rgba(75,120,168,.075) !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-category-card.other,
+  #incomeAnalytics.is-monthly .monthly-category-card.violet{
+    --monthly-category:#5f7187 !important;
+    --monthly-category-soft:rgba(95,113,135,.075) !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-category-card.pension,
+  #incomeAnalytics.is-monthly .monthly-category-card.amber{
+    --monthly-category:#667085 !important;
+    --monthly-category-soft:rgba(102,112,133,.075) !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-category-card.cyan{
+    --monthly-category:#3f7f86 !important;
+    --monthly-category-soft:rgba(63,127,134,.075) !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-category-card.slate{
+    --monthly-category:#607286 !important;
+    --monthly-category-soft:rgba(96,114,134,.075) !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-card:not(.category-grouped){
+    border-color:color-mix(in srgb,var(--monthly-category) 32%,var(--border)) !important;
+    background:color-mix(in srgb,var(--panel) 98%,var(--monthly-category) 2%) !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-category-card:not(.category-grouped)::after{
+    background:var(--monthly-category-soft) !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-category-card:not(.category-grouped) .monthly-category-icon{
+    color:var(--monthly-category) !important;
+    background:color-mix(in srgb,var(--monthly-category) 10%,transparent) !important;
+  }
+  #incomeAnalytics.is-monthly .monthly-category-card:not(.category-grouped) .monthly-category-share{
+    color:var(--monthly-category) !important;
+    background:color-mix(in srgb,var(--monthly-category) 7%,transparent) !important;
+    border-color:color-mix(in srgb,var(--monthly-category) 20%,transparent) !important;
+  }
+}
