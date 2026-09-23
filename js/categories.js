@@ -136,22 +136,50 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
     if(!popup||!value||!hidden)return;
     popup.innerHTML='';
     if(!categories.length){
-      const empty=document.createElement('div');empty.className='category-option';empty.textContent='Категорий пока нет';empty.style.cursor='default';empty.style.color='var(--text-muted)';popup.appendChild(empty);
+      const empty=document.createElement('div');empty.className='category-option category-option-empty';empty.textContent='Категорий пока нет';empty.style.cursor='default';empty.style.color='var(--text-muted)';popup.appendChild(empty);
       hidden.value='';value.textContent='Добавьте категорию';
-      return;
-    }
-    sortCategories(categories).forEach(cat=>{
-      const option=document.createElement('button');
-      option.type='button';option.className='category-option';option.dataset.value=cat.name;option.textContent=cat.name;
-      if(hidden.value===cat.name)option.classList.add('selected');
-      option.addEventListener('click',function(e){
-        e.stopPropagation();hidden.value=cat.name;value.textContent=cat.name;
-        popup.querySelectorAll('.category-option').forEach(o=>o.classList.remove('selected'));option.classList.add('selected');
-        popup.classList.remove('open');document.getElementById('categorySelect')?.classList.remove('open');
-        hidden.closest('label')?.classList.remove('field-invalid');
+    }else{
+      sortCategories(categories).forEach(cat=>{
+        const option=document.createElement('button');
+        option.type='button';option.className='category-option';option.dataset.value=cat.name;option.textContent=cat.name;
+        if(hidden.value===cat.name)option.classList.add('selected');
+        option.addEventListener('click',function(e){
+          e.stopPropagation();hidden.value=cat.name;value.textContent=cat.name;
+          popup.querySelectorAll('.category-option').forEach(o=>o.classList.remove('selected'));option.classList.add('selected');
+          popup.classList.remove('open');document.getElementById('categorySelect')?.classList.remove('open');
+          hidden.closest('label')?.classList.remove('field-invalid');
+        });
+        popup.appendChild(option);
       });
-      popup.appendChild(option);
-    });
+    }
+
+    if(window.matchMedia('(min-width:761px)').matches){
+      const createRow=document.createElement('div');
+      createRow.className='category-popup-create';
+      createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Новая категория" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';
+      const input=createRow.querySelector('.category-popup-create-input');
+      const button=createRow.querySelector('.category-popup-create-btn');
+      const submit=async function(e){
+        e?.preventDefault();
+        e?.stopPropagation();
+        const created=await createCategoryRecord(input.value);
+        if(!created)return;
+        hidden.value=created.name;
+        value.textContent=created.name;
+        hidden.closest('label')?.classList.remove('field-invalid');
+        renderManager();
+        renderIncomeCategoryOptions();
+        popup.classList.remove('open');
+        document.getElementById('categorySelect')?.classList.remove('open');
+      };
+      createRow.addEventListener('click',e=>e.stopPropagation());
+      button.addEventListener('click',submit);
+      input.addEventListener('keydown',e=>{
+        e.stopPropagation();
+        if(e.key==='Enter')submit(e);
+      });
+      popup.appendChild(createRow);
+    }
   }
 
   async function loadForUser(user){
@@ -182,17 +210,26 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
     renderManager();renderIncomeCategoryOptions();
   };
 
-  async function addCategory(){
+  async function createCategoryRecord(rawName){
     const c=client();
-    const input=document.getElementById('qpCategoryInput');
-    const name=normalizeName(input?.value);
-    if(!c||!currentUser)return;
-    if(!name){if(window.qPokoyNotice)window.qPokoyNotice('Категория не добавлена','Введите название категории.','error');return;}
-    if(categories.some(x=>x.name.toLocaleLowerCase('ru-RU')===name.toLocaleLowerCase('ru-RU'))){if(window.qPokoyNotice)window.qPokoyNotice('Категория уже существует','Введите другое название.','error');return;}
+    const name=normalizeName(rawName);
+    if(!c||!currentUser)return null;
+    if(!name){if(window.qPokoyNotice)window.qPokoyNotice('Категория не добавлена','Введите название категории.','error');return null;}
+    if(categories.some(x=>x.name.toLocaleLowerCase('ru-RU')===name.toLocaleLowerCase('ru-RU'))){if(window.qPokoyNotice)window.qPokoyNotice('Категория уже существует','Введите другое название.','error');return null;}
     const {data,error}=await c.from(TABLE).insert({user_id:currentUser.id,name}).select('id,user_id,name,created_at').single();
-    if(error){console.error('[qPokoy categories] add error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось добавить категорию',error.message||'Попробуйте ещё раз.','error');return;}
-    categories=sortCategories(categories.concat({id:String(data.id),name:normalizeName(data.name)}));
-    input.value='';renderManager();renderIncomeCategoryOptions();
+    if(error){console.error('[qPokoy categories] add error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось добавить категорию',error.message||'Попробуйте ещё раз.','error');return null;}
+    const created={id:String(data.id),name:normalizeName(data.name)};
+    categories=sortCategories(categories.concat(created));
+    return created;
+  }
+
+  async function addCategory(){
+    const input=document.getElementById('qpCategoryInput');
+    const created=await createCategoryRecord(input?.value);
+    if(!created)return;
+    input.value='';
+    renderManager();
+    renderIncomeCategoryOptions();
   }
 
   async function removeCategory(id){
