@@ -303,7 +303,9 @@
         if(monthlyCategoriesToggleEl){
           const canToggle=categories.length>3;
           monthlyCategoriesToggleEl.hidden=!canToggle;
-          monthlyCategoriesToggleEl.textContent=expanded?'Свернуть категории':'Показать все категории';
+          const toggleLabel=expanded?'Свернуть категории':'Показать все категории';
+          monthlyCategoriesToggleEl.setAttribute('aria-label',toggleLabel);
+          monthlyCategoriesToggleEl.title=toggleLabel;
           monthlyCategoriesToggleEl.setAttribute('aria-expanded',expanded?'true':'false');
           monthlyCategoriesToggleEl.onclick=canToggle?()=>{
             catsEl.dataset.categoriesExpanded=expanded?'false':'true';
