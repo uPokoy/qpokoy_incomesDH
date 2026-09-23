@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.16';
+const qPokoyDevVersion='dev-2026.09.23.17';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -738,6 +738,7 @@ window.renderIncomeAnalytics=function(){
   const worstAmountEl=document.getElementById('analyticsWorstAmount');
   const worstShareEl=document.getElementById('analyticsWorstShare');
   const catsEl=document.getElementById('analyticsCategories');
+  const annualCategoriesToggleEl=document.getElementById('annualCategoriesToggle');
   const annualHeroTotalEl=document.getElementById('annualHeroTotal');
   const annualHeroTotalMobileEl=document.getElementById('annualHeroTotalMobile');
   const annualHeroYearMobileEl=document.getElementById('annualHeroYearMobile');
@@ -809,21 +810,61 @@ window.renderIncomeAnalytics=function(){
 
   const categories=Object.entries(a.categoryTotals).sort((x,y)=>y[1]-x[1]);
   if(annualHeroCategoriesEl) annualHeroCategoriesEl.textContent=String(categories.length);
-  const catMax=Math.max(...categories.map(x=>x[1]),1);
-  catsEl.innerHTML=categories.length?categories.map(([name,value])=>{
-    const pct=a.total?value/a.total*100:0;
-    const categoryClass = name === 'Зарплата' ? 'salary' : (name === 'Аванс' ? 'advance' : (name === 'Другое' ? 'other' : 'pension'));
-    return `<button type="button" class="analytics-category-panel ${categoryClass}" data-category="${escapeHtml(name)}">
-      <span class="analytics-category-panel-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg>
-      </span>
-      <span class="analytics-category-panel-body">
-        <span class="analytics-category-panel-name">${escapeHtml(name)}</span>
-        <strong class="analytics-category-panel-value">${formatMoney(value)}</strong>
-      </span>
-      <span class="analytics-category-panel-share">${pct.toFixed(0)}%</span>
-    </button>`;
-  }).join(''):'<div class="income-empty">Нет данных за этот год</div>';
+
+  if(catsEl){
+    const desktopCategories=window.matchMedia('(min-width:901px)').matches;
+    const periodKey=String(a.year);
+    if(catsEl.dataset.categoryPeriod!==periodKey){
+      catsEl.dataset.categoryPeriod=periodKey;
+      catsEl.dataset.categoriesExpanded='false';
+    }
+    const expanded=desktopCategories&&catsEl.dataset.categoriesExpanded==='true';
+    let visibleCategories=categories.map(([name,value])=>({name,value,grouped:false,count:1}));
+    if(desktopCategories&&!expanded&&categories.length>3){
+      const rest=categories.slice(3);
+      const restTotal=rest.reduce((sum,item)=>sum+item[1],0);
+      visibleCategories=[
+        ...categories.slice(0,3).map(([name,value])=>({name,value,grouped:false,count:1})),
+        {name:'Другие',value:restTotal,grouped:true,count:rest.length}
+      ];
+    }
+
+    catsEl.classList.toggle('is-collapsed',desktopCategories&&!expanded&&categories.length>3);
+    catsEl.classList.toggle('is-expanded',desktopCategories&&expanded&&categories.length>3);
+
+    catsEl.innerHTML=categories.length?visibleCategories.map((item)=>{
+      const name=item.name;
+      const value=item.value;
+      const pct=a.total?value/a.total*100:0;
+      const categoryClass=item.grouped
+        ?'category-grouped'
+        :(name==='Зарплата'?'salary':(name==='Аванс'?'advance':(name==='Другое'?'other':'pension')));
+      const displayName=item.grouped?'Другие ('+item.count+')':name;
+      const tag=item.grouped?'div':'button';
+      const attrs=item.grouped?'':` type="button" data-category="${escapeHtml(name)}"`;
+      return `<${tag}${attrs} class="analytics-category-panel ${categoryClass}">
+        <span class="analytics-category-panel-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg>
+        </span>
+        <span class="analytics-category-panel-body">
+          <span class="analytics-category-panel-name">${escapeHtml(displayName)}</span>
+          <strong class="analytics-category-panel-value">${formatMoney(value)}</strong>
+        </span>
+        <span class="analytics-category-panel-share">${pct.toFixed(0)}%</span>
+      </${tag}>`;
+    }).join(''):'<div class="income-empty">Нет данных за этот год</div>';
+
+    if(annualCategoriesToggleEl){
+      const canToggle=desktopCategories&&categories.length>3;
+      annualCategoriesToggleEl.hidden=!canToggle;
+      annualCategoriesToggleEl.textContent=expanded?'Свернуть категории':'Показать все категории';
+      annualCategoriesToggleEl.setAttribute('aria-expanded',expanded?'true':'false');
+      annualCategoriesToggleEl.onclick=canToggle?()=>{
+        catsEl.dataset.categoriesExpanded=expanded?'false':'true';
+        window.renderIncomeAnalytics();
+      }:null;
+    }
+  }
 
 };
 
