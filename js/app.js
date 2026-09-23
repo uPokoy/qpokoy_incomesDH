@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.20';
+const qPokoyDevVersion='dev-2026.09.23.21';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -820,7 +820,7 @@ window.renderIncomeAnalytics=function(){
     }
     const expanded=desktopCategories&&catsEl.dataset.categoriesExpanded==='true';
     let visibleCategories=categories.map(([name,value])=>({name,value,grouped:false,count:1}));
-    if(desktopCategories&&!expanded&&categories.length>3){
+    if(desktopCategories&&!expanded&&categories.length>4){
       const rest=categories.slice(3);
       const restTotal=rest.reduce((sum,item)=>sum+item[1],0);
       visibleCategories=[
@@ -829,8 +829,8 @@ window.renderIncomeAnalytics=function(){
       ];
     }
 
-    catsEl.classList.toggle('is-collapsed',desktopCategories&&!expanded&&categories.length>3);
-    catsEl.classList.toggle('is-expanded',desktopCategories&&expanded&&categories.length>3);
+    catsEl.classList.toggle('is-collapsed',desktopCategories&&!expanded&&categories.length>4);
+    catsEl.classList.toggle('is-expanded',desktopCategories&&expanded&&categories.length>4);
 
     catsEl.innerHTML=categories.length?visibleCategories.map((item)=>{
       const name=item.name;
@@ -855,7 +855,7 @@ window.renderIncomeAnalytics=function(){
     }).join(''):'<div class="income-empty">Нет данных за этот год</div>';
 
     if(annualCategoriesToggleEl){
-      const canToggle=desktopCategories&&categories.length>3;
+      const canToggle=desktopCategories&&categories.length>4;
       annualCategoriesToggleEl.hidden=!canToggle;
       const toggleLabel=expanded?'Свернуть категории':'Показать все категории';
       annualCategoriesToggleEl.setAttribute('aria-label',toggleLabel);
