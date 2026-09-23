@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.31';
+const qPokoyDevVersion='dev-2026.09.23.32';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -78,19 +78,6 @@ navItems.forEach(item=>item.addEventListener('click',()=>{
 document.documentElement.setAttribute('data-theme','dark');
 document.body.classList.add('dark');
 localStorage.removeItem('theme');
-
-const iconColors=document.querySelectorAll('.icon-color');
-function setIconColor(color){
-  document.documentElement.style.setProperty('--icon-color',color);
-  iconColors.forEach(b=>b.classList.toggle('active',b.dataset.iconColor===color));
-  localStorage.setItem('iconColor',color);
-}
-iconColors.forEach(b=>b.addEventListener('click',()=>setIconColor(b.dataset.iconColor)));
-const customIconColor=document.getElementById('customIconColor');
-const savedIconColor=localStorage.getItem('iconColor')||'#6b7280';
-setIconColor(savedIconColor);
-customIconColor.value=savedIconColor;
-customIconColor.addEventListener('input',e=>setIconColor(e.target.value));
 
 const navLabelModeButtons=document.querySelectorAll('.nav-label-mode-btn');
 function setNavLabelMode(mode){
@@ -1611,13 +1598,13 @@ document.addEventListener('mouseup',()=>{
   window.qPokoySetAnalyticsSettingsOpen=setOpen;
 })();
 
-document.querySelectorAll('.page:not(#settings) .settings-card, .page:not(#settings) .icon-color-title, .page:not(#settings) .icon-colors').forEach(el=>el.remove());
+document.querySelectorAll('.page:not(#settings) .settings-card').forEach(el=>el.remove());
 
 (function(){
   function enforceSettingsOnly(){
     const settings=document.getElementById('settings');
     if(!settings) return;
-    document.querySelectorAll('.settings-card, .icon-color-title, .icon-colors').forEach(function(el){
+    document.querySelectorAll('.settings-card').forEach(function(el){
       if(!settings.contains(el)){
         el.remove();
       }
@@ -1627,12 +1614,12 @@ document.querySelectorAll('.page:not(#settings) .settings-card, .page:not(#setti
       document.getElementById('incomeAnalytics')?.classList.contains('is-settings-open');
     if(inlineOpen){
       settings.style.removeProperty('display');
-      settings.querySelectorAll('.settings-card, .icon-color-title, .icon-colors').forEach(function(el){
+      settings.querySelectorAll('.settings-card').forEach(function(el){
         el.style.removeProperty('display');
       });
     } else if(active && active.id!=='settings'){
       settings.style.setProperty('display','none','important');
-      settings.querySelectorAll('.settings-card, .icon-color-title, .icon-colors').forEach(function(el){
+      settings.querySelectorAll('.settings-card').forEach(function(el){
         el.style.removeProperty('display');
       });
     } else if(active && active.id==='settings'){
