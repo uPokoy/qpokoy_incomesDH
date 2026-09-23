@@ -3963,3 +3963,24 @@ body.qp-auth-locked #income .income-recent-pager{
     margin-right:12px !important;
   }
 }
+
+
+/* Settings categories: hover clearance and scrollbar gap. */
+@media(min-width:901px){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-list{
+    box-sizing:border-box !important;
+    padding:2px 12px 2px 2px !important;
+    height:210px !important;
+    min-height:210px !important;
+    max-height:210px !important;
+    scrollbar-gutter:stable !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-item{
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-item:hover{
+    outline-offset:-1px !important;
+  }
+}
