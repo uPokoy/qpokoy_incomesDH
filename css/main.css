@@ -83,7 +83,7 @@ main { width: min(1180px, 100%); margin: 0 auto; padding: clamp(18px, 3vw, 34px)
   left: 0;
   height: 68px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
   background: color-mix(in srgb, var(--panel) 96%, transparent);
   border-top: 1px solid var(--border);
