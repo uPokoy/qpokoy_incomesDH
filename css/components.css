@@ -3879,3 +3879,60 @@ body.qp-auth-locked #income .income-recent-pager{
     display:none !important;
   }
 }
+
+
+/* Settings polish: tab clearance, appearance spacing, four-column categories. */
+@media(min-width:901px){
+  /* Keep the tab strip aligned with, but clear of, the close button. */
+  #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
+    width:calc(100% - 12px) !important;
+    margin:6px 12px 18px 0 !important;
+  }
+
+  /* Appearance: one continuous panel, no center divider, a little air below colors. */
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] > #qpAppearanceCard{
+    padding-bottom:22px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="appearance"] > #qpBackgroundSettings{
+    padding-top:10px !important;
+    border-top:0 !important;
+  }
+
+  /* Data: account comes first, data actions second. */
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] > #qpAccountCard{
+    margin-top:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] > #qpDataCard{
+    margin-top:12px !important;
+  }
+
+  /* Categories: 4 cards per row, with a fixed viewport of 3 rows. */
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-list{
+    display:grid !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    grid-auto-rows:62px !important;
+    gap:10px !important;
+    height:206px !important;
+    min-height:206px !important;
+    max-height:206px !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    align-content:start !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-item{
+    min-width:0 !important;
+    height:62px !important;
+    min-height:62px !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-name{
+    min-width:0 !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+}
