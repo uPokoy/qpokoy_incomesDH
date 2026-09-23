@@ -1726,3 +1726,20 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
   display:none !important;
   visibility:hidden !important;
 }
+
+
+/* Monthly comparison difference: same emphasis as the amount in Best category. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly #monthlyGrowthNote,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote{
+    max-width:none !important;
+    margin:6px 0 0 !important;
+    color:var(--text) !important;
+    font-size:22px !important;
+    font-weight:700 !important;
+    line-height:1.05 !important;
+    letter-spacing:-.02em !important;
+    white-space:nowrap !important;
+    font-variant-numeric:tabular-nums !important;
+  }
+}
