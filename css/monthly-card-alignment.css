@@ -256,3 +256,52 @@
     border-color:color-mix(in srgb,var(--monthly-category) 20%,transparent) !important;
   }
 }
+
+
+/* Category expand/collapse control: same chevron icon button as the home header. */
+@media(min-width:901px){
+  #incomeAnalytics .analytics-categories-toggle:not([hidden]){
+    width:30px !important;
+    min-width:30px !important;
+    height:30px !important;
+    min-height:30px !important;
+    margin:10px auto 0 !important;
+    padding:0 6px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border:1px solid var(--border) !important;
+    border-radius:9px !important;
+    background:var(--panel-muted) !important;
+    color:var(--text-muted) !important;
+    box-shadow:none !important;
+    font:inherit !important;
+    cursor:pointer !important;
+  }
+
+  #incomeAnalytics .analytics-categories-toggle:not([hidden]):hover{
+    color:var(--text) !important;
+    background:var(--active) !important;
+    border-color:var(--border) !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-categories-toggle svg{
+    width:16px !important;
+    height:16px !important;
+    fill:none !important;
+    stroke:currentColor !important;
+    stroke-width:2 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+    transition:transform .18s ease !important;
+  }
+
+  #incomeAnalytics .analytics-categories-toggle[aria-expanded="false"] svg{
+    transform:rotate(0deg) !important;
+  }
+
+  #incomeAnalytics .analytics-categories-toggle[aria-expanded="true"] svg{
+    transform:rotate(180deg) !important;
+  }
+}
