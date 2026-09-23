@@ -150,7 +150,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.23.05"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.23.06"></script>
 
 
 
@@ -232,7 +232,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.23.05</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.23.06</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -519,9 +519,8 @@
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
         </div>
         <div class="monthly-summary-card-body">
-          <span>Средний доход в день</span>
+          <div class="monthly-summary-card-label"><span>Средний доход в день</span><button class="monthly-summary-info" type="button" aria-label="Как считается средний доход в день" aria-expanded="false">i</button><span class="monthly-summary-tooltip" id="monthlyAverageDayNote" role="tooltip"></span></div>
           <strong id="monthlyAverageDay">0 ₽</strong>
-          <small id="monthlyAverageDayNote"></small>
         </div>
       </div>
 
@@ -653,7 +652,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.23.05"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.23.06"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
