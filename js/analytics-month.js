@@ -292,8 +292,16 @@
           const pct=total?Math.round(item.value/total*100):0;
           const tone=item.grouped?'category-grouped':categoryTone(item.name,index);
           const displayName=item.grouped?'Другие ('+item.count+')':item.name;
+          const categoryVisual=!item.grouped&&typeof window.qPokoyCategoryVisual==='function'
+            ?window.qPokoyCategoryVisual(item.name,index)
+            :null;
+          const categoryIcon=item.grouped
+            ?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>'
+            :(categoryVisual&&categoryVisual.icon
+              ?categoryVisual.icon
+              :'<svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg>');
           return '<div class="monthly-category-card '+tone+'">'+
-            '<div class="monthly-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg></div>'+
+            '<div class="monthly-category-icon" aria-hidden="true">'+categoryIcon+'</div>'+
             '<span class="monthly-category-share">'+pct+'%</span>'+
             '<span class="monthly-category-name">'+escapeText(displayName)+'</span>'+
             '<strong class="monthly-category-value">'+escapeText(money(item.value))+'</strong>'+
