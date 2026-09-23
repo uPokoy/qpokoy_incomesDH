@@ -3103,3 +3103,50 @@ body.qp-auth-locked #income .income-recent-pager{
     box-shadow:0 0 12px color-mix(in srgb,var(--primary) 18%,transparent) !important;
   }
 }
+
+
+/* Annual best/worst month share badges. */
+#incomeAnalytics .annual-month-share{
+  display:none;
+}
+@media(min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst{
+    position:relative !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-month-share{
+    position:absolute !important;
+    z-index:4 !important;
+    top:14px !important;
+    right:16px !important;
+    min-width:44px !important;
+    height:28px !important;
+    padding:0 9px !important;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
+    border-radius:9px;
+    font-size:12px !important;
+    font-weight:650 !important;
+    line-height:1 !important;
+    white-space:nowrap;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-month-share[hidden]{
+    display:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-month-share-best{
+    border:1px solid color-mix(in srgb,var(--success) 30%,transparent);
+    background:color-mix(in srgb,var(--success) 9%,transparent);
+    color:var(--success) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-month-share-worst{
+    border:1px solid color-mix(in srgb,var(--danger) 30%,transparent);
+    background:color-mix(in srgb,var(--danger) 9%,transparent);
+    color:var(--danger) !important;
+  }
+}
