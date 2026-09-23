@@ -762,3 +762,24 @@ body.dark textarea,
     filter:brightness(1.06);
   }
 }
+
+
+/* Desktop income validation: no layout jump and identical required-field outline. */
+@media (min-width:761px){
+  #incomeForm .form-grid > label{
+    position:relative;
+  }
+
+  #incomeForm .field-invalid::after{
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0;
+    margin:0;
+  }
+
+  #incomeForm .field-invalid input,
+  #incomeForm .field-invalid .category-select{
+    border-color:#ef4444 !important;
+    box-shadow:0 0 0 2px rgba(239,68,68,.14) !important;
+  }
+}
