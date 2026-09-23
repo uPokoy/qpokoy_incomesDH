@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.26';
+const qPokoyDevVersion='dev-2026.09.23.27';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -122,45 +122,78 @@ const historyPage=document.getElementById('history');
 const historySearchWrap=document.getElementById('historySearchWrap');
 const incomeTableSection=document.getElementById('incomeTableSection');
 
+function syncIncomeRecentBody(){
+  if(!incomeRecent||!incomeRecentHistoryPanel)return;
+  const collapsed=incomeRecent.classList.contains('is-collapsed');
+  const historyOpen=incomeRecent.classList.contains('is-history-open');
+
+  if(historyOpen){
+    incomeRecentHistoryPanel.hidden=collapsed;
+    if(!collapsed){
+      if(historySearchWrap&&historySearchWrap.parentElement!==incomeRecentHistoryPanel){
+        incomeRecentHistoryPanel.appendChild(historySearchWrap);
+      }
+      if(incomeTableSection&&incomeTableSection.parentElement!==incomeRecentHistoryPanel){
+        incomeRecentHistoryPanel.appendChild(incomeTableSection);
+      }
+    }
+  }else{
+    incomeRecentHistoryPanel.hidden=true;
+  }
+}
+
 function setIncomeRecentCollapsed(collapsed,persist=true){
   if(!incomeRecent||!incomeRecentToggle)return;
-  incomeRecent.classList.toggle('is-collapsed',collapsed);
-  incomeRecentToggle.setAttribute('aria-expanded',collapsed?'false':'true');
+  const next=!!collapsed;
+  incomeRecent.classList.toggle('is-collapsed',next);
+  incomeRecentToggle.setAttribute('aria-expanded',next?'false':'true');
   const historyOpen=incomeRecent.classList.contains('is-history-open');
-  incomeRecentToggle.setAttribute('title',collapsed
+  incomeRecentToggle.setAttribute('title',next
     ?(historyOpen?'Показать историю':'Показать последние доходы')
     :(historyOpen?'Скрыть историю':'Скрыть последние доходы'));
-  if(persist)localStorage.setItem('incomeRecentCollapsed',collapsed?'1':'0');
+  syncIncomeRecentBody();
+  if(persist)localStorage.setItem('incomeRecentCollapsed',next?'1':'0');
 }
 
 function setIncomeRecentHistoryOpen(open){
   if(!incomeRecent||!incomeRecentHistory||!incomeRecentHistoryPanel||!historyPage)return;
   const next=!!open;
   incomeRecent.classList.toggle('is-history-open',next);
-  incomeRecentHistoryPanel.hidden=!next;
   incomeRecentHistory.textContent=next?'Последние доходы':'Вся история';
   incomeRecentHistory.setAttribute('aria-pressed',next?'true':'false');
 
   if(next){
-    if(historySearchWrap)incomeRecentHistoryPanel.appendChild(historySearchWrap);
-    if(incomeTableSection)incomeRecentHistoryPanel.appendChild(incomeTableSection);
+    // Full History must always become visible immediately, even if the recent block was collapsed.
+    setIncomeRecentCollapsed(false,true);
+    if(historySearchWrap&&historySearchWrap.parentElement!==incomeRecentHistoryPanel){
+      incomeRecentHistoryPanel.appendChild(historySearchWrap);
+    }
+    if(incomeTableSection&&incomeTableSection.parentElement!==incomeRecentHistoryPanel){
+      incomeRecentHistoryPanel.appendChild(incomeTableSection);
+    }
+    incomeRecentHistoryPanel.hidden=false;
     if(typeof window.renderIncomes==='function')window.renderIncomes();
   }else{
-    if(historySearchWrap)historyPage.appendChild(historySearchWrap);
-    if(incomeTableSection)historyPage.appendChild(incomeTableSection);
+    incomeRecentHistoryPanel.hidden=true;
+    if(historySearchWrap&&historySearchWrap.parentElement!==historyPage)historyPage.appendChild(historySearchWrap);
+    if(incomeTableSection&&incomeTableSection.parentElement!==historyPage)historyPage.appendChild(incomeTableSection);
+    syncIncomeRecentBody();
   }
-
-  setIncomeRecentCollapsed(incomeRecent.classList.contains('is-collapsed'),false);
 }
 
 if(incomeRecent&&incomeRecentToggle){
   setIncomeRecentCollapsed(localStorage.getItem('incomeRecentCollapsed')==='1',false);
-  incomeRecentToggle.addEventListener('click',()=>{
-    setIncomeRecentCollapsed(!incomeRecent.classList.contains('is-collapsed'));
+  incomeRecentToggle.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    const collapsed=incomeRecent.classList.contains('is-collapsed');
+    setIncomeRecentCollapsed(!collapsed,true);
   });
 }
 if(incomeRecentHistory){
-  incomeRecentHistory.addEventListener('click',()=>{
+  incomeRecentHistory.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
     setIncomeRecentHistoryOpen(!incomeRecent.classList.contains('is-history-open'));
   });
 }
