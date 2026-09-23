@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.30';
+const qPokoyDevVersion='dev-2026.09.23.31';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1556,6 +1556,61 @@ document.addEventListener('mouseup',()=>{
 })();
 
 
+(function(){
+  const analytics=document.getElementById('incomeAnalytics');
+  const toggle=document.getElementById('analyticsSettingsToggle');
+  const host=document.getElementById('analyticsSettingsHost');
+  const settings=document.getElementById('settings');
+  if(!analytics||!toggle||!host||!settings)return;
+
+  const homeParent=settings.parentNode;
+  const homeAnchor=document.createComment('qPokoy-settings-home');
+  homeParent.insertBefore(homeAnchor,settings);
+  const desktop=()=>window.matchMedia('(min-width:901px)').matches;
+
+  function restoreSettingsHome(){
+    if(homeAnchor.parentNode&&settings.parentNode!==homeAnchor.parentNode){
+      homeAnchor.parentNode.insertBefore(settings,homeAnchor.nextSibling);
+    }
+    settings.classList.remove('analytics-inline-settings');
+  }
+
+  function setOpen(open){
+    const next=!!open&&desktop();
+    analytics.classList.toggle('is-settings-open',next);
+    toggle.classList.toggle('is-active',next);
+    toggle.setAttribute('aria-expanded',next?'true':'false');
+    toggle.setAttribute('aria-label',next?'Закрыть настройки':'Настройки');
+    toggle.title=next?'Закрыть настройки':'Настройки';
+
+    if(next){
+      host.hidden=false;
+      host.appendChild(settings);
+      settings.classList.add('analytics-inline-settings');
+      settings.style.removeProperty('display');
+    }else{
+      host.hidden=true;
+      restoreSettingsHome();
+      const active=document.querySelector('.page.active');
+      if(active&&active.id!=='settings'){
+        settings.style.setProperty('display','none','important');
+      }
+    }
+  }
+
+  toggle.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    setOpen(!analytics.classList.contains('is-settings-open'));
+  });
+
+  window.addEventListener('resize',()=>{
+    if(!desktop()&&analytics.classList.contains('is-settings-open'))setOpen(false);
+  },{passive:true});
+
+  window.qPokoySetAnalyticsSettingsOpen=setOpen;
+})();
+
 document.querySelectorAll('.page:not(#settings) .settings-card, .page:not(#settings) .icon-color-title, .page:not(#settings) .icon-colors').forEach(el=>el.remove());
 
 (function(){
@@ -1568,7 +1623,14 @@ document.querySelectorAll('.page:not(#settings) .settings-card, .page:not(#setti
       }
     });
     const active=document.querySelector('.page.active');
-    if(active && active.id!=='settings'){
+    const inlineOpen=!!settings.closest('#analyticsSettingsHost')&&
+      document.getElementById('incomeAnalytics')?.classList.contains('is-settings-open');
+    if(inlineOpen){
+      settings.style.removeProperty('display');
+      settings.querySelectorAll('.settings-card, .icon-color-title, .icon-colors').forEach(function(el){
+        el.style.removeProperty('display');
+      });
+    } else if(active && active.id!=='settings'){
       settings.style.setProperty('display','none','important');
       settings.querySelectorAll('.settings-card, .icon-color-title, .icon-colors').forEach(function(el){
         el.style.removeProperty('display');
