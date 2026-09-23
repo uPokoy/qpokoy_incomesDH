@@ -4034,3 +4034,13 @@ body.qp-auth-locked #income .income-recent-pager{
     outline-offset:-1px !important;
   }
 }
+
+
+/* Desktop settings: category add button without glow. */
+@media(min-width:901px){
+  #settings .qp-category-add button,
+  #settings .qp-category-add button:hover,
+  #settings .qp-category-add button:active{
+    box-shadow:none !important;
+  }
+}
