@@ -1,0 +1,46 @@
+/* qPokoy monthly side-card alignment override */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly .monthly-summary-card{align-items:center!important}
+  #incomeAnalytics.is-monthly .monthly-summary-card .monthly-summary-card-body{
+    width:calc(100% - 72px)!important;max-width:calc(100% - 72px)!important;
+    margin:0!important;padding:0!important;display:block!important;position:relative!important
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-card .monthly-summary-card-label,
+  #incomeAnalytics.is-monthly .monthly-summary-card .monthly-summary-card-body>span{
+    display:block!important;margin:0 0 4px!important;
+    color:color-mix(in srgb,var(--text) 72%,var(--text-muted))!important;
+    font-size:12px!important;line-height:1.25!important
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-category-row{
+    display:block!important;margin:0!important;line-height:1!important
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-category-row>strong{
+    display:inline-block!important;margin:0!important;font-size:20px!important;
+    font-weight:650!important;line-height:1.1!important
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body>b{
+    display:block!important;margin:6px 0 0!important;font-size:22px!important;
+    font-weight:700!important;line-height:1.05!important
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-body>strong{
+    display:block!important;margin:5px 0 0!important;font-size:25px!important;
+    font-weight:700!important;line-height:1.05!important
+  }
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-body>small{
+    display:block!important;max-width:150px!important;margin:5px 0 0!important;
+    font-size:10px!important;line-height:1.25!important
+  }
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-body{
+    display:block!important;width:calc(100% - 86px)!important;max-width:calc(100% - 86px)!important;
+    margin:0!important;padding:0!important
+  }
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-label,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-label{
+    display:block!important;max-width:none!important;margin:0 0 4px!important
+  }
+  #incomeAnalytics.is-monthly #monthlyGrowthNote,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote{
+    margin:5px 0 0!important;font-size:22px!important;font-weight:700!important;line-height:1.05!important
+  }
+}
