@@ -3271,3 +3271,33 @@ body.qp-auth-locked #income .income-recent-pager{
     display:none !important;
   }
 }
+
+
+/* Force annual best/worst title + month onto one physical line. */
+@media(min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body{
+    display:block !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > span{
+    display:inline !important;
+    margin:0 !important;
+    vertical-align:baseline !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > strong,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > strong{
+    display:inline !important;
+    margin:0 0 0 5px !important;
+    vertical-align:baseline !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > b,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > b{
+    display:block !important;
+    margin:6px 0 0 !important;
+  }
+}
