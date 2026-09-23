@@ -3343,3 +3343,52 @@ body.qp-auth-locked #income .income-recent-pager{
     border-color:color-mix(in srgb,var(--primary) 30%,var(--border));
   }
 }
+
+
+/* Full History inside the recent-income shell. */
+#income .income-recent-history-panel[hidden]{
+  display:none !important;
+}
+@media(min-width:761px){
+  #income .income-recent.is-history-open .income-recent-grid,
+  #income .income-recent.is-history-open .income-recent-pager{
+    display:none !important;
+  }
+
+  #income .income-recent.is-history-open .income-recent-history{
+    margin-left:auto;
+  }
+
+  #income .income-recent-history-panel{
+    width:100%;
+    min-width:0;
+  }
+
+  #income .income-recent.is-history-open .income-recent-history-panel{
+    display:block;
+  }
+
+  #income .income-recent.is-collapsed .income-recent-history-panel{
+    display:none !important;
+  }
+
+  #income .income-recent-history-panel #historySearchWrap{
+    margin:0 0 12px;
+  }
+
+  #income .income-recent-history-panel .income-table-section{
+    margin:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+  }
+
+  #income .income-recent-history-panel .income-list{
+    max-height:calc(100vh - 260px);
+    overflow:auto;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--panel);
+  }
+}
