@@ -305,3 +305,28 @@
     transform:rotate(180deg) !important;
   }
 }
+
+
+/* Category card geometry: fixed four-column grid and label-aligned amounts. */
+@media(min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panels,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panels.is-collapsed,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panels.is-expanded,
+  #incomeAnalytics.is-monthly .monthly-category-panels,
+  #incomeAnalytics.is-monthly .monthly-category-panels.is-collapsed,
+  #incomeAnalytics.is-monthly .monthly-category-panels.is-expanded{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-value{
+    grid-column:2 / 4 !important;
+    grid-row:2 !important;
+    justify-self:start !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-value{
+    grid-column:2 / 4 !important;
+    grid-row:2 !important;
+    justify-self:start !important;
+  }
+}
