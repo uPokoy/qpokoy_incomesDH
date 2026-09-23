@@ -3433,3 +3433,11 @@ body.qp-auth-locked #income .income-recent-pager{
     height:0;
   }
 }
+
+
+/* Hide full-history shortcut while recent-income shell is collapsed. */
+@media(min-width:761px){
+  #income .income-recent.is-collapsed .income-recent-history{
+    display:none !important;
+  }
+}
