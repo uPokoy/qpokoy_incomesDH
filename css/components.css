@@ -3301,3 +3301,13 @@ body.qp-auth-locked #income .income-recent-pager{
     margin:6px 0 0 !important;
   }
 }
+
+
+/* Tighten annual title/month spacing and preserve month capitalization. */
+@media(min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > strong,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > strong{
+    margin-left:2px !important;
+    text-transform:none !important;
+  }
+}
