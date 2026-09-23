@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.32';
+const qPokoyDevVersion='dev-2026.09.23.33';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1575,6 +1575,7 @@ document.addEventListener('mouseup',()=>{
       host.appendChild(settings);
       settings.classList.add('analytics-inline-settings');
       settings.style.removeProperty('display');
+      if(typeof window.qPokoySetSettingsTab==='function')window.qPokoySetSettingsTab('appearance');
     }else{
       host.hidden=true;
       restoreSettingsHome();
@@ -1596,6 +1597,33 @@ document.addEventListener('mouseup',()=>{
   },{passive:true});
 
   window.qPokoySetAnalyticsSettingsOpen=setOpen;
+})();
+
+(function(){
+  const settings=document.getElementById('settings');
+  if(!settings)return;
+
+  const allowed=['appearance','categories','data','account'];
+  const buttons=[...settings.querySelectorAll('.qp-settings-tab[data-settings-tab-target]')];
+
+  function setTab(tab){
+    const next=allowed.includes(tab)?tab:'appearance';
+    settings.dataset.settingsTab=next;
+    buttons.forEach(btn=>{
+      const active=btn.dataset.settingsTabTarget===next;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-selected',active?'true':'false');
+    });
+  }
+
+  buttons.forEach(btn=>btn.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    setTab(btn.dataset.settingsTabTarget);
+  }));
+
+  setTab('appearance');
+  window.qPokoySetSettingsTab=setTab;
 })();
 
 document.querySelectorAll('.page:not(#settings) .settings-card').forEach(el=>el.remove());
