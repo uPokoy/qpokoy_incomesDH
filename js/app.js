@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.37';
+const qPokoyDevVersion='dev-2026.09.23.38';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1564,6 +1564,21 @@ document.addEventListener('mouseup',()=>{
 
   function setOpen(open){
     const next=!!open&&desktop();
+
+    // Settings must always open over the compact analytics shell.
+    // Collapse expanded category panels first so their temporary height
+    // never becomes the height of the settings overlay.
+    if(next){
+      const annualCategoriesToggle=document.getElementById('annualCategoriesToggle');
+      const monthlyCategoriesToggle=document.getElementById('monthlyCategoriesToggle');
+      if(annualCategoriesToggle?.getAttribute('aria-expanded')==='true'){
+        annualCategoriesToggle.click();
+      }
+      if(monthlyCategoriesToggle?.getAttribute('aria-expanded')==='true'){
+        monthlyCategoriesToggle.click();
+      }
+    }
+
     analytics.classList.toggle('is-settings-open',next);
     toggle.classList.toggle('is-active',next);
     toggle.setAttribute('aria-expanded',next?'true':'false');
