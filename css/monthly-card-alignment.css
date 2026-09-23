@@ -82,3 +82,15 @@
     margin:0!important;
   }
 }
+
+
+/* Average card tooltip: restore desktop hover display after the base desktop hide rule. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-tooltip{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-info:hover + .monthly-summary-tooltip{
+    display:block !important;
+  }
+}
