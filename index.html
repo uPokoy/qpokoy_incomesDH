@@ -150,7 +150,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.23.41"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.23.42"></script>
 
 
 
@@ -232,7 +232,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.23.41</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.23.42</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -258,6 +258,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
         </button>
         <div class="income-recent-bottom-actions">
+          <button type="button" class="income-recent-history" id="incomeRecentHistory" aria-controls="incomeRecentHistoryPanel" aria-pressed="false">Вся история</button>
           <div class="income-recent-pager" id="incomeRecentPager" aria-label="Перелистывание последних доходов">
             <button type="button" class="income-recent-page-btn" id="incomeRecentPrev" aria-label="Предыдущие 4 дохода" title="Предыдущие 4 дохода" disabled>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
@@ -267,7 +268,6 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
             </button>
           </div>
-          <button type="button" class="income-recent-history" id="incomeRecentHistory" aria-controls="incomeRecentHistoryPanel" aria-pressed="false">Вся история</button>
         </div>
         <button class="add-income-btn" id="openIncomeForm" aria-label="Добавить доход" title="Добавить доход"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
@@ -660,7 +660,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.23.41"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.23.42"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
