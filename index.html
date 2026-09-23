@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.23.40">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.23.39">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.23.41">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.21.05">
 <link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.23.04">
 <link rel="stylesheet" href="css/monthly-card-alignment.css?v=dev-2026.09.23.22">
@@ -150,7 +150,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.23.40"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.23.41"></script>
 
 
 
@@ -232,7 +232,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.23.40</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.23.41</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -257,16 +257,18 @@
         <button type="button" class="income-recent-toggle" id="incomeRecentToggle" aria-expanded="true" aria-controls="incomeRecentGrid incomeRecentHistoryPanel" title="Скрыть последние доходы">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
         </button>
-        <div class="income-recent-pager" id="incomeRecentPager" aria-label="Перелистывание последних доходов">
-          <button type="button" class="income-recent-page-btn" id="incomeRecentPrev" aria-label="Предыдущие 4 дохода" title="Предыдущие 4 дохода" disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
-          </button>
-          <span class="income-recent-page-indicator" id="incomeRecentPageIndicator" aria-live="polite">1 / 1</span>
-          <button type="button" class="income-recent-page-btn" id="incomeRecentNext" aria-label="Следующие 4 дохода" title="Следующие 4 дохода" disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-          </button>
+        <div class="income-recent-bottom-actions">
+          <div class="income-recent-pager" id="incomeRecentPager" aria-label="Перелистывание последних доходов">
+            <button type="button" class="income-recent-page-btn" id="incomeRecentPrev" aria-label="Предыдущие 4 дохода" title="Предыдущие 4 дохода" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+            </button>
+            <span class="income-recent-page-indicator" id="incomeRecentPageIndicator" aria-live="polite">1 / 1</span>
+            <button type="button" class="income-recent-page-btn" id="incomeRecentNext" aria-label="Следующие 4 дохода" title="Следующие 4 дохода" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+          <button type="button" class="income-recent-history" id="incomeRecentHistory" aria-controls="incomeRecentHistoryPanel" aria-pressed="false">Вся история</button>
         </div>
-        <button type="button" class="income-recent-history" id="incomeRecentHistory" aria-controls="incomeRecentHistoryPanel" aria-pressed="false">Вся история</button>
         <button class="add-income-btn" id="openIncomeForm" aria-label="Добавить доход" title="Добавить доход"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
       <div class="income-recent-grid" id="incomeRecentGrid"></div>
@@ -658,7 +660,7 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.23.40"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.23.41"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 

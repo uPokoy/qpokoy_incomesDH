@@ -3435,6 +3435,40 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 
+
+
+/* Desktop recent-income footer: pagination + full history stay in the cloud's lower-right corner. */
+@media(min-width:761px){
+  #income .income-recent{
+    position:relative;
+    padding-bottom:40px;
+  }
+  #income .income-recent-controls > .add-income-btn{
+    margin-left:auto;
+  }
+  #income .income-recent-bottom-actions{
+    position:absolute;
+    right:0;
+    bottom:0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  #income .income-recent-bottom-actions .income-recent-pager{
+    margin-left:0;
+  }
+  #income .income-recent-bottom-actions .income-recent-history,
+  #income .income-recent.is-history-open .income-recent-bottom-actions .income-recent-history{
+    margin-left:0;
+  }
+  #income .income-recent.is-collapsed{
+    padding-bottom:0;
+  }
+  #income .income-recent.is-collapsed .income-recent-bottom-actions{
+    display:none;
+  }
+}
+
 /* Hide full-history shortcut while recent-income shell is collapsed. */
 @media(min-width:761px){
   #income .income-recent.is-collapsed .income-recent-history{
