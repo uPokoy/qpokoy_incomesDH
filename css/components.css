@@ -3441,3 +3441,102 @@ body.qp-auth-locked #income .income-recent-pager{
     display:none !important;
   }
 }
+
+
+/* Desktop inline settings inside the Month / Year analytics shell. */
+#incomeAnalytics .analytics-settings-toggle,
+#incomeAnalytics .analytics-settings-host{
+  display:none;
+}
+
+@media(min-width:901px){
+  /* History + Settings now live on the main dashboard, so desktop no longer needs the bottom bar. */
+  .sidebar{
+    display:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle{
+    width:38px;
+    min-width:38px;
+    height:38px;
+    margin-left:auto;
+    padding:0;
+    display:grid;
+    place-items:center;
+    border:1px solid var(--border);
+    border-radius:10px !important;
+    background:var(--panel-muted);
+    color:var(--text-muted);
+    box-shadow:none;
+    cursor:pointer;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle:hover,
+  #incomeAnalytics .analytics-settings-toggle.is-active{
+    color:var(--text);
+    background:var(--active);
+    border-color:color-mix(in srgb,var(--primary) 30%,var(--border));
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-toggle svg{
+    width:19px;
+    height:19px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+
+  #incomeAnalytics .analytics-settings-host[hidden]{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open > .analytics-head,
+  #incomeAnalytics.is-settings-open > .analytics-cards,
+  #incomeAnalytics.is-settings-open > .analytics-category-panels,
+  #incomeAnalytics.is-settings-open > .analytics-categories-toggle,
+  #incomeAnalytics.is-settings-open > .monthly-analytics{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    display:block;
+    width:100%;
+    min-width:0;
+    margin-top:6px;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
+    gap:14px;
+    width:100%;
+    min-height:0 !important;
+    margin:0;
+    padding:0;
+    place-items:stretch;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings > .settings-card{
+    width:100% !important;
+    min-width:0;
+    max-width:none !important;
+    margin:0 !important;
+    padding:20px !important;
+    border-radius:16px !important;
+    box-shadow:none !important;
+    background:color-mix(in srgb,var(--panel) 97%,var(--primary) 3%) !important;
+  }
+
+  /* The bottom-navigation appearance option is irrelevant in the desktop inline panel. */
+  #incomeAnalytics .analytics-settings-host .nav-label-mode-title,
+  #incomeAnalytics .analytics-settings-host .nav-label-mode-options{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-mode-row{
+    margin-bottom:14px !important;
+  }
+}
