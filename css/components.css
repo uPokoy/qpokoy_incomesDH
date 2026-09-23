@@ -3448,14 +3448,16 @@ body.qp-auth-locked #income .income-recent-pager{
   }
   #income .income-recent-bottom-actions{
     position:absolute;
+    left:0;
     right:0;
     bottom:0;
     display:flex;
     align-items:center;
+    justify-content:space-between;
     gap:8px;
   }
   #income .income-recent-bottom-actions .income-recent-pager{
-    margin-left:0;
+    margin-left:auto;
   }
   #income .income-recent-bottom-actions .income-recent-history,
   #income .income-recent.is-history-open .income-recent-bottom-actions .income-recent-history{
