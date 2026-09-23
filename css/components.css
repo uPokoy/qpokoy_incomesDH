@@ -3152,34 +3152,59 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 
-/* Annual growth info tooltip: move comparison caption into info icon on desktop. */
+/* Annual growth info tooltip: hover-only desktop control after the title. */
 #incomeAnalytics .annual-growth-info,
 #incomeAnalytics .annual-growth-tooltip{
   display:none !important;
 }
 @media(min-width:901px){
-  #incomeAnalytics:not(.is-monthly) .annual-growth-label{
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > .annual-growth-label{
     position:relative !important;
-    display:inline-flex !important;
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
     align-items:center !important;
+    justify-content:flex-start !important;
     gap:5px !important;
     width:max-content !important;
-    max-width:100% !important;
+    min-width:max-content !important;
+    max-width:none !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-growth-label-text{
+    display:inline !important;
+    flex:0 0 auto !important;
     white-space:nowrap !important;
   }
 
   #incomeAnalytics:not(.is-monthly) .annual-growth-info{
     display:grid !important;
+    place-items:center !important;
+    width:16px !important;
+    height:16px !important;
     flex:0 0 16px !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:1px solid color-mix(in srgb,var(--text-muted) 50%,transparent) !important;
+    border-radius:50% !important;
+    background:transparent !important;
+    color:var(--text-muted) !important;
+    font:700 10px/1 Arial,sans-serif !important;
+    cursor:help !important;
+    transform:translateY(-1px) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-growth-info:hover{
+    color:var(--text) !important;
+    border-color:color-mix(in srgb,var(--primary) 70%,var(--border)) !important;
   }
 
   #incomeAnalytics:not(.is-monthly) .annual-growth-tooltip{
     display:none !important;
   }
 
-  #incomeAnalytics:not(.is-monthly) .annual-growth-info:hover + .annual-growth-tooltip,
-  #incomeAnalytics:not(.is-monthly) .annual-growth-info:focus + .annual-growth-tooltip,
-  #incomeAnalytics:not(.is-monthly) .annual-growth-info[aria-expanded="true"] + .annual-growth-tooltip{
+  #incomeAnalytics:not(.is-monthly) .annual-growth-info:hover + .annual-growth-tooltip{
     display:block !important;
   }
 
