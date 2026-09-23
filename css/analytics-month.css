@@ -1787,3 +1787,50 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
     background:var(--text-muted) !important;
   }
 }
+
+
+/* Monthly comparison trend icon: clean arrow placed after the amount. */
+@media(min-width:901px){
+  #incomeAnalytics.is-monthly #monthlyGrowthNote::before,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote::before{
+    content:none !important;
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthNote::after,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote::after{
+    content:"" !important;
+    width:18px !important;
+    height:18px !important;
+    flex:0 0 18px !important;
+    margin-left:1px !important;
+    background:var(--text-muted) !important;
+    -webkit-mask:center/contain no-repeat !important;
+    mask:center/contain no-repeat !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard.negative #monthlyGrowthNote::after,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard.negative #monthlyYearGrowthNote::after{
+    background:var(--danger) !important;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7l6 6 4-4 6 6M15 15h5v-5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7l6 6 4-4 6 6M15 15h5v-5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard.positive #monthlyGrowthNote::after,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard.positive #monthlyYearGrowthNote::after{
+    background:var(--success) !important;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 17l6-6 4 4 6-6M15 9h5v5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 17l6-6 4 4 6-6M15 9h5v5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard.neutral #monthlyGrowthNote::after,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard.neutral #monthlyYearGrowthNote::after{
+    width:16px !important;
+    height:2px !important;
+    flex-basis:16px !important;
+    border-radius:999px !important;
+    background:var(--text-muted) !important;
+    -webkit-mask:none !important;
+    mask:none !important;
+  }
+}
