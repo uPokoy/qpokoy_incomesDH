@@ -3150,3 +3150,40 @@ body.qp-auth-locked #income .income-recent-pager{
     color:var(--danger) !important;
   }
 }
+
+
+/* Annual growth info tooltip: move comparison caption into info icon on desktop. */
+#incomeAnalytics .annual-growth-info,
+#incomeAnalytics .annual-growth-tooltip{
+  display:none !important;
+}
+@media(min-width:901px){
+  #incomeAnalytics:not(.is-monthly) .annual-growth-label{
+    position:relative !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:5px !important;
+    width:max-content !important;
+    max-width:100% !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-growth-info{
+    display:grid !important;
+    flex:0 0 16px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-growth-tooltip{
+    display:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-growth-info:hover + .annual-growth-tooltip,
+  #incomeAnalytics:not(.is-monthly) .annual-growth-info:focus + .annual-growth-tooltip,
+  #incomeAnalytics:not(.is-monthly) .annual-growth-info[aria-expanded="true"] + .annual-growth-tooltip{
+    display:block !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) #analyticsGrowthCaption{
+    display:none !important;
+  }
+}
