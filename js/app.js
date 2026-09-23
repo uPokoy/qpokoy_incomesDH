@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.48';
+const qPokoyDevVersion='dev-2026.09.23.49';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -331,7 +331,7 @@ function closeCategoryPopup(){
 function positionCategoryPopup(){
   if(!categoryPopup.classList.contains('open')) return;
   const mobile=window.matchMedia('(max-width:560px)').matches;
-  const maxPopupHeight=mobile?360:420;
+  const maxPopupHeight=mobile?360:252; // desktop: about 6 category rows + inline create row
   const edge=8;
   const gap=6;
   const rect=categorySelect.getBoundingClientRect();
