@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.23.08';
+const qPokoyDevVersion='dev-2026.09.23.09';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -732,8 +732,10 @@ window.renderIncomeAnalytics=function(){
   const growthCaptionEl=document.getElementById('analyticsGrowthCaption');
   const bestEl=document.getElementById('analyticsBest');
   const bestAmountEl=document.getElementById('analyticsBestAmount');
+  const bestShareEl=document.getElementById('analyticsBestShare');
   const worstEl=document.getElementById('analyticsWorst');
   const worstAmountEl=document.getElementById('analyticsWorstAmount');
+  const worstShareEl=document.getElementById('analyticsWorstShare');
   const catsEl=document.getElementById('analyticsCategories');
   const annualHeroTotalEl=document.getElementById('annualHeroTotal');
   const annualHeroTotalMobileEl=document.getElementById('annualHeroTotalMobile');
@@ -779,17 +781,27 @@ window.renderIncomeAnalytics=function(){
     bestEl.textContent=fullNames[a.best];
     if(bestAmountEl) bestAmountEl.textContent=formatMoney(a.monthTotals[a.best]);
     else bestEl.textContent+=' '+formatMoney(a.monthTotals[a.best]);
+    if(bestShareEl){
+      bestShareEl.textContent=(a.total>0?Math.round(a.monthTotals[a.best]/a.total*100):0)+'%';
+      bestShareEl.hidden=false;
+    }
   }else{
     bestEl.textContent='—';
     if(bestAmountEl) bestAmountEl.textContent='0 ₽';
+    if(bestShareEl) bestShareEl.hidden=true;
   }
   if(a.worst>=0){
     worstEl.textContent=fullNames[a.worst];
     if(worstAmountEl) worstAmountEl.textContent=formatMoney(a.monthTotals[a.worst]);
     else worstEl.textContent+=' '+formatMoney(a.monthTotals[a.worst]);
+    if(worstShareEl){
+      worstShareEl.textContent=(a.total>0?Math.round(a.monthTotals[a.worst]/a.total*100):0)+'%';
+      worstShareEl.hidden=false;
+    }
   }else{
     worstEl.textContent='—';
     if(worstAmountEl) worstAmountEl.textContent='0 ₽';
+    if(worstShareEl) worstShareEl.hidden=true;
   }
 
   const categories=Object.entries(a.categoryTotals).sort((x,y)=>y[1]-x[1]);
