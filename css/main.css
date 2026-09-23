@@ -675,9 +675,15 @@ body.dark textarea,
   #incomeForm .category-select{
     appearance:none;
     -webkit-appearance:none;
-    background:var(--panel-muted) !important;
+    border-color:var(--qp-border) !important;
+    background:rgba(255,255,255,.76) !important;
     color:var(--text) !important;
     box-shadow:none !important;
+  }
+  body.dark #incomeForm .category-select,
+  [data-theme="dark"] #incomeForm .category-select{
+    background:rgba(20,26,40,.76) !important;
+    color:var(--qp-text) !important;
   }
 
   #incomeForm .category-popup{
