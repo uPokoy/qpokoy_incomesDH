@@ -249,10 +249,11 @@
       return;
     }
 
+    try{popup.opener=null;}catch(e){}
+
     popup.document.open();
     popup.document.write(buildReportHtml(report,mode,period,range));
     popup.document.close();
-    popup.focus();
   }
 
   function reportYears(){
