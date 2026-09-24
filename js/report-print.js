@@ -118,25 +118,53 @@
     }).join('');
   }
 
-  function buildReportHtml(report){
+  function reportDateRange(report,mode){
+    const dates=report.records.map(function(item){return parseDate(item.date);}).filter(Boolean);
+    if(mode==='month'){
+      const period=readSelectedPeriod();
+      const first=new Date(period.year,period.month,1);
+      const last=new Date(period.year,period.month+1,0);
+      return formatDate(first)+' — '+formatDate(last);
+    }
+    if(mode==='year'){
+      const period=readSelectedPeriod();
+      return '01.01.'+period.year+' — 31.12.'+period.year;
+    }
+    if(!dates.length)return '';
+    dates.sort(function(a,b){return a-b;});
+    return formatDate(dates[0])+' — '+formatDate(dates[dates.length-1]);
+  }
+
+  function formatDate(date){
+    return String(date.getDate()).padStart(2,'0')+'.'+
+      String(date.getMonth()+1).padStart(2,'0')+'.'+
+      date.getFullYear();
+  }
+
+  function buildReportHtml(report,mode){
     const records=report.records;
     const total=records.reduce(function(sum,item){return sum+item.amount;},0);
-    const categories=new Set(records.map(function(item){return item.category;})).size;
-    const generated=new Date().toLocaleString('ru-RU',{dateStyle:'medium',timeStyle:'short'});
+    const incomeDays=new Set(records.map(function(item){
+      const date=parseDate(item.date);
+      return date?formatDate(date):String(item.date||'');
+    }).filter(Boolean)).size;
+    const generated=formatDate(new Date());
+    const range=reportDateRange(report,mode);
     const title='qPokoy — '+report.label;
 
     return '<!doctype html><html lang="ru"><head><meta charset="utf-8">'+
       '<meta name="viewport" content="width=device-width,initial-scale=1">'+
       '<title>'+escapeHtml(title)+'</title>'+
       '<style>'+
-      '@page{size:A4;margin:14mm 12mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:12px;line-height:1.4}'+
-      'body{padding:24px;max-width:1000px;margin:0 auto}.report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:18px;border-bottom:2px solid #111827}.brand{font-size:22px;font-weight:800;letter-spacing:-.03em}.muted{color:#6b7280}.report-head h1{margin:4px 0 2px;font-size:20px}.period{font-size:13px;font-weight:600}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.metric{padding:12px 14px;border:1px solid #d1d5db;border-radius:10px}.metric span{display:block;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:.06em}.metric strong{display:block;margin-top:3px;font-size:17px}.section{margin-top:18px}.section h2{margin:0 0 8px;font-size:14px}table{width:100%;border-collapse:collapse}th,td{padding:7px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}th{background:#f3f4f6;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#4b5563}.number{text-align:right;white-space:nowrap}.description{word-break:break-word}.footer{margin-top:20px;padding-top:10px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:10px}.report-actions{position:fixed;right:20px;bottom:20px;display:flex;gap:8px}.report-actions button{padding:10px 14px;border:0;border-radius:9px;background:#2563eb;color:#fff;font:600 12px inherit;cursor:pointer;box-shadow:0 8px 24px rgba(37,99,235,.25)}thead{display:table-header-group}tr{break-inside:avoid}@media print{body{padding:0;max-width:none}.report-actions{display:none}.section{break-inside:auto}.metric{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
+      '@page{size:A4;margin:13mm 12mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:11px;line-height:1.35}'+
+      'body{padding:22px;max-width:920px;margin:0 auto}.report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:16px}.brand{font-size:18px;font-weight:800;letter-spacing:-.03em}.report-head h1{margin:2px 0 1px;font-size:17px;line-height:1.15}.period{font-size:11px;color:#374151}.report-meta{text-align:right;color:#6b7280;font-size:9px;line-height:1.55;white-space:nowrap}.summary{display:grid;grid-template-columns:1.45fr .8fr .8fr;margin:0 0 16px;background:#f5f7fa;border:1px solid #edf0f3;border-radius:9px;overflow:hidden}.metric{min-height:64px;padding:11px 14px;display:flex;flex-direction:column;justify-content:center}.metric+.metric{border-left:1px solid #dde2e8}.metric strong{font-size:19px;line-height:1;font-weight:750;letter-spacing:-.02em}.metric:not(:first-child) strong{font-size:17px}.metric span{margin-top:4px;color:#6b7280;font-size:9px}.income-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}thead{display:table-header-group}th{background:#f3f4f6;color:#4b5563;font-size:9px;font-weight:650;text-align:left}th,td{padding:6px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}tbody tr:last-child td{border-bottom:0}.date{width:18%;white-space:nowrap}.category{width:22%}.description{width:40%;word-break:break-word}.number{width:20%;text-align:right;white-space:nowrap;font-weight:650}.total-row td{background:#f8fafc;font-weight:750;border-top:1px solid #dbe1e7}.total-row .number{font-size:12px}.report-actions{position:fixed;right:20px;bottom:20px}.report-actions button{padding:10px 14px;border:0;border-radius:9px;background:#2563eb;color:#fff;font:600 12px inherit;cursor:pointer;box-shadow:0 8px 24px rgba(37,99,235,.22)}tr{break-inside:avoid;page-break-inside:avoid}@media print{body{padding:0;max-width:none}.report-actions{display:none}.summary{break-inside:avoid;page-break-inside:avoid}.income-table{border-radius:6px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
       '</style></head><body>'+
-      '<header class="report-head"><div><div class="brand">qPokoy</div><h1>Отчёт по доходам</h1><div class="period">'+escapeHtml(report.label)+'</div></div><div class="muted">Сформировано<br>'+escapeHtml(generated)+'</div></header>'+
-      '<section class="summary"><div class="metric"><span>Общий доход</span><strong>'+escapeHtml(money(total))+'</strong></div><div class="metric"><span>Записей</span><strong>'+records.length+'</strong></div><div class="metric"><span>Категорий</span><strong>'+categories+'</strong></div></section>'+
-      '<section class="section"><h2>По категориям</h2><table><thead><tr><th>Категория</th><th class="number">Сумма</th><th class="number">Доля</th></tr></thead><tbody>'+categoryRows(records,total)+'</tbody></table></section>'+
-      '<section class="section"><h2>Доходы</h2><table><thead><tr><th>Дата</th><th>Категория</th><th>Описание</th><th class="number">Сумма</th></tr></thead><tbody>'+incomeRows(records)+'</tbody></table></section>'+
-      '<footer class="footer">qPokoy · отчёт сформирован локально в браузере. Для PDF выберите «Сохранить как PDF» в окне печати.</footer>'+
+      '<header class="report-head"><div><div class="brand">qPokoy</div><h1>Отчёт о доходах</h1><div class="period">'+escapeHtml(report.label)+'</div></div><div class="report-meta">'+escapeHtml(range)+'<br>Сформировано '+escapeHtml(generated)+'</div></header>'+
+      '<section class="summary"><div class="metric"><strong>'+escapeHtml(money(total))+'</strong><span>Общий доход</span></div><div class="metric"><strong>'+records.length+'</strong><span>доходов</span></div><div class="metric"><strong>'+incomeDays+'</strong><span>дней с доходом</span></div></section>'+
+      '<table class="income-table"><thead><tr><th class="date">Дата</th><th class="category">Категория</th><th class="description">Описание</th><th class="number">Сумма</th></tr></thead><tbody>'+
+      incomeRows(records)+
+      '<tr class="total-row"><td colspan="3" class="number">Итого</td><td class="number">'+escapeHtml(money(total))+'</td></tr>'+
+      '</tbody></table>'+
       '<div class="report-actions"><button type="button" onclick="window.print()">Печать / PDF</button></div>'+
       '</body></html>';
   }
@@ -156,7 +184,7 @@
     }
 
     popup.document.open();
-    popup.document.write(buildReportHtml(report));
+    popup.document.write(buildReportHtml(report,mode));
     popup.document.close();
     popup.focus();
     setTimeout(function(){
