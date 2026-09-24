@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.24.33';
+const qPokoyDevVersion='dev-2026.09.24.34';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -833,6 +833,7 @@ window.renderIncomeAnalytics=function(){
   const annualHeroCategoriesEl=document.getElementById('annualHeroCategories');
   const annualHeroGrowthEl=document.getElementById('annualHeroGrowth');
   const annualHeroBarsEl=document.getElementById('annualHeroBars');
+  const annualTotalCardEl=document.getElementById('annualTotalCard');
   if(!yearEl||!totalEl||!avgActiveEl||!bestEl||!worstEl||!growthEl)return;
 
   yearEl.textContent=a.year;
@@ -865,8 +866,37 @@ window.renderIncomeAnalytics=function(){
     annualHeroBarsEl.innerHTML=a.monthTotals.map((value,index)=>{
       const height=value>0?Math.max(8,(value/annualMax)*100):4;
       const hue=174+index*9;
-      return `<span class="annual-total-bar${value>0?'':' is-zero'}" style="--bar-height:${height.toFixed(1)}%;--bar-hue:${hue}" title="${fullNames[index]}: ${formatMoney(value)}" aria-label="${fullNames[index]}: ${formatMoney(value)}"></span>`;
+      return `<span class="annual-total-bar${value>0?'':' is-zero'}" data-month="${index}" role="button" tabindex="0" style="--bar-height:${height.toFixed(1)}%;--bar-hue:${hue}" title="${fullNames[index]}: ${formatMoney(value)}" aria-label="Показать ${fullNames[index]} ${a.year}: ${formatMoney(value)}"></span>`;
     }).join('');
+  }
+  if(annualTotalCardEl){
+    annualTotalCardEl.dataset.year=String(a.year);
+    annualTotalCardEl.querySelectorAll('.annual-total-months span').forEach((label,index)=>{
+      label.dataset.month=String(index);
+      label.setAttribute('role','button');
+      label.tabIndex=0;
+      label.setAttribute('aria-label','Показать '+fullNames[index]+' '+a.year);
+    });
+    if(!annualTotalCardEl.__monthSelectBound){
+      const selectAnnualMonth=(target)=>{
+        const item=target.closest('.annual-total-bar[data-month],.annual-total-months span[data-month]');
+        if(!item)return;
+        const month=Number(item.dataset.month);
+        const selectedYear=Number(annualTotalCardEl.dataset.year);
+        if(!Number.isInteger(month)||month<0||month>11||!Number.isInteger(selectedYear))return;
+        setSelectedIncomePeriod(month,selectedYear);
+        if(typeof window.renderIncomes==='function')window.renderIncomes();
+      };
+      annualTotalCardEl.addEventListener('click',event=>selectAnnualMonth(event.target));
+      annualTotalCardEl.addEventListener('keydown',event=>{
+        if(event.key!=='Enter'&&event.key!==' ')return;
+        const item=event.target.closest('.annual-total-bar[data-month],.annual-total-months span[data-month]');
+        if(!item)return;
+        event.preventDefault();
+        selectAnnualMonth(item);
+      });
+      annualTotalCardEl.__monthSelectBound=true;
+    }
   }
   if(a.best>=0){
     bestEl.textContent=fullNames[a.best];
