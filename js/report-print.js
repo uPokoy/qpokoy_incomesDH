@@ -216,10 +216,20 @@
       '<tr class="total-row"><td colspan="4" class="total-inline"><span>Итого:</span><strong>'+escapeHtml(money(total))+'</strong></td></tr>'+
       '</tbody></table>'+
       '</main>'+
-      '<div class="report-actions"><button type="button" class="report-print-btn" onclick="window.print()">Печать</button><button type="button" class="report-save-btn" id="saveReportPdfBtn" onclick="saveReportPdf()">Сохранить PDF</button></div>'+
+      '<div class="report-actions"><button type="button" class="report-print-btn" onclick="openPrintPreview()">Печать</button><button type="button" class="report-save-btn" id="saveReportPdfBtn" onclick="saveReportPdf()">Сохранить PDF</button></div>'+
       '<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"><\/script>'+
       '<script>'+
       'const qPokoyPdfFileName='+JSON.stringify(pdfFileName)+';'+
+      'function openPrintPreview(){'+
+        'const printWindow=window.open(\"\",\"_blank\");'+
+        'if(!printWindow){alert(\"Разрешите всплывающие окна для печати.\");return;}'+
+        'try{printWindow.opener=null;}catch(e){}'+
+        'printWindow.document.open();'+
+        'printWindow.document.write(\"<!doctype html>\"+document.documentElement.outerHTML);'+
+        'printWindow.document.close();'+
+        'printWindow.addEventListener(\"afterprint\",function(){setTimeout(function(){try{printWindow.close();}catch(e){}},0);},{once:true});'+
+        'setTimeout(function(){try{printWindow.print();}catch(e){try{printWindow.close();}catch(ignore){}}},150);'+
+      '}'+
       'function saveReportPdf(){'+
         'const button=document.getElementById("saveReportPdfBtn");'+
         'if(!window.html2pdf){alert("Модуль сохранения PDF ещё загружается. Повторите через секунду.");return;}'+
