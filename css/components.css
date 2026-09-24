@@ -4079,28 +4079,7 @@ body.qp-auth-locked #income .income-recent-pager{
   #income .income-recent.is-history-open .income-history-report-actions{
     display:flex;
     align-items:center;
-    gap:8px;
     margin-left:auto;
-  }
-
-  #income .income-history-report-period{
-    height:30px;
-    min-height:30px;
-    padding:0 28px 0 10px;
-    border:1px solid var(--border);
-    border-radius:9px;
-    background:var(--panel-muted);
-    color:var(--text-muted);
-    font:inherit;
-    font-size:12px;
-    cursor:pointer;
-  }
-
-  #income .income-history-report-period:hover,
-  #income .income-history-report-period:focus{
-    color:var(--text);
-    border-color:color-mix(in srgb,var(--primary) 30%,var(--border));
-    outline:none;
   }
 
   #income .income-history-report-btn{
@@ -4138,4 +4117,160 @@ body.qp-auth-locked #income .income-recent-pager{
     stroke-linecap:round;
     stroke-linejoin:round;
   }
+}
+
+body.income-report-picker-open{
+  overflow:hidden;
+}
+.income-report-picker[hidden]{
+  display:none !important;
+}
+.income-report-picker{
+  position:fixed;
+  z-index:2500;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(3,7,18,.48);
+  backdrop-filter:blur(3px);
+}
+.income-report-picker-card{
+  width:min(390px,100%);
+  max-height:min(560px,calc(100vh - 40px));
+  overflow:auto;
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--panel);
+  color:var(--text);
+  box-shadow:0 24px 70px rgba(0,0,0,.32);
+}
+.income-report-picker-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+.income-report-picker-head > div{
+  min-width:0;
+}
+.income-report-picker-head strong{
+  display:block;
+  font-size:16px;
+  line-height:1.2;
+}
+.income-report-picker-head span{
+  display:block;
+  margin-top:4px;
+  color:var(--text-muted);
+  font-size:12px;
+}
+.income-report-picker-close{
+  width:30px;
+  height:30px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  flex:0 0 30px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--panel-muted);
+  color:var(--text-muted);
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+}
+.income-report-picker-period{
+  display:grid;
+  grid-template-columns:1fr 112px;
+  gap:10px;
+}
+.income-report-picker-period label > span{
+  display:block;
+  margin-bottom:5px;
+  color:var(--text-muted);
+  font-size:11px;
+}
+.income-report-picker-period select{
+  width:100%;
+  height:38px;
+  padding:0 30px 0 10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--panel-muted);
+  color:var(--text);
+  font:inherit;
+  font-size:13px;
+}
+.income-report-picker-categories{
+  margin-top:14px;
+  border:1px solid var(--border);
+  border-radius:11px;
+  overflow:hidden;
+}
+.income-report-picker-all,
+.income-report-picker-category{
+  min-height:38px;
+  padding:8px 11px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  cursor:pointer;
+}
+.income-report-picker-all{
+  border-bottom:1px solid var(--border);
+  background:color-mix(in srgb,var(--panel-muted) 86%,transparent);
+  font-size:13px;
+  font-weight:600;
+}
+.income-report-picker-category-list{
+  max-height:170px;
+  overflow:auto;
+  padding:3px 0;
+}
+.income-report-picker-category{
+  min-height:34px;
+  padding-top:6px;
+  padding-bottom:6px;
+  font-size:13px;
+}
+.income-report-picker-category:hover{
+  background:var(--panel-muted);
+}
+.income-report-picker input[type="checkbox"]{
+  width:15px;
+  height:15px;
+  margin:0;
+  accent-color:var(--primary);
+}
+.income-report-picker-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:16px;
+}
+.income-report-picker-actions button{
+  height:36px;
+  padding:0 13px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  font:inherit;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.income-report-picker-cancel{
+  background:var(--panel-muted);
+  color:var(--text-muted);
+}
+.income-report-picker-submit{
+  border-color:transparent !important;
+  background:var(--primary);
+  color:#fff;
+}
+.income-report-picker-submit:disabled{
+  opacity:.45;
+  cursor:not-allowed;
 }

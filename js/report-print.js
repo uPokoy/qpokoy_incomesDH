@@ -56,8 +56,16 @@
     return {month:now.getMonth(),year:now.getFullYear()};
   }
 
-  function filterReport(mode){
-    const period=readSelectedPeriod();
+  function normalizeCategory(item){
+    const value=String(item&&item.category||'').trim();
+    return value||'Без категории';
+  }
+
+  function filterReport(mode,options){
+    options=options||{};
+    const period=options.period||readSelectedPeriod();
+    const hasCategoryFilter=Array.isArray(options.categories);
+    const selectedCategories=hasCategoryFilter?new Set(options.categories.map(String)):null;
     const records=readRecords().filter(function(item){
       return item&&Number.isFinite(Number(item.amount));
     });
@@ -78,12 +86,18 @@
       });
     }
 
+    if(selectedCategories){
+      filtered=filtered.filter(function(item){
+        return selectedCategories.has(normalizeCategory(item));
+      });
+    }
+
     filtered=filtered.map(function(item,index){
       return {
         index:index,
         date:String(item.date||''),
         amount:Number(item.amount)||0,
-        category:String(item.category||'Без категории'),
+        category:normalizeCategory(item),
         description:String(item.description||'')
       };
     }).sort(function(a,b){
@@ -93,7 +107,7 @@
       return diff||a.index-b.index;
     });
 
-    return {records:filtered,label:label};
+    return {records:filtered,label:label,period:period};
   }
 
   function categoryRows(records,total){
@@ -118,16 +132,15 @@
     }).join('');
   }
 
-  function reportDateRange(report,mode){
+  function reportDateRange(report,mode,period){
     const dates=report.records.map(function(item){return parseDate(item.date);}).filter(Boolean);
+    period=period||report.period||readSelectedPeriod();
     if(mode==='month'){
-      const period=readSelectedPeriod();
       const first=new Date(period.year,period.month,1);
       const last=new Date(period.year,period.month+1,0);
       return formatDate(first)+' — '+formatDate(last);
     }
     if(mode==='year'){
-      const period=readSelectedPeriod();
       return '01.01.'+period.year+' — 31.12.'+period.year;
     }
     if(!dates.length)return '';
@@ -141,7 +154,7 @@
       date.getFullYear();
   }
 
-  function buildReportHtml(report,mode){
+  function buildReportHtml(report,mode,period){
     const records=report.records;
     const total=records.reduce(function(sum,item){return sum+item.amount;},0);
     const incomeDays=new Set(records.map(function(item){
@@ -149,7 +162,7 @@
       return date?formatDate(date):String(item.date||'');
     }).filter(Boolean)).size;
     const generated=formatDate(new Date());
-    const range=reportDateRange(report,mode);
+    const range=reportDateRange(report,mode,period);
     const title='qPokoy — '+report.label;
 
     return '<!doctype html><html lang="ru"><head><meta charset="utf-8">'+
@@ -169,11 +182,13 @@
       '</body></html>';
   }
 
-  function printReport(periodSelectId){
-    const mode=document.getElementById(periodSelectId||'printReportPeriod')?.value||'month';
-    const report=filterReport(mode);
+  function printReport(config){
+    config=config||{};
+    const mode=config.mode||document.getElementById(config.periodSelectId||'printReportPeriod')?.value||'month';
+    const period=config.period||readSelectedPeriod();
+    const report=filterReport(mode,{period:period,categories:config.categories});
     if(!report.records.length){
-      if(typeof window.qPokoyNotice==='function')window.qPokoyNotice('Нет данных','За выбранный период доходов нет.','error');
+      if(typeof window.qPokoyNotice==='function')window.qPokoyNotice('Нет данных','Для выбранного месяца и категорий доходов нет.','error');
       return;
     }
 
@@ -184,7 +199,7 @@
     }
 
     popup.document.open();
-    popup.document.write(buildReportHtml(report,mode));
+    popup.document.write(buildReportHtml(report,mode,period));
     popup.document.close();
     popup.focus();
     setTimeout(function(){
@@ -192,20 +207,173 @@
     },250);
   }
 
-  function bindReportButton(buttonId,periodSelectId){
+  function reportYears(){
+    const years=new Set();
+    readRecords().forEach(function(item){
+      const date=parseDate(item&&item.date);
+      if(date)years.add(date.getFullYear());
+    });
+    years.add(readSelectedPeriod().year);
+    return Array.from(years).sort(function(a,b){return b-a;});
+  }
+
+  function reportCategories(){
+    return Array.from(new Set(readRecords().map(normalizeCategory))).sort(function(a,b){
+      return a.localeCompare(b,'ru');
+    });
+  }
+
+  function ensureHistoryPicker(){
+    let overlay=document.getElementById('incomeReportPicker');
+    if(overlay)return overlay;
+
+    overlay=document.createElement('div');
+    overlay.id='incomeReportPicker';
+    overlay.className='income-report-picker';
+    overlay.hidden=true;
+    overlay.innerHTML=
+      '<div class="income-report-picker-card" role="dialog" aria-modal="true" aria-labelledby="incomeReportPickerTitle">'+
+        '<div class="income-report-picker-head">'+
+          '<div><strong id="incomeReportPickerTitle">Печать отчёта</strong><span>Выберите период и категории</span></div>'+
+          '<button type="button" class="income-report-picker-close" aria-label="Закрыть">×</button>'+
+        '</div>'+
+        '<div class="income-report-picker-period">'+
+          '<label><span>Месяц</span><select id="incomeReportMonth"></select></label>'+
+          '<label><span>Год</span><select id="incomeReportYear"></select></label>'+
+        '</div>'+
+        '<div class="income-report-picker-categories">'+
+          '<label class="income-report-picker-all"><input type="checkbox" id="incomeReportAllCategories" checked><span>Все категории</span></label>'+
+          '<div class="income-report-picker-category-list" id="incomeReportCategoryList"></div>'+
+        '</div>'+
+        '<div class="income-report-picker-actions">'+
+          '<button type="button" class="income-report-picker-cancel">Отмена</button>'+
+          '<button type="button" class="income-report-picker-submit">Печать / PDF</button>'+
+        '</div>'+
+      '</div>';
+
+    document.body.appendChild(overlay);
+
+    const monthSelect=overlay.querySelector('#incomeReportMonth');
+    monthNames.forEach(function(name,index){
+      const option=document.createElement('option');
+      option.value=String(index);
+      option.textContent=name;
+      monthSelect.appendChild(option);
+    });
+
+    function close(){
+      overlay.hidden=true;
+      document.body.classList.remove('income-report-picker-open');
+    }
+
+    overlay.querySelector('.income-report-picker-close').addEventListener('click',close);
+    overlay.querySelector('.income-report-picker-cancel').addEventListener('click',close);
+    overlay.addEventListener('click',function(event){
+      if(event.target===overlay)close();
+    });
+
+    overlay.querySelector('#incomeReportAllCategories').addEventListener('change',function(event){
+      const checked=event.target.checked;
+      overlay.querySelectorAll('.income-report-picker-category-list input[type="checkbox"]').forEach(function(input){
+        input.checked=checked;
+      });
+      updatePickerSubmitState(overlay);
+    });
+
+    overlay.querySelector('#incomeReportCategoryList').addEventListener('change',function(event){
+      if(!event.target.matches('input[type="checkbox"]'))return;
+      const inputs=Array.from(overlay.querySelectorAll('.income-report-picker-category-list input[type="checkbox"]'));
+      overlay.querySelector('#incomeReportAllCategories').checked=inputs.length>0&&inputs.every(function(input){return input.checked;});
+      updatePickerSubmitState(overlay);
+    });
+
+    overlay.querySelector('.income-report-picker-submit').addEventListener('click',function(){
+      const categories=Array.from(overlay.querySelectorAll('.income-report-picker-category-list input[type="checkbox"]:checked')).map(function(input){
+        return input.value;
+      });
+      if(!categories.length)return;
+      const period={
+        month:Number(overlay.querySelector('#incomeReportMonth').value),
+        year:Number(overlay.querySelector('#incomeReportYear').value)
+      };
+      close();
+      printReport({mode:'month',period:period,categories:categories});
+    });
+
+    document.addEventListener('keydown',function(event){
+      if(event.key==='Escape'&&!overlay.hidden)close();
+    });
+
+    return overlay;
+  }
+
+  function updatePickerSubmitState(overlay){
+    const any=!!overlay.querySelector('.income-report-picker-category-list input[type="checkbox"]:checked');
+    overlay.querySelector('.income-report-picker-submit').disabled=!any;
+  }
+
+  function openHistoryPicker(){
+    const overlay=ensureHistoryPicker();
+    const period=readSelectedPeriod();
+    const yearSelect=overlay.querySelector('#incomeReportYear');
+    const categoryList=overlay.querySelector('#incomeReportCategoryList');
+
+    yearSelect.innerHTML='';
+    reportYears().forEach(function(year){
+      const option=document.createElement('option');
+      option.value=String(year);
+      option.textContent=String(year);
+      yearSelect.appendChild(option);
+    });
+
+    if(!Array.from(yearSelect.options).some(function(option){return Number(option.value)===period.year;})){
+      const option=document.createElement('option');
+      option.value=String(period.year);
+      option.textContent=String(period.year);
+      yearSelect.prepend(option);
+    }
+
+    overlay.querySelector('#incomeReportMonth').value=String(period.month);
+    yearSelect.value=String(period.year);
+
+    categoryList.innerHTML='';
+    reportCategories().forEach(function(category){
+      const label=document.createElement('label');
+      label.className='income-report-picker-category';
+      const input=document.createElement('input');
+      input.type='checkbox';
+      input.value=category;
+      input.checked=true;
+      const text=document.createElement('span');
+      text.textContent=category;
+      label.appendChild(input);
+      label.appendChild(text);
+      categoryList.appendChild(label);
+    });
+
+    overlay.querySelector('#incomeReportAllCategories').checked=true;
+    updatePickerSubmitState(overlay);
+    overlay.hidden=false;
+    document.body.classList.add('income-report-picker-open');
+    overlay.querySelector('#incomeReportMonth').focus();
+  }
+
+  function bindReportButton(buttonId,handler){
     const button=document.getElementById(buttonId);
     if(!button||button.__qPokoyReportPrint)return;
     button.addEventListener('click',function(event){
       event.preventDefault();
       event.stopPropagation();
-      printReport(periodSelectId);
+      handler();
     });
     button.__qPokoyReportPrint=true;
   }
 
   function bind(){
-    bindReportButton('printIncomeReportBtn','printReportPeriod');
-    bindReportButton('printIncomeHistoryReportBtn','printHistoryReportPeriod');
+    bindReportButton('printIncomeReportBtn',function(){
+      printReport({periodSelectId:'printReportPeriod'});
+    });
+    bindReportButton('printIncomeHistoryReportBtn',openHistoryPicker);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);
