@@ -9,6 +9,7 @@
   const monthNames=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   const monthPrep=['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'];
   const monthGenitive=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const monthShortGenitive=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
   const monthWith=['январём','февралём','мартом','апрелем','маем','июнем','июлем','августом','сентябрём','октябрём','ноябрём','декабрём'];
 
   function money(value){
@@ -88,6 +89,80 @@
     return 'дней';
   }
 
+  function smoothSpikePath(points){
+    if(!points.length)return '';
+    let path='M '+points[0].x.toFixed(3)+' '+points[0].y.toFixed(3);
+    for(let i=1;i<points.length;i++){
+      const previous=points[i-1];
+      const current=points[i];
+      const middle=(previous.x+current.x)/2;
+      path+=' C '+middle.toFixed(3)+' '+previous.y.toFixed(3)+' '+middle.toFixed(3)+' '+current.y.toFixed(3)+' '+current.x.toFixed(3)+' '+current.y.toFixed(3);
+    }
+    return path;
+  }
+
+  function renderIncomeSpikes(container,dayTotals,period){
+    const count=dayTotals.length;
+    const dayMax=Math.max(...dayTotals,1);
+    const baseline=88;
+    const top=24;
+    const range=baseline-top;
+    const points=dayTotals.map((value,index)=>{
+      const ratio=value>0?Math.sqrt(value/dayMax):0;
+      return {
+        day:index+1,
+        value,
+        x:count>1?(index/(count-1))*100:50,
+        y:baseline-ratio*range
+      };
+    });
+    const path=smoothSpikePath(points);
+    const areaPath=path&&points.length
+      ?path+' L '+points[points.length-1].x.toFixed(3)+' '+baseline+' L '+points[0].x.toFixed(3)+' '+baseline+' Z'
+      :'';
+
+    const positive=points.filter(point=>point.value>0);
+    const highlighted=[];
+    if(positive.length<=4){
+      highlighted.push(...positive);
+    }else{
+      const ranked=positive.slice().sort((a,b)=>b.value-a.value);
+      for(const point of ranked){
+        if(highlighted.length>=3)break;
+        if(highlighted.every(selected=>Math.abs(selected.x-point.x)>=10))highlighted.push(point);
+      }
+      for(const point of ranked){
+        if(highlighted.length>=3)break;
+        if(!highlighted.includes(point))highlighted.push(point);
+      }
+    }
+    const highlightedDays=new Set(highlighted.map(point=>point.day));
+
+    const guides=highlighted.map(point=>
+      '<line class="monthly-spikes-guide" x1="'+point.x.toFixed(3)+'" y1="'+point.y.toFixed(3)+'" x2="'+point.x.toFixed(3)+'" y2="'+baseline+'"></line>'
+    ).join('');
+
+    const markers=positive.map(point=>{
+      const highlightedPoint=highlightedDays.has(point.day);
+      const edge=point.x<10?' edge-left':point.x>90?' edge-right':'';
+      const label=highlightedPoint
+        ?'<span class="monthly-spike-label"><b>'+escapeText(money(point.value))+'</b><small>'+point.day+' '+monthShortGenitive[period.month]+'</small></span>'
+        :'';
+      const title=point.day+' '+monthGenitive[period.month]+': '+money(point.value);
+      return '<span class="monthly-spike-marker'+(highlightedPoint?' is-highlight':'')+edge+'" style="--spike-x:'+point.x.toFixed(3)+'%;--spike-y:'+point.y.toFixed(3)+'%;" title="'+escapeText(title)+'" aria-label="'+escapeText(title)+'">'+label+'</span>';
+    }).join('');
+
+    container.classList.add('monthly-income-spikes');
+    container.setAttribute('aria-label','Доходные всплески по дням месяца');
+    container.innerHTML=
+      '<svg class="monthly-spikes-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
+        '<path class="monthly-spikes-area" d="'+areaPath+'"></path>'+
+        guides+
+        '<path class="monthly-spikes-line" d="'+path+'"></path>'+
+      '</svg>'+
+      markers;
+  }
+
   function render(){
     const period=readPeriod();
     const data=loadData();
@@ -163,14 +238,8 @@
         const day=d.getDate();
         if(day>=1&&day<=daysInMonth)dayTotals[day-1]+=Number(item.amount)||0;
       });
-      const dayMax=Math.max(...dayTotals,1);
-      heroBarsEl.style.setProperty('--monthly-days',String(daysInMonth));
       heroDaysLabelsEl.style.setProperty('--monthly-days',String(daysInMonth));
-      heroBarsEl.innerHTML=dayTotals.map((value,index)=>{
-        const height=value>0?Math.max(8,(value/dayMax)*100):3;
-        const day=index+1;
-        return '<span class="monthly-total-bar'+(value>0?'':' is-zero')+'" style="--bar-height:'+height.toFixed(1)+'%" title="'+day+' '+monthGenitive[period.month]+': '+escapeText(money(value))+'" aria-label="'+day+' '+monthGenitive[period.month]+': '+escapeText(money(value))+'"></span>';
-      }).join('');
+      renderIncomeSpikes(heroBarsEl,dayTotals,period);
       heroDaysLabelsEl.innerHTML=dayTotals.map((value,index)=>{
         const day=index+1;
         const show=day===1||day===5||day===10||day===15||day===20||day===25||day===daysInMonth;
