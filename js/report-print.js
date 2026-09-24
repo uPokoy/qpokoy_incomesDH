@@ -199,21 +199,36 @@
     const generated=formatDate(new Date());
     const rangeText=reportDateRange(report,mode,period,range);
     const title='qPokoy — '+report.label;
+    const pdfFileName=('Доходы '+report.label).replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim()+'.pdf';
 
     return '<!doctype html><html lang="ru"><head><meta charset="utf-8">'+
       '<meta name="viewport" content="width=device-width,initial-scale=1">'+
       '<title>'+escapeHtml(title)+'</title>'+
       '<style>'+
       '@page{size:A4;margin:13mm 12mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:13px;line-height:1.4}'+
-      'body{padding:22px;max-width:920px;margin:0 auto}.report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:18px}.report-head h1{margin:0 0 4px;font-size:13px;font-weight:600;line-height:1.2;color:#374151}.period{font-size:20px;font-weight:750;line-height:1.15;color:#111827}.report-meta{text-align:right;color:#6b7280;font-size:11px;line-height:1.5;white-space:nowrap}.summary{display:grid;grid-template-columns:1.45fr .8fr .8fr;margin:0 0 18px;background:#f5f7fa;border:1px solid #edf0f3;border-radius:9px;overflow:hidden}.metric{min-height:70px;padding:12px 15px;display:flex;flex-direction:column;justify-content:center}.metric+.metric{border-left:1px solid #dde2e8}.metric span{margin:0 0 6px;color:#6b7280;font-size:11px}.metric strong{font-size:23px;line-height:1;font-weight:750;letter-spacing:-.02em}.metric:not(:first-child) strong{font-size:20px}.income-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}thead{display:table-header-group}th{background:#f3f4f6;color:#4b5563;font-size:11px;font-weight:650;text-align:left}th,td{padding:8px 9px;border-bottom:1px solid #e5e7eb;vertical-align:top}tbody tr:last-child td{border-bottom:0}.date{width:18%;white-space:nowrap}.category{width:22%}.description{width:40%;word-break:break-word}.number{width:20%;text-align:right;white-space:nowrap;font-weight:650}.total-row td{background:#f8fafc;font-weight:750;border-top:1px solid #dbe1e7}.total-row .total-inline{text-align:right;white-space:nowrap;font-size:14px}.total-row .total-inline span{margin-right:8px}.total-row .total-inline strong{font-size:14px}.report-actions{position:fixed;right:20px;bottom:20px}.report-actions button{padding:11px 15px;border:0;border-radius:9px;background:#2563eb;color:#fff;font:600 13px inherit;cursor:pointer;box-shadow:0 8px 24px rgba(37,99,235,.22)}tr{break-inside:avoid;page-break-inside:avoid}@media print{body{padding:0;max-width:none}.report-actions{display:none}.summary{break-inside:avoid;page-break-inside:avoid}.income-table{border-radius:6px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
+      'body{padding:22px;margin:0;background:#fff}.report-document{max-width:920px;margin:0 auto}.report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:18px}.report-head h1{margin:0 0 4px;font-size:13px;font-weight:600;line-height:1.2;color:#374151}.period{font-size:20px;font-weight:750;line-height:1.15;color:#111827}.report-meta{text-align:right;color:#6b7280;font-size:11px;line-height:1.5;white-space:nowrap}.summary{display:grid;grid-template-columns:1.45fr .8fr .8fr;margin:0 0 18px;background:#f5f7fa;border:1px solid #edf0f3;border-radius:9px;overflow:hidden}.metric{min-height:70px;padding:12px 15px;display:flex;flex-direction:column;justify-content:center}.metric+.metric{border-left:1px solid #dde2e8}.metric span{margin:0 0 6px;color:#6b7280;font-size:11px}.metric strong{font-size:23px;line-height:1;font-weight:750;letter-spacing:-.02em}.metric:not(:first-child) strong{font-size:20px}.income-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}thead{display:table-header-group}th{background:#f3f4f6;color:#4b5563;font-size:11px;font-weight:650;text-align:left}th,td{padding:8px 9px;border-bottom:1px solid #e5e7eb;vertical-align:top}tbody tr:last-child td{border-bottom:0}.date{width:18%;white-space:nowrap}.category{width:22%}.description{width:40%;word-break:break-word}.number{width:20%;text-align:right;white-space:nowrap;font-weight:650}.total-row td{background:#f8fafc;font-weight:750;border-top:1px solid #dbe1e7}.total-row .total-inline{text-align:right;white-space:nowrap;font-size:14px}.total-row .total-inline span{margin-right:8px}.total-row .total-inline strong{font-size:14px}.report-actions{position:fixed;right:20px;bottom:20px;display:flex;align-items:center;gap:8px}.report-actions button{padding:11px 15px;border-radius:9px;font:600 13px inherit;cursor:pointer}.report-print-btn{border:1px solid #d7dde5;background:#fff;color:#374151;box-shadow:0 7px 20px rgba(15,23,42,.10)}.report-save-btn{border:0;background:#2563eb;color:#fff;box-shadow:0 8px 24px rgba(37,99,235,.22)}.report-save-btn:disabled{opacity:.6;cursor:wait}tr{break-inside:avoid;page-break-inside:avoid}@media print{body{padding:0}.report-document{max-width:none}.report-actions{display:none}.summary{break-inside:avoid;page-break-inside:avoid}.income-table{border-radius:6px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
       '</style></head><body>'+
+      '<main class="report-document" id="reportDocument">'+
       '<header class="report-head"><div><h1>Отчёт о доходах</h1><div class="period">'+escapeHtml(report.label)+'</div></div><div class="report-meta">Сформировано '+escapeHtml(generated)+'<br>'+escapeHtml(rangeText)+'</div></header>'+
       '<section class="summary"><div class="metric"><span>Общий доход</span><strong>'+escapeHtml(money(total))+'</strong></div><div class="metric"><span>Доходов</span><strong>'+records.length+'</strong></div><div class="metric"><span>Дней с доходом</span><strong>'+incomeDays+'</strong></div></section>'+
       '<table class="income-table"><thead><tr><th class="date">Дата</th><th class="category">Категория</th><th class="description">Описание</th><th class="number">Сумма</th></tr></thead><tbody>'+
       incomeRows(records)+
       '<tr class="total-row"><td colspan="4" class="total-inline"><span>Итого:</span><strong>'+escapeHtml(money(total))+'</strong></td></tr>'+
       '</tbody></table>'+
-      '<div class="report-actions"><button type="button" onclick="window.print()">Печать / PDF</button></div>'+
+      '</main>'+
+      '<div class="report-actions"><button type="button" class="report-print-btn" onclick="window.print()">Печать</button><button type="button" class="report-save-btn" id="saveReportPdfBtn" onclick="saveReportPdf()">Сохранить PDF</button></div>'+
+      '<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"><\/script>'+
+      '<script>'+
+      'const qPokoyPdfFileName='+JSON.stringify(pdfFileName)+';'+
+      'function saveReportPdf(){'+
+        'const button=document.getElementById("saveReportPdfBtn");'+
+        'if(!window.html2pdf){alert("Модуль сохранения PDF ещё загружается. Повторите через секунду.");return;}'+
+        'button.disabled=true;button.textContent="Сохранение…";'+
+        'const source=document.getElementById("reportDocument");'+
+        'const options={margin:[13,12,13,12],filename:qPokoyPdfFileName,image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"],avoid:["tr",".summary"]}};'+
+        'html2pdf().set(options).from(source).save().then(function(){button.disabled=false;button.textContent="Сохранить PDF";}).catch(function(){button.disabled=false;button.textContent="Сохранить PDF";alert("Не удалось сохранить PDF. Используйте кнопку «Печать».");});'+
+      '}'+
+      '<\/script>'+
       '</body></html>';
   }
 
@@ -238,9 +253,6 @@
     popup.document.write(buildReportHtml(report,mode,period,range));
     popup.document.close();
     popup.focus();
-    setTimeout(function(){
-      try{popup.print();}catch(e){}
-    },250);
   }
 
   function reportYears(){
