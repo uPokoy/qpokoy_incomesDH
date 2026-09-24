@@ -155,7 +155,7 @@
   function incomeRows(records){
     return records.map(function(item){
       return '<tr>'+
-        '<td>'+escapeHtml(item.date)+'</td>'+
+        '<td class="date">'+escapeHtml(item.date)+'</td>'+
         '<td>'+escapeHtml(item.category)+'</td>'+
         '<td class="description">'+escapeHtml(item.description||'—')+'</td>'+
         '<td class="number">'+escapeHtml(money(item.amount))+'</td>'+
