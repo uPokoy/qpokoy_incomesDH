@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.24.22';
+const qPokoyDevVersion='dev-2026.09.24.23';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
