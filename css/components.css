@@ -4148,22 +4148,9 @@ body.income-report-picker-open{
 }
 .income-report-picker-head{
   display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom:16px;
-}
-.income-report-picker-head > div{min-width:0}
-.income-report-picker-head strong{
-  display:block;
-  font-size:16px;
-  line-height:1.2;
-}
-.income-report-picker-head span{
-  display:block;
-  margin-top:4px;
-  color:var(--text-muted);
-  font-size:12px;
+  align-items:center;
+  justify-content:flex-end;
+  margin-bottom:10px;
 }
 .income-report-picker-close{
   width:30px;
@@ -4186,23 +4173,11 @@ body.income-report-picker-open{
   font-size:12px;
   font-weight:650;
 }
-.income-report-preset-select{
-  width:100%;
-  height:38px;
-  padding:0 34px 0 11px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:var(--panel-muted);
-  color:var(--text);
-  font:inherit;
-  font-size:13px;
-  cursor:pointer;
-}
 .income-report-preset-grid{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:7px;
-  margin-top:9px;
+  margin-top:0;
 }
 .income-report-preset-btn{
   min-width:0;

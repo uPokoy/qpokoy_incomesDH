@@ -275,8 +275,7 @@
   }
 
   function setPickerPreset(overlay,preset){
-    const select=overlay.querySelector('#incomeReportPreset');
-    select.value=preset;
+    overlay.dataset.reportPreset=preset;
     overlay.querySelectorAll('.income-report-preset-btn').forEach(function(button){
       button.classList.toggle('active',button.dataset.reportPreset===preset);
     });
@@ -293,20 +292,10 @@
     overlay.className='income-report-picker';
     overlay.hidden=true;
     overlay.innerHTML=
-      '<div class="income-report-picker-card" role="dialog" aria-modal="true" aria-labelledby="incomeReportPickerTitle">'+
+      '<div class="income-report-picker-card" role="dialog" aria-modal="true" aria-label="Настройки печати отчёта">'+
         '<div class="income-report-picker-head">'+
-          '<div><strong id="incomeReportPickerTitle">Печать отчёта</strong><span>Выберите период и категории</span></div>'+
           '<button type="button" class="income-report-picker-close" aria-label="Закрыть">×</button>'+
         '</div>'+
-        '<div class="income-report-picker-section-title">Период</div>'+
-        '<select id="incomeReportPreset" class="income-report-preset-select" aria-label="Период отчёта">'+
-          '<option value="current-month">Текущий месяц</option>'+
-          '<option value="previous-month">Прошлый месяц</option>'+
-          '<option value="current-year">Текущий год</option>'+
-          '<option value="previous-year">Прошлый год</option>'+
-          '<option value="all">Всё время</option>'+
-          '<option value="custom">Свой диапазон</option>'+
-        '</select>'+
         '<div class="income-report-preset-grid">'+
           '<button type="button" class="income-report-preset-btn" data-report-preset="current-month">Текущий месяц</button>'+
           '<button type="button" class="income-report-preset-btn" data-report-preset="previous-month">Прошлый месяц</button>'+
@@ -343,10 +332,6 @@
       if(event.target===overlay)close();
     });
 
-    overlay.querySelector('#incomeReportPreset').addEventListener('change',function(event){
-      setPickerPreset(overlay,event.target.value);
-    });
-
     overlay.querySelector('.income-report-preset-grid').addEventListener('click',function(event){
       const button=event.target.closest('.income-report-preset-btn');
       if(!button)return;
@@ -379,7 +364,7 @@
       });
       if(!categories.length)return;
 
-      const preset=overlay.querySelector('#incomeReportPreset').value;
+      const preset=overlay.dataset.reportPreset||'current-month';
       const config=pickerPresetConfig(preset,overlay);
       if(config.mode==='range'){
         if(!config.range.from||!config.range.to||config.range.from>config.range.to)return;
@@ -404,7 +389,7 @@
   function updatePickerSubmitState(overlay){
     const submit=overlay.querySelector('.income-report-picker-submit');
     const hasCategory=!!overlay.querySelector('.income-report-picker-category-list input[type="checkbox"]:checked');
-    const preset=overlay.querySelector('#incomeReportPreset').value;
+    const preset=overlay.dataset.reportPreset||'current-month';
     let validPeriod=true;
 
     if(preset==='custom'){
@@ -446,7 +431,7 @@
     updatePickerSubmitState(overlay);
     overlay.hidden=false;
     document.body.classList.add('income-report-picker-open');
-    overlay.querySelector('#incomeReportPreset').focus();
+    overlay.querySelector('.income-report-preset-btn.active')?.focus();
   }
 
   function bindReportButton(buttonId,handler){
