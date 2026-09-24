@@ -226,11 +226,31 @@ main{
   box-shadow:0 8px 20px rgba(20,30,50,.08);
 }
 #settings #exportDataBtn,
-#settings #importDataBtn{
+#settings #importDataBtn,
+#settings #printIncomeReportBtn{
   background:var(--accent, #5b6cff);
   color:#fff;
   border-color:transparent;
 }
+
+#settings .settings-report-period{
+  min-height:42px;
+  padding:9px 34px 9px 12px;
+  border:1px solid var(--border-color, rgba(120,130,150,.2));
+  border-radius:14px;
+  background:var(--surface-2, rgba(127,140,160,.08));
+  color:var(--text);
+  font:inherit;
+  cursor:pointer;
+}
+#settings .settings-report-period:focus{
+  border-color:color-mix(in srgb,var(--primary) 58%,var(--border));
+  outline:none;
+}
+@media (max-width:700px){
+  #settings .settings-report-period{width:100%}
+}
+
 #settings #clearIncomeDataBtn{
   color:#c0392b;
   border-color:rgba(192,57,43,.22);

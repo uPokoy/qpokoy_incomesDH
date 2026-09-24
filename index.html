@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.23.51">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.23.47">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.24.02">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.21.05">
 <link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.24.01">
 <link rel="stylesheet" href="css/monthly-card-alignment.css?v=dev-2026.09.23.22">
@@ -150,7 +150,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.24.01"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.24.02"></script>
 
 
 
@@ -232,7 +232,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.24.01</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.24.02</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -639,7 +639,14 @@
         <div class="settings-card-subtitle"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
           <button type="button" class="btn-secondary" id="exportDataBtn"><span class="settings-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v11m0-11 4 4m-4-4L8 7M5 13v6h14v-6"/></svg></span><span>Экспорт</span></button>
-          <button type="button" class="btn-secondary" id="importDataBtn"><span class="settings-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21V10m0 11-4-4m4 4 4-4M5 11V5h14v6"/></svg></span><span>Импорт</span></button><button type="button" class="btn-secondary" id="clearIncomeDataBtn"><span class="settings-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v6m4-6v6"/></svg></span><span>Удалить данные</span></button>
+          <button type="button" class="btn-secondary" id="importDataBtn"><span class="settings-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21V10m0 11-4-4m4 4 4-4M5 11V5h14v6"/></svg></span><span>Импорт</span></button>
+          <select id="printReportPeriod" class="settings-report-period" aria-label="Период отчёта PDF">
+            <option value="month">Выбранный месяц</option>
+            <option value="year">Выбранный год</option>
+            <option value="all">Все доходы</option>
+          </select>
+          <button type="button" class="btn-secondary" id="printIncomeReportBtn"><span class="settings-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg></span><span>PDF / Печать</span></button>
+          <button type="button" class="btn-secondary" id="clearIncomeDataBtn"><span class="settings-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v6m4-6v6"/></svg></span><span>Удалить данные</span></button>
           <input type="file" id="importDataInput" accept=".json,application/json" hidden>
         </div>
       </div>
@@ -660,13 +667,14 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.24.01"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.24.02"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
 <script id="qPokoyCustomConfirm" src="js/confirm.js"></script>
 
 <script src="js/backup-controls.js"></script>
+<script id="qPokoyReportPrintJS" src="js/report-print.js?v=dev-2026.09.24.02"></script>
 
 <script src="js/clear-data.js"></script>
 <script id="statistics-year-inline-v90-js" src="js/analytics-year.js"></script>
