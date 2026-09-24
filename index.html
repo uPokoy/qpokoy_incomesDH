@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/main.css?v=dev-2026.09.23.51">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.24.02">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.24.07">
 <link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.21.05">
 <link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.24.01">
 <link rel="stylesheet" href="css/monthly-card-alignment.css?v=dev-2026.09.23.22">
@@ -150,7 +150,7 @@
 
 
 <script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.15.15"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.24.06"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.24.07"></script>
 
 
 
@@ -232,7 +232,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.24.06</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.24.07</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -266,6 +266,17 @@
             <span class="income-recent-page-indicator" id="incomeRecentPageIndicator" aria-live="polite">1 / 1</span>
             <button type="button" class="income-recent-page-btn" id="incomeRecentNext" aria-label="Следующие 4 дохода" title="Следующие 4 дохода" disabled>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+          <div class="income-history-report-actions" aria-label="Печать отчёта">
+            <select id="printHistoryReportPeriod" class="income-history-report-period" aria-label="Период отчёта PDF">
+              <option value="month">Выбранный месяц</option>
+              <option value="year">Выбранный год</option>
+              <option value="all">Все доходы</option>
+            </select>
+            <button type="button" class="income-history-report-btn" id="printIncomeHistoryReportBtn">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg>
+              <span>PDF / Печать</span>
             </button>
           </div>
         </div>
@@ -667,14 +678,14 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.24.06"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.24.07"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
 <script id="qPokoyCustomConfirm" src="js/confirm.js"></script>
 
 <script src="js/backup-controls.js"></script>
-<script id="qPokoyReportPrintJS" src="js/report-print.js?v=dev-2026.09.24.06"></script>
+<script id="qPokoyReportPrintJS" src="js/report-print.js?v=dev-2026.09.24.07"></script>
 
 <script src="js/clear-data.js"></script>
 <script id="statistics-year-inline-v90-js" src="js/analytics-year.js"></script>

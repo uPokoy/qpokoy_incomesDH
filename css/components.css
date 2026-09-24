@@ -4064,3 +4064,78 @@ body.qp-auth-locked #income .income-recent-pager{
     box-shadow:none !important;
   }
 }
+
+
+/* Desktop PDF/print control lives in the lower-right corner of Full History. */
+#income .income-history-report-actions{
+  display:none;
+}
+@media(min-width:761px){
+  #settings #printReportPeriod,
+  #settings #printIncomeReportBtn{
+    display:none !important;
+  }
+
+  #income .income-recent.is-history-open .income-history-report-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-left:auto;
+  }
+
+  #income .income-history-report-period{
+    height:30px;
+    min-height:30px;
+    padding:0 28px 0 10px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    background:var(--panel-muted);
+    color:var(--text-muted);
+    font:inherit;
+    font-size:12px;
+    cursor:pointer;
+  }
+
+  #income .income-history-report-period:hover,
+  #income .income-history-report-period:focus{
+    color:var(--text);
+    border-color:color-mix(in srgb,var(--primary) 30%,var(--border));
+    outline:none;
+  }
+
+  #income .income-history-report-btn{
+    height:30px;
+    padding:0 11px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border:1px solid color-mix(in srgb,var(--primary) 52%,var(--border));
+    border-radius:9px;
+    background:color-mix(in srgb,var(--primary) 16%,var(--panel-muted));
+    color:color-mix(in srgb,var(--primary) 72%,var(--text));
+    font:inherit;
+    font-size:12px;
+    font-weight:600;
+    line-height:1;
+    white-space:nowrap;
+    cursor:pointer;
+    transition:color .15s ease,background .15s ease,border-color .15s ease;
+  }
+
+  #income .income-history-report-btn:hover{
+    color:var(--text);
+    background:color-mix(in srgb,var(--primary) 24%,var(--panel-muted));
+    border-color:color-mix(in srgb,var(--primary) 68%,var(--border));
+  }
+
+  #income .income-history-report-btn svg{
+    width:15px;
+    height:15px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+}

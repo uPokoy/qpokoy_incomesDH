@@ -169,8 +169,8 @@
       '</body></html>';
   }
 
-  function printReport(){
-    const mode=document.getElementById('printReportPeriod')?.value||'month';
+  function printReport(periodSelectId){
+    const mode=document.getElementById(periodSelectId||'printReportPeriod')?.value||'month';
     const report=filterReport(mode);
     if(!report.records.length){
       if(typeof window.qPokoyNotice==='function')window.qPokoyNotice('Нет данных','За выбранный период доходов нет.','error');
@@ -192,15 +192,20 @@
     },250);
   }
 
-  function bind(){
-    const button=document.getElementById('printIncomeReportBtn');
+  function bindReportButton(buttonId,periodSelectId){
+    const button=document.getElementById(buttonId);
     if(!button||button.__qPokoyReportPrint)return;
     button.addEventListener('click',function(event){
       event.preventDefault();
       event.stopPropagation();
-      printReport();
+      printReport(periodSelectId);
     });
     button.__qPokoyReportPrint=true;
+  }
+
+  function bind(){
+    bindReportButton('printIncomeReportBtn','printReportPeriod');
+    bindReportButton('printIncomeHistoryReportBtn','printHistoryReportPeriod');
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);
