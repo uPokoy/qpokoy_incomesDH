@@ -158,7 +158,7 @@ main { width: min(1180px, 100%); margin: 0 auto; padding: clamp(18px, 3vw, 34px)
 .income-chart-grid { stroke: var(--border); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .income-chart-bar { fill: color-mix(in srgb, var(--primary) 72%, white); cursor: pointer; transition: opacity .15s ease, transform .15s ease; }
 .income-chart-bar:hover, .income-chart-bar:focus { fill: var(--primary); opacity: 1; }
-.income-chart-bar.selected { fill: var(--success); }
+.income-chart-bar.selected { fill: color-mix(in srgb, var(--primary) 82%, black 18%); }
 .income-chart-year-bottom { position: absolute; top: 0; right: 0; left: 0; display: flex; justify-content: center; }
 .income-chart-months { display: none; }
 
