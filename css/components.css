@@ -2948,6 +2948,15 @@ body.qp-auth-locked #income .income-recent-pager{
   #incomeAnalytics:not(.is-monthly) .annual-total-bar.is-zero{
     opacity:.20;
   }
+  #incomeAnalytics:not(.is-monthly) .annual-total-bar.selected{
+    background:linear-gradient(
+      180deg,
+      color-mix(in srgb,var(--primary) 88%,black 12%),
+      color-mix(in srgb,var(--primary) 76%,black 24%)
+    );
+    box-shadow:0 0 12px color-mix(in srgb,var(--primary) 28%,transparent);
+    opacity:1;
+  }
   #incomeAnalytics:not(.is-monthly) .annual-total-months{
     margin-top:5px;
     padding:0 1px;
