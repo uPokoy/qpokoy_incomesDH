@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.24.34';
+const qPokoyDevVersion='dev-2026.09.24.35';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -809,7 +809,8 @@ function calculateIncomeAnalytics(year){
 }
 
 window.renderIncomeAnalytics=function(){
-  const year=getSelectedIncomeYear();
+  const selectedPeriod=getSelectedIncomePeriod();
+  const year=selectedPeriod.year;
   const a=calculateIncomeAnalytics(year);
   const fullNames=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   const yearEl=document.getElementById('analyticsYear');
@@ -866,7 +867,7 @@ window.renderIncomeAnalytics=function(){
     annualHeroBarsEl.innerHTML=a.monthTotals.map((value,index)=>{
       const height=value>0?Math.max(8,(value/annualMax)*100):4;
       const hue=174+index*9;
-      return `<span class="annual-total-bar${value>0?'':' is-zero'}" data-month="${index}" role="button" tabindex="0" style="--bar-height:${height.toFixed(1)}%;--bar-hue:${hue}" title="${fullNames[index]}: ${formatMoney(value)}" aria-label="Показать ${fullNames[index]} ${a.year}: ${formatMoney(value)}"></span>`;
+      return `<span class="annual-total-bar${value>0?'':' is-zero'}${index===selectedPeriod.month?' selected':''}" data-month="${index}" role="button" tabindex="0" style="--bar-height:${height.toFixed(1)}%;--bar-hue:${hue}" title="${fullNames[index]}: ${formatMoney(value)}" aria-label="Показать ${fullNames[index]} ${a.year}: ${formatMoney(value)}"></span>`;
     }).join('');
   }
   if(annualTotalCardEl){
