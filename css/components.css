@@ -4136,8 +4136,8 @@ body.income-report-picker-open{
   backdrop-filter:blur(3px);
 }
 .income-report-picker-card{
-  width:min(390px,100%);
-  max-height:min(560px,calc(100vh - 40px));
+  width:min(430px,100%);
+  max-height:min(640px,calc(100vh - 40px));
   overflow:auto;
   padding:18px;
   border:1px solid var(--border);
@@ -4153,9 +4153,7 @@ body.income-report-picker-open{
   gap:16px;
   margin-bottom:16px;
 }
-.income-report-picker-head > div{
-  min-width:0;
-}
+.income-report-picker-head > div{min-width:0}
 .income-report-picker-head strong{
   display:block;
   font-size:16px;
@@ -4182,30 +4180,89 @@ body.income-report-picker-open{
   line-height:1;
   cursor:pointer;
 }
-.income-report-picker-period{
-  display:grid;
-  grid-template-columns:1fr 112px;
-  gap:10px;
+.income-report-picker-section-title{
+  margin:0 0 6px;
+  color:var(--text);
+  font-size:12px;
+  font-weight:650;
 }
-.income-report-picker-period label > span{
-  display:block;
-  margin-bottom:5px;
-  color:var(--text-muted);
-  font-size:11px;
-}
-.income-report-picker-period select{
+.income-report-preset-select{
   width:100%;
   height:38px;
-  padding:0 30px 0 10px;
+  padding:0 34px 0 11px;
   border:1px solid var(--border);
   border-radius:10px;
   background:var(--panel-muted);
   color:var(--text);
   font:inherit;
   font-size:13px;
+  cursor:pointer;
+}
+.income-report-preset-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  margin-top:9px;
+}
+.income-report-preset-btn{
+  min-width:0;
+  height:34px;
+  padding:0 8px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--panel-muted);
+  color:var(--text-muted);
+  font:inherit;
+  font-size:11px;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.income-report-preset-btn:hover{
+  color:var(--text);
+  background:var(--active);
+}
+.income-report-preset-btn.active{
+  color:var(--text);
+  border-color:color-mix(in srgb,var(--primary) 78%,var(--border));
+  background:color-mix(in srgb,var(--primary) 18%,var(--panel-muted));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 18%,transparent);
+}
+.income-report-custom-range[hidden]{
+  display:none !important;
+}
+.income-report-custom-range{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.income-report-custom-range label > span{
+  display:block;
+  margin-bottom:5px;
+  color:var(--text-muted);
+  font-size:11px;
+}
+.income-report-custom-range input{
+  width:100%;
+  height:38px;
+  padding:0 10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--panel-muted);
+  color:var(--text);
+  color-scheme:dark;
+  font:inherit;
+  font-size:12px;
+}
+body:not(.dark) .income-report-custom-range input{
+  color-scheme:light;
+}
+.income-report-category-title{
+  margin-top:15px;
 }
 .income-report-picker-categories{
-  margin-top:14px;
   border:1px solid var(--border);
   border-radius:11px;
   overflow:hidden;
@@ -4229,6 +4286,8 @@ body.income-report-picker-open{
   max-height:170px;
   overflow:auto;
   padding:3px 0;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--text-muted) 48%,transparent) transparent;
 }
 .income-report-picker-category{
   min-height:34px;
@@ -4250,6 +4309,8 @@ body.income-report-picker-open{
   justify-content:flex-end;
   gap:8px;
   margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid var(--border);
 }
 .income-report-picker-actions button{
   height:36px;
@@ -4273,4 +4334,8 @@ body.income-report-picker-open{
 .income-report-picker-submit:disabled{
   opacity:.45;
   cursor:not-allowed;
+}
+@media(max-width:520px){
+  .income-report-preset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .income-report-custom-range{grid-template-columns:1fr}
 }
