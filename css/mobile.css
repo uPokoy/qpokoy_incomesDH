@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.07");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.07");
-@import url("./oauth-brand.css?v=dev-2026.09.25.07");
+@import url("./mobile-base.css?v=dev-2026.09.25.08");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.08");
+@import url("./oauth-brand.css?v=dev-2026.09.25.08");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -1768,5 +1768,170 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   body.qp-auth-locked #qpAuthGate,
   #qpAuthGate{
     align-items:flex-start !important;
+  }
+}
+
+
+/* Mobile screenshot polish 2026-09-25: compact history/categories and contain background help. */
+@media(max-width:560px){
+  /* History: reduce excess vertical space visible on Samsung Browser. */
+  #history #historySearchWrap{
+    margin-bottom:10px !important;
+  }
+
+  #history #historySearch{
+    height:44px !important;
+    min-height:44px !important;
+    padding:0 13px !important;
+    border-radius:13px !important;
+  }
+
+  #history #incomeList{
+    gap:8px !important;
+    padding-bottom:calc(112px + env(safe-area-inset-bottom)) !important;
+  }
+
+  #history #incomeList > .history-swipe-row{
+    min-height:88px !important;
+    border-radius:15px !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface{
+    min-height:88px !important;
+    padding:11px 13px !important;
+    column-gap:8px !important;
+    row-gap:5px !important;
+    border-radius:15px !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(1){
+    font-size:12px !important;
+    line-height:1.15 !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(2){
+    font-size:22px !important;
+    line-height:1 !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(3){
+    max-width:104px !important;
+    padding:4px 7px !important;
+    font-size:10px !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(4){
+    padding-top:1px !important;
+    font-size:13px !important;
+    line-height:1.25 !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-swipe-actions{
+    width:146px !important;
+  }
+
+  #history .income-empty{
+    min-height:88px !important;
+    padding:20px 14px !important;
+    border-radius:15px !important;
+  }
+
+  /* Categories: more information fits on one phone screen without losing touch targets. */
+  #settings[data-settings-tab="categories"] > #qpAppearanceCard{
+    padding:14px !important;
+  }
+
+  #settings .qp-category-add{
+    grid-template-columns:minmax(0,1fr) 48px !important;
+    gap:7px !important;
+    margin-bottom:8px !important;
+  }
+
+  #settings .qp-category-add input{
+    height:48px !important;
+    min-height:48px !important;
+    padding:0 12px !important;
+    border-radius:12px !important;
+  }
+
+  #settings .qp-category-add button,
+  #settings .qp-category-add button:hover,
+  #settings .qp-category-add button:active{
+    width:48px !important;
+    min-width:48px !important;
+    height:48px !important;
+    min-height:48px !important;
+    border-radius:12px !important;
+    font-size:25px !important;
+  }
+
+  #settings .qp-category-list{
+    gap:7px !important;
+  }
+
+  #settings .qp-category-item{
+    min-height:54px !important;
+    padding:6px 9px !important;
+    gap:9px !important;
+    border-radius:13px !important;
+  }
+
+  #settings .qp-category-icon{
+    flex:0 0 38px !important;
+    width:38px !important;
+    min-width:38px !important;
+    height:38px !important;
+    border-radius:11px !important;
+  }
+
+  #settings .qp-category-icon svg{
+    width:19px !important;
+    height:19px !important;
+  }
+
+  #settings .qp-category-name{
+    font-size:14px !important;
+  }
+
+  #settings .qp-category-delete,
+  #settings .qp-category-delete:hover,
+  #settings .qp-category-delete:active{
+    flex:0 0 38px !important;
+    width:38px !important;
+    min-width:38px !important;
+    height:38px !important;
+    min-height:38px !important;
+    border-radius:11px !important;
+  }
+
+  /* Background help stays inside the "Свой фон" card instead of hanging outside. */
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings .qp-background-custom-wrap{
+    position:relative !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings .qp-background-custom-wrap > .qp-background-help{
+    left:auto !important;
+    right:4px !important;
+    top:4px !important;
+    transform:none !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings .qp-background-help-btn{
+    width:24px !important;
+    min-width:24px !important;
+    max-width:24px !important;
+    height:24px !important;
+    min-height:24px !important;
+    max-height:24px !important;
+    border-radius:7px !important;
+    background:color-mix(in srgb,var(--panel) 82%,transparent) !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings .qp-background-help-tip{
+    left:auto !important;
+    right:0 !important;
+    transform:none !important;
+    width:min(230px,72vw) !important;
+    max-width:min(230px,72vw) !important;
   }
 }
