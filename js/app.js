@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.22';
+const qPokoyDevVersion='dev-2026.09.25.23';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -740,7 +740,7 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
       </button>
       <div class="income-recent-mobile-actions">
         <button class="income-recent-mobile-edit" data-id="${escapeHtml(item.id)}" type="button" aria-label="Редактировать доход" title="Редактировать">
-          <span class="history-action-pencil" aria-hidden="true">✎</span><span class="history-action-label" style="display:none">Изменить</span>
+          <span class="history-action-pencil" aria-hidden="true">✎<svg class="history-action-pencil-white" style="display:none" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span><span class="history-action-label" style="display:none">Изменить</span>
         </button>
         <button class="income-recent-mobile-delete" data-id="${escapeHtml(item.id)}" type="button" aria-label="Удалить доход" title="Удалить">
           <svg class="history-delete-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></svg>
@@ -904,7 +904,7 @@ window.renderIncomes=function renderIncomes(filteredData=null){
         <div>${escapeHtml(item.category||'—')}</div>
         <div>${escapeHtml(item.description||'')}</div>`;
       const actions=`
-        <button class="edit-income" data-id="${escapeHtml(item.id)}" type="button" title="Редактировать" aria-label="Редактировать"><span class="history-action-pencil" aria-hidden="true">✎</span><span class="history-action-label" style="display:none">Изменить</span></button>
+        <button class="edit-income" data-id="${escapeHtml(item.id)}" type="button" title="Редактировать" aria-label="Редактировать"><span class="history-action-pencil" aria-hidden="true">✎<svg class="history-action-pencil-white" style="display:none" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span><span class="history-action-label" style="display:none">Изменить</span></button>
         <button class="delete-income" data-id="${escapeHtml(item.id)}" type="button" aria-label="Удалить доход" title="Удалить доход" onclick="return window.qPokoyDeleteIncome(this.getAttribute('data-id')); ">
           <svg class="history-delete-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></svg>
           <svg class="history-delete-trash" style="display:none" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>
