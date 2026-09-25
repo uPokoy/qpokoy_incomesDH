@@ -76,14 +76,4 @@
     line-height:1.1 !important;
     text-align:center !important;
   }
-
-  /* TEMP DEV TOOL — visible version marker for this mobile build. */
-  #qPokoyDevVersion{
-    font-size:0 !important;
-  }
-  #qPokoyDevVersion::after{
-    content:"dev-2026.09.25.05";
-    font-size:12px !important;
-    line-height:1.2 !important;
-  }
 }

@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.05");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.05");
-@import url("./oauth-brand.css?v=dev-2026.09.25.05");
+@import url("./mobile-base.css?v=dev-2026.09.25.06");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.06");
+@import url("./oauth-brand.css?v=dev-2026.09.25.06");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -1158,5 +1158,396 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   #history > #incomeForm .category-select{
     min-height:48px !important;
     font-size:16px !important;
+  }
+}
+
+
+/* Mobile settings parity after PC finalization. */
+@media(max-width:560px){
+  #settings.page.active{
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 0 calc(16px + env(safe-area-inset-bottom)) !important;
+  }
+
+  #settings .qp-settings-tabs{
+    width:100% !important;
+    min-width:0 !important;
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:4px !important;
+    margin:0 0 12px !important;
+    padding:4px !important;
+    border:1px solid var(--border) !important;
+    border-radius:15px !important;
+    background:color-mix(in srgb,var(--panel-muted) 92%,transparent) !important;
+    box-shadow:none !important;
+  }
+
+  #settings .qp-settings-tab{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:44px !important;
+    height:44px !important;
+    padding:0 5px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:5px !important;
+    border:1px solid transparent !important;
+    border-radius:11px !important;
+    background:transparent !important;
+    color:var(--text-muted) !important;
+    font-size:10px !important;
+    font-weight:650 !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+    transform:none !important;
+    touch-action:manipulation !important;
+  }
+
+  #settings .qp-settings-tab svg{
+    width:16px !important;
+    height:16px !important;
+    min-width:16px !important;
+    fill:none !important;
+    stroke:currentColor !important;
+    stroke-width:1.8 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+  }
+
+  #settings .qp-settings-tab.active{
+    border-color:color-mix(in srgb,var(--primary) 46%,var(--border)) !important;
+    background:color-mix(in srgb,var(--primary) 14%,var(--panel)) !important;
+    color:var(--text) !important;
+  }
+
+  /* Only the content of the selected tab is visible. */
+  #settings > .settings-card{
+    display:none !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    margin:0 0 12px !important;
+    padding:16px !important;
+    overflow:visible !important;
+    border:1px solid var(--border) !important;
+    border-radius:18px !important;
+    background:var(--panel) !important;
+    box-shadow:none !important;
+  }
+
+  #settings[data-settings-tab="categories"] > #qpAppearanceCard,
+  #settings[data-settings-tab="appearance"] > #qpAppearanceCard,
+  #settings[data-settings-tab="appearance"] > #qpBackgroundSettings,
+  #settings[data-settings-tab="data"] > #qpDataCard,
+  #settings[data-settings-tab="data"] > #qpAccountCard{
+    display:block !important;
+  }
+
+  /* Categories tab: category manager only. */
+  #settings[data-settings-tab="categories"] > #qpAppearanceCard > :not(.qp-category-manager){
+    display:none !important;
+  }
+
+  #settings[data-settings-tab="categories"] #qpAppearanceCard .qp-category-manager{
+    display:block !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+  }
+
+  #settings .qp-category-add{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 52px !important;
+    gap:8px !important;
+    align-items:center !important;
+    margin:0 0 10px !important;
+  }
+
+  #settings .qp-category-add input{
+    width:100% !important;
+    min-width:0 !important;
+    height:52px !important;
+    min-height:52px !important;
+    margin:0 !important;
+    padding:0 13px !important;
+    border:1px solid var(--border) !important;
+    border-radius:13px !important;
+    background:var(--panel-muted) !important;
+    color:var(--text) !important;
+    font-size:16px !important;
+    box-shadow:none !important;
+  }
+
+  #settings .qp-category-add input:focus{
+    border-color:color-mix(in srgb,var(--primary) 62%,var(--border)) !important;
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 12%,transparent) !important;
+    outline:none !important;
+  }
+
+  #settings .qp-category-add button,
+  #settings .qp-category-add button:hover,
+  #settings .qp-category-add button:active{
+    width:52px !important;
+    min-width:52px !important;
+    height:52px !important;
+    min-height:52px !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:13px !important;
+    background:var(--primary) !important;
+    color:#fff !important;
+    font-size:26px !important;
+    font-weight:500 !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+    filter:none !important;
+    transform:none !important;
+  }
+
+  #settings .qp-category-list{
+    width:100% !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+    overflow:visible !important;
+  }
+
+  #settings .qp-category-item{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:60px !important;
+    padding:8px 10px !important;
+    gap:10px !important;
+    border:1px solid var(--border) !important;
+    border-radius:14px !important;
+    background:var(--panel-muted) !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  #settings .qp-category-icon{
+    flex:0 0 42px !important;
+    width:42px !important;
+    min-width:42px !important;
+    height:42px !important;
+    border-radius:12px !important;
+  }
+
+  #settings .qp-category-icon svg{
+    width:21px !important;
+    height:21px !important;
+  }
+
+  #settings .qp-category-name{
+    min-width:0 !important;
+    font-size:15px !important;
+    line-height:1.2 !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #settings .qp-category-delete,
+  #settings .qp-category-delete:hover,
+  #settings .qp-category-delete:active{
+    flex:0 0 42px !important;
+    width:42px !important;
+    min-width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:12px !important;
+    background:transparent !important;
+    color:rgba(239,68,68,.78) !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  /* Appearance tab. */
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard .qp-category-manager{
+    display:none !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard > .settings-row{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    min-height:0 !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard .settings-title,
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings > .settings-title{
+    margin:0 !important;
+    color:var(--text) !important;
+    font-size:15px !important;
+    font-weight:650 !important;
+    line-height:1.2 !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard .settings-row > div:last-child{
+    width:100% !important;
+    min-width:0 !important;
+    display:grid !important;
+    grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+    gap:5px !important;
+    overflow:visible !important;
+    padding:2px 0 !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard .accent-swatch,
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard .accent-custom-color{
+    width:32px !important;
+    min-width:32px !important;
+    max-width:32px !important;
+    height:32px !important;
+    min-height:32px !important;
+    max-height:32px !important;
+    justify-self:center !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings{
+    margin-top:0 !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings .qp-background-options{
+    width:100% !important;
+    min-width:0 !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:7px !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings .qp-background-option,
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings .qp-background-custom-wrap{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  #settings[data-settings-tab="appearance"] #qpBackgroundSettings .qp-background-preview{
+    height:62px !important;
+  }
+
+  /* Data tab: data tools first, account second. */
+  #settings[data-settings-tab="data"] > #qpDataCard,
+  #settings[data-settings-tab="data"] > #qpAccountCard{
+    margin-top:0 !important;
+  }
+
+  #settings[data-settings-tab="data"] > #qpDataCard{
+    margin-bottom:12px !important;
+  }
+
+  #settings[data-settings-tab="data"] #qpDataCard > .settings-title,
+  #settings[data-settings-tab="data"] #qpAccountCard > .settings-title{
+    margin:0 !important;
+    color:var(--text) !important;
+    font-size:17px !important;
+    font-weight:700 !important;
+    line-height:1.2 !important;
+  }
+
+  #settings[data-settings-tab="data"] #qpDataCard > div[style]{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+    margin-top:12px !important;
+  }
+
+  #settings[data-settings-tab="data"] #qpDataCard .settings-report-period{
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    min-height:46px !important;
+    height:46px !important;
+    margin:0 !important;
+    padding:0 12px !important;
+    border-radius:12px !important;
+    font-size:14px !important;
+  }
+
+  #settings[data-settings-tab="data"] #qpDataCard button{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:48px !important;
+    margin:0 !important;
+    padding:9px 10px !important;
+    border-radius:12px !important;
+    font-size:13px !important;
+    line-height:1.15 !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  #settings[data-settings-tab="data"] #printIncomeReportBtn,
+  #settings[data-settings-tab="data"] #clearIncomeDataBtn{
+    grid-column:1 / -1 !important;
+  }
+
+  #settings[data-settings-tab="data"] #qpAccountCard .settings-card-subtitle{
+    margin-top:5px !important;
+    font-size:12px !important;
+  }
+
+  #settings[data-settings-tab="data"] #qpAccountCard .qp-account-row{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+    margin-top:12px !important;
+  }
+
+  #settings[data-settings-tab="data"] #qpAccountCard .qp-account-email{
+    min-width:0 !important;
+    padding:12px !important;
+    overflow:hidden !important;
+    border:1px solid var(--border) !important;
+    border-radius:12px !important;
+    background:var(--panel-muted) !important;
+    font-size:14px !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #settings[data-settings-tab="data"] #qpAuthLogoutBtn{
+    width:100% !important;
+    min-height:46px !important;
+    margin:0 !important;
+    box-shadow:none !important;
+  }
+}
+
+@media(max-width:340px){
+  #settings .qp-settings-tab{
+    gap:3px !important;
+    font-size:9px !important;
+  }
+  #settings .qp-settings-tab svg{
+    width:14px !important;
+    height:14px !important;
+    min-width:14px !important;
+  }
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard .settings-row > div:last-child{
+    gap:3px !important;
+  }
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard .accent-swatch,
+  #settings[data-settings-tab="appearance"] #qpAppearanceCard .accent-custom-color{
+    width:29px !important;
+    min-width:29px !important;
+    max-width:29px !important;
+    height:29px !important;
+    min-height:29px !important;
+    max-height:29px !important;
   }
 }
