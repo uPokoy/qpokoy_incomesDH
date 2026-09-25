@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.37");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.37");
-@import url("./oauth-brand.css?v=dev-2026.09.25.37");
+@import url("./mobile-base.css?v=dev-2026.09.25.38");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.38");
+@import url("./oauth-brand.css?v=dev-2026.09.25.38");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -422,21 +422,16 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     overflow:hidden !important;
     border:1px solid color-mix(in srgb,var(--category) 28%,var(--border)) !important;
     border-radius:16px !important;
-    background:var(--panel-muted) !important;
+    background:var(--panel) !important;
+    background-color:var(--panel) !important;
+    background-image:none !important;
     box-shadow:none !important;
   }
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
-    content:"" !important;
-    display:block !important;
-    position:absolute !important;
-    z-index:0 !important;
-    width:112px !important;
-    height:112px !important;
-    right:-42px !important;
-    bottom:-68px !important;
-    border-radius:50% !important;
-    background:var(--category-soft) !important;
-    pointer-events:none !important;
+    content:none !important;
+    display:none !important;
+    background:none !important;
+    background-image:none !important;
   }
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel-icon{
     position:relative !important;
