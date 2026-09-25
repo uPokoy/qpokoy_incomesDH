@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.26");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.26");
-@import url("./oauth-brand.css?v=dev-2026.09.25.26");
+@import url("./mobile-base.css?v=dev-2026.09.25.27");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.27");
+@import url("./oauth-brand.css?v=dev-2026.09.25.27");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3071,5 +3071,41 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     fill:#ffffff !important;
     stroke:none !important;
     opacity:1 !important;
+  }
+}
+
+
+/* Mobile recent footer controls v27: +25% for "Вся история" and pager. */
+@media(max-width:560px){
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions{
+    min-height:33px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-history{
+    height:30px !important;
+    min-height:30px !important;
+    padding:0 3px !important;
+    font-size:12.5px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-pager{
+    gap:6px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn{
+    width:23px !important;
+    min-width:23px !important;
+    height:23px !important;
+    min-height:23px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn svg{
+    width:15px !important;
+    height:15px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-indicator{
+    min-width:35px !important;
+    font-size:12.5px !important;
   }
 }
