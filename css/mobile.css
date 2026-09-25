@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.33");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.33");
-@import url("./oauth-brand.css?v=dev-2026.09.25.33");
+@import url("./mobile-base.css?v=dev-2026.09.25.34");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.34");
+@import url("./oauth-brand.css?v=dev-2026.09.25.34");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3139,12 +3139,34 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 }
 
 
-/* Mobile monthly total swipe target v33. */
+/* Mobile monthly total swipe target v34. */
 @media(max-width:560px){
   #income .income-month-block.qp-mobile-period-row #incomeTotal{
     touch-action:pan-y !important;
     -webkit-user-select:none !important;
     user-select:none !important;
     -webkit-touch-callout:none !important;
+  }
+}
+
+
+/* Mobile period arrow press state v34: no sticky tap/highlight background. */
+@media(max-width:560px){
+  #income #incomeMonthSwitcher > button,
+  #income .income-month-block > .income-chart-year-switcher > button{
+    -webkit-tap-highlight-color:transparent !important;
+  }
+
+  #income #incomeMonthSwitcher > button:hover,
+  #income #incomeMonthSwitcher > button:focus,
+  #income #incomeMonthSwitcher > button:focus-visible,
+  #income #incomeMonthSwitcher > button:active,
+  #income .income-month-block > .income-chart-year-switcher > button:hover,
+  #income .income-month-block > .income-chart-year-switcher > button:focus,
+  #income .income-month-block > .income-chart-year-switcher > button:focus-visible,
+  #income .income-month-block > .income-chart-year-switcher > button:active{
+    background:transparent !important;
+    outline:none !important;
+    box-shadow:none !important;
   }
 }
