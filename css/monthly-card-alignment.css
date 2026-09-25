@@ -2805,3 +2805,137 @@
     transform:rotate(180deg) !important;
   }
 }
+
+
+/* Mobile month card alignment v44. */
+@media(max-width:560px){
+  /* Previous-month comparison: icon and percent badge share one top line.
+     Keep the amount inside the narrow right-hand card. */
+  #incomeAnalytics.is-monthly #monthlyGrowthCard{
+    position:relative !important;
+    grid-template-columns:1fr !important;
+    grid-template-rows:1fr !important;
+    padding:10px 9px 10px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-icon{
+    position:absolute !important;
+    z-index:3 !important;
+    top:9px !important;
+    left:9px !important;
+    width:24px !important;
+    min-width:24px !important;
+    height:24px !important;
+    min-height:24px !important;
+    margin:0 !important;
+    border-radius:8px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-icon svg{
+    width:14px !important;
+    height:14px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-corner-percent{
+    top:9px !important;
+    right:9px !important;
+    height:24px !important;
+    min-height:24px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:31px 0 0 !important;
+    align-self:stretch !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-template-areas:
+      "label"
+      "amount" !important;
+    row-gap:5px !important;
+    align-content:center !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-label{
+    width:100% !important;
+    max-width:100% !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    font-size:12px !important;
+    line-height:1.15 !important;
+    text-overflow:ellipsis !important;
+    white-space:normal !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthNote{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    justify-self:start !important;
+    margin:0 !important;
+    overflow:hidden !important;
+    font-size:17px !important;
+    line-height:1 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  /* Best-category amount: 5px left and 5px lower. */
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > b{
+    transform:translate(-5px,5px) !important;
+  }
+
+  /* Average card: remove the icon and center the text block cleanly. */
+  #incomeAnalytics.is-monthly .monthly-summary-average{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:12px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-icon{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-body{
+    width:100% !important;
+    height:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:7px !important;
+    text-align:center !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-label{
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    color:var(--text-muted) !important;
+    font-size:12px !important;
+    line-height:1.2 !important;
+    text-align:center !important;
+    white-space:normal !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-body > strong{
+    margin:0 !important;
+    font-size:20px !important;
+    line-height:1 !important;
+    text-align:center !important;
+    white-space:nowrap !important;
+  }
+}
