@@ -3,12 +3,23 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.17';
+const qPokoyDevVersion='dev-2026.09.25.18';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
-qPokoyDevRefresh?.addEventListener('click',()=>{
+qPokoyDevRefresh?.addEventListener('click',async()=>{
+  try{
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(key=>caches.delete(key)));
+    }
+  }catch(error){
+    console.warn('[qPokoy dev refresh cache]',error);
+  }
   const url=new URL(window.location.href);
+  url.search='';
+  url.hash='';
+  url.searchParams.set('_dev',qPokoyDevVersion);
   url.searchParams.set('_devrefresh',Date.now().toString());
   window.location.replace(url.toString());
 });
