@@ -1915,3 +1915,82 @@
     transform:translate(-88%,calc(-100% - 11px)) !important;
   }
 }
+
+
+/* Mobile Month/Year analytics cleanup v35. */
+@media(max-width:560px){
+  /* All analytics cards use the same base fill as "Последние доходы". */
+  #incomeAnalytics:not(.is-monthly) .annual-total-card,
+  #incomeAnalytics.is-monthly .monthly-total-card,
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card,
+  #incomeAnalytics.is-monthly .monthly-summary-card,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel,
+  #incomeAnalytics.is-monthly .monthly-category-card{
+    background:var(--panel) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::before,
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::after,
+  #incomeAnalytics.is-monthly .monthly-summary-card::before,
+  #incomeAnalytics.is-monthly .monthly-summary-card::after,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::before,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after,
+  #incomeAnalytics.is-monthly .monthly-category-card::before,
+  #incomeAnalytics.is-monthly .monthly-category-card::after{
+    background:none !important;
+    opacity:0 !important;
+    box-shadow:none !important;
+  }
+
+  /* Main totals: keep them centered as a block, then nudge visually 10px left. */
+  #incomeAnalytics.is-monthly #monthlyHeroTotal,
+  #incomeAnalytics:not(.is-monthly) .annual-total-copy > strong{
+    transform:translateX(-10px) !important;
+  }
+
+  /* Hero percent badge: top-right, vertically centered against the total amount. */
+  #incomeAnalytics.is-monthly .monthly-total-growth,
+  #incomeAnalytics:not(.is-monthly) .annual-total-growth{
+    top:2px !important;
+    right:0 !important;
+    bottom:auto !important;
+  }
+
+  /* Best-category share belongs in the card corner. */
+  #incomeAnalytics.is-monthly .monthly-summary-best{
+    position:relative !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-share{
+    position:absolute !important;
+    z-index:5 !important;
+    top:10px !important;
+    right:10px !important;
+    margin:0 !important;
+  }
+
+  /* Comparison amount sits on the right, like "Средний доход в день". */
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-body{
+    padding-right:0 !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-label,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-label{
+    padding-right:52px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthNote,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote{
+    justify-self:end !important;
+    max-width:none !important;
+  }
+
+  /* Mobile analytics no longer shows hidden-info controls/tooltips. */
+  #incomeAnalytics .monthly-summary-info,
+  #incomeAnalytics .monthly-summary-tooltip,
+  #incomeAnalytics .annual-growth-info,
+  #incomeAnalytics .annual-growth-tooltip{
+    display:none !important;
+  }
+}
