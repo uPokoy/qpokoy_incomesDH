@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.24.43';
+const qPokoyDevVersion='dev-2026.09.24.44';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -74,6 +74,17 @@ navItems.forEach(item=>item.addEventListener('click',()=>{
   // При переходе между разделами всегда начинаем с верхней части страницы.
   window.scrollTo({top:0,left:0,behavior:'auto'});
 }));
+
+window.addEventListener('load',()=>{
+  if(!window.matchMedia('(min-width:761px)').matches)return;
+  const incomeTop=document.querySelector('#income .income-top');
+  if(!incomeTop)return;
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      incomeTop.scrollIntoView({behavior:'auto',block:'center',inline:'nearest'});
+    });
+  });
+},{once:true});
 
 document.documentElement.setAttribute('data-theme','dark');
 document.body.classList.add('dark');
@@ -1651,6 +1662,16 @@ document.addEventListener('mouseup',()=>{
       const active=document.querySelector('.page.active');
       if(active&&active.id!=='settings'){
         settings.style.setProperty('display','none','important');
+      }
+      if(desktop()){
+        const incomeTop=document.querySelector('#income .income-top');
+        if(incomeTop){
+          requestAnimationFrame(()=>{
+            requestAnimationFrame(()=>{
+              incomeTop.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
+            });
+          });
+        }
       }
     }
   }
