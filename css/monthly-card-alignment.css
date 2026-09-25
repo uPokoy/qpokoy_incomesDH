@@ -3823,3 +3823,244 @@
     display:none !important;
   }
 }
+
+
+/* Mobile annual visual parity fix v51: match the approved Month screenshot. */
+@media(max-width:560px){
+  /* Best month: force icon -> text -> amount vertical flow, exactly like Month best card. */
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    justify-content:flex-start !important;
+    gap:8px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best > .analytics-card-icon{
+    order:0 !important;
+    position:static !important;
+    inset:auto !important;
+    display:grid !important;
+    place-items:center !important;
+    width:34px !important;
+    min-width:34px !important;
+    height:34px !important;
+    min-height:34px !important;
+    margin:0 !important;
+    flex:0 0 34px !important;
+    align-self:flex-start !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best > .analytics-card-body{
+    order:1 !important;
+    position:static !important;
+    inset:auto !important;
+    display:block !important;
+    align-self:stretch !important;
+    flex:0 0 auto !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 0 42px !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best > .analytics-card-body > span{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 0 7px !important;
+    padding:0 !important;
+    color:var(--text-muted) !important;
+    font-size:13px !important;
+    line-height:1.2 !important;
+    text-align:left !important;
+    white-space:normal !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best > .analytics-card-body > strong{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    color:var(--text) !important;
+    font-size:20px !important;
+    font-weight:750 !important;
+    line-height:1.08 !important;
+    text-align:left !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best > .analytics-card-body > b{
+    display:block !important;
+    width:max-content !important;
+    max-width:calc(100% + 15px) !important;
+    margin:9px 0 0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    color:var(--text) !important;
+    font-size:25px !important;
+    font-weight:780 !important;
+    line-height:1 !important;
+    letter-spacing:-.035em !important;
+    text-align:left !important;
+    text-overflow:clip !important;
+    white-space:nowrap !important;
+    transform:translate(-15px,10px) !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best::before{
+    z-index:3 !important;
+    display:block !important;
+    opacity:.9 !important;
+  }
+
+  /* Worst month: same compact geometry as "Сравнение с августом", but keep
+     both the month name and the full amount readable. */
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst{
+    overflow:hidden !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .annual-worst-topline{
+    flex:0 0 24px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst > .analytics-card-body{
+    order:1 !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-template-areas:
+      "label"
+      "period"
+      "amount" !important;
+    row-gap:2px !important;
+    align-content:start !important;
+    flex:1 1 auto !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst > .analytics-card-body > span{
+    grid-area:label !important;
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    color:var(--text-muted) !important;
+    font-size:10.5px !important;
+    line-height:1.05 !important;
+    text-align:left !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst > .analytics-card-body > strong{
+    grid-area:period !important;
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    color:var(--text) !important;
+    font-size:15px !important;
+    font-weight:750 !important;
+    line-height:1.05 !important;
+    text-align:left !important;
+    text-overflow:clip !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst > .analytics-card-body > b{
+    grid-area:amount !important;
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:1px 0 0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    color:var(--text) !important;
+    font-size:15px !important;
+    font-weight:760 !important;
+    line-height:1 !important;
+    letter-spacing:-.04em !important;
+    text-align:left !important;
+    text-overflow:clip !important;
+    white-space:nowrap !important;
+  }
+
+  /* Average month: no clipping, no broken amount. */
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average{
+    overflow:hidden !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average > .analytics-card-body{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow:visible !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average > .analytics-card-body > span{
+    font-size:12px !important;
+    line-height:1.2 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average > .analytics-card-body > strong{
+    display:block !important;
+    width:auto !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    font-size:15px !important;
+    font-weight:760 !important;
+    line-height:1 !important;
+    letter-spacing:-.055em !important;
+    text-align:center !important;
+    text-overflow:clip !important;
+    white-space:nowrap !important;
+  }
+
+  /* Annual comparison: same full-width structure as Month comparison. */
+  #incomeAnalytics:not(.is-monthly) .annual-year-compare-card{
+    overflow:hidden !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-year-compare-body{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    padding:0 48px 0 0 !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    column-gap:8px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-year-compare-body > span{
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow:visible !important;
+    font-size:12px !important;
+    line-height:1.15 !important;
+    text-overflow:clip !important;
+    white-space:normal !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-year-compare-body > strong{
+    margin:0 !important;
+    overflow:visible !important;
+    font-size:19px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+  }
+}
