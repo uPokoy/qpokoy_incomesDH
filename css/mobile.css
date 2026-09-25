@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.39");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.39");
-@import url("./oauth-brand.css?v=dev-2026.09.25.39");
+@import url("./mobile-base.css?v=dev-2026.09.25.40");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.40");
+@import url("./oauth-brand.css?v=dev-2026.09.25.40");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3186,5 +3186,16 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     background-image:none !important;
     box-shadow:none !important;
     opacity:0 !important;
+  }
+}
+
+
+/* Annual mobile categories v40: render as normal cards, not native buttons. */
+@media(max-width:560px){
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    background:var(--panel) !important;
+    background-color:var(--panel) !important;
+    background-image:none !important;
+    box-shadow:none !important;
   }
 }

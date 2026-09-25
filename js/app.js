@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.39';
+const qPokoyDevVersion='dev-2026.09.25.40';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1117,10 +1117,11 @@ window.renderIncomeAnalytics=function(){
         :(categoryVisual&&categoryVisual.icon
           ?categoryVisual.icon
           :'<svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg>');
-      const tag=item.grouped?'div':'button';
-      const attrs=item.grouped?'':` type="button" data-category="${escapeHtml(name)}"`;
-      const mobileSurface=desktopCategories?'':' style="background:#00061c!important;background-color:#00061c!important;background-image:none!important;-webkit-appearance:none!important;appearance:none!important;box-shadow:none!important;"';
-      return `<${tag}${attrs}${mobileSurface} class="analytics-category-panel ${categoryClass}">
+      const tag=desktopCategories?(item.grouped?'div':'button'):'div';
+      const attrs=item.grouped?'':(desktopCategories
+        ?` type="button" data-category="${escapeHtml(name)}"`
+        :` data-category="${escapeHtml(name)}"`);
+      return `<${tag}${attrs} class="analytics-category-panel ${categoryClass}">
         <span class="analytics-category-panel-icon" aria-hidden="true">${categoryIcon}</span>
         <span class="analytics-category-panel-body">
           <span class="analytics-category-panel-name">${escapeHtml(displayName)}</span>
