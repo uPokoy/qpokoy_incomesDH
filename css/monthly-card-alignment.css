@@ -2597,3 +2597,211 @@
     font-size:16px !important;
   }
 }
+
+
+/* Mobile month readability + 4 category limit v43. */
+@media(max-width:560px){
+  /* Remove the generated section heading. */
+  #incomeAnalytics.is-monthly .monthly-category-panels::before{
+    content:none !important;
+    display:none !important;
+  }
+
+  /* Larger typography, smaller icons: keep Variant 7 but give text the space. */
+  #incomeAnalytics.is-monthly .monthly-summary-best{
+    gap:8px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-icon{
+    width:34px !important;
+    min-width:34px !important;
+    height:34px !important;
+    border-radius:10px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-icon svg{
+    width:18px !important;
+    height:18px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > span{
+    margin-bottom:7px !important;
+    font-size:13px !important;
+    line-height:1.2 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-category-row > strong{
+    font-size:20px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > b{
+    margin-top:9px !important;
+    font-size:25px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-share{
+    font-size:11px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average,
+  #incomeAnalytics.is-monthly #monthlyGrowthCard{
+    grid-template-columns:28px minmax(0,1fr) !important;
+    grid-template-rows:28px minmax(0,1fr) !important;
+    column-gap:6px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-icon,
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-icon{
+    width:28px !important;
+    min-width:28px !important;
+    height:28px !important;
+    border-radius:8px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-icon svg,
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-icon svg{
+    width:16px !important;
+    height:16px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-label,
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-label{
+    font-size:12px !important;
+    line-height:1.18 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-average .monthly-summary-card-body > strong{
+    font-size:20px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthNote{
+    font-size:19px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-corner-percent{
+    font-size:10px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard{
+    grid-template-columns:30px minmax(0,1fr) !important;
+    gap:8px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-icon{
+    width:30px !important;
+    min-width:30px !important;
+    height:30px !important;
+    border-radius:8px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-icon svg{
+    width:17px !important;
+    height:17px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-label{
+    font-size:12px !important;
+    line-height:1.2 !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote{
+    font-size:19px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-corner-percent{
+    font-size:10px !important;
+  }
+
+  /* Category cards: four collapsed, two-column grid, long names stay on one line. */
+  #incomeAnalytics.is-monthly .monthly-category-panels{
+    margin-top:2px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-card{
+    min-height:106px !important;
+    height:106px !important;
+    padding:10px 11px !important;
+    grid-template-columns:28px minmax(0,1fr) !important;
+    grid-template-rows:28px 19px 25px !important;
+    column-gap:7px !important;
+    row-gap:4px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-icon{
+    width:28px !important;
+    min-width:28px !important;
+    height:28px !important;
+    border-radius:8px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-icon svg{
+    width:16px !important;
+    height:16px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-share{
+    min-width:38px !important;
+    height:24px !important;
+    font-size:10px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-name{
+    max-width:100% !important;
+    font-size:13px !important;
+    line-height:1.1 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-value{
+    max-width:100% !important;
+    font-size:20px !important;
+    line-height:1 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  /* Same simple reveal control pattern as "Последние доходы": arrow only. */
+  #incomeAnalytics.is-monthly .analytics-categories-toggle:not([hidden]){
+    width:100% !important;
+    min-width:100% !important;
+    height:30px !important;
+    min-height:30px !important;
+    margin:5px 0 0 !important;
+    padding:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    color:var(--text-muted) !important;
+    box-shadow:none !important;
+    -webkit-tap-highlight-color:transparent !important;
+    touch-action:manipulation !important;
+  }
+
+  #incomeAnalytics.is-monthly .analytics-categories-toggle:not([hidden]):hover,
+  #incomeAnalytics.is-monthly .analytics-categories-toggle:not([hidden]):active{
+    border:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics.is-monthly .analytics-categories-toggle svg{
+    width:20px !important;
+    height:20px !important;
+    fill:none !important;
+    stroke:currentColor !important;
+    stroke-width:2 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+    transform:rotate(0deg) !important;
+    transition:transform .18s ease !important;
+  }
+
+  #incomeAnalytics.is-monthly .analytics-categories-toggle[aria-expanded="true"] svg{
+    transform:rotate(180deg) !important;
+  }
+}

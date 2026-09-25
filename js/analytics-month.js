@@ -407,20 +407,35 @@
           }:null;
         }
       }else{
-        // Keep the established mobile behavior unchanged.
-        catsEl.classList.remove('is-collapsed','is-expanded');
         const remainingCategories=categories.slice(1);
-        catsEl.innerHTML=remainingCategories.map(([name,value],index)=>{
+        const mobileExpanded=catsEl.dataset.categoriesExpanded==='true';
+        const canToggle=remainingCategories.length>4;
+        const visibleCategories=mobileExpanded?remainingCategories:remainingCategories.slice(0,4);
+
+        catsEl.classList.toggle('is-collapsed',canToggle&&!mobileExpanded);
+        catsEl.classList.toggle('is-expanded',canToggle&&mobileExpanded);
+        catsEl.innerHTML=visibleCategories.map(([name,value],index)=>{
           const pct=total?Math.round(value/total*100):0;
           const tone=categoryTone(name,index+1);
           return '<div class="monthly-category-card '+tone+'">'+
             '<div class="monthly-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg></div>'+
             '<span class="monthly-category-share">'+pct+'%</span>'+
-            '<span class="monthly-category-name">'+escapeText(name)+'</span>'+
+            '<span class="monthly-category-name" title="'+escapeText(name)+'">'+escapeText(name)+'</span>'+
             '<strong class="monthly-category-value">'+escapeText(money(value))+'</strong>'+
           '</div>';
         }).join('');
-        if(monthlyCategoriesToggleEl)monthlyCategoriesToggleEl.hidden=true;
+
+        if(monthlyCategoriesToggleEl){
+          monthlyCategoriesToggleEl.hidden=!canToggle;
+          const toggleLabel=mobileExpanded?'Свернуть категории':'Показать остальные категории';
+          monthlyCategoriesToggleEl.setAttribute('aria-label',toggleLabel);
+          monthlyCategoriesToggleEl.title=toggleLabel;
+          monthlyCategoriesToggleEl.setAttribute('aria-expanded',mobileExpanded?'true':'false');
+          monthlyCategoriesToggleEl.onclick=canToggle?()=>{
+            catsEl.dataset.categoriesExpanded=mobileExpanded?'false':'true';
+            render();
+          }:null;
+        }
       }
     }
   }
