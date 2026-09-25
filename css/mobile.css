@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.17");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.17");
-@import url("./oauth-brand.css?v=dev-2026.09.25.17");
+@import url("./mobile-base.css?v=dev-2026.09.25.19");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.19");
+@import url("./oauth-brand.css?v=dev-2026.09.25.19");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -2738,5 +2738,64 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   #income .income-month-block.qp-mobile-period-row #monthSwitcherName,
   #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher span{
     font-size:16px !important;
+  }
+}
+
+
+/* Mobile home header stage v19. */
+@media(max-width:560px){
+  /* Remove the inherited empty height below the chart. */
+  #income .income-month-chart{
+    min-height:104px !important;
+    height:104px !important;
+    max-height:104px !important;
+    margin-top:12px !important;
+    margin-bottom:0 !important;
+    padding:0 !important;
+  }
+
+  #income .income-chart-wrap{
+    height:104px !important;
+    min-height:104px !important;
+    max-height:104px !important;
+  }
+
+  #income .income-top > .income-recent.qp-mobile-recent-stack{
+    margin-top:-4px !important;
+    padding-top:0 !important;
+  }
+
+  /* Prevent long-press text selection/copy on the date. */
+  #income .income-recent-date{
+    -webkit-user-select:none !important;
+    user-select:none !important;
+    -webkit-touch-callout:none !important;
+    cursor:default !important;
+  }
+
+  /* Reuse the same visual glyphs as mobile History. */
+  #income .income-recent-mobile-edit .history-action-pencil{
+    display:block !important;
+    font-size:18px !important;
+    line-height:1 !important;
+    font-weight:500 !important;
+  }
+
+  #income .income-recent-mobile-delete .history-delete-close{
+    display:block !important;
+    width:18px !important;
+    height:18px !important;
+    fill:none !important;
+    stroke:currentColor !important;
+    stroke-width:2 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+  }
+
+  /* Samsung Browser: make the active month unmistakably darker without relying on color-mix. */
+  #income #incomeChartSvg .income-chart-bar.selected{
+    fill:var(--primary) !important;
+    filter:brightness(.62) saturate(1.08) !important;
+    opacity:1 !important;
   }
 }

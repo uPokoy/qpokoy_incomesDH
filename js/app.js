@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.18';
+const qPokoyDevVersion='dev-2026.09.25.19';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -740,10 +740,10 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
       </button>
       <div class="income-recent-mobile-actions">
         <button class="income-recent-mobile-edit" data-id="${escapeHtml(item.id)}" type="button" aria-label="Редактировать доход" title="Редактировать">
-          <span aria-hidden="true">✎</span>
+          <span class="history-action-pencil" aria-hidden="true">✎</span>
         </button>
         <button class="income-recent-mobile-delete" data-id="${escapeHtml(item.id)}" type="button" aria-label="Удалить доход" title="Удалить">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
+          <svg class="history-delete-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></svg>
         </button>
       </div>
     </article>
