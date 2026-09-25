@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.10");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.10");
-@import url("./oauth-brand.css?v=dev-2026.09.25.10");
+@import url("./mobile-base.css?v=dev-2026.09.25.11");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.11");
+@import url("./oauth-brand.css?v=dev-2026.09.25.11");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -2235,5 +2235,51 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   #incomeForm .calendar-popup{
     width:calc(100vw - 44px) !important;
     max-width:calc(100vw - 44px) !important;
+  }
+}
+
+
+/* Mobile visual corrections from Samsung screenshots. */
+@media(max-width:560px){
+  /* Dark theme on phones: keep the dark character, but restore blue depth and card separation. */
+  html[data-theme="dark"] body,
+  body.dark{
+    --bg:#0b1320 !important;
+    --bg-accent:#142239 !important;
+    --panel:#142238 !important;
+    --panel-muted:#1a2b43 !important;
+    --border:#38506a !important;
+    --active:#243b59 !important;
+    --text-muted:#aebbd0 !important;
+  }
+
+  html[data-theme="dark"] body.qp-bg-standard{
+    background:
+      radial-gradient(120% 82% at 50% -18%,rgba(62,96,139,.34) 0 18%,rgba(25,44,70,.22) 37%,transparent 58%),
+      radial-gradient(95% 66% at -10% 70%,rgba(41,72,111,.28) 0 25%,transparent 57%),
+      radial-gradient(90% 64% at 110% 28%,rgba(44,76,116,.26) 0 24%,transparent 56%),
+      linear-gradient(145deg,#080e18 0%,#0d1828 44%,#0a1321 73%,#070c14 100%) !important;
+  }
+
+  /* Recent-income collapse must win over the later two-column mobile grid rule. */
+  #income .income-recent.is-collapsed .income-recent-grid,
+  #income .income-recent.is-collapsed .income-recent-bottom-actions{
+    display:none !important;
+  }
+
+  #income .income-recent.is-collapsed{
+    padding-bottom:0 !important;
+  }
+
+  #income .income-recent.is-collapsed .income-recent-controls{
+    margin-bottom:0 !important;
+  }
+
+  /* Give the main mobile surfaces enough contrast against the page background. */
+  #income .income-top,
+  #incomeAnalytics,
+  #history .history-card-surface,
+  #settings > .settings-card{
+    border-color:color-mix(in srgb,var(--border) 92%,white 8%) !important;
   }
 }

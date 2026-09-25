@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.10';
+const qPokoyDevVersion='dev-2026.09.25.11';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -144,6 +144,12 @@ function setIncomeRecentCollapsed(collapsed,persist=true){
   if(!incomeRecent||!incomeRecentToggle)return;
   const next=!!collapsed;
   incomeRecent.classList.toggle('is-collapsed',next);
+  if(window.matchMedia('(max-width:560px)').matches){
+    const mobileGrid=incomeRecent.querySelector('.income-recent-grid');
+    const mobileFooter=incomeRecent.querySelector('.income-recent-bottom-actions');
+    if(mobileGrid)mobileGrid.hidden=next;
+    if(mobileFooter)mobileFooter.hidden=next;
+  }
   incomeRecentToggle.setAttribute('aria-expanded',next?'false':'true');
   const historyOpen=incomeRecent.classList.contains('is-history-open');
   incomeRecentToggle.setAttribute('title',next

@@ -123,7 +123,15 @@
 
     const positive=points.filter(point=>point.value>0);
     const highlighted=[];
-    if(positive.length<=4){
+    const compactLabels=window.matchMedia('(max-width:560px)').matches;
+    if(compactLabels){
+      const ranked=positive.slice().sort((a,b)=>b.value-a.value);
+      for(const point of ranked){
+        if(highlighted.length>=2)break;
+        if(highlighted.every(selected=>Math.abs(selected.x-point.x)>=18))highlighted.push(point);
+      }
+      if(!highlighted.length&&ranked.length)highlighted.push(ranked[0]);
+    }else if(positive.length<=4){
       highlighted.push(...positive);
     }else{
       const ranked=positive.slice().sort((a,b)=>b.value-a.value);
