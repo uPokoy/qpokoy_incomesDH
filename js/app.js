@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.24.42';
+const qPokoyDevVersion='dev-2026.09.24.43';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1640,6 +1640,11 @@ document.addEventListener('mouseup',()=>{
       settings.classList.add('analytics-inline-settings');
       settings.style.removeProperty('display');
       if(typeof window.qPokoySetSettingsTab==='function')window.qPokoySetSettingsTab('categories');
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+          analytics.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
+        });
+      });
     }else{
       host.hidden=true;
       restoreSettingsHome();
