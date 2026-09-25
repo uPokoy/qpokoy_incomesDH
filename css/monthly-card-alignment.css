@@ -4599,3 +4599,52 @@
     transform:translate(-20px,10px) !important;
   }
 }
+
+
+/* Mobile annual text and amount correction v54. */
+@media(max-width:560px){
+  /* Best month amount: keep it fully inside the card and align like Month best-category amount. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-best > .analytics-card-body > b{
+    width:100% !important;
+    max-width:100% !important;
+    margin:9px 0 0 !important;
+    overflow:visible !important;
+    text-align:center !important;
+    transform:translate(0,10px) !important;
+  }
+
+  /* Worst month: month name uses the same typography as the "Худший месяц" label. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-worst > .analytics-card-body > strong{
+    color:var(--text-muted) !important;
+    font-size:10.5px !important;
+    font-weight:400 !important;
+    line-height:1.05 !important;
+    letter-spacing:0 !important;
+    text-transform:none !important;
+  }
+
+  /* Year comparison: give the label and amount fixed non-overlapping zones. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body{
+    grid-template-columns:minmax(0,1fr) auto !important;
+    column-gap:12px !important;
+    padding-right:52px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body > span{
+    max-width:100% !important;
+    overflow:hidden !important;
+    font-size:11px !important;
+    line-height:1.15 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body > strong{
+    justify-self:end !important;
+    margin:0 !important;
+    font-size:17px !important;
+    line-height:1 !important;
+    letter-spacing:-.03em !important;
+    white-space:nowrap !important;
+  }
+}

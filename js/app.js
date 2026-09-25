@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.26.53';
+const qPokoyDevVersion='dev-2026.09.26.54';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1000,7 +1000,7 @@ window.renderIncomeAnalytics=function(){
   if(annualHeroYearMobileEl) annualHeroYearMobileEl.textContent='за '+a.year+' год';
   if(annualHeroMonthsEl) annualHeroMonthsEl.textContent=String(a.monthTotals.filter(value=>value>0).length);
   qPokoyFitAnalyticsTotal();
-  if(avgActiveEl) avgActiveEl.textContent=formatMoney(a.averageActive);
+  if(avgActiveEl) avgActiveEl.textContent=formatMoney(Math.round(a.averageActive));
   const previous=calculateIncomeAnalytics(year-1);
   const hasPrevious=previous.total>0;
   const growth=hasPrevious?((a.total-previous.total)/previous.total*100):null;
