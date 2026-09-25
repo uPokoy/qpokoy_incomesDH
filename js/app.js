@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.24.38';
+const qPokoyDevVersion='dev-2026.09.24.39';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -673,7 +673,7 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
   if(indicator) indicator.textContent=`${recentIncomePage+1} / ${pageCount}`;
 
   if(!visible.length){
-    host.innerHTML='<div class="income-recent-empty">Пока нет доходов</div>';
+    host.innerHTML='<div class="income-recent-empty">Нет записей</div>';
     return;
   }
 
