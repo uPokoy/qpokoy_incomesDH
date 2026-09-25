@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.16");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.16");
-@import url("./oauth-brand.css?v=dev-2026.09.25.16");
+@import url("./mobile-base.css?v=dev-2026.09.25.17");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.17");
+@import url("./oauth-brand.css?v=dev-2026.09.25.17");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -2601,5 +2601,142 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
   #income .income-recent.qp-mobile-recent-stack .income-recent-card{
     padding:10px !important;
+  }
+}
+
+
+/* Mobile home header stage v17. */
+@media(max-width:560px){
+  /* Tighten the chart-to-collapse spacing. */
+  #income .income-top > .income-recent.qp-mobile-recent-stack{
+    margin-top:-8px !important;
+    padding-top:0 !important;
+  }
+
+  /* Exactly one row with two recent-income cards. */
+  #income .income-recent.qp-mobile-recent-stack .income-recent-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-rows:1fr !important;
+    gap:8px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-card{
+    min-height:92px !important;
+  }
+
+  /* "Вся история" on the left, pager on the right. */
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions{
+    min-height:26px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-history{
+    height:24px !important;
+    min-height:24px !important;
+    margin:0 !important;
+    padding:0 2px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    border:0 !important;
+    background:transparent !important;
+    color:var(--text-muted) !important;
+    font:inherit !important;
+    font-size:10px !important;
+    font-weight:600 !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-history-report-actions{
+    display:none !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-pager{
+    margin-left:auto !important;
+  }
+
+  /* Long press reveals edit/delete over the card content. */
+  #income .income-recent-mobile-actions{
+    display:none !important;
+  }
+
+  #income .income-recent-card.is-longpress-selected .income-recent-mobile-actions{
+    position:absolute !important;
+    z-index:8 !important;
+    inset:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:12px !important;
+    padding:10px !important;
+    border-radius:inherit !important;
+    background:color-mix(in srgb,var(--panel) 88%,transparent) !important;
+    backdrop-filter:blur(4px) !important;
+    -webkit-backdrop-filter:blur(4px) !important;
+  }
+
+  #income .income-recent-mobile-edit,
+  #income .income-recent-mobile-delete{
+    width:44px !important;
+    min-width:44px !important;
+    height:44px !important;
+    min-height:44px !important;
+    padding:0 !important;
+    display:grid !important;
+    place-items:center !important;
+    border:1px solid var(--border) !important;
+    border-radius:12px !important;
+    background:var(--panel-muted) !important;
+    box-shadow:none !important;
+    font-size:23px !important;
+    line-height:1 !important;
+    touch-action:manipulation !important;
+  }
+
+  #income .income-recent-mobile-edit{
+    color:var(--primary) !important;
+  }
+
+  #income .income-recent-mobile-delete{
+    color:#ef6b6b !important;
+  }
+
+  #income .income-recent-mobile-delete svg{
+    width:21px !important;
+    height:21px !important;
+    fill:none !important;
+    stroke:currentColor !important;
+    stroke-width:1.9 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+  }
+
+  /* Selected month is a few shades darker than the chosen interface color. */
+  #income #incomeChartSvg .income-chart-bar.selected{
+    fill:color-mix(in srgb,var(--primary) 68%,black 32%) !important;
+  }
+
+  /* Month/year labels fill the vertical space of their controls. */
+  #income .income-month-block.qp-mobile-period-row #monthSwitcherName,
+  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher span{
+    height:40px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:0 2px !important;
+    font-size:18px !important;
+    font-weight:700 !important;
+    line-height:40px !important;
+  }
+}
+
+@media(max-width:360px){
+  #income .income-month-block.qp-mobile-period-row #monthSwitcherName,
+  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher span{
+    font-size:16px !important;
   }
 }

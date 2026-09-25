@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.16';
+const qPokoyDevVersion='dev-2026.09.25.17';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -223,6 +223,15 @@ if(incomeRecentHistory){
   incomeRecentHistory.addEventListener('click',event=>{
     event.preventDefault();
     event.stopPropagation();
+    if(window.matchMedia('(max-width:560px)').matches){
+      const historyNav=document.getElementById('historyNavItem');
+      if(historyNav){
+        historyNav.hidden=false;
+        historyNav.removeAttribute('aria-hidden');
+        historyNav.click();
+      }
+      return;
+    }
     setIncomeRecentHistoryOpen(!incomeRecent.classList.contains('is-history-open'));
   });
 }
@@ -555,7 +564,9 @@ function openHistoryEdit(id){
 }
 
 function openRecentIncomeEdit(id){
-  if(!window.matchMedia('(min-width:761px)').matches)return;
+  const desktopRecentEdit=window.matchMedia('(min-width:761px)').matches;
+  const mobileRecentEdit=window.matchMedia('(max-width:560px)').matches;
+  if(!desktopRecentEdit&&!mobileRecentEdit)return;
   const income=incomes.find(item=>String(item.id)===String(id));
   if(!income)return;
 
@@ -609,6 +620,9 @@ function getVisibleIncomes(source=incomes){
 }
 
 const RECENT_INCOME_PAGE_SIZE=4;
+function getRecentIncomePageSize(){
+  return window.matchMedia('(max-width:560px)').matches?2:RECENT_INCOME_PAGE_SIZE;
+}
 let recentIncomePage=0;
 let recentIncomePeriodKey='';
 
@@ -678,17 +692,26 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
     })
     .slice();
 
-  const pageCount=Math.max(1,Math.ceil(ordered.length/RECENT_INCOME_PAGE_SIZE));
+  const recentPageSize=getRecentIncomePageSize();
+  const pageCount=Math.max(1,Math.ceil(ordered.length/recentPageSize));
   recentIncomePage=Math.max(0,Math.min(recentIncomePage,pageCount-1));
-  const pageStart=recentIncomePage*RECENT_INCOME_PAGE_SIZE;
-  const visible=ordered.slice(pageStart,pageStart+RECENT_INCOME_PAGE_SIZE);
+  const pageStart=recentIncomePage*recentPageSize;
+  const visible=ordered.slice(pageStart,pageStart+recentPageSize);
 
   if(pager){
     pager.hidden=false;
     pager.removeAttribute('hidden');
   }
-  if(prevBtn) prevBtn.disabled=recentIncomePage===0;
-  if(nextBtn) nextBtn.disabled=recentIncomePage>=pageCount-1;
+  if(prevBtn){
+    prevBtn.disabled=recentIncomePage===0;
+    prevBtn.setAttribute('aria-label','Предыдущая страница доходов');
+    prevBtn.title='Предыдущая страница доходов';
+  }
+  if(nextBtn){
+    nextBtn.disabled=recentIncomePage>=pageCount-1;
+    nextBtn.setAttribute('aria-label','Следующая страница доходов');
+    nextBtn.title='Следующая страница доходов';
+  }
   if(indicator) indicator.textContent=`${recentIncomePage+1} / ${pageCount}`;
 
   if(!visible.length){
@@ -704,22 +727,63 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
       <button class="income-recent-edit" data-id="${escapeHtml(item.id)}" type="button" title="Редактировать" aria-label="Редактировать">
         <span class="history-action-pencil" aria-hidden="true">✎</span>
       </button>
+      <div class="income-recent-mobile-actions">
+        <button class="income-recent-mobile-edit" data-id="${escapeHtml(item.id)}" type="button" aria-label="Редактировать доход" title="Редактировать">
+          <span aria-hidden="true">✎</span>
+        </button>
+        <button class="income-recent-mobile-delete" data-id="${escapeHtml(item.id)}" type="button" aria-label="Удалить доход" title="Удалить">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
+        </button>
+      </div>
     </article>
   `).join('');
 }
 
 const incomeRecentGrid=document.getElementById('incomeRecentGrid');
 ensureRecentIncomePager();
-incomeRecentGrid?.addEventListener('click',e=>{
-  if(!window.matchMedia('(min-width:761px)').matches)return;
 
+/* qp-mobile-recent-actions-v17 */
+function clearRecentMobileActions(except=null){
+  incomeRecentGrid?.querySelectorAll('.income-recent-card.is-longpress-selected').forEach(card=>{
+    if(card!==except)card.classList.remove('is-longpress-selected');
+  });
+}
+
+incomeRecentGrid?.addEventListener('click',e=>{
+  const mobile=window.matchMedia('(max-width:560px)').matches;
+  if(mobile){
+    const editButton=e.target.closest('.income-recent-mobile-edit');
+    if(editButton){
+      e.preventDefault();
+      e.stopPropagation();
+      clearRecentMobileActions();
+      openRecentIncomeEdit(editButton.dataset.id);
+      return;
+    }
+    const deleteButton=e.target.closest('.income-recent-mobile-delete');
+    if(deleteButton){
+      e.preventDefault();
+      e.stopPropagation();
+      clearRecentMobileActions();
+      if(typeof window.qPokoyDeleteIncome==='function')window.qPokoyDeleteIncome(deleteButton.dataset.id);
+      return;
+    }
+    const card=e.target.closest('.income-recent-card');
+    if(!card){
+      clearRecentMobileActions();
+      return;
+    }
+    if(!card.classList.contains('is-longpress-selected'))clearRecentMobileActions();
+    return;
+  }
+
+  if(!window.matchMedia('(min-width:761px)').matches)return;
   const editButton=e.target.closest('.income-recent-edit');
   if(editButton){
     e.stopPropagation();
     openRecentIncomeEdit(editButton.dataset.id);
     return;
   }
-
   const card=e.target.closest('.income-recent-card');
   if(!card)return;
   incomeRecentGrid.querySelectorAll('.income-recent-card.is-selected').forEach(item=>{
@@ -727,6 +791,50 @@ incomeRecentGrid?.addEventListener('click',e=>{
   });
   card.classList.add('is-selected');
 });
+
+if(incomeRecentGrid&&!incomeRecentGrid.dataset.qpLongPressBound){
+  incomeRecentGrid.dataset.qpLongPressBound='1';
+  let timer=0;
+  let startX=0;
+  let startY=0;
+  let activeCard=null;
+  const cancel=()=>{
+    clearTimeout(timer);
+    timer=0;
+    activeCard=null;
+  };
+  incomeRecentGrid.addEventListener('touchstart',e=>{
+    if(!window.matchMedia('(max-width:560px)').matches||e.touches.length!==1)return;
+    if(e.target.closest('.income-recent-mobile-actions'))return;
+    const card=e.target.closest('.income-recent-card');
+    if(!card)return;
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+    activeCard=card;
+    clearTimeout(timer);
+    timer=setTimeout(()=>{
+      if(!activeCard)return;
+      clearRecentMobileActions(activeCard);
+      activeCard.classList.add('is-longpress-selected');
+      if(navigator.vibrate)navigator.vibrate(20);
+      timer=0;
+    },520);
+  },{passive:true});
+  incomeRecentGrid.addEventListener('touchmove',e=>{
+    if(!timer||!e.touches.length)return;
+    const dx=e.touches[0].clientX-startX;
+    const dy=e.touches[0].clientY-startY;
+    if(Math.hypot(dx,dy)>12)cancel();
+  },{passive:true});
+  incomeRecentGrid.addEventListener('touchend',cancel,{passive:true});
+  incomeRecentGrid.addEventListener('touchcancel',cancel,{passive:true});
+}
+
+document.addEventListener('touchstart',e=>{
+  if(!window.matchMedia('(max-width:560px)').matches)return;
+  if(e.target.closest('#incomeRecentGrid .income-recent-card'))return;
+  clearRecentMobileActions();
+},{passive:true});
 
 window.renderIncomes=function renderIncomes(filteredData=null){
   clearHistoryNativeSwipeState();
