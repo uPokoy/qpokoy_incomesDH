@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.19");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.19");
-@import url("./oauth-brand.css?v=dev-2026.09.25.19");
+@import url("./mobile-base.css?v=dev-2026.09.25.20");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.20");
+@import url("./oauth-brand.css?v=dev-2026.09.25.20");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -2796,6 +2796,86 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   #income #incomeChartSvg .income-chart-bar.selected{
     fill:var(--primary) !important;
     filter:brightness(.62) saturate(1.08) !important;
+    opacity:1 !important;
+  }
+}
+
+
+/* Mobile home corrections v20: compact chart/toggle gap, native long-press guard,
+   exact History glyph sizing, and a browser-independent active-month color. */
+@media(max-width:560px){
+  /* Cancel the flex gap between the chart and the full-width collapse hit area. */
+  #income .income-top > .income-recent.qp-mobile-recent-stack{
+    margin-top:-14px !important;
+    padding-top:0 !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-controls{
+    min-height:26px !important;
+    height:26px !important;
+    margin:0 0 6px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle{
+    width:100% !important;
+    min-width:100% !important;
+    height:26px !important;
+    min-height:26px !important;
+    padding:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle svg{
+    width:20px !important;
+    height:20px !important;
+    margin:0 !important;
+  }
+
+  /* Long press belongs to the card actions, not browser text selection/copy. */
+  #income .income-recent-card,
+  #income .income-recent-card .income-recent-date,
+  #income .income-recent-card .income-recent-amount,
+  #income .income-recent-card .income-recent-category{
+    -webkit-user-select:none !important;
+    user-select:none !important;
+    -webkit-touch-callout:none !important;
+  }
+
+  /* Use the exact visible glyph geometry already used by mobile History. */
+  #income .income-recent-mobile-edit{
+    font-size:10px !important;
+  }
+  #income .income-recent-mobile-edit .history-action-pencil{
+    display:block !important;
+    font-size:10px !important;
+    line-height:1 !important;
+    font-weight:400 !important;
+  }
+  #income .income-recent-mobile-delete .history-delete-close{
+    display:block !important;
+    width:16px !important;
+    height:16px !important;
+    fill:none !important;
+    stroke:currentColor !important;
+    stroke-width:2 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+  }
+  #income .income-recent-mobile-delete .history-delete-trash,
+  #income .income-recent-mobile-actions .history-action-label{
+    display:none !important;
+  }
+
+  /* JS resolves the current interface color to RGB and darkens it by ~2 shades. */
+  #income #incomeChartSvg .income-chart-bar.selected{
+    fill:var(--income-chart-selected,var(--primary)) !important;
+    filter:none !important;
     opacity:1 !important;
   }
 }

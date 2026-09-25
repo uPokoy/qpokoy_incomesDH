@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.19';
+const qPokoyDevVersion='dev-2026.09.25.20';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -740,10 +740,12 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
       </button>
       <div class="income-recent-mobile-actions">
         <button class="income-recent-mobile-edit" data-id="${escapeHtml(item.id)}" type="button" aria-label="Редактировать доход" title="Редактировать">
-          <span class="history-action-pencil" aria-hidden="true">✎</span>
+          <span class="history-action-pencil" aria-hidden="true">✎</span><span class="history-action-label" style="display:none">Изменить</span>
         </button>
         <button class="income-recent-mobile-delete" data-id="${escapeHtml(item.id)}" type="button" aria-label="Удалить доход" title="Удалить">
           <svg class="history-delete-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></svg>
+          <svg class="history-delete-trash" style="display:none" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>
+          <span class="history-action-label" style="display:none">Удалить</span>
         </button>
       </div>
     </article>
@@ -846,6 +848,15 @@ document.addEventListener('touchstart',e=>{
   if(e.target.closest('#incomeRecentGrid .income-recent-card'))return;
   clearRecentMobileActions();
 },{passive:true});
+
+// Mobile recent cards own the long-press gesture: never let the browser
+// turn the date/card text into a selection or copy callout.
+incomeRecentGrid?.addEventListener('selectstart',e=>{
+  if(window.matchMedia('(max-width:560px)').matches&&e.target.closest('.income-recent-card'))e.preventDefault();
+});
+incomeRecentGrid?.addEventListener('contextmenu',e=>{
+  if(window.matchMedia('(max-width:560px)').matches&&e.target.closest('.income-recent-card'))e.preventDefault();
+});
 
 window.renderIncomes=function renderIncomes(filteredData=null){
   clearHistoryNativeSwipeState();
@@ -1661,7 +1672,25 @@ document.addEventListener('mouseup',()=>{
   const yearEl=document.getElementById('incomeChartYear');
   if(!svg||!monthsEl)return;
   const names=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+  function syncMobileSelectedChartColor(){
+    if(!window.matchMedia('(max-width:560px)').matches){
+      svg.style.removeProperty('--income-chart-selected');
+      return;
+    }
+    const probe=document.createElement('span');
+    probe.style.cssText='position:fixed;left:-9999px;top:-9999px;color:var(--primary);pointer-events:none';
+    document.body.appendChild(probe);
+    const values=(getComputedStyle(probe).color.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+    probe.remove();
+    if(values.length!==3||values.some(value=>!Number.isFinite(value)))return;
+    const factor=.64;
+    const darker=values.map(value=>Math.max(0,Math.min(255,Math.round(value*factor))));
+    svg.style.setProperty('--income-chart-selected',`rgb(${darker[0]}, ${darker[1]}, ${darker[2]})`);
+  }
+
   function draw(){
+    syncMobileSelectedChartColor();
     const chartData=typeof IncomeStore!=='undefined'?IncomeStore.load():incomes;
     if(!Array.isArray(chartData))return;
     const period=getSelectedIncomePeriod();
