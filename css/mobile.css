@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.23");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.23");
-@import url("./oauth-brand.css?v=dev-2026.09.25.23");
+@import url("./mobile-base.css?v=dev-2026.09.25.24");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.24");
+@import url("./oauth-brand.css?v=dev-2026.09.25.24");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -2974,6 +2974,34 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   #income .income-recent-mobile-edit .history-action-pencil-white path{
     fill:#fff !important;
     stroke:#fff !important;
+    opacity:1 !important;
+  }
+}
+
+
+/* Mobile pencil glyph v24.
+   Native SVG only: no text glyph, no mask, no inherited icon color. */
+@media(max-width:560px){
+  #history #incomeList > .history-swipe-row svg.history-action-pencil,
+  #income .income-recent-mobile-edit svg.history-action-pencil{
+    display:block !important;
+    width:22px !important;
+    height:22px !important;
+    flex:0 0 22px !important;
+    background:none !important;
+    -webkit-mask:none !important;
+    mask:none !important;
+    color:#fff !important;
+    fill:#fff !important;
+    stroke:none !important;
+    opacity:1 !important;
+    filter:drop-shadow(0 0 .7px #fff) !important;
+  }
+
+  #history #incomeList > .history-swipe-row svg.history-action-pencil path,
+  #income .income-recent-mobile-edit svg.history-action-pencil path{
+    fill:#fff !important;
+    stroke:none !important;
     opacity:1 !important;
   }
 }
