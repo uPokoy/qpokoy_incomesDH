@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.26.54';
+const qPokoyDevVersion='dev-2026.09.26.55';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1128,7 +1128,7 @@ window.renderIncomeAnalytics=function(){
     catsEl.classList.toggle('is-collapsed',canToggle&&!expanded);
     catsEl.classList.toggle('is-expanded',canToggle&&expanded);
 
-    catsEl.innerHTML=categories.length?visibleCategories.map((item)=>{
+    catsEl.innerHTML=categories.length?visibleCategories.map((item,index)=>{
       const name=item.name;
       const value=item.value;
       const pct=a.total?value/a.total*100:0;
@@ -1136,8 +1136,8 @@ window.renderIncomeAnalytics=function(){
         ?'category-grouped'
         :(name==='Зарплата'?'salary':(name==='Аванс'?'advance':(name==='Другое'?'other':'pension')));
       const displayName=item.grouped?'Другие ('+item.count+')':name;
-      const categoryVisual=desktopCategories&&!item.grouped&&typeof window.qPokoyCategoryVisual==='function'
-        ?window.qPokoyCategoryVisual(name,0)
+      const categoryVisual=!item.grouped&&typeof window.qPokoyCategoryVisual==='function'
+        ?window.qPokoyCategoryVisual(name,index)
         :null;
       const categoryIcon=item.grouped
         ?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>'

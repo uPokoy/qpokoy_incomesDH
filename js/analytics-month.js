@@ -417,8 +417,14 @@
         catsEl.innerHTML=visibleCategories.map(([name,value],index)=>{
           const pct=total?Math.round(value/total*100):0;
           const tone=categoryTone(name,index+1);
+          const categoryVisual=typeof window.qPokoyCategoryVisual==='function'
+            ?window.qPokoyCategoryVisual(name,index+1)
+            :null;
+          const categoryIcon=categoryVisual&&categoryVisual.icon
+            ?categoryVisual.icon
+            :'<svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg>';
           return '<div class="monthly-category-card '+tone+'">'+
-            '<div class="monthly-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5h16v11H4z"/><path d="M7 7.5V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.5"/><path d="M9 13h6"/></svg></div>'+
+            '<div class="monthly-category-icon" aria-hidden="true">'+categoryIcon+'</div>'+
             '<span class="monthly-category-share">'+pct+'%</span>'+
             '<span class="monthly-category-name" title="'+escapeText(name)+'">'+escapeText(name)+'</span>'+
             '<strong class="monthly-category-value">'+escapeText(money(value))+'</strong>'+

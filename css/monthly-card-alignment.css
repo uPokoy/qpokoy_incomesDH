@@ -4648,3 +4648,51 @@
     white-space:nowrap !important;
   }
 }
+
+
+/* Mobile annual typography and icon correction v55. */
+@media(max-width:560px){
+  /* Match Month icon surfaces instead of the old blue annual icon boxes. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-best > .analytics-card-icon{
+    border:0 !important;
+    background:color-mix(in srgb,var(--success) 14%,transparent) !important;
+    color:var(--success) !important;
+    box-shadow:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-worst > .annual-worst-topline > .analytics-card-icon{
+    border:0 !important;
+    background:color-mix(in srgb,var(--danger) 14%,transparent) !important;
+    color:var(--danger) !important;
+    box-shadow:none !important;
+  }
+
+  /* Restore the readable Month-sized typography in the two compact annual cards. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-worst > .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-worst > .analytics-card-body > strong{
+    color:var(--text-muted) !important;
+    font-size:12px !important;
+    font-weight:400 !important;
+    line-height:1.15 !important;
+    letter-spacing:0 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-worst > .analytics-card-body > b{
+    font-size:18px !important;
+    font-weight:760 !important;
+    line-height:1 !important;
+    letter-spacing:-.025em !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-average > .analytics-card-body > span{
+    font-size:12px !important;
+    line-height:1.2 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-average > .analytics-card-body > strong{
+    font-size:20px !important;
+    font-weight:760 !important;
+    line-height:1 !important;
+    letter-spacing:-.025em !important;
+  }
+}
