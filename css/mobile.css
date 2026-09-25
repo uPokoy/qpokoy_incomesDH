@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.09");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.09");
-@import url("./oauth-brand.css?v=dev-2026.09.25.09");
+@import url("./mobile-base.css?v=dev-2026.09.25.10");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.10");
+@import url("./oauth-brand.css?v=dev-2026.09.25.10");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -1979,5 +1979,261 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     box-shadow:none !important;
     transform:none !important;
     touch-action:manipulation !important;
+  }
+}
+
+
+/* Mobile income editor final polish. */
+@media(max-width:560px){
+  #incomeForm.income-form,
+  #history > #incomeForm.income-form{
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 0 12px !important;
+    padding:16px 14px 68px !important;
+    overflow:visible !important;
+    border:1px solid var(--border) !important;
+    border-radius:18px !important;
+    background:var(--panel) !important;
+    box-shadow:none !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeForm .form-title{
+    margin:0 42px 14px 0 !important;
+    font-size:17px !important;
+    font-weight:650 !important;
+    line-height:1.2 !important;
+  }
+
+  #incomeForm .form-grid{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:11px !important;
+  }
+
+  #incomeForm .form-grid > label{
+    position:relative !important;
+    min-width:0 !important;
+    color:var(--text-muted) !important;
+    font-size:12px !important;
+    line-height:1.2 !important;
+  }
+
+  #incomeForm .form-grid input,
+  #incomeForm .category-select{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:46px !important;
+    height:46px !important;
+    margin-top:6px !important;
+    padding:0 12px !important;
+    border:1px solid var(--border) !important;
+    border-radius:12px !important;
+    background:var(--panel-muted) !important;
+    color:var(--text) !important;
+    font-size:16px !important;
+    box-shadow:none !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeForm .form-grid input:focus,
+  #incomeForm .category-select:focus,
+  #incomeForm .category-select.open{
+    border-color:color-mix(in srgb,var(--primary) 62%,var(--border)) !important;
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 12%,transparent) !important;
+    outline:none !important;
+  }
+
+  #incomeForm .date-field,
+  #incomeForm .category-field{
+    position:relative !important;
+    margin-top:6px !important;
+  }
+
+  #incomeForm .date-field > input,
+  #incomeForm .category-field > .category-select{
+    margin-top:0 !important;
+  }
+
+  #incomeForm .date-field > input{
+    padding-right:48px !important;
+  }
+
+  #incomeForm .calendar-btn{
+    top:1px !important;
+    right:1px !important;
+    bottom:1px !important;
+    width:44px !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    border-left:1px solid var(--border) !important;
+    border-radius:0 11px 11px 0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  #incomeForm .calendar-btn svg{
+    width:18px !important;
+    height:18px !important;
+  }
+
+  #incomeForm .cancel-btn{
+    top:10px !important;
+    right:10px !important;
+    width:34px !important;
+    min-width:34px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 !important;
+    border-radius:10px !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  #incomeForm #saveIncome{
+    right:14px !important;
+    bottom:14px !important;
+    width:46px !important;
+    min-width:46px !important;
+    height:40px !important;
+    min-height:40px !important;
+    padding:0 !important;
+    border-radius:11px !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  #incomeForm #saveIncome svg{
+    width:19px !important;
+    height:19px !important;
+  }
+
+  #incomeForm .calendar-popup{
+    left:0 !important;
+    right:auto !important;
+    width:min(300px,calc(100vw - 52px)) !important;
+    max-width:calc(100vw - 52px) !important;
+    padding:10px !important;
+    border-radius:14px !important;
+    box-shadow:0 16px 42px rgba(0,0,0,.28) !important;
+  }
+
+  #incomeForm .calendar-head{
+    gap:7px !important;
+    margin-bottom:8px !important;
+  }
+
+  #incomeForm .calendar-nav{
+    width:32px !important;
+    min-width:32px !important;
+    height:32px !important;
+    min-height:32px !important;
+    padding:0 !important;
+    border-radius:9px !important;
+    font-size:20px !important;
+  }
+
+  #incomeForm .calendar-head > div{
+    font-size:13px !important;
+  }
+
+  #incomeForm .calendar-weekdays,
+  #incomeForm .calendar-days{
+    gap:2px !important;
+  }
+
+  #incomeForm .calendar-day{
+    height:32px !important;
+    min-height:32px !important;
+    padding:0 !important;
+    border-radius:8px !important;
+    font-size:12px !important;
+  }
+
+  #incomeForm .category-popup{
+    left:0 !important;
+    right:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    max-height:min(286px,48vh) !important;
+    padding:5px !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    overscroll-behavior:contain !important;
+    -webkit-overflow-scrolling:touch !important;
+    border-radius:13px !important;
+    box-shadow:0 16px 42px rgba(0,0,0,.28) !important;
+  }
+
+  #incomeForm .category-option{
+    width:100% !important;
+    min-height:42px !important;
+    padding:9px 10px !important;
+    border-radius:9px !important;
+    font-size:14px !important;
+  }
+
+  #incomeForm .category-popup-create{
+    bottom:-5px !important;
+    grid-template-columns:minmax(0,1fr) 40px !important;
+    gap:6px !important;
+    margin:5px -1px -1px !important;
+    padding:7px 1px 1px !important;
+  }
+
+  #incomeForm .category-popup-create-input{
+    height:40px !important;
+    min-height:40px !important;
+    margin:0 !important;
+    padding:0 9px !important;
+    border-radius:9px !important;
+    font-size:16px !important;
+  }
+
+  #incomeForm .category-popup-create-btn{
+    width:40px !important;
+    min-width:40px !important;
+    height:40px !important;
+    min-height:40px !important;
+    padding:0 !important;
+    border-radius:9px !important;
+    font-size:22px !important;
+    box-shadow:none !important;
+  }
+
+  #incomeForm .field-invalid::after{
+    position:static !important;
+    display:block !important;
+    margin:4px 0 0 !important;
+    color:#ef4444 !important;
+    font-size:10px !important;
+    line-height:1.1 !important;
+  }
+
+  #incomeForm .field-invalid input,
+  #incomeForm .field-invalid .category-select{
+    border-color:#ef4444 !important;
+    box-shadow:0 0 0 2px rgba(239,68,68,.12) !important;
+  }
+
+  body:has(#incomeForm:not([hidden])) .content{
+    padding-bottom:calc(112px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media(max-width:340px){
+  #incomeForm.income-form,
+  #history > #incomeForm.income-form{
+    padding-left:12px !important;
+    padding-right:12px !important;
+  }
+
+  #incomeForm .calendar-popup{
+    width:calc(100vw - 44px) !important;
+    max-width:calc(100vw - 44px) !important;
   }
 }
