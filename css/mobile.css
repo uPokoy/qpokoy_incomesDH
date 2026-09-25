@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.15");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.15");
-@import url("./oauth-brand.css?v=dev-2026.09.25.15");
+@import url("./mobile-base.css?v=dev-2026.09.25.16");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.16");
+@import url("./oauth-brand.css?v=dev-2026.09.25.16");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -2506,5 +2506,100 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   #income .income-month-block.qp-mobile-period-row #monthSwitcherName,
   #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher span{
     font-size:13px !important;
+  }
+}
+
+
+/* Mobile home header stage v16. */
+@media(max-width:560px){
+  #income .income-month-block.qp-mobile-period-row #incomeTotal{
+    width:100% !important;
+    max-width:100% !important;
+    margin:8px 0 0 !important;
+    display:block !important;
+    overflow:hidden !important;
+    font-size:clamp(46px,12vw,56px) !important;
+    line-height:.96 !important;
+    letter-spacing:-.055em !important;
+    text-align:center !important;
+    text-overflow:clip !important;
+    white-space:nowrap !important;
+  }
+
+  #income .income-month-chart{
+    margin-top:12px !important;
+    padding-top:0 !important;
+  }
+
+  #income .income-top > .income-recent.qp-mobile-recent-stack{
+    padding-top:6px !important;
+    border-top:0 !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle{
+    justify-content:center !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle svg{
+    margin:0 !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-card{
+    min-height:88px !important;
+    padding:11px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions{
+    min-height:24px !important;
+    margin-top:6px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn{
+    width:18px !important;
+    min-width:18px !important;
+    height:18px !important;
+    min-height:18px !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn:hover,
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn:active{
+    border:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn svg{
+    width:12px !important;
+    height:12px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-indicator{
+    min-width:28px !important;
+    font-size:10px !important;
+  }
+
+  #income #incomeMonthSwitcher,
+  #income .income-month-block > .income-chart-year-switcher{
+    touch-action:pan-y !important;
+  }
+}
+
+@media(max-width:360px){
+  #income .income-month-block.qp-mobile-period-row #incomeTotal{
+    font-size:44px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-card{
+    padding:10px !important;
   }
 }

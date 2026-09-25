@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.15';
+const qPokoyDevVersion='dev-2026.09.25.16';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1644,7 +1644,30 @@ document.addEventListener('mouseup',()=>{
       if(!mq.matches)return;
       showArrows(switcher,!!event.target.closest('button'));
     });
+
+    let swipeStartX=0;
+    let swipeStartY=0;
+    switcher.addEventListener('touchstart',event=>{
+      if(!mq.matches||event.touches.length!==1)return;
+      swipeStartX=event.touches[0].clientX;
+      swipeStartY=event.touches[0].clientY;
+    },{passive:true});
+    switcher.addEventListener('touchend',event=>{
+      if(!mq.matches||!event.changedTouches.length)return;
+      const dx=event.changedTouches[0].clientX-swipeStartX;
+      const dy=event.changedTouches[0].clientY-swipeStartY;
+      if(Math.abs(dx)<42||Math.abs(dx)<=Math.abs(dy)*1.15)return;
+      const prevButton=switcher.querySelector('button:first-of-type');
+      const nextButton=switcher.querySelector('button:last-of-type');
+      const target=dx<0?nextButton:prevButton;
+      if(!target||target.disabled)return;
+      event.preventDefault();
+      target.click();
+      showArrows(switcher,true);
+    },{passive:false});
   });
+
+  document.documentElement.classList.add('qp-mobile-home-header-v16');
 
   function applyMobileStructure(){
     if(mq.matches){
