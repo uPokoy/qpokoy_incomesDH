@@ -2105,3 +2105,34 @@
     opacity:0 !important;
   }
 }
+
+
+/* Mobile annual category surface correction v37. */
+@media(max-width:560px){
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    -webkit-appearance:none !important;
+    appearance:none !important;
+    box-shadow:none !important;
+  }
+
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel,
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:hover,
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:active,
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:focus,
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:focus-visible,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:hover,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:active,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:focus,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:focus-visible{
+    background:#00061c !important;
+    background-color:#00061c !important;
+    background-image:none !important;
+  }
+
+  html:not([data-theme="dark"]) #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    background:var(--panel) !important;
+    background-color:var(--panel) !important;
+    background-image:none !important;
+  }
+}
