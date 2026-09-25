@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.28");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.28");
-@import url("./oauth-brand.css?v=dev-2026.09.25.28");
+@import url("./mobile-base.css?v=dev-2026.09.25.29");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.29");
+@import url("./oauth-brand.css?v=dev-2026.09.25.29");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3111,12 +3111,13 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 }
 
 
-/* Mobile recent-income amount alignment v28. */
+/* Mobile recent-income amount alignment v29. */
 @media(max-width:560px){
   #income .income-recent.qp-mobile-recent-stack .income-recent-card .income-recent-amount{
     width:100% !important;
     margin-left:0 !important;
     justify-self:stretch !important;
     text-align:center !important;
+    transform:translateX(-10px) !important;
   }
 }
