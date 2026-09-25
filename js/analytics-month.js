@@ -277,6 +277,7 @@
       growthCard.classList.add(growth===null||growth===0?'neutral':growth>0?'positive':'negative');
     }
     if(growthEl){
+      growthEl.style.display=growth===null?'none':'';
       growthEl.textContent=growth===null?'—':(growth>=0?'+':'')+Math.trunc(growth)+'%';
     }
     if(growthNoteEl){
@@ -311,6 +312,7 @@
       yearGrowthCard.classList.add(yearGrowth===null||yearGrowth===0?'neutral':yearGrowth>0?'positive':'negative');
     }
     if(yearGrowthEl){
+      yearGrowthEl.style.display=yearGrowth===null?'none':'';
       yearGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'+':'')+Math.trunc(yearGrowth)+'%';
     }
     if(heroGrowthEl){
