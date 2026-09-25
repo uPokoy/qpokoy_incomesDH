@@ -1675,6 +1675,11 @@ body.qp-auth-locked #income .income-recent-pager{
   white-space:nowrap;
 }
 
+@media(min-width:561px){
+  #income .income-recent-mobile-actions{
+    display:none !important;
+  }
+}
 @media(min-width:761px){
   #income .income-recent-card{
     cursor:pointer;
