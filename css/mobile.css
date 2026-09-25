@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.06");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.06");
-@import url("./oauth-brand.css?v=dev-2026.09.25.06");
+@import url("./mobile-base.css?v=dev-2026.09.25.07");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.07");
+@import url("./oauth-brand.css?v=dev-2026.09.25.07");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -1549,5 +1549,224 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     height:29px !important;
     min-height:29px !important;
     max-height:29px !important;
+  }
+}
+
+
+/* Mobile shell finalization after PC parity pass. */
+@media(max-width:560px){
+  html,
+  body{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow-x:hidden !important;
+  }
+
+  body > .app,
+  .app,
+  .content,
+  main{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+
+  main{
+    margin:0 !important;
+    padding:12px !important;
+  }
+
+  .app:has(.sidebar.qp-bottom-nav-ready) .content{
+    padding-bottom:calc(106px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .sidebar.qp-bottom-nav-ready{
+    left:12px !important;
+    right:12px !important;
+    bottom:calc(10px + env(safe-area-inset-bottom)) !important;
+    width:auto !important;
+    height:66px !important;
+    padding:0 6px !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    border-radius:28px !important;
+  }
+
+  .sidebar.qp-bottom-nav-ready > .nav-item{
+    min-width:0 !important;
+    height:58px !important;
+    margin:4px 2px !important;
+    padding:6px 4px !important;
+    border:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    transform:none !important;
+    -webkit-tap-highlight-color:transparent !important;
+    touch-action:manipulation !important;
+  }
+
+  .sidebar.qp-bottom-nav-ready .nav-icon{
+    min-width:0 !important;
+  }
+
+  .sidebar.qp-bottom-nav-ready .nav-icon svg{
+    width:22px !important;
+    height:22px !important;
+  }
+
+  .sidebar.qp-bottom-nav-ready .nav-label{
+    max-width:100% !important;
+    overflow:hidden !important;
+    font-size:10.5px !important;
+    line-height:1.05 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  .sidebar.qp-bottom-nav-ready .qp-bottom-nav-indicator{
+    width:88px !important;
+    height:54px !important;
+    border-radius:27px !important;
+  }
+
+  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn{
+    right:16px !important;
+    bottom:calc(94px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Development marker is not part of the mobile product UI. */
+  #income .qp-dev-panel{
+    display:none !important;
+  }
+
+  /* Dialogs/notifications must remain inside the phone viewport. */
+  .qp-notice-overlay{
+    padding:
+      max(14px,env(safe-area-inset-top))
+      14px
+      max(14px,env(safe-area-inset-bottom)) !important;
+  }
+
+  .qp-notice-dialog{
+    width:100% !important;
+    max-width:430px !important;
+    max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    padding:20px 18px !important;
+    overflow:auto !important;
+    border-radius:18px !important;
+  }
+
+  /* Auth screen: current phone geometry, safe areas and 16px inputs prevent iOS zoom. */
+  body.qp-auth-locked #qpAuthGate,
+  #qpAuthGate{
+    width:100vw !important;
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+    padding:
+      max(14px,env(safe-area-inset-top))
+      14px
+      max(14px,env(safe-area-inset-bottom)) !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:auto !important;
+    overscroll-behavior:contain !important;
+    box-sizing:border-box !important;
+  }
+
+  body.qp-auth-locked #qpAuthGate .qp-auth-card,
+  #qpAuthGate .qp-auth-card{
+    width:100% !important;
+    max-width:430px !important;
+    max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    margin:auto !important;
+    padding:20px 16px !important;
+    overflow:auto !important;
+    border-radius:18px !important;
+    box-shadow:0 18px 48px rgba(0,0,0,.28) !important;
+  }
+
+  #qpAuthGate .qp-auth-tabs{
+    margin-bottom:16px !important;
+  }
+
+  #qpAuthGate .qp-auth-tab{
+    min-height:42px !important;
+    height:42px !important;
+    font-size:14px !important;
+    touch-action:manipulation !important;
+  }
+
+  #qpAuthGate .qp-auth-field{
+    margin-bottom:12px !important;
+  }
+
+  #qpAuthGate .qp-auth-field input{
+    width:100% !important;
+    min-width:0 !important;
+    height:48px !important;
+    min-height:48px !important;
+    padding:0 13px !important;
+    border-radius:12px !important;
+    font-size:16px !important;
+    box-sizing:border-box !important;
+  }
+
+  #qpAuthGate .qp-auth-primary{
+    width:100% !important;
+    min-width:0 !important;
+    height:48px !important;
+    min-height:48px !important;
+    border-radius:12px !important;
+    font-size:14px !important;
+    touch-action:manipulation !important;
+  }
+
+  #qpAuthGate .qp-auth-oauth{
+    min-width:0 !important;
+    padding:0 10px !important;
+  }
+
+  #qpAuthGate .qp-auth-oauth-label{
+    min-width:0 !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #qpAuthGate .qp-auth-message{
+    overflow-wrap:anywhere !important;
+  }
+}
+
+@media(max-width:340px){
+  main{
+    padding:10px !important;
+  }
+
+  .sidebar.qp-bottom-nav-ready{
+    left:8px !important;
+    right:8px !important;
+  }
+
+  .sidebar.qp-bottom-nav-ready .nav-label{
+    font-size:9.5px !important;
+  }
+
+  #qpAuthGate{
+    padding-left:10px !important;
+    padding-right:10px !important;
+  }
+
+  #qpAuthGate .qp-auth-card{
+    padding:18px 14px !important;
+  }
+}
+
+@media(max-height:600px) and (max-width:560px){
+  body.qp-auth-locked #qpAuthGate,
+  #qpAuthGate{
+    align-items:flex-start !important;
   }
 }
