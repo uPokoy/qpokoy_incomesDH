@@ -281,7 +281,7 @@
         :'за '+monthNames[prevMonth].toLowerCase()+' '+prevYear;
       if(growthTooltipEl)growthTooltipEl.textContent='Сравнение '+previousPeriodLabel;
       if(previousTotal<=0){
-        growthNoteEl.textContent='Нет данных';
+        growthNoteEl.textContent='';
       }else if(difference>0){
         growthNoteEl.textContent=money(Math.abs(difference));
       }else if(difference<0){
@@ -321,7 +321,7 @@
         :'за '+monthNames[period.month].toLowerCase()+' '+lastYear;
       if(yearGrowthTooltipEl)yearGrowthTooltipEl.textContent='Сравнение '+comparisonPeriod;
       if(lastYearTotal<=0){
-        yearGrowthNoteEl.textContent='Нет данных';
+        yearGrowthNoteEl.textContent='';
       }else if(yearDifference>0){
         yearGrowthNoteEl.textContent=money(Math.abs(yearDifference));
       }else if(yearDifference<0){
