@@ -4591,3 +4591,11 @@
     display:none !important;
   }
 }
+
+
+/* Mobile annual best amount alignment v53. */
+@media(max-width:560px){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-best > .analytics-card-body > b{
+    transform:translate(-20px,10px) !important;
+  }
+}
