@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.32';
+const qPokoyDevVersion='dev-2026.09.25.33';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -2226,7 +2226,7 @@ function getAllIncomeRecords(){
 })();
 
 
-/* qp-mobile-month-total-swipe-v32 */
+/* qp-mobile-month-total-swipe-v33 */
 (function(){
   const mq=window.matchMedia('(max-width:560px)');
   const total=document.getElementById('incomeTotal');
@@ -2247,7 +2247,13 @@ function getAllIncomeRecords(){
     const dx=event.changedTouches[0].clientX-startX;
     const dy=event.changedTouches[0].clientY-startY;
     if(Math.abs(dx)<44||Math.abs(dx)<=Math.abs(dy)*1.15)return;
+
+    const target=dx<0
+      ?document.getElementById('monthNext')
+      :document.getElementById('monthPrev');
+    if(!target||target.disabled)return;
+
     event.preventDefault();
-    changeSelectedIncomeMonth(dx<0?1:-1);
+    target.click();
   },{passive:false});
 })();
