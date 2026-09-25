@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.31';
+const qPokoyDevVersion='dev-2026.09.25.32';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -2223,4 +2223,31 @@ function getAllIncomeRecords(){
 
   const last=localStorage.getItem(BACKUP_KEY);
   if(last) setBackupStatus(`Последний экспорт: ${new Date(last).toLocaleString('ru-RU')}`);
+})();
+
+
+/* qp-mobile-month-total-swipe-v32 */
+(function(){
+  const mq=window.matchMedia('(max-width:560px)');
+  const total=document.getElementById('incomeTotal');
+  if(!total||total.dataset.qpMonthSwipeBound==='1')return;
+
+  total.dataset.qpMonthSwipeBound='1';
+  let startX=0;
+  let startY=0;
+
+  total.addEventListener('touchstart',event=>{
+    if(!mq.matches||event.touches.length!==1)return;
+    startX=event.touches[0].clientX;
+    startY=event.touches[0].clientY;
+  },{passive:true});
+
+  total.addEventListener('touchend',event=>{
+    if(!mq.matches||!event.changedTouches.length)return;
+    const dx=event.changedTouches[0].clientX-startX;
+    const dy=event.changedTouches[0].clientY-startY;
+    if(Math.abs(dx)<44||Math.abs(dx)<=Math.abs(dy)*1.15)return;
+    event.preventDefault();
+    changeSelectedIncomeMonth(dx<0?1:-1);
+  },{passive:false});
 })();

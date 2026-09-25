@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.31");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.31");
-@import url("./oauth-brand.css?v=dev-2026.09.25.31");
+@import url("./mobile-base.css?v=dev-2026.09.25.32");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.32");
+@import url("./oauth-brand.css?v=dev-2026.09.25.32");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3135,5 +3135,16 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 @media(max-width:560px){
   #income .income-month-block.qp-mobile-period-row #incomeTotal{
     transform:translateY(5px) !important;
+  }
+}
+
+
+/* Mobile monthly total swipe target v32. */
+@media(max-width:560px){
+  #income .income-month-block.qp-mobile-period-row #incomeTotal{
+    touch-action:pan-y !important;
+    -webkit-user-select:none !important;
+    user-select:none !important;
+    -webkit-touch-callout:none !important;
   }
 }
