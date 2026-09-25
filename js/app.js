@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.13';
+const qPokoyDevVersion='dev-2026.09.25.14';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1633,6 +1633,8 @@ document.addEventListener('mouseup',()=>{
 
   function setOpen(open){
     const next=!!open&&inlineSettings();
+    const mobileInline=window.matchMedia('(max-width:560px)').matches;
+    const modeRow=analytics.querySelector('.analytics-mode-row');
 
     // Settings must always open over the compact analytics shell.
     // Collapse expanded category panels first so their temporary height
@@ -1655,6 +1657,14 @@ document.addEventListener('mouseup',()=>{
     toggle.title=next?'Закрыть настройки':'Настройки';
 
     if(next){
+      if(mobileInline&&modeRow){
+        modeRow.insertAdjacentElement('afterend',host);
+        Array.from(analytics.children).forEach(child=>{
+          if(child===modeRow||child===host)return;
+          child.dataset.qpMobileSettingsHidden=child.hidden?'1':'0';
+          child.hidden=true;
+        });
+      }
       host.hidden=false;
       host.appendChild(settings);
       settings.classList.add('analytics-inline-settings');
@@ -1662,10 +1672,19 @@ document.addEventListener('mouseup',()=>{
       if(typeof window.qPokoySetSettingsTab==='function')window.qPokoySetSettingsTab('categories');
       requestAnimationFrame(()=>{
         requestAnimationFrame(()=>{
-          analytics.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
+          analytics.scrollIntoView({behavior:'smooth',block:mobileInline?'start':'center',inline:'nearest'});
         });
       });
     }else{
+      if(mobileInline){
+        Array.from(analytics.children).forEach(child=>{
+          if(!Object.prototype.hasOwnProperty.call(child.dataset,'qpMobileSettingsHidden'))return;
+          const wasHidden=child.dataset.qpMobileSettingsHidden==='1';
+          child.hidden=wasHidden;
+          delete child.dataset.qpMobileSettingsHidden;
+        });
+        analytics.appendChild(host);
+      }
       host.hidden=true;
       restoreSettingsHome();
       const active=document.querySelector('.page.active');

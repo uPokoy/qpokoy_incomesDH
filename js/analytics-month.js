@@ -104,8 +104,9 @@
   function renderIncomeSpikes(container,dayTotals,period){
     const count=dayTotals.length;
     const dayMax=Math.max(...dayTotals,1);
+    const compactGraph=window.matchMedia('(max-width:560px)').matches;
     const baseline=88;
-    const top=24;
+    const top=compactGraph?38:24;
     const range=baseline-top;
     const points=dayTotals.map((value,index)=>{
       const ratio=value>0?Math.sqrt(value/dayMax):0;
@@ -153,12 +154,11 @@
     const markers=positive.map(point=>{
       const highlightedPoint=highlightedDays.has(point.day);
       const edge=point.x<10?' edge-left':point.x>90?' edge-right':'';
-      const labelBelow=highlightedPoint&&compactLabels&&point.y<38;
       const label=highlightedPoint
         ?'<span class="monthly-spike-label"><b>'+escapeText(money(point.value))+'</b><small>'+point.day+' '+monthShortGenitive[period.month]+'</small></span>'
         :'';
       const title=point.day+' '+monthGenitive[period.month]+': '+money(point.value);
-      return '<span class="monthly-spike-marker'+(highlightedPoint?' is-highlight':'')+(labelBelow?' label-below':'')+edge+'" style="--spike-x:'+point.x.toFixed(3)+'%;--spike-y:'+point.y.toFixed(3)+'%;" title="'+escapeText(title)+'" aria-label="'+escapeText(title)+'">'+label+'</span>';
+      return '<span class="monthly-spike-marker'+(highlightedPoint?' is-highlight':'')+edge+'" style="--spike-x:'+point.x.toFixed(3)+'%;--spike-y:'+point.y.toFixed(3)+'%;" title="'+escapeText(title)+'" aria-label="'+escapeText(title)+'">'+label+'</span>';
     }).join('');
 
     container.classList.add('monthly-income-spikes');

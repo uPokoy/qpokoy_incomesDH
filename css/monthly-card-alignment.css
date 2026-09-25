@@ -1862,3 +1862,56 @@
     bottom:auto !important;
   }
 }
+
+
+/* Mobile inline settings order and label-above fix. */
+@media(max-width:560px){
+  /* The settings host is moved by JS directly below the toolbar. */
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    order:2 !important;
+    position:relative !important;
+    inset:auto !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:10px 0 0 !important;
+    overflow:visible !important;
+    background:transparent !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-mode-row{
+    height:auto !important;
+    min-height:38px !important;
+    margin:0 0 2px !important;
+    overflow:visible !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-mode-row .analytics-mode-tabs{
+    display:grid !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-toggle.is-active{
+    position:static !important;
+    width:38px !important;
+    min-width:38px !important;
+    height:38px !important;
+    margin:0 !important;
+  }
+
+  /* Labels are always above the point: anchor at marker center and translate upward. */
+  #incomeAnalytics.is-monthly .monthly-income-spikes .monthly-spike-label,
+  #incomeAnalytics.is-monthly .monthly-income-spikes .monthly-spike-marker.label-below .monthly-spike-label{
+    top:50% !important;
+    bottom:auto !important;
+    transform:translate(-50%,calc(-100% - 11px)) !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-income-spikes .monthly-spike-marker.edge-left .monthly-spike-label{
+    transform:translate(-12%,calc(-100% - 11px)) !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-income-spikes .monthly-spike-marker.edge-right .monthly-spike-label{
+    transform:translate(-88%,calc(-100% - 11px)) !important;
+  }
+}
