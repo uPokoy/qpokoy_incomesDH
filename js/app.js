@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.11';
+const qPokoyDevVersion='dev-2026.09.25.12';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1622,6 +1622,7 @@ document.addEventListener('mouseup',()=>{
   const homeAnchor=document.createComment('qPokoy-settings-home');
   homeParent.insertBefore(homeAnchor,settings);
   const desktop=()=>window.matchMedia('(min-width:901px)').matches;
+  const inlineSettings=()=>desktop()||window.matchMedia('(max-width:560px)').matches;
 
   function restoreSettingsHome(){
     if(homeAnchor.parentNode&&settings.parentNode!==homeAnchor.parentNode){
@@ -1631,7 +1632,7 @@ document.addEventListener('mouseup',()=>{
   }
 
   function setOpen(open){
-    const next=!!open&&desktop();
+    const next=!!open&&inlineSettings();
 
     // Settings must always open over the compact analytics shell.
     // Collapse expanded category panels first so their temporary height
@@ -1691,7 +1692,7 @@ document.addEventListener('mouseup',()=>{
   });
 
   window.addEventListener('resize',()=>{
-    if(!desktop()&&analytics.classList.contains('is-settings-open'))setOpen(false);
+    if(!inlineSettings()&&analytics.classList.contains('is-settings-open'))setOpen(false);
   },{passive:true});
 
   window.qPokoySetAnalyticsSettingsOpen=setOpen;
