@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.08");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.08");
-@import url("./oauth-brand.css?v=dev-2026.09.25.08");
+@import url("./mobile-base.css?v=dev-2026.09.25.09");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.09");
+@import url("./oauth-brand.css?v=dev-2026.09.25.09");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -1933,5 +1933,51 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     transform:none !important;
     width:min(230px,72vw) !important;
     max-width:min(230px,72vw) !important;
+  }
+}
+
+
+/* Restore mobile DEV panel during mobile development. */
+@media(max-width:560px){
+  #income .qp-dev-panel{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+    width:100% !important;
+    min-height:34px !important;
+    margin:0 0 10px !important;
+    padding:5px 7px 5px 9px !important;
+    border:1px solid var(--border) !important;
+    border-radius:10px !important;
+    background:color-mix(in srgb,var(--panel-muted) 92%,transparent) !important;
+    color:var(--text-muted) !important;
+    font-size:11px !important;
+    line-height:1.15 !important;
+    box-sizing:border-box !important;
+  }
+
+  #income .qp-dev-panel strong{
+    color:var(--text) !important;
+    font-weight:650 !important;
+  }
+
+  #income .qp-dev-panel button{
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    min-height:26px !important;
+    height:26px !important;
+    margin:0 !important;
+    padding:0 8px !important;
+    border:1px solid var(--border) !important;
+    border-radius:8px !important;
+    background:var(--panel) !important;
+    color:var(--text-muted) !important;
+    font-size:10px !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+    transform:none !important;
+    touch-action:manipulation !important;
   }
 }
