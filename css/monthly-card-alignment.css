@@ -1994,3 +1994,114 @@
     display:none !important;
   }
 }
+
+
+/* Mobile Month/Year analytics corrections v36. */
+@media(max-width:560px){
+  /* Best category: badge is anchored to the card corner, label keeps clear space. */
+  #incomeAnalytics.is-monthly .monthly-summary-best{
+    position:relative !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body{
+    position:static !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > span{
+    box-sizing:border-box !important;
+    width:100% !important;
+    max-width:100% !important;
+    padding-right:52px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-share{
+    position:absolute !important;
+    z-index:6 !important;
+    top:10px !important;
+    right:10px !important;
+    margin:0 !important;
+  }
+
+  /* Comparison cards: amount only, without the trend arrow decoration. */
+  #incomeAnalytics.is-monthly #monthlyGrowthNote::before,
+  #incomeAnalytics.is-monthly #monthlyGrowthNote::after,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote::before,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthNote::after{
+    content:none !important;
+    display:none !important;
+    width:0 !important;
+    height:0 !important;
+    flex:0 0 0 !important;
+    margin:0 !important;
+    background:none !important;
+    -webkit-mask:none !important;
+    mask:none !important;
+  }
+
+  /* Annual best/worst: month on the left, amount aligned to the right like other cards. */
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    padding-right:0 !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "label label"
+      "period amount" !important;
+    column-gap:10px !important;
+    row-gap:5px !important;
+    align-items:center !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > span{
+    grid-area:label !important;
+    box-sizing:border-box !important;
+    width:100% !important;
+    padding-right:50px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > strong,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > strong{
+    grid-area:period !important;
+    justify-self:start !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > b,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > b{
+    grid-area:amount !important;
+    justify-self:end !important;
+    align-self:center !important;
+    margin:0 !important;
+    text-align:right !important;
+    white-space:nowrap !important;
+  }
+
+  /* Remove the annual income-dynamics card from mobile. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth{
+    display:none !important;
+  }
+
+  /* Annual category cards: exactly the same base fill as recent-income cards. */
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:hover,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:active,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:focus,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel:focus-visible{
+    background:var(--panel) !important;
+    background-color:var(--panel) !important;
+    background-image:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::before,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
+    content:none !important;
+    display:none !important;
+    background:none !important;
+    background-image:none !important;
+    box-shadow:none !important;
+    opacity:0 !important;
+  }
+}

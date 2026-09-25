@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.35");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.35");
-@import url("./oauth-brand.css?v=dev-2026.09.25.35");
+@import url("./mobile-base.css?v=dev-2026.09.25.36");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.36");
+@import url("./oauth-brand.css?v=dev-2026.09.25.36");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
