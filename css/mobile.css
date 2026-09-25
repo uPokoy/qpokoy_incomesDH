@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.11");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.11");
-@import url("./oauth-brand.css?v=dev-2026.09.25.11");
+@import url("./mobile-base.css?v=dev-2026.09.25.15");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.15");
+@import url("./oauth-brand.css?v=dev-2026.09.25.15");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -2281,5 +2281,230 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   #history .history-card-surface,
   #settings > .settings-card{
     border-color:color-mix(in srgb,var(--border) 92%,white 8%) !important;
+  }
+}
+
+
+/* Mobile home header stage v15. */
+@media(max-width:560px){
+  /* Month + year live in one compact row. */
+  #income .income-month-block.qp-mobile-period-row{
+    width:100% !important;
+    min-width:0 !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    grid-template-rows:auto auto !important;
+    gap:10px 8px !important;
+    align-items:center !important;
+    justify-items:stretch !important;
+  }
+
+  #income .income-month-block.qp-mobile-period-row #incomeMonthSwitcher,
+  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher{
+    width:100% !important;
+    min-width:0 !important;
+    height:42px !important;
+    min-height:42px !important;
+    margin:0 !important;
+    grid-template-columns:30px minmax(0,1fr) 30px !important;
+    border-radius:12px !important;
+    box-sizing:border-box !important;
+  }
+
+  #income .income-month-block.qp-mobile-period-row #incomeMonthSwitcher{
+    grid-column:1 !important;
+    grid-row:1 !important;
+  }
+
+  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher{
+    grid-column:2 !important;
+    grid-row:1 !important;
+  }
+
+  #income .income-month-block.qp-mobile-period-row .income-total-cloud-inner{
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+    width:100% !important;
+  }
+
+  #income .income-month-block.qp-mobile-period-row #monthSwitcherName,
+  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher span{
+    min-width:0 !important;
+    padding:0 2px !important;
+    overflow:hidden !important;
+    font-size:14px !important;
+    font-weight:650 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  /* Arrows appear only after tapping Month/Year. */
+  #income #incomeMonthSwitcher:not(.is-arrows-visible) > button,
+  #income .income-month-block > .income-chart-year-switcher:not(.is-arrows-visible) > button{
+    opacity:0 !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
+  }
+
+  #income #incomeMonthSwitcher.is-arrows-visible > button,
+  #income .income-month-block > .income-chart-year-switcher.is-arrows-visible > button{
+    opacity:1 !important;
+    visibility:visible !important;
+    pointer-events:auto !important;
+  }
+
+  #income #incomeMonthSwitcher > button,
+  #income .income-month-block > .income-chart-year-switcher > button{
+    width:30px !important;
+    min-width:30px !important;
+    height:40px !important;
+    min-height:40px !important;
+    padding:0 !important;
+    border-radius:10px !important;
+    font-size:22px !important;
+    transition:opacity .15s ease,visibility .15s ease,background .15s ease !important;
+  }
+
+  #income .income-chart-year-bottom{
+    display:none !important;
+  }
+
+  #income .income-month-chart{
+    padding-top:0 !important;
+  }
+
+  /* Recent incomes: collapse zone is always the same full-width row. */
+  #income .income-recent.qp-mobile-recent-stack{
+    display:flex !important;
+    flex-direction:column !important;
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-controls{
+    width:100% !important;
+    min-height:38px !important;
+    margin:0 0 7px !important;
+    padding:0 !important;
+    display:flex !important;
+    align-items:center !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle{
+    width:100% !important;
+    min-width:100% !important;
+    height:38px !important;
+    min-height:38px !important;
+    flex:1 1 100% !important;
+    padding:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    color:var(--text-muted) !important;
+    box-shadow:none !important;
+    -webkit-tap-highlight-color:transparent !important;
+    touch-action:manipulation !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle:hover,
+  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle:active{
+    border:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle svg{
+    width:22px !important;
+    height:22px !important;
+    margin-left:2px !important;
+  }
+
+  /* One vertical column of four recent incomes. */
+  #income .income-recent.qp-mobile-recent-stack .income-recent-grid{
+    width:100% !important;
+    min-width:0 !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+    touch-action:pan-y !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-card{
+    min-height:82px !important;
+    padding:11px 13px !important;
+  }
+
+  /* Pager is below the cards, aligned to the lower-right corner. */
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions{
+    order:3 !important;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:34px !important;
+    margin:8px 0 0 !important;
+    padding:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+    gap:6px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-history,
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-history-report-actions{
+    display:none !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-pager{
+    margin:0 0 0 auto !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+    gap:5px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn{
+    width:32px !important;
+    min-width:32px !important;
+    height:32px !important;
+    min-height:32px !important;
+    border-radius:9px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack .income-recent-page-indicator{
+    min-width:40px !important;
+    font-size:11px !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack.is-collapsed .income-recent-controls{
+    margin-bottom:0 !important;
+  }
+
+  #income .income-recent.qp-mobile-recent-stack.is-collapsed .income-recent-grid,
+  #income .income-recent.qp-mobile-recent-stack.is-collapsed > .income-recent-bottom-actions{
+    display:none !important;
+  }
+}
+
+@media(max-width:360px){
+  #income .income-month-block.qp-mobile-period-row{
+    gap:8px 6px !important;
+  }
+
+  #income .income-month-block.qp-mobile-period-row #incomeMonthSwitcher,
+  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher{
+    grid-template-columns:27px minmax(0,1fr) 27px !important;
+  }
+
+  #income .income-month-block.qp-mobile-period-row #incomeMonthSwitcher > button,
+  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher > button{
+    width:27px !important;
+    min-width:27px !important;
+  }
+
+  #income .income-month-block.qp-mobile-period-row #monthSwitcherName,
+  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher span{
+    font-size:13px !important;
   }
 }

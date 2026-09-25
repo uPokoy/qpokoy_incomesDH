@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.25.14';
+const qPokoyDevVersion='dev-2026.09.25.15';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1608,6 +1608,92 @@ document.addEventListener('mouseup',()=>{
   window.addEventListener('storage',draw);
   
   
+})();
+
+
+/* qp-mobile-home-header-v15 */
+(function(){
+  const mq=window.matchMedia('(max-width:560px)');
+  const monthBlock=document.querySelector('#income .income-month-block');
+  const monthSwitcher=document.getElementById('incomeMonthSwitcher');
+  const yearSwitcher=document.querySelector('#income .income-chart-year-switcher');
+  const yearHome=document.querySelector('#income .income-chart-year-bottom');
+  const recent=document.getElementById('incomeRecent');
+  const recentControls=recent?.querySelector('.income-recent-controls');
+  const recentGrid=document.getElementById('incomeRecentGrid');
+  const recentFooter=recent?.querySelector('.income-recent-bottom-actions');
+  const addButton=document.getElementById('openIncomeForm');
+  const historyPanel=document.getElementById('incomeRecentHistoryPanel');
+
+  if(!monthBlock||!monthSwitcher||!yearSwitcher||!yearHome||!recent||!recentControls||!recentGrid||!recentFooter)return;
+
+  function showArrows(switcher,autoHide){
+    switcher.classList.add('is-arrows-visible');
+    clearTimeout(switcher.__qpArrowTimer);
+    if(autoHide){
+      switcher.__qpArrowTimer=setTimeout(()=>{
+        switcher.classList.remove('is-arrows-visible');
+      },1000);
+    }
+  }
+
+  [monthSwitcher,yearSwitcher].forEach(switcher=>{
+    if(switcher.dataset.qpMobileArrowBound==='1')return;
+    switcher.dataset.qpMobileArrowBound='1';
+    switcher.addEventListener('click',event=>{
+      if(!mq.matches)return;
+      showArrows(switcher,!!event.target.closest('button'));
+    });
+  });
+
+  function applyMobileStructure(){
+    if(mq.matches){
+      monthBlock.classList.add('qp-mobile-period-row');
+      if(yearSwitcher.parentElement!==monthBlock){
+        const total=monthBlock.querySelector('.income-total-cloud-inner');
+        monthBlock.insertBefore(yearSwitcher,total||null);
+      }
+      recent.classList.add('qp-mobile-recent-stack');
+      if(recentFooter.parentElement!==recent){
+        if(historyPanel&&historyPanel.parentElement===recent)recent.insertBefore(recentFooter,historyPanel);
+        else recent.appendChild(recentFooter);
+      }
+    }else{
+      monthBlock.classList.remove('qp-mobile-period-row');
+      monthSwitcher.classList.remove('is-arrows-visible');
+      yearSwitcher.classList.remove('is-arrows-visible');
+      if(yearSwitcher.parentElement!==yearHome)yearHome.appendChild(yearSwitcher);
+      recent.classList.remove('qp-mobile-recent-stack');
+      if(recentFooter.parentElement!==recentControls){
+        recentControls.insertBefore(recentFooter,addButton||null);
+      }
+    }
+  }
+
+  if(recentGrid.dataset.qpSwipeBound!=='1'){
+    recentGrid.dataset.qpSwipeBound='1';
+    let startX=0;
+    let startY=0;
+    recentGrid.addEventListener('touchstart',event=>{
+      if(!mq.matches||event.touches.length!==1)return;
+      startX=event.touches[0].clientX;
+      startY=event.touches[0].clientY;
+    },{passive:true});
+    recentGrid.addEventListener('touchend',event=>{
+      if(!mq.matches||!event.changedTouches.length)return;
+      const dx=event.changedTouches[0].clientX-startX;
+      const dy=event.changedTouches[0].clientY-startY;
+      if(Math.abs(dx)<48||Math.abs(dx)<=Math.abs(dy)*1.15)return;
+      const target=dx<0?document.getElementById('incomeRecentNext'):document.getElementById('incomeRecentPrev');
+      if(!target||target.disabled)return;
+      event.preventDefault();
+      target.click();
+    },{passive:false});
+  }
+
+  if(typeof mq.addEventListener==='function')mq.addEventListener('change',applyMobileStructure);
+  else if(typeof mq.addListener==='function')mq.addListener(applyMobileStructure);
+  applyMobileStructure();
 })();
 
 
