@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.38");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.38");
-@import url("./oauth-brand.css?v=dev-2026.09.25.38");
+@import url("./mobile-base.css?v=dev-2026.09.25.39");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.39");
+@import url("./oauth-brand.css?v=dev-2026.09.25.39");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3163,5 +3163,28 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     background:transparent !important;
     outline:none !important;
     box-shadow:none !important;
+  }
+}
+
+
+/* Annual mobile categories v39: hard-match the dark card surface. */
+@media(max-width:560px){
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    background:#00061c !important;
+    background-color:#00061c !important;
+    background-image:none !important;
+    -webkit-appearance:none !important;
+    appearance:none !important;
+    box-shadow:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::before,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
+    content:none !important;
+    display:none !important;
+    background:none !important;
+    background-image:none !important;
+    box-shadow:none !important;
+    opacity:0 !important;
   }
 }
