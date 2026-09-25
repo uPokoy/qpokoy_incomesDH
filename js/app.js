@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.24.37';
+const qPokoyDevVersion='dev-2026.09.24.38';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -976,7 +976,7 @@ window.renderIncomeAnalytics=function(){
         </span>
         <span class="analytics-category-panel-share">${pct.toFixed(0)}%</span>
       </${tag}>`;
-    }).join(''):'<div class="income-empty">Нет данных за этот год</div>';
+    }).join(''):'<div class="monthly-analytics-empty annual-analytics-empty">Нет данных за этот год</div>';
 
     if(annualCategoriesToggleEl){
       const canToggle=desktopCategories&&categories.length>4;
