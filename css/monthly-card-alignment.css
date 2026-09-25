@@ -1793,3 +1793,72 @@
     font-size:20px !important;
   }
 }
+
+
+/* Mobile settings natural height and smart spike labels. */
+@media(max-width:560px){
+  /* Settings should size itself to the selected settings tab, not to the full analytics dashboard. */
+  #incomeAnalytics.is-settings-open{
+    overflow:visible !important;
+  }
+
+  #incomeAnalytics.is-settings-open > .analytics-head,
+  #incomeAnalytics.is-settings-open > .analytics-cards,
+  #incomeAnalytics.is-settings-open > .monthly-analytics,
+  #incomeAnalytics.is-settings-open > .analytics-category-panels,
+  #incomeAnalytics.is-settings-open > .analytics-categories-toggle{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open > .analytics-mode-row{
+    min-height:0 !important;
+    height:0 !important;
+    margin:0 !important;
+    overflow:visible !important;
+  }
+
+  #incomeAnalytics.is-settings-open > .analytics-mode-row .analytics-mode-tabs,
+  #incomeAnalytics.is-settings-open > .analytics-mode-row .analytics-mode-period{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    position:relative !important;
+    z-index:50 !important;
+    inset:auto !important;
+    width:100% !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:48px 0 0 !important;
+    overflow:visible !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host #settings.analytics-inline-settings{
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-toggle.is-active{
+    top:10px !important;
+    right:10px !important;
+  }
+
+  /* Graph value labels normally sit above their point.
+     Only very high peaks move the label below the point to protect the centered total. */
+  #incomeAnalytics.is-monthly .monthly-income-spikes .monthly-spike-label{
+    top:auto !important;
+    bottom:10px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-income-spikes .monthly-spike-marker.label-below .monthly-spike-label{
+    top:10px !important;
+    bottom:auto !important;
+  }
+}
