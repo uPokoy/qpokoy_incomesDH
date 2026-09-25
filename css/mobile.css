@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.03");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.03");
-@import url("./oauth-brand.css?v=dev-2026.09.25.03");
+@import url("./mobile-base.css?v=dev-2026.09.25.05");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.05");
+@import url("./oauth-brand.css?v=dev-2026.09.25.05");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -1008,5 +1008,155 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   }
   #income #incomeTotal{
     font-size:32px !important;
+  }
+}
+
+
+/* Mobile history refresh after PC finalization. */
+@media(max-width:560px){
+  #history.page.active{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    padding:0 0 12px !important;
+  }
+
+  #history #historySearchWrap{
+    position:relative !important;
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 0 12px !important;
+  }
+
+  #history #historySearch{
+    width:100% !important;
+    height:48px !important;
+    min-height:48px !important;
+    margin:0 !important;
+    padding:0 15px !important;
+    border:1px solid var(--border) !important;
+    border-radius:14px !important;
+    background:var(--panel) !important;
+    color:var(--text) !important;
+    font-size:16px !important;
+    box-shadow:none !important;
+    -webkit-appearance:none !important;
+    appearance:none !important;
+  }
+
+  #history #historySearch:focus{
+    border-color:color-mix(in srgb,var(--primary) 58%,var(--border)) !important;
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 12%,transparent) !important;
+    outline:none !important;
+  }
+
+  #history .income-table-section{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  #history #incomeList{
+    gap:10px !important;
+    padding:0 0 calc(14px + env(safe-area-inset-bottom)) !important;
+  }
+
+  #history #incomeList > .history-swipe-row{
+    min-height:112px !important;
+    border-radius:17px !important;
+    scroll-snap-type:x mandatory !important;
+    overscroll-behavior-x:contain !important;
+    touch-action:pan-x pan-y !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface{
+    min-height:112px !important;
+    padding:14px 15px !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "amount category"
+      "date category"
+      "description description" !important;
+    column-gap:10px !important;
+    row-gap:7px !important;
+    border-radius:17px !important;
+    box-shadow:none !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(1){
+    min-width:0 !important;
+    overflow:hidden !important;
+    font-size:13px !important;
+    text-overflow:ellipsis !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(2){
+    min-width:0 !important;
+    overflow:hidden !important;
+    font-size:24px !important;
+    line-height:1 !important;
+    text-overflow:ellipsis !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(3){
+    justify-self:end !important;
+    align-self:start !important;
+    max-width:112px !important;
+    padding:5px 8px !important;
+    font-size:11px !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(4){
+    padding-top:2px !important;
+    color:color-mix(in srgb,var(--text) 82%,var(--text-muted)) !important;
+    font-size:14px !important;
+    line-height:1.32 !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-swipe-actions{
+    width:154px !important;
+    gap:5px !important;
+    padding:5px 0 5px 5px !important;
+  }
+
+  #history #incomeList > .history-swipe-row .edit-income,
+  #history #incomeList > .history-swipe-row .delete-income{
+    min-width:0 !important;
+    border-radius:16px !important;
+    font-size:10px !important;
+    touch-action:manipulation !important;
+  }
+
+  #history #incomeList > .history-swipe-row .history-action-label{
+    font-size:10px !important;
+  }
+
+  #history .income-empty{
+    min-height:112px !important;
+    display:grid !important;
+    place-items:center !important;
+    padding:24px 16px !important;
+    border-radius:17px !important;
+    box-shadow:none !important;
+  }
+
+  /* The shared add/edit form remains full-width when it is moved above History. */
+  #history > #incomeForm.income-form{
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 0 12px !important;
+    padding:18px 16px 76px !important;
+    border-radius:18px !important;
+    box-shadow:none !important;
+  }
+
+  #history > #incomeForm .form-grid{
+    grid-template-columns:1fr !important;
+    gap:13px !important;
+  }
+
+  #history > #incomeForm .form-grid input,
+  #history > #incomeForm .category-select{
+    min-height:48px !important;
+    font-size:16px !important;
   }
 }
