@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.25.25");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.25");
-@import url("./oauth-brand.css?v=dev-2026.09.25.25");
+@import url("./mobile-base.css?v=dev-2026.09.25.26");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.26");
+@import url("./oauth-brand.css?v=dev-2026.09.25.26");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3031,5 +3031,45 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     opacity:1 !important;
     filter:none !important;
     mix-blend-mode:normal !important;
+  }
+}
+
+
+/* Mobile pencil glyph v26.
+   One icon only. Cancel v25 pseudo icon and force the real SVG to full white. */
+@media(max-width:560px){
+  #history #incomeList > .history-swipe-row .edit-income::before,
+  #income .income-recent-card .income-recent-mobile-actions .income-recent-mobile-edit::before{
+    content:none !important;
+    display:none !important;
+    background:none !important;
+  }
+
+  #history #incomeList > .history-swipe-row .edit-income > svg.history-action-pencil,
+  #income .income-recent-card .income-recent-mobile-actions .income-recent-mobile-edit > svg.history-action-pencil{
+    display:block !important;
+    width:22px !important;
+    height:22px !important;
+    min-width:22px !important;
+    min-height:22px !important;
+    flex:0 0 22px !important;
+    margin:0 !important;
+    background:none !important;
+    -webkit-mask:none !important;
+    mask:none !important;
+    color:#ffffff !important;
+    fill:#ffffff !important;
+    stroke:none !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    filter:brightness(4) contrast(2) saturate(0) !important;
+    mix-blend-mode:normal !important;
+  }
+
+  #history #incomeList > .history-swipe-row .edit-income > svg.history-action-pencil path,
+  #income .income-recent-card .income-recent-mobile-actions .income-recent-mobile-edit > svg.history-action-pencil path{
+    fill:#ffffff !important;
+    stroke:none !important;
+    opacity:1 !important;
   }
 }
