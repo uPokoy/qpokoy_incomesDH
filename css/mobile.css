@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.15.57");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.21.05");
-@import url("./oauth-brand.css?v=dev-2026.09.15.57");
+@import url("./mobile-base.css?v=dev-2026.09.25.02");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.25.02");
+@import url("./oauth-brand.css?v=dev-2026.09.25.02");
 
 @media (max-width:560px){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -609,5 +609,19 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     font-size:12px !important;
     font-weight:650 !important;
     line-height:1 !important;
+  }
+}
+
+
+/* Mobile refresh after desktop finalization: keep phone navigation and touch controls current. */
+@media (max-width:560px){
+  .sidebar.qp-bottom-nav-ready{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+
+  /* Touch devices do not have hover: month/year arrows must remain visible. */
+  #incomeMonthSwitcher > button,
+  .income-chart-year-switcher > button{
+    opacity:1 !important;
   }
 }

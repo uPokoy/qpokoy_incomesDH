@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const DEV='dev-2026.09.25.01';
+  const DEV='dev-2026.09.25.02';
   const mobile=window.matchMedia('(max-width:560px)');
   const HALF_WIDTH=44;
   const TRANSITION='transform 200ms cubic-bezier(.22,.8,.25,1)';
@@ -9,6 +9,11 @@
     if(!mobile.matches)return;
     const sidebar=document.querySelector('.sidebar');
     if(!sidebar||sidebar.dataset.qpBottomNavReady==='1')return;
+    const historyItem=sidebar.querySelector('#historyNavItem');
+    if(historyItem){
+      historyItem.hidden=false;
+      historyItem.removeAttribute('aria-hidden');
+    }
     const items=Array.from(sidebar.querySelectorAll('.nav-item[data-page]'));
     if(!items.length)return;
     sidebar.dataset.qpBottomNavReady='1';
