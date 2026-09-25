@@ -215,7 +215,11 @@
 
     const best=categories[0]||null;
     const bestPct=best&&total?Math.round(best[1]/total*100):0;
-    if(bestCategoryEl)bestCategoryEl.textContent=best?best[0]:'Нет данных';
+    if(bestCategoryEl){
+      bestCategoryEl.textContent=best?best[0]:'';
+      const bestRow=bestCategoryEl.closest('.monthly-best-category-row');
+      if(bestRow)bestRow.hidden=!best;
+    }
     if(bestShareEl){
       bestShareEl.textContent=best?bestPct+'%':'0%';
       bestShareEl.hidden=!best;
