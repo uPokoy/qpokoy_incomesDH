@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const DEV='dev-2026.09.25.03';
+  const DEV='dev-2026.09.25.04';
   const mobile=window.matchMedia('(max-width:560px)');
   const HALF_WIDTH=44;
   const TRANSITION='transform 200ms cubic-bezier(.22,.8,.25,1)';
