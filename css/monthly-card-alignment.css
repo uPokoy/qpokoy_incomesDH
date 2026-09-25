@@ -4881,3 +4881,19 @@
     border-color:color-mix(in srgb,var(--monthly-category) 20%,transparent) !important;
   }
 }
+
+
+/* Mobile previous-month amount exact center v57. */
+@media(max-width:560px){
+  #incomeAnalytics.is-monthly #monthlyGrowthNote{
+    display:block !important;
+    width:max-content !important;
+    max-width:100% !important;
+    align-self:center !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    padding:0 !important;
+    text-align:center !important;
+    transform:none !important;
+  }
+}
