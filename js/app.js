@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.26.48';
+const qPokoyDevVersion='dev-2026.09.26.49';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1085,13 +1085,15 @@ window.renderIncomeAnalytics=function(){
 
   if(catsEl){
     const desktopCategories=window.matchMedia('(min-width:901px)').matches;
+    const mobileCategories=window.matchMedia('(max-width:560px)').matches;
     const periodKey=String(a.year);
     if(catsEl.dataset.categoryPeriod!==periodKey){
       catsEl.dataset.categoryPeriod=periodKey;
       catsEl.dataset.categoriesExpanded='false';
     }
-    const expanded=desktopCategories&&catsEl.dataset.categoriesExpanded==='true';
+    const expanded=catsEl.dataset.categoriesExpanded==='true';
     let visibleCategories=categories.map(([name,value])=>({name,value,grouped:false,count:1}));
+
     if(desktopCategories&&!expanded&&categories.length>4){
       const rest=categories.slice(3);
       const restTotal=rest.reduce((sum,item)=>sum+item[1],0);
@@ -1099,10 +1101,13 @@ window.renderIncomeAnalytics=function(){
         ...categories.slice(0,3).map(([name,value])=>({name,value,grouped:false,count:1})),
         {name:'Другие',value:restTotal,grouped:true,count:rest.length}
       ];
+    }else if(mobileCategories&&!expanded&&categories.length>4){
+      visibleCategories=categories.slice(0,4).map(([name,value])=>({name,value,grouped:false,count:1}));
     }
 
-    catsEl.classList.toggle('is-collapsed',desktopCategories&&!expanded&&categories.length>4);
-    catsEl.classList.toggle('is-expanded',desktopCategories&&expanded&&categories.length>4);
+    const canToggle=(desktopCategories||mobileCategories)&&categories.length>4;
+    catsEl.classList.toggle('is-collapsed',canToggle&&!expanded);
+    catsEl.classList.toggle('is-expanded',canToggle&&expanded);
 
     catsEl.innerHTML=categories.length?visibleCategories.map((item)=>{
       const name=item.name;
@@ -1127,7 +1132,7 @@ window.renderIncomeAnalytics=function(){
       return `<${tag}${attrs} class="analytics-category-panel ${categoryClass}">
         <span class="analytics-category-panel-icon" aria-hidden="true">${categoryIcon}</span>
         <span class="analytics-category-panel-body">
-          <span class="analytics-category-panel-name">${escapeHtml(displayName)}</span>
+          <span class="analytics-category-panel-name" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</span>
           <strong class="analytics-category-panel-value">${formatMoney(value)}</strong>
         </span>
         <span class="analytics-category-panel-share">${pct.toFixed(0)}%</span>
@@ -1135,9 +1140,8 @@ window.renderIncomeAnalytics=function(){
     }).join(''):'<div class="monthly-analytics-empty annual-analytics-empty">Нет данных за этот год</div>';
 
     if(annualCategoriesToggleEl){
-      const canToggle=desktopCategories&&categories.length>4;
       annualCategoriesToggleEl.hidden=!canToggle;
-      const toggleLabel=expanded?'Свернуть категории':'Показать все категории';
+      const toggleLabel=expanded?'Свернуть категории':'Показать остальные категории';
       annualCategoriesToggleEl.setAttribute('aria-label',toggleLabel);
       annualCategoriesToggleEl.title=toggleLabel;
       annualCategoriesToggleEl.setAttribute('aria-expanded',expanded?'true':'false');
