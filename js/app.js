@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.24.45';
+const qPokoyDevVersion='dev-2026.09.24.46';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -541,7 +541,9 @@ function openHistoryEdit(id){
   // Перемещаем существующую форму добавления в Историю.
   // Благодаря этому внешний вид, календарь, категории и кнопки полностью
   // совпадают с уже работающей формой на Главной.
-  historyEditHost.insertBefore(incomeForm,document.getElementById('incomeTableSection'));
+  const editHost=incomeTableSection?.parentElement;
+  if(!editHost)return;
+  editHost.insertBefore(incomeForm,incomeTableSection);
   incomeForm.hidden=false;
   incomeForm.scrollIntoView({behavior:'smooth',block:'center'});
 }
