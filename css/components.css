@@ -4323,3 +4323,38 @@ body:not(.dark) .income-report-custom-range input{
   .income-report-preset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .income-report-custom-range{grid-template-columns:1fr}
 }
+
+
+/* Desktop settings categories: align the add row with the 4-column category card grid. */
+@media(min-width:901px){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add{
+    box-sizing:border-box !important;
+    width:calc(100% - 12px) !important;
+    margin:0 12px 10px 0 !important;
+    padding:2px 12px 0 2px !important;
+    display:grid !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    gap:10px !important;
+    align-items:stretch !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add input{
+    grid-column:span 3 !important;
+    box-sizing:border-box !important;
+    width:100% !important;
+    min-width:0 !important;
+    height:62px !important;
+    min-height:62px !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add button{
+    grid-column:span 1 !important;
+    box-sizing:border-box !important;
+    width:100% !important;
+    min-width:0 !important;
+    height:62px !important;
+    min-height:62px !important;
+    margin:0 !important;
+  }
+}
