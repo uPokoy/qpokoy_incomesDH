@@ -314,6 +314,8 @@
       yearGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'+':'')+Math.trunc(yearGrowth)+'%';
     }
     if(heroGrowthEl){
+      const heroGrowthBox=heroGrowthEl.closest('.monthly-total-growth');
+      if(heroGrowthBox)heroGrowthBox.hidden=yearGrowth===null;
       heroGrowthEl.textContent=yearGrowth===null?'—':(yearGrowth>=0?'↑ +':'↓ ')+Math.abs(yearGrowth).toFixed(1)+'%';
       heroGrowthEl.classList.toggle('positive',yearGrowth!==null&&yearGrowth>0);
       heroGrowthEl.classList.toggle('negative',yearGrowth!==null&&yearGrowth<0);
