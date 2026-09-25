@@ -2939,3 +2939,44 @@
     white-space:nowrap !important;
   }
 }
+
+
+/* Mobile month micro-alignment v45. */
+@media(max-width:560px){
+  /* Best category amount: another 5px left and 5px down from v44. */
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > b{
+    transform:translate(-10px,10px) !important;
+  }
+
+  /* Previous-month comparison: hard-align icon box and percent badge to one top baseline. */
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-icon,
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-corner-percent{
+    top:9px !important;
+    height:24px !important;
+    min-height:24px !important;
+    box-sizing:border-box !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-icon{
+    left:9px !important;
+    width:24px !important;
+    min-width:24px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-corner-percent{
+    right:9px !important;
+  }
+
+  /* Category title and amount: shift 5px to the right without moving the icon/badge. */
+  #incomeAnalytics.is-monthly .monthly-category-name,
+  #incomeAnalytics.is-monthly .monthly-category-value{
+    box-sizing:border-box !important;
+    padding-left:5px !important;
+  }
+
+  /* Category expand/collapse arrow: 5px lower. */
+  #incomeAnalytics.is-monthly .analytics-categories-toggle:not([hidden]){
+    margin-top:10px !important;
+  }
+}
