@@ -1938,3 +1938,11 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
     text-shadow:0 1px 3px var(--panel),0 0 5px var(--panel) !important;
   }
 }
+
+
+/* Hide comparison percentage badge completely when there is no percentage data. */
+#incomeAnalytics.is-monthly .monthly-corner-percent.is-empty{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+}
