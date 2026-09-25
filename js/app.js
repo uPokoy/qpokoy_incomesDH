@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.26.49';
+const qPokoyDevVersion='dev-2026.09.26.50';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -987,6 +987,10 @@ window.renderIncomeAnalytics=function(){
   const annualHeroGrowthEl=document.getElementById('annualHeroGrowth');
   const annualHeroBarsEl=document.getElementById('annualHeroBars');
   const annualTotalCardEl=document.getElementById('annualTotalCard');
+  const annualYearCompareCardEl=document.getElementById('annualYearCompareCard');
+  const annualYearCompareLabelEl=document.getElementById('annualYearCompareLabel');
+  const annualYearCompareNoteEl=document.getElementById('annualYearCompareNote');
+  const annualYearCompareValueEl=document.getElementById('annualYearCompareValue');
   if(!yearEl||!totalEl||!avgActiveEl||!bestEl||!worstEl||!growthEl)return;
 
   yearEl.textContent=a.year;
@@ -1000,10 +1004,25 @@ window.renderIncomeAnalytics=function(){
   const previous=calculateIncomeAnalytics(year-1);
   const hasPrevious=previous.total>0;
   const growth=hasPrevious?((a.total-previous.total)/previous.total*100):null;
+  const annualDifference=a.total-previous.total;
   growthEl.textContent=growth===null?'—':`${growth>=0?'+':''}${growth.toFixed(1)}%`;
   growthEl.classList.toggle('positive',growth!==null&&growth>0);
   growthEl.classList.toggle('negative',growth!==null&&growth<0);
   growthEl.classList.toggle('neutral',growth===0||growth===null);
+
+  if(annualYearCompareLabelEl)annualYearCompareLabelEl.textContent='Сравнение с '+(year-1);
+  if(annualYearCompareCardEl){
+    annualYearCompareCardEl.classList.remove('positive','negative','neutral');
+    annualYearCompareCardEl.classList.add(growth===null||growth===0?'neutral':growth>0?'positive':'negative');
+  }
+  if(annualYearCompareValueEl){
+    annualYearCompareValueEl.classList.toggle('is-empty',growth===null);
+    annualYearCompareValueEl.textContent=growth===null?'—':(growth>=0?'+':'')+Math.trunc(growth)+'%';
+  }
+  if(annualYearCompareNoteEl){
+    annualYearCompareNoteEl.textContent=hasPrevious?(annualDifference===0?'— 0 ₽':formatMoney(Math.abs(annualDifference))):'';
+  }
+
   const growthCaption=hasPrevious?`по сравнению с ${year-1} годом`:'нет данных за предыдущий год';
   if(growthCaptionEl) growthCaptionEl.textContent=growthCaption;
   if(growthTooltipEl) growthTooltipEl.textContent=growthCaption;
