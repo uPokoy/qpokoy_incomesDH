@@ -2980,3 +2980,74 @@
     margin-top:10px !important;
   }
 }
+
+
+/* Mobile previous-month topline v46: icon and percent share the exact same row. */
+#incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-growth-topline{
+  display:contents;
+}
+
+@media(max-width:560px){
+  #incomeAnalytics.is-monthly #monthlyGrowthCard{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    justify-content:flex-start !important;
+    gap:7px !important;
+    padding:9px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-growth-topline{
+    width:100% !important;
+    height:24px !important;
+    min-height:24px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-growth-topline .monthly-summary-card-icon,
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-growth-topline .monthly-corner-percent{
+    position:static !important;
+    inset:auto !important;
+    top:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    left:auto !important;
+    margin:0 !important;
+    transform:none !important;
+    align-self:center !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-growth-topline .monthly-summary-card-icon{
+    width:24px !important;
+    min-width:24px !important;
+    height:24px !important;
+    min-height:24px !important;
+    flex:0 0 24px !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-growth-topline .monthly-corner-percent{
+    height:24px !important;
+    min-height:24px !important;
+    flex:0 0 auto !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    grid-template-areas:
+      "label"
+      "amount" !important;
+    row-gap:5px !important;
+    align-content:start !important;
+  }
+}

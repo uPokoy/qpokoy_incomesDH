@@ -5,11 +5,11 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="css/main.css?v=dev-2026.09.25.45">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.25.45">
-<link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.25.45">
-<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.25.45">
-<link rel="stylesheet" href="css/monthly-card-alignment.css?v=dev-2026.09.25.45">
+<link rel="stylesheet" href="css/main.css?v=dev-2026.09.25.46">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.25.46">
+<link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.25.46">
+<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.25.46">
+<link rel="stylesheet" href="css/monthly-card-alignment.css?v=dev-2026.09.25.46">
 <title>Доходы</title>
 <!-- qPokoy: Иконки сайта/ярлыков. Интерфейс сайта не изменяется. -->
 <meta name="application-name" content="Доходы">
@@ -141,7 +141,7 @@
     
     
     
-<script id="qPokoyCategoryManagerV1" src="js/categories.js?v=dev-2026.09.25.45"></script>
+<script id="qPokoyCategoryManagerV1" src="js/categories.js?v=dev-2026.09.25.46"></script>
 
 
 
@@ -149,8 +149,8 @@
 
 
 
-<script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.25.45"></script>
-<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.25.45"></script>
+<script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.25.46"></script>
+<script id="qPokoyMobileBottomNavJS" src="js/mobile-bottom-nav.js?v=dev-2026.09.25.46"></script>
 
 
 
@@ -232,7 +232,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.25.45</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.25.46</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -548,14 +548,16 @@
       </div>
 
       <div class="monthly-summary-card monthly-summary-growth" id="monthlyGrowthCard">
-        <div class="monthly-summary-card-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M4 17l6-6 4 3 6-7"/><path d="M15 7h5v5"/></svg>
+        <div class="monthly-growth-topline">
+          <div class="monthly-summary-card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 17l6-6 4 3 6-7"/><path d="M15 7h5v5"/></svg>
+          </div>
+          <strong class="monthly-corner-percent" id="monthlyGrowthValue">—</strong>
         </div>
         <div class="monthly-summary-card-body">
           <div class="monthly-summary-card-label"><span id="monthlyGrowthLabel">Сравнение с прошлым месяцем</span><button class="monthly-summary-info" type="button" aria-label="Период сравнения" aria-expanded="false">i</button><span class="monthly-summary-tooltip" id="monthlyGrowthTooltip" role="tooltip"></span></div>
           <small id="monthlyGrowthNote"></small>
         </div>
-        <strong class="monthly-corner-percent" id="monthlyGrowthValue">—</strong>
       </div>
 
       <div class="monthly-summary-card monthly-summary-growth monthly-summary-year-growth" id="monthlyYearGrowthCard">
@@ -673,18 +675,18 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.25.45"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.25.46"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js"></script>
 
 <script id="qPokoyCustomConfirm" src="js/confirm.js"></script>
 
 <script src="js/backup-controls.js"></script>
-<script id="qPokoyReportPrintJS" src="js/report-print.js?v=dev-2026.09.25.45"></script>
+<script id="qPokoyReportPrintJS" src="js/report-print.js?v=dev-2026.09.25.46"></script>
 
 <script src="js/clear-data.js"></script>
 <script id="statistics-year-inline-v90-js" src="js/analytics-year.js"></script>
-<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.25.45"></script>
+<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.25.46"></script>
 
 
 <script id="qPokoyInlineNotice" src="js/notice.js"></script>
@@ -726,7 +728,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
-<script id="qPokoyAuth" src="js/auth.js?v=dev-2026.09.25.45"></script>
+<script id="qPokoyAuth" src="js/auth.js?v=dev-2026.09.25.46"></script>
 
 
 
