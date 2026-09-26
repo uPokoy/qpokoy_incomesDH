@@ -426,7 +426,7 @@
 
 
 /* Mobile analytics parity after PC finalization. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics{
     width:100% !important;
     min-width:0 !important;
@@ -1146,7 +1146,7 @@
 
 
 /* Mobile analytics card correction from Samsung screenshots. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Summary cards: stable horizontal composition with room for large amounts. */
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card,
   #incomeAnalytics.is-monthly .monthly-summary-card{
@@ -1446,7 +1446,7 @@
 
 /* Mobile analytics layout v12: centered hero totals, larger graph area,
    inline settings and desktop-style comparison cards. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Compact analytics toolbar: only Month/Year and Settings. */
   #incomeAnalytics{
     position:relative !important;
@@ -1796,7 +1796,7 @@
 
 
 /* Mobile settings natural height and smart spike labels. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Settings should size itself to the selected settings tab, not to the full analytics dashboard. */
   #incomeAnalytics.is-settings-open{
     overflow:visible !important;
@@ -1865,7 +1865,7 @@
 
 
 /* Mobile inline settings order and label-above fix. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* The settings host is moved by JS directly below the toolbar. */
   #incomeAnalytics.is-settings-open .analytics-settings-host{
     order:2 !important;
@@ -1918,7 +1918,7 @@
 
 
 /* Mobile Month/Year analytics cleanup v35. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* All analytics cards use the same base fill as "Последние доходы". */
   #incomeAnalytics:not(.is-monthly) .annual-total-card,
   #incomeAnalytics.is-monthly .monthly-total-card,
@@ -1997,7 +1997,7 @@
 
 
 /* Mobile Month/Year analytics corrections v36. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Best category: badge is anchored to the card corner, label keeps clear space. */
   #incomeAnalytics.is-monthly .monthly-summary-best{
     position:relative !important;
@@ -2108,7 +2108,7 @@
 
 
 /* Mobile annual category surface correction v37. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
     -webkit-appearance:none !important;
     appearance:none !important;
@@ -2139,7 +2139,7 @@
 
 
 /* Mobile month Variant 7 v42: asymmetric summary + two-column category grid. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics.is-monthly .monthly-summary-cards{
     display:grid !important;
     grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) !important;
@@ -2600,7 +2600,7 @@
 
 
 /* Mobile month readability + 4 category limit v43. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Remove the generated section heading. */
   #incomeAnalytics.is-monthly .monthly-category-panels::before{
     content:none !important;
@@ -2808,7 +2808,7 @@
 
 
 /* Mobile month card alignment v44. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Previous-month comparison: icon and percent badge share one top line.
      Keep the amount inside the narrow right-hand card. */
   #incomeAnalytics.is-monthly #monthlyGrowthCard{
@@ -2942,7 +2942,7 @@
 
 
 /* Mobile month micro-alignment v45. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Best category amount: another 5px left and 5px down from v44. */
   #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > b{
     transform:translate(-10px,10px) !important;
@@ -2987,7 +2987,7 @@
   display:contents;
 }
 
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics.is-monthly #monthlyGrowthCard{
     display:flex !important;
     flex-direction:column !important;
@@ -3054,7 +3054,7 @@
 
 
 /* Mobile category topline + summary swap v47. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Swap previous-month comparison and average-day cards. */
   #incomeAnalytics.is-monthly .monthly-summary-cards{
     grid-template-areas:
@@ -3105,7 +3105,7 @@
 
 
 /* Mobile best-category amount nudge v48. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > b{
     transform:translate(-15px,10px) !important;
   }
@@ -3118,7 +3118,7 @@
 }
 
 /* Mobile annual mirrors the established month design v49. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Same asymmetric card composition as Month: hero, large best card, two compact cards. */
   #incomeAnalytics:not(.is-monthly) > .analytics-cards{
     display:grid !important;
@@ -3588,7 +3588,7 @@
 }
 
 /* Mobile annual correction + year comparison v50. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards{
     grid-template-areas:
       "hero hero"
@@ -3826,7 +3826,7 @@
 
 
 /* Mobile annual visual parity fix v51: match the approved Month screenshot. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Best month: force icon -> text -> amount vertical flow, exactly like Month best card. */
   #incomeAnalytics:not(.is-monthly) .analytics-card-best{
     display:flex !important;
@@ -4068,7 +4068,7 @@
 
 /* Mobile annual exact parity specificity fix v52.
    Use selectors stronger than legacy annual mobile rules so Year truly follows Month. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards{
     display:grid !important;
     grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) !important;
@@ -4594,7 +4594,7 @@
 
 
 /* Mobile annual best amount alignment v53. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-best > .analytics-card-body > b{
     transform:translate(-20px,10px) !important;
   }
@@ -4602,7 +4602,7 @@
 
 
 /* Mobile annual text and amount correction v54. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Best month amount: keep it fully inside the card and align like Month best-category amount. */
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-best > .analytics-card-body > b{
     width:100% !important;
@@ -4651,7 +4651,7 @@
 
 
 /* Mobile annual typography and icon correction v55. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Match Month icon surfaces instead of the old blue annual icon boxes. */
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-best > .analytics-card-icon{
     border:0 !important;
@@ -4699,7 +4699,7 @@
 
 
 /* Mobile comparison alignment, accent graph and restrained palette v56. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* "Сравнение с августом": center label and amount like "Средний доход в день". */
   #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body{
     width:100% !important;
@@ -4884,7 +4884,7 @@
 
 
 /* Mobile previous-month amount exact center v57. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics.is-monthly #monthlyGrowthNote{
     display:block !important;
     width:max-content !important;
@@ -4901,7 +4901,7 @@
 
 /* Mobile annual category surface theme fix v58.
    Override the legacy hard-coded near-black annual category background. */
-@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped),
   html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):hover,
   html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):active,
@@ -4921,7 +4921,7 @@
 
 
 /* Desktop hide annual comparison v59: keep this card mobile-only. */
-@media(min-width:561px){
+@media(min-width:901px){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card{
     display:none !important;
   }
@@ -4934,3 +4934,8 @@
     width:100% !important;
   }
 }
+
+
+/* Mobile breakpoint correction v61.
+   The app desktop layout starts at 901px, so mobile redesign stays active through 900px,
+   including Samsung Browser landscape viewports. */

@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.26.60';
+const qPokoyDevVersion='dev-2026.09.26.61';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -155,7 +155,7 @@ function setIncomeRecentCollapsed(collapsed,persist=true){
   if(!incomeRecent||!incomeRecentToggle)return;
   const next=!!collapsed;
   incomeRecent.classList.toggle('is-collapsed',next);
-  if(window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches){
+  if(window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches){
     const mobileGrid=incomeRecent.querySelector('.income-recent-grid');
     const mobileFooter=incomeRecent.querySelector('.income-recent-bottom-actions');
     if(mobileGrid)mobileGrid.hidden=next;
@@ -234,7 +234,7 @@ if(incomeRecentHistory){
   incomeRecentHistory.addEventListener('click',event=>{
     event.preventDefault();
     event.stopPropagation();
-    if(window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches){
+    if(window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches){
       const historyNav=document.getElementById('historyNavItem');
       if(historyNav){
         historyNav.hidden=false;
@@ -273,7 +273,7 @@ function qPokoyFitIncomeTotal(){
   const available=Math.floor(host.clientWidth);
   if(!Number.isFinite(maxSize) || maxSize<=0 || available<=0) return;
 
-  const minSize=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches ? 20 : 28;
+  const minSize=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches ? 20 : 28;
   let size=maxSize;
 
   incomeTotal.style.setProperty('font-size',size+'px','important');
@@ -367,7 +367,7 @@ function closeCategoryPopup(){
 
 function positionCategoryPopup(){
   if(!categoryPopup.classList.contains('open')) return;
-  const mobile=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
+  const mobile=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
   const maxPopupHeight=mobile?360:252; // desktop: about 6 category rows + inline create row
   const edge=8;
   const gap=6;
@@ -576,7 +576,7 @@ function openHistoryEdit(id){
 
 function openRecentIncomeEdit(id){
   const desktopRecentEdit=window.matchMedia('(min-width:761px)').matches;
-  const mobileRecentEdit=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
+  const mobileRecentEdit=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
   if(!desktopRecentEdit&&!mobileRecentEdit)return;
   const income=incomes.find(item=>String(item.id)===String(id));
   if(!income)return;
@@ -632,7 +632,7 @@ function getVisibleIncomes(source=incomes){
 
 const RECENT_INCOME_PAGE_SIZE=4;
 function getRecentIncomePageSize(){
-  return window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches?2:RECENT_INCOME_PAGE_SIZE;
+  return window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches?2:RECENT_INCOME_PAGE_SIZE;
 }
 let recentIncomePage=0;
 let recentIncomePeriodKey='';
@@ -763,7 +763,7 @@ function clearRecentMobileActions(except=null){
 }
 
 incomeRecentGrid?.addEventListener('click',e=>{
-  const mobile=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
+  const mobile=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
   if(mobile){
     const editButton=e.target.closest('.income-recent-mobile-edit');
     if(editButton){
@@ -817,7 +817,7 @@ if(incomeRecentGrid&&!incomeRecentGrid.dataset.qpLongPressBound){
     activeCard=null;
   };
   incomeRecentGrid.addEventListener('touchstart',e=>{
-    if(!window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches||e.touches.length!==1)return;
+    if(!window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches||e.touches.length!==1)return;
     if(e.target.closest('.income-recent-mobile-actions'))return;
     const card=e.target.closest('.income-recent-card');
     if(!card)return;
@@ -844,7 +844,7 @@ if(incomeRecentGrid&&!incomeRecentGrid.dataset.qpLongPressBound){
 }
 
 document.addEventListener('touchstart',e=>{
-  if(!window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches)return;
+  if(!window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches)return;
   if(e.target.closest('#incomeRecentGrid .income-recent-card'))return;
   clearRecentMobileActions();
 },{passive:true});
@@ -852,10 +852,10 @@ document.addEventListener('touchstart',e=>{
 // Mobile recent cards own the long-press gesture: never let the browser
 // turn the date/card text into a selection or copy callout.
 incomeRecentGrid?.addEventListener('selectstart',e=>{
-  if(window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches&&e.target.closest('.income-recent-card'))e.preventDefault();
+  if(window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches&&e.target.closest('.income-recent-card'))e.preventDefault();
 });
 incomeRecentGrid?.addEventListener('contextmenu',e=>{
-  if(window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches&&e.target.closest('.income-recent-card'))e.preventDefault();
+  if(window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches&&e.target.closest('.income-recent-card'))e.preventDefault();
 });
 
 window.renderIncomes=function renderIncomes(filteredData=null){
@@ -1103,7 +1103,7 @@ window.renderIncomeAnalytics=function(){
 
   if(catsEl){
     const desktopCategories=window.matchMedia('(min-width:901px)').matches;
-    const mobileCategories=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
+    const mobileCategories=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
     const periodKey=String(a.year);
     if(catsEl.dataset.categoryPeriod!==periodKey){
       catsEl.dataset.categoryPeriod=periodKey;
@@ -1329,7 +1329,7 @@ incomeList.addEventListener('click',e=>{
   }
 });
 
-const historyNativeSwipeMedia=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)');
+const historyNativeSwipeMedia=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)');
 let historyNativeOpenRow=null;
 const historyNativeClosingRows=new WeakSet();
 
@@ -1702,7 +1702,7 @@ document.addEventListener('mouseup',()=>{
   const names=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 
   function syncMobileSelectedChartColor(){
-    if(!window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches){
+    if(!window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches){
       svg.style.removeProperty('--income-chart-selected');
       return;
     }
@@ -1789,7 +1789,7 @@ document.addEventListener('mouseup',()=>{
 
 /* qp-mobile-home-header-v15 */
 (function(){
-  const mq=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)');
+  const mq=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)');
   const monthBlock=document.querySelector('#income .income-month-block');
   const monthSwitcher=document.getElementById('incomeMonthSwitcher');
   const yearSwitcher=document.querySelector('#income .income-chart-year-switcher');
@@ -1907,7 +1907,7 @@ document.addEventListener('mouseup',()=>{
   const homeAnchor=document.createComment('qPokoy-settings-home');
   homeParent.insertBefore(homeAnchor,settings);
   const desktop=()=>window.matchMedia('(min-width:901px)').matches;
-  const inlineSettings=()=>desktop()||window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
+  const inlineSettings=()=>desktop()||window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
 
   function restoreSettingsHome(){
     if(homeAnchor.parentNode&&settings.parentNode!==homeAnchor.parentNode){
@@ -1918,7 +1918,7 @@ document.addEventListener('mouseup',()=>{
 
   function setOpen(open){
     const next=!!open&&inlineSettings();
-    const mobileInline=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
+    const mobileInline=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
     const modeRow=analytics.querySelector('.analytics-mode-row');
 
     // Settings must always open over the compact analytics shell.
@@ -2256,7 +2256,7 @@ function getAllIncomeRecords(){
 
 /* qp-mobile-month-total-swipe-v34 */
 (function(){
-  const mq=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)');
+  const mq=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)');
   const total=document.getElementById('incomeTotal');
   if(!total||total.dataset.qpMonthSwipeBound==='1')return;
 

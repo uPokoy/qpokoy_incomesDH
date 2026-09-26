@@ -104,7 +104,7 @@
   function renderIncomeSpikes(container,dayTotals,period){
     const count=dayTotals.length;
     const dayMax=Math.max(...dayTotals,1);
-    const compactGraph=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
+    const compactGraph=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
     const baseline=88;
     const top=compactGraph?38:24;
     const range=baseline-top;
@@ -124,7 +124,7 @@
 
     const positive=points.filter(point=>point.value>0);
     const highlighted=[];
-    const compactLabels=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
+    const compactLabels=window.matchMedia('(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)').matches;
     if(compactLabels){
       const ranked=positive.slice().sort((a,b)=>b.value-a.value);
       for(const point of ranked){
