@@ -571,6 +571,13 @@
   font-weight:700 !important;
   line-height:1 !important;
 }
+@media (hover:hover) and (pointer:fine){
+  #incomeAnalytics .analytics-mode-period .analytics-year-switcher{
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+  }
+}
 @media(max-width:560px ) and (pointer:coarse){
   #incomeAnalytics .analytics-mode-period #analyticsYearControl{
     font-size:20px !important;
