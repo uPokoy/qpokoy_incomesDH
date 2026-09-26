@@ -349,7 +349,7 @@
     }
 
     if(catsEl){
-      const desktopCategories=window.matchMedia('(min-width:901px)').matches;
+      const desktopCategories=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
       const periodKey=period.year+'-'+period.month;
       if(catsEl.dataset.categoryPeriod!==periodKey){
         catsEl.dataset.categoryPeriod=periodKey;

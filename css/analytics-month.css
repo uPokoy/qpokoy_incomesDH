@@ -34,7 +34,7 @@
 #incomeAnalytics.is-monthly > .analytics-grid{display:none !important}
 #incomeAnalytics:not(.is-monthly) > .monthly-analytics{display:none !important}
 #monthlyAnalytics[hidden]{display:none !important}
-#incomeAnalytics.is-monthly > #monthlyAnalytics{display:block !important}
+#incomeAnalytics.is-monthly:not(.is-settings-open) > #monthlyAnalytics:not([hidden]){display:block !important}
 
 #incomeAnalytics .monthly-analytics-head{
   display:flex;
@@ -75,7 +75,7 @@
 }
 
 /* Desktop monthly layout: two wide summary cards per row. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics .monthly-summary-cards{
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
@@ -452,11 +452,11 @@
   text-align:center;
 }
 
-@media(max-width:900px ) and (any-pointer:coarse){
+@media(max-width:900px ) and (pointer:coarse){
   #incomeAnalytics .monthly-summary-cards{grid-template-columns:1fr}
   #incomeAnalytics .monthly-category-panels{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media(max-width:560px ) and (any-pointer:coarse){
+@media(max-width:560px ) and (pointer:coarse){
   #incomeAnalytics .analytics-mode-tabs{
     width:100%;
     margin-bottom:14px;
@@ -546,7 +546,7 @@
 #incomeAnalytics .monthly-analytics-head{
   justify-content:flex-end !important;
 }
-@media(max-width:560px ) and (any-pointer:coarse){
+@media(max-width:560px ) and (pointer:coarse){
   #incomeAnalytics .analytics-mode-row{
     gap:10px;
     margin-bottom:14px;
@@ -571,14 +571,14 @@
   font-weight:700 !important;
   line-height:1 !important;
 }
-@media(max-width:560px ) and (any-pointer:coarse){
+@media(max-width:560px ) and (pointer:coarse){
   #incomeAnalytics .analytics-mode-period #analyticsYearControl{
     font-size:20px !important;
   }
 }
 
 /* Monthly total uses the exact annual-total typography. */
-@media(min-width:621px){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics .monthly-analytics-total{
     font-size:36px !important;
     line-height:1.08 !important;
@@ -588,7 +588,7 @@
 }
 
 /* Compact desktop analytics header: keep the total in the controls row. */
-@media(min-width:760px){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics .analytics-mode-row{
     margin-bottom:10px;
   }
@@ -610,7 +610,7 @@
 }
 
 /* Final desktop-only compact height: placed after the base card rule. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics .monthly-summary-cards{
     margin-top:14px;
   }
@@ -685,7 +685,7 @@
 #incomeAnalytics .monthly-summary-info[aria-expanded="true"] + .monthly-summary-tooltip{display:block;}
 
 /* Desktop-only secondary text contrast for monthly analytics. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics .monthly-summary-card-body > span,
   #incomeAnalytics .monthly-summary-card-label{
     color:color-mix(in srgb,var(--text) 72%,var(--text-muted));
@@ -703,7 +703,7 @@
 
 
 /* Desktop monthly category cards: match annual compact cards. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly .monthly-category-card{
     min-height:112px !important;
     height:112px !important;
@@ -791,7 +791,7 @@
 
 
 /* Monthly desktop uses the same composition and visual hierarchy as annual analytics. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly .monthly-analytics-head{
     display:none !important;
   }
@@ -1177,7 +1177,7 @@
   }
 }
 
-@media(max-width:900px ) and (any-pointer:coarse){
+@media(max-width:900px ) and (pointer:coarse){
   #incomeAnalytics .monthly-total-card{
     display:none !important;
   }
@@ -1185,7 +1185,7 @@
 
 
 /* Monthly desktop parity with annual analytics: same metric/card scale. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly .monthly-summary-card-body,
   #incomeAnalytics.is-monthly .monthly-summary-card .monthly-summary-card-body{
     width:calc(100% - 72px) !important;
@@ -1285,7 +1285,7 @@
 
 
 /* Monthly desktop visual scale correction against the annual reference. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly .monthly-summary-cards{
     grid-template-rows:118px 118px !important;
     gap:14px !important;
@@ -1405,7 +1405,7 @@
 
 
 /* Monthly best-category share badge: pin it to the card's top-right corner. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body{
     position:static !important;
   }
@@ -1421,7 +1421,7 @@
 
 
 /* Monthly desktop: exact annual sizing and typography parity. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly .monthly-summary-cards{
     grid-template-rows:112px 112px !important;
     gap:14px !important;
@@ -1593,7 +1593,7 @@
 
 
 /* Monthly comparison cards: percentage badge in the top-right, matching Best category. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly #monthlyGrowthCard,
   #incomeAnalytics.is-monthly #monthlyYearGrowthCard{
     position:relative !important;
@@ -1646,7 +1646,7 @@
 
 
 /* Fix comparison percentage badges: anchor them to the card, not the text body. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body,
   #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-body{
     position:static !important;
@@ -1667,7 +1667,7 @@
 
 
 /* Comparison badges live directly on the card so they cannot be clipped by the text body. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-body,
   #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-body{
     position:relative !important;
@@ -1729,7 +1729,7 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
 
 
 /* Monthly comparison difference: same emphasis as the amount in Best category. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly #monthlyGrowthNote,
   #incomeAnalytics.is-monthly #monthlyYearGrowthNote{
     max-width:none !important;
@@ -1746,7 +1746,7 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
 
 
 /* Monthly comparison amount: custom trend icon that matches the card style. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly #monthlyGrowthNote,
   #incomeAnalytics.is-monthly #monthlyYearGrowthNote{
     display:flex !important;
@@ -1790,7 +1790,7 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
 
 
 /* Monthly comparison trend icon: clean arrow placed after the amount. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly #monthlyGrowthNote::before,
   #incomeAnalytics.is-monthly #monthlyYearGrowthNote::before{
     content:none !important;
@@ -1837,7 +1837,7 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
 
 
 /* Desktop monthly hero: "Доходные всплески" instead of sparse day bars. */
-@media(min-width:901px), (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-monthly .monthly-total-bars.monthly-income-spikes{
     position:relative !important;
     flex:1 1 auto !important;

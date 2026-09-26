@@ -1,4 +1,4 @@
-/* qPokoy narrow desktop layout v70.
+/* qPokoy narrow desktop layout.
    Desktop remains desktop. Layout adapts to the actual analytics container width. */
 
 @media (hover:hover) and (pointer:fine){
@@ -9,7 +9,7 @@
 
   @container qp-analytics (max-width:900px){
     /* YEAR */
-    #incomeAnalytics:not(.is-monthly) > .analytics-cards{
+    #incomeAnalytics:not(.is-monthly):not(.is-settings-open) > .analytics-cards{
       display:grid !important;
       grid-template-columns:repeat(2,minmax(0,1fr)) !important;
       grid-template-rows:auto !important;
@@ -25,8 +25,8 @@
       min-width:0 !important;
       max-width:none !important;
       min-height:238px !important;
-      height:238px !important;
-      max-height:238px !important;
+      height:auto !important;
+      max-height:none !important;
       box-sizing:border-box !important;
     }
 
@@ -35,7 +35,8 @@
       min-width:0 !important;
       max-width:none !important;
       min-height:112px !important;
-      height:112px !important;
+      height:auto !important;
+      max-height:none !important;
       box-sizing:border-box !important;
     }
 
@@ -96,7 +97,7 @@
     }
 
     /* MONTH */
-    #incomeAnalytics.is-monthly .monthly-summary-cards{
+    #incomeAnalytics.is-monthly:not(.is-settings-open) .monthly-summary-cards{
       display:grid !important;
       grid-template-columns:repeat(2,minmax(0,1fr)) !important;
       grid-template-rows:auto !important;
@@ -112,8 +113,8 @@
       min-width:0 !important;
       max-width:none !important;
       min-height:238px !important;
-      height:238px !important;
-      max-height:238px !important;
+      height:auto !important;
+      max-height:none !important;
       box-sizing:border-box !important;
     }
 
@@ -122,7 +123,8 @@
       min-width:0 !important;
       max-width:none !important;
       min-height:112px !important;
-      height:112px !important;
+      height:auto !important;
+      max-height:none !important;
       box-sizing:border-box !important;
     }
 
@@ -184,9 +186,9 @@
     }
   }
 
-  @container qp-analytics (max-width:560px){
-    #incomeAnalytics:not(.is-monthly) > .analytics-cards,
-    #incomeAnalytics.is-monthly .monthly-summary-cards{
+  @container qp-analytics (max-width:620px){
+    #incomeAnalytics:not(.is-monthly):not(.is-settings-open) > .analytics-cards,
+    #incomeAnalytics.is-monthly:not(.is-settings-open) .monthly-summary-cards{
       grid-template-columns:1fr !important;
     }
 
