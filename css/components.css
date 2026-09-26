@@ -4498,3 +4498,65 @@ body:not(.dark) .income-report-custom-range input{
     transform:none !important;
   }
 }
+
+
+/* Desktop settings auto-height v72.
+   Settings now participate in layout instead of covering the old analytics height. */
+@media (hover:hover) and (pointer:fine){
+  #incomeAnalytics.is-settings-open{
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+
+  #incomeAnalytics.is-settings-open > .analytics-head,
+  #incomeAnalytics.is-settings-open > .analytics-cards,
+  #incomeAnalytics.is-settings-open > .analytics-category-panels,
+  #incomeAnalytics.is-settings-open > .analytics-grid,
+  #incomeAnalytics.is-settings-open > .analytics-categories-toggle,
+  #incomeAnalytics.is-settings-open > .monthly-analytics{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open > .analytics-mode-row{
+    position:relative !important;
+    height:0 !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+  }
+
+  #incomeAnalytics.is-settings-open > .analytics-mode-row > .analytics-mode-tabs,
+  #incomeAnalytics.is-settings-open > .analytics-mode-row > .analytics-mode-period{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-toggle.is-active{
+    position:absolute !important;
+    z-index:42 !important;
+    top:20px !important;
+    right:24px !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    position:relative !important;
+    z-index:1 !important;
+    inset:auto !important;
+    display:block !important;
+    width:100% !important;
+    height:auto !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:20px 64px 20px 24px !important;
+    overflow:visible !important;
+    box-sizing:border-box !important;
+    border-radius:inherit !important;
+    background:var(--panel) !important;
+    box-shadow:none !important;
+  }
+}
