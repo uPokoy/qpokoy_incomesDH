@@ -1,0 +1,192 @@
+/* qPokoy narrow desktop layout.
+   Keep desktop styling on mouse/trackpad PCs, but reflow before cards become too narrow. */
+
+@media (max-width:900px) and (hover:hover) and (pointer:fine){
+  #incomeAnalytics{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  /* YEAR: full-width graph, then two-column metric cards. */
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-rows:auto !important;
+    grid-template-areas:
+      "hero hero"
+      "best average"
+      "worst growth" !important;
+    gap:12px !important;
+    align-items:stretch !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .annual-total-card{
+    grid-area:hero !important;
+    grid-column:auto !important;
+    grid-row:auto !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    min-height:238px !important;
+    height:238px !important;
+    max-height:238px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    min-height:112px !important;
+    height:112px !important;
+    grid-column:auto !important;
+    grid-row:auto !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best{grid-area:best !important;}
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average{grid-area:average !important;}
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-worst{grid-area:worst !important;}
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth{grid-area:growth !important;}
+
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-body{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-body > strong,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-body > b{
+    max-width:100% !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-card-body > span{
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  /* YEAR categories: minimum useful card width instead of forcing four squeezed columns. */
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panels{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr)) !important;
+    gap:12px !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-value{
+    max-width:100% !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+    font-size:clamp(18px,2.8vw,23px) !important;
+  }
+
+  /* MONTH: same desktop reflow logic. */
+  #incomeAnalytics.is-monthly .monthly-summary-cards{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-rows:auto !important;
+    grid-template-areas:
+      "hero hero"
+      "best average"
+      "growth year" !important;
+    gap:12px !important;
+    align-items:stretch !important;
+  }
+
+  #incomeAnalytics.is-monthly #monthlyTotalCard{
+    grid-area:hero !important;
+    grid-column:auto !important;
+    grid-row:auto !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    min-height:238px !important;
+    height:238px !important;
+    max-height:238px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best{grid-area:best !important;}
+  #incomeAnalytics.is-monthly .monthly-summary-average{grid-area:average !important;}
+  #incomeAnalytics.is-monthly #monthlyGrowthCard{grid-area:growth !important;}
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard{grid-area:year !important;}
+
+  #incomeAnalytics.is-monthly .monthly-summary-card{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    min-height:112px !important;
+    height:112px !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-body,
+  #incomeAnalytics.is-monthly .monthly-summary-card .monthly-summary-card-body{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-label,
+  #incomeAnalytics.is-monthly .monthly-summary-card-body > span{
+    max-width:100% !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-panels{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr)) !important;
+    gap:12px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-card{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-category-value{
+    max-width:100% !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+    font-size:clamp(18px,2.8vw,23px) !important;
+  }
+}
+
+@media (max-width:620px) and (hover:hover) and (pointer:fine){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards{
+    grid-template-columns:1fr !important;
+    grid-template-areas:
+      "hero"
+      "best"
+      "average"
+      "worst"
+      "growth" !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-cards{
+    grid-template-columns:1fr !important;
+    grid-template-areas:
+      "hero"
+      "best"
+      "average"
+      "growth"
+      "year" !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panels,
+  #incomeAnalytics.is-monthly .monthly-category-panels{
+    grid-template-columns:1fr !important;
+  }
+}
