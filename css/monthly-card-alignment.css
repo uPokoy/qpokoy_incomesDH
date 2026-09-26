@@ -4918,3 +4918,11 @@
     background-image:none !important;
   }
 }
+
+
+/* Desktop hide annual comparison v59: keep this card mobile-only. */
+@media(min-width:561px){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card{
+    display:none !important;
+  }
+}
