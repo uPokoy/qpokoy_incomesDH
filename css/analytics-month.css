@@ -1946,3 +1946,39 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
   visibility:hidden !important;
   opacity:0 !important;
 }
+
+
+/* Narrow desktop: keep desktop layout, but let card text use the full text column. */
+@media(max-width:900px) and (hover:hover) and (pointer:fine){
+  #incomeAnalytics.is-monthly .monthly-summary-card-body,
+  #incomeAnalytics.is-monthly .monthly-summary-card .monthly-summary-card-body{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-card-body > span,
+  #incomeAnalytics.is-monthly .monthly-summary-card-label{
+    max-width:100% !important;
+    white-space:normal !important;
+    overflow-wrap:anywhere !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > span,
+  #incomeAnalytics.is-monthly #monthlyGrowthCard .monthly-summary-card-label,
+  #incomeAnalytics.is-monthly #monthlyYearGrowthCard .monthly-summary-card-label{
+    box-sizing:border-box !important;
+    padding-right:52px !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-best-category-row{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  #incomeAnalytics.is-monthly .monthly-best-category-row strong{
+    min-width:0 !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+}
