@@ -4364,18 +4364,3 @@ body:not(.dark) .income-report-custom-range input{
   }
 }
 
-
-/* Narrow desktop annual cards: preserve desktop layout without squeezing text twice. */
-@media(max-width:900px) and (hover:hover) and (pointer:fine){
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card .analytics-card-body{
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-  }
-
-  #incomeAnalytics:not(.is-monthly) .analytics-card-body > span{
-    max-width:100% !important;
-    white-space:normal !important;
-    overflow-wrap:anywhere !important;
-  }
-}
