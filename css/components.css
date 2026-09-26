@@ -4364,3 +4364,137 @@ body:not(.dark) .income-report-custom-range input{
   }
 }
 
+
+
+/* Desktop category manager base v71.
+   These styles used to arrive indirectly through mobile-base.css; keep desktop self-contained. */
+@media (hover:hover) and (pointer:fine){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-manager{
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add input{
+    box-sizing:border-box !important;
+    width:100% !important;
+    min-width:0 !important;
+    padding:0 14px !important;
+    border:1px solid var(--border) !important;
+    border-radius:12px !important;
+    outline:none !important;
+    background:var(--panel-muted) !important;
+    color:var(--text) !important;
+    font:inherit !important;
+    font-size:14px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add input:focus{
+    border-color:var(--primary) !important;
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 16%,transparent) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add button{
+    display:grid !important;
+    place-items:center !important;
+    padding:0 !important;
+    border:1px solid var(--primary) !important;
+    border-radius:12px !important;
+    background:var(--primary) !important;
+    color:#fff !important;
+    font:inherit !important;
+    font-size:26px !important;
+    font-weight:500 !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add button:hover{
+    filter:brightness(1.06) !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-item{
+    position:relative !important;
+    display:grid !important;
+    grid-template-columns:36px minmax(0,1fr) 30px !important;
+    align-items:center !important;
+    gap:8px !important;
+    padding:8px 9px !important;
+    border:1px solid var(--border) !important;
+    border-radius:12px !important;
+    background:var(--panel-muted) !important;
+    box-shadow:none !important;
+    overflow:hidden !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-item:hover{
+    border-color:color-mix(in srgb,var(--category-color) 44%,var(--border)) !important;
+    background:color-mix(in srgb,var(--panel-muted) 94%,var(--category-color) 6%) !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-icon{
+    grid-column:1 !important;
+    width:36px !important;
+    min-width:36px !important;
+    height:36px !important;
+    display:grid !important;
+    place-items:center !important;
+    border-radius:10px !important;
+    background:color-mix(in srgb,var(--category-color) 16%,transparent) !important;
+    color:var(--category-color) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-icon svg{
+    width:19px !important;
+    height:19px !important;
+    fill:none !important;
+    stroke:currentColor !important;
+    stroke-width:1.8 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-name{
+    grid-column:2 !important;
+    min-width:0 !important;
+    overflow:hidden !important;
+    color:var(--text) !important;
+    font-size:13px !important;
+    font-weight:600 !important;
+    line-height:1.2 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-delete{
+    grid-column:3 !important;
+    justify-self:end !important;
+    width:30px !important;
+    min-width:30px !important;
+    max-width:30px !important;
+    height:30px !important;
+    min-height:30px !important;
+    max-height:30px !important;
+    padding:0 !important;
+    display:grid !important;
+    place-items:center !important;
+    border:0 !important;
+    border-radius:9px !important;
+    background:transparent !important;
+    color:color-mix(in srgb,var(--danger) 72%,var(--text-muted)) !important;
+    font-size:18px !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-delete:hover{
+    background:color-mix(in srgb,var(--danger) 9%,transparent) !important;
+    color:var(--danger) !important;
+    transform:none !important;
+  }
+}
