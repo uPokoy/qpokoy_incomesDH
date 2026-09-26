@@ -82,7 +82,7 @@
       .qp-background-remove:focus,
       .qp-background-remove:focus-visible{left:calc(50% + 30px) !important;top:50% !important;transform:translateY(-50%) !important;width:22px !important;min-width:22px !important;height:22px !important;padding:0 !important;border:0 !important;border-radius:0 !important;background:transparent !important;box-shadow:none !important;outline:none !important;color:rgba(239,68,68,.95) !important;}
       .qp-background-preview{display:block;position:relative;width:100%;height:88px;margin:0 0 7px;overflow:hidden;border-radius:8px;border:1px solid rgba(148,163,184,.18);background:#0b1018;}
-      .qp-background-preview-standard{background:radial-gradient(82% 70% at 0% 90%,rgba(67,95,132,.52),transparent 58%),radial-gradient(82% 70% at 100% 10%,rgba(62,89,126,.48),transparent 58%),linear-gradient(145deg,#05080e,#0a1421 48%,#05080e);}
+      .qp-background-preview-standard{background:radial-gradient(90% 85% at -5% 95%,rgba(67,95,132,.75) 0 20%,transparent 70%),radial-gradient(85% 85% at 105% 0%,rgba(72,99,135,.70) 0 18%,transparent 70%),linear-gradient(145deg,#05080e 0%,#132238 52%,#05080e 100%);}
       .qp-background-preview-off{background:#0b1018;}
       .qp-background-preview-custom{display:grid;place-items:center;background-position:center;background-size:cover;background-repeat:no-repeat;}
       .qp-background-preview-custom b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(15,23,42,.74);border:1px solid rgba(203,213,225,.36);font-size:19px;font-weight:400;line-height:1;}

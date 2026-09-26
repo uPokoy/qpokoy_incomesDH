@@ -184,6 +184,12 @@
       white-space:nowrap !important;
       font-size:21px !important;
     }
+
+    #incomeAnalytics:not(.is-monthly) #analyticsCategories > .analytics-category-panel,
+    #incomeAnalytics.is-monthly #monthlyAnalyticsCategories > .monthly-category-card{
+      grid-template-columns:44px minmax(0,min(150px,calc(100% - 108px))) 44px !important;
+      justify-content:start !important;
+    }
   }
 
   @container qp-analytics (max-width:620px){
@@ -226,5 +232,6 @@
     #incomeAnalytics.is-monthly #monthlyAnalyticsCategories.monthly-category-panels{
       grid-template-columns:1fr !important;
     }
+
   }
 }
