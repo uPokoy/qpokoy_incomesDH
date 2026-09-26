@@ -4499,11 +4499,11 @@ body:not(.dark) .income-report-custom-range input{
   }
 }
 
-
-/* Desktop settings auto-height v72.
-   Settings now participate in layout instead of covering the old analytics height. */
-@media (hover:hover) and (pointer:fine){
+/* Desktop settings auto-height v73.
+   Replace the old full-height overlay with content-sized settings layout. */
+@media(min-width:901px), (hover:hover) and (pointer:fine){
   #incomeAnalytics.is-settings-open{
+    position:relative !important;
     height:auto !important;
     min-height:0 !important;
     max-height:none !important;
@@ -4512,7 +4512,6 @@ body:not(.dark) .income-report-custom-range input{
 
   #incomeAnalytics.is-settings-open > .analytics-head,
   #incomeAnalytics.is-settings-open > .analytics-cards,
-  #incomeAnalytics.is-settings-open > .analytics-category-panels,
   #incomeAnalytics.is-settings-open > .analytics-grid,
   #incomeAnalytics.is-settings-open > .analytics-categories-toggle,
   #incomeAnalytics.is-settings-open > .monthly-analytics{
@@ -4520,11 +4519,20 @@ body:not(.dark) .income-report-custom-range input{
   }
 
   #incomeAnalytics.is-settings-open > .analytics-mode-row{
-    position:relative !important;
-    height:0 !important;
-    min-height:0 !important;
+    position:absolute !important;
+    z-index:42 !important;
+    top:20px !important;
+    right:24px !important;
+    left:auto !important;
+    width:38px !important;
+    min-width:38px !important;
+    max-width:38px !important;
+    height:38px !important;
+    min-height:38px !important;
+    max-height:38px !important;
     margin:0 !important;
     padding:0 !important;
+    display:block !important;
     overflow:visible !important;
   }
 
@@ -4534,10 +4542,13 @@ body:not(.dark) .income-report-custom-range input{
   }
 
   #incomeAnalytics.is-settings-open .analytics-settings-toggle.is-active{
-    position:absolute !important;
-    z-index:42 !important;
-    top:20px !important;
-    right:24px !important;
+    position:static !important;
+    width:38px !important;
+    min-width:38px !important;
+    max-width:38px !important;
+    height:38px !important;
+    min-height:38px !important;
+    max-height:38px !important;
     margin:0 !important;
   }
 
