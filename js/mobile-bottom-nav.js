@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  const DEV='dev-2026.09.26.59';
-  const mobile=window.matchMedia('(max-width:560px)');
+  const DEV='dev-2026.09.26.60';
+  const mobile=window.matchMedia('(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse)');
   const HALF_WIDTH=44;
   const TRANSITION='transform 200ms cubic-bezier(.22,.8,.25,1)';
 

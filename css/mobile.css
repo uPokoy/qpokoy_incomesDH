@@ -2,13 +2,13 @@
 @import url("./mobile-swipe-actions.css?v=dev-2026.09.25.40");
 @import url("./oauth-brand.css?v=dev-2026.09.25.40");
 
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
   .sidebar.qp-bottom-nav-ready > .nav-item{z-index:4 !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item.active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
   .sidebar.qp-bottom-nav-ready .qp-bottom-nav-indicator{position:absolute;top:50%;left:0;z-index:2;width:88px;height:54px;pointer-events:none;border:1px solid color-mix(in srgb,var(--primary) 25%,rgba(255,255,255,.16));border-radius:27px;background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 8%,rgba(255,255,255,.115)),color-mix(in srgb,var(--primary) 6%,rgba(255,255,255,.065)));box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.10);transform:translate3d(-44px,-50%,0);will-change:transform;}
 }
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{bottom:calc(18px + env(safe-area-inset-bottom)) !important;background:color-mix(in srgb,var(--panel) 32%,transparent) !important;border-color:color-mix(in srgb,var(--border) 38%,rgba(255,255,255,.13)) !important;box-shadow:0 6px 16px rgba(0,0,0,.16),0 0 0 1px rgba(255,255,255,.010),inset 0 1px 0 rgba(255,255,255,.040),inset 0 -1px 0 rgba(255,255,255,.009) !important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
   .app:has(.sidebar.qp-bottom-nav-ready) .content{padding-bottom:calc(103px + env(safe-area-inset-bottom)) !important;}
   body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn{bottom:calc(96px + env(safe-area-inset-bottom)) !important;}
@@ -16,19 +16,19 @@
   .sidebar.qp-bottom-nav-ready > .nav-item:active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item:focus:not(:focus-visible){outline:none;}
 }
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{background:color-mix(in srgb,var(--panel) 42%,transparent) !important;-webkit-backdrop-filter:blur(4px) brightness(82%) saturate(108%) !important;backdrop-filter:blur(4px) brightness(82%) saturate(108%) !important;border:1px solid rgba(255,255,255,.07) !important;box-shadow:0 6px 18px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.035) !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item{border-radius:999px !important;background:color-mix(in srgb,var(--panel) 18%,transparent) !important;border-color:color-mix(in srgb,var(--border) 28%,rgba(255,255,255,.10)) !important;box-shadow:0 2px 7px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.025) !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item:hover:not(.active){background:color-mix(in srgb,var(--panel) 18%,transparent) !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item.active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
 }
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready > .nav-item{z-index:auto !important;background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item::before{display:none !important;content:"";position:absolute;top:50%;left:50%;z-index:1;width:88px;height:54px;border:1px solid color-mix(in srgb,var(--border) 28%,rgba(255,255,255,.10));border-radius:27px;background:color-mix(in srgb,var(--panel) 18%,transparent);box-shadow:0 2px 7px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.025);transform:translate(-50%,-50%);pointer-events:none;}
   .sidebar.qp-bottom-nav-ready > .nav-item.active::before{opacity:0;}
   .sidebar.qp-bottom-nav-ready > .nav-item .nav-icon,.sidebar.qp-bottom-nav-ready > .nav-item .nav-label{position:relative;z-index:3;}
 }
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.11) 0,rgba(255,255,255,.05) 8px,rgba(255,255,255,.0165) 20px,transparent 34px,transparent calc(100% - 34px),rgba(255,255,255,.0165) calc(100% - 20px),rgba(255,255,255,.05) calc(100% - 8px),rgba(255,255,255,.11) 100%),linear-gradient(180deg,rgba(255,255,255,.092) 0,rgba(255,255,255,.032) 10px,transparent 24px,transparent calc(100% - 20px),rgba(0,0,0,.092) 100%);box-shadow:inset 1px 0 0 rgba(255,255,255,.083),inset -1px 0 0 rgba(255,255,255,.083),inset 0 1px 0 rgba(255,255,255,.11),inset 0 -1px 0 rgba(0,0,0,.11);}
 }
 #settings .qp-category-delete{flex:0 0 44px !important;width:44px !important;min-width:44px !important;height:44px !important;padding:0 !important;border:0 !important;border-radius:12px !important;background:transparent !important;box-shadow:none !important;color:rgba(239,68,68,.58) !important;font-size:17px !important;font-weight:500 !important;line-height:1 !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent;}
@@ -90,7 +90,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   z-index:1;
   background:transparent !important;
 }
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   html[data-theme="dark"] body.qp-bg-standard::before{
     width:150vw;
     height:78vw;
@@ -114,7 +114,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 /* Mobile: carry the approved desktop analytics/recent-income visual system over
    without changing mobile data logic, navigation, or history swipe actions. */
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
 
   /* Recent incomes: desktop-style compact cards, two per row on mobile. */
   #income .income-recent-grid{
@@ -388,7 +388,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* DEV build label: one source of truth; never let imported mobile CSS replace it. */
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #qPokoyDevVersion{
     font-size:12px !important;
     line-height:1.2 !important;
@@ -401,7 +401,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile small category cards: desktop visual parity. */
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
 
   /* Annual category cards */
   #incomeAnalytics:not(.is-monthly) .analytics-category-panels{
@@ -609,7 +609,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile refresh after desktop finalization: keep phone navigation and touch controls current. */
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{
     grid-template-columns:repeat(3,minmax(0,1fr)) !important;
   }
@@ -623,7 +623,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile dashboard refresh after PC finalization. Presentation only. */
-@media (max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income{
     width:100% !important;
     min-width:0 !important;
@@ -1008,7 +1008,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile history refresh after PC finalization. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #history.page.active{
     display:block !important;
     width:100% !important;
@@ -1158,7 +1158,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile settings parity after PC finalization. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #settings.page.active{
     display:block !important;
     width:100% !important;
@@ -1549,7 +1549,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile shell finalization after PC parity pass. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   html,
   body{
     width:100% !important;
@@ -1759,7 +1759,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   }
 }
 
-@media(max-height:600px) and (max-width:560px){
+@media(max-height:600px) and (max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   body.qp-auth-locked #qpAuthGate,
   #qpAuthGate{
     align-items:flex-start !important;
@@ -1768,7 +1768,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile screenshot polish 2026-09-25: compact history/categories and contain background help. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* History: reduce excess vertical space visible on Samsung Browser. */
   #history #historySearchWrap{
     margin-bottom:10px !important;
@@ -1933,7 +1933,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Restore mobile DEV panel during mobile development. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income .qp-dev-panel{
     display:flex !important;
     align-items:center !important;
@@ -1979,7 +1979,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile income editor final polish. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeForm.income-form,
   #history > #incomeForm.income-form{
     width:100% !important;
@@ -2235,7 +2235,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile visual corrections from Samsung screenshots. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Dark theme on phones: keep the dark character, but restore blue depth and card separation. */
   html[data-theme="dark"] body,
   body.dark{
@@ -2281,7 +2281,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile home header stage v15. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Month + year live in one compact row. */
   #income .income-month-block.qp-mobile-period-row{
     width:100% !important;
@@ -2506,7 +2506,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile home header stage v16. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income .income-month-block.qp-mobile-period-row #incomeTotal{
     width:100% !important;
     max-width:100% !important;
@@ -2601,7 +2601,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile home header stage v17. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Tighten the chart-to-collapse spacing. */
   #income .income-top > .income-recent.qp-mobile-recent-stack{
     margin-top:-8px !important;
@@ -2738,7 +2738,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile home header stage v19. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Remove the inherited empty height below the chart. */
   #income .income-month-chart{
     min-height:104px !important;
@@ -2798,7 +2798,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 /* Mobile home corrections v20: compact chart/toggle gap, native long-press guard,
    exact History glyph sizing, and a browser-independent active-month color. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   /* Cancel the flex gap between the chart and the full-width collapse hit area. */
   #income .income-top > .income-recent.qp-mobile-recent-stack{
     margin-top:-14px !important;
@@ -2878,7 +2878,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 /* Mobile recent-income action icons v21.
    Only the glyphs are changed: button background, border, size and shape stay untouched. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income .income-recent-mobile-edit .history-action-pencil{
     display:block !important;
     width:22px !important;
@@ -2914,7 +2914,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 /* Mobile pencil glyph color v22.
    Force the same pure-white pencil in History and Recent incomes without touching button surfaces. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #history #incomeList > .history-swipe-row .history-action-pencil,
   #income .income-recent-mobile-edit .history-action-pencil{
     display:block !important;
@@ -2935,7 +2935,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 /* Mobile pencil glyph v23.
    Use a real inline SVG so Samsung Browser renders the pencil at full white. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #history #incomeList > .history-swipe-row .history-action-pencil,
   #income .income-recent-mobile-edit .history-action-pencil{
     display:grid !important;
@@ -2976,7 +2976,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 /* Mobile pencil glyph v24.
    Native SVG only: no text glyph, no mask, no inherited icon color. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #history #incomeList > .history-swipe-row svg.history-action-pencil,
   #income .income-recent-mobile-edit svg.history-action-pencil{
     display:block !important;
@@ -3005,7 +3005,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 /* Mobile pencil glyph v25.
    Render the pencil independently from existing icon markup so Samsung Browser
    cannot tint the original glyph. Button surface/geometry is untouched. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #history #incomeList > .history-swipe-row .edit-income > .history-action-pencil,
   #income .income-recent-mobile-edit > .history-action-pencil{
     display:none !important;
@@ -3032,7 +3032,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 /* Mobile pencil glyph v26.
    One icon only. Cancel v25 pseudo icon and force the real SVG to full white. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #history #incomeList > .history-swipe-row .edit-income::before,
   #income .income-recent-card .income-recent-mobile-actions .income-recent-mobile-edit::before{
     content:none !important;
@@ -3071,7 +3071,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile recent footer controls v27: +25% for "Вся история" and pager. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions{
     min-height:33px !important;
   }
@@ -3107,7 +3107,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile recent-income amount alignment v29. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income .income-recent.qp-mobile-recent-stack .income-recent-card .income-recent-amount{
     width:100% !important;
     margin-left:0 !important;
@@ -3119,7 +3119,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile recent-income date alignment v30. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income .income-recent.qp-mobile-recent-stack .income-recent-card .income-recent-date{
     transform:translateX(5px) !important;
   }
@@ -3127,7 +3127,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile main monthly total position v31. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income .income-month-block.qp-mobile-period-row #incomeTotal{
     transform:translateY(5px) !important;
   }
@@ -3135,7 +3135,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile monthly total swipe target v34. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income .income-month-block.qp-mobile-period-row #incomeTotal{
     touch-action:pan-y !important;
     -webkit-user-select:none !important;
@@ -3146,7 +3146,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Mobile period arrow press state v34: no sticky tap/highlight background. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #income #incomeMonthSwitcher > button,
   #income .income-month-block > .income-chart-year-switcher > button{
     -webkit-tap-highlight-color:transparent !important;
@@ -3168,7 +3168,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Annual mobile categories v39: hard-match the dark card surface. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
     background:#00061c !important;
     background-color:#00061c !important;
@@ -3191,7 +3191,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 
 /* Annual mobile categories v40: render as normal cards, not native buttons. */
-@media(max-width:560px){
+@media(max-width:560px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
     background:var(--panel) !important;
     background-color:var(--panel) !important;
