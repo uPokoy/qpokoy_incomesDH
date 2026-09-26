@@ -4897,3 +4897,24 @@
     transform:none !important;
   }
 }
+
+
+/* Mobile annual category surface theme fix v58.
+   Override the legacy hard-coded near-black annual category background. */
+@media(max-width:560px){
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped),
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):hover,
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):active,
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):focus,
+  html[data-theme="dark"] #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):focus-visible,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped),
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):hover,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):active,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):focus,
+  body.dark #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped):focus-visible,
+  html:not([data-theme="dark"]) #incomeAnalytics:not(.is-monthly) .analytics-category-panel:not(.category-grouped){
+    background:color-mix(in srgb,var(--panel) 98%,var(--category) 2%) !important;
+    background-color:color-mix(in srgb,var(--panel) 98%,var(--category) 2%) !important;
+    background-image:none !important;
+  }
+}
