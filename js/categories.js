@@ -151,7 +151,7 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
       });
     }
 
-    if(window.matchMedia('(min-width:761px)').matches){
+    if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
       const createRow=document.createElement('div');
       createRow.className='category-popup-create';
       createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Новая категория" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';

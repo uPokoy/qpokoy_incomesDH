@@ -1,7 +1,7 @@
 
 (function(){
   function syncAppShell(){
-    if(window.matchMedia('(max-width:560px)').matches)return;
+    if(window.matchMedia('(pointer:coarse)').matches)return;
     const page=document.querySelector('.page.active') || document.querySelector('main');
     const sidebar=document.querySelector('.sidebar');
     const add=document.querySelector('.add-income-btn');

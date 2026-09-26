@@ -91,11 +91,15 @@
       .qp-background-status{min-height:0;margin-top:5px;color:var(--text-muted);font-size:12px;}
       .qp-background-status:empty{display:none;}
       .qp-background-status.error{color:var(--danger);}
+      @media (max-width:900px) and (hover:hover) and (pointer:fine){
+        .qp-background-custom-wrap>.qp-background-help{left:auto;right:4px;}
+        .qp-background-help-tip{left:auto;right:0;transform:none;width:min(230px,72vw);}
+      }
       @media (max-width:700px){
         .qp-background-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
         .qp-background-option{width:auto !important;padding:5px !important;border-radius:10px;}
         .qp-background-custom-wrap{width:auto;}
-        .qp-background-custom-wrap>.qp-background-help{left:auto;right:-30px;top:0;}
+        .qp-background-custom-wrap>.qp-background-help{left:auto;right:4px;top:0;}
         .qp-background-help-btn{width:26px !important;min-width:26px !important;max-width:26px !important;height:26px !important;min-height:26px !important;max-height:26px !important;}
         .qp-background-custom-caption{left:5px;right:5px;bottom:5px;font-size:10px;}
         .qp-background-remove{left:calc(50% + 25px) !important;width:22px !important;min-width:22px !important;height:22px !important;font-size:19px !important;}
