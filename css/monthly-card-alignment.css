@@ -4939,3 +4939,15 @@
 /* Mobile breakpoint correction v61.
    The app desktop layout starts at 901px, so mobile redesign stays active through 900px,
    including Samsung Browser landscape viewports. */
+
+
+/* Mobile annual graph position v63: cards first, graph below them. */
+@media(max-width:900px), (orientation:landscape) and (max-height:560px) and (hover:none) and (pointer:coarse){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards{
+    grid-template-areas:
+      "best worst"
+      "best average"
+      "hero hero"
+      "compare compare" !important;
+  }
+}
