@@ -3224,3 +3224,18 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     }
   }
 }
+
+
+/* DEV57: iPhone has no bottom navigation; keep only a small safe-area gap
+   instead of the legacy reserved footer space. */
+@supports (-webkit-touch-callout:none){
+  @media (pointer:coarse){
+    .app .content{
+      padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;
+    }
+    #income .income-recent-history-panel > #history.income-recent-inline-history #incomeList{
+      padding-bottom:8px !important;
+      margin-bottom:0 !important;
+    }
+  }
+}
