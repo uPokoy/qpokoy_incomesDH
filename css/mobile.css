@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.41");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.41");
-@import url("./oauth-brand.css?v=dev-2026.09.27.41");
+@import url("./mobile-base.css?v=dev-2026.09.27.42");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.42");
+@import url("./oauth-brand.css?v=dev-2026.09.27.42");
 
 /* Mobile touch feedback: suppress Samsung/Chromium tap overlay without changing click handlers. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
@@ -1214,18 +1214,9 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     transform:none !important;
   }
 
-  #settings .qp-category-icon{
-    flex:0 0 42px !important;
-    width:42px !important;
-    min-width:42px !important;
-    height:42px !important;
-    border-radius:12px !important;
-  }
+  
 
-  #settings .qp-category-icon svg{
-    width:21px !important;
-    height:21px !important;
-  }
+  
 
   #settings .qp-category-name{
     min-width:0 !important;
@@ -2155,9 +2146,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     display:none !important;
   }
 
-  #income .income-month-chart{
-    padding-top:0 !important;
-  }
+  
 
   /* Recent incomes: collapse zone is always the same full-width row. */
   #income .income-recent.qp-mobile-recent-stack{
@@ -2218,10 +2207,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     touch-action:pan-y !important;
   }
 
-  #income .income-recent.qp-mobile-recent-stack .income-recent-card{
-    min-height:82px !important;
-    padding:11px 13px !important;
-  }
+  
 
   /* Pager is below the cards, aligned to the lower-right corner. */
   #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions{
@@ -2245,18 +2231,9 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     gap:5px !important;
   }
 
-  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn{
-    width:32px !important;
-    min-width:32px !important;
-    height:32px !important;
-    min-height:32px !important;
-    border-radius:9px !important;
-  }
+  
 
-  #income .income-recent.qp-mobile-recent-stack .income-recent-page-indicator{
-    min-width:40px !important;
-    font-size:11px !important;
-  }
+  
 
   #income .income-recent.qp-mobile-recent-stack.is-collapsed .income-recent-controls{
     margin-bottom:0 !important;
@@ -2284,10 +2261,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     min-width:27px !important;
   }
 
-  #income .income-month-block.qp-mobile-period-row #monthSwitcherName,
-  #income .income-month-block.qp-mobile-period-row > .income-chart-year-switcher span{
-    font-size:13px !important;
-  }
+  
 }
 
 
@@ -2317,18 +2291,11 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     border-top:0 !important;
   }
 
-  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle{
-    justify-content:center !important;
-  }
+  
 
-  #income .income-recent.qp-mobile-recent-stack .income-recent-toggle svg{
-    margin:0 !important;
-  }
+  
 
-  #income .income-recent.qp-mobile-recent-stack .income-recent-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-    gap:8px !important;
-  }
+  
 
   #income .income-recent.qp-mobile-recent-stack .income-recent-card{
     min-height:88px !important;
@@ -2359,15 +2326,9 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     box-shadow:none !important;
   }
 
-  #income .income-recent.qp-mobile-recent-stack .income-recent-page-btn svg{
-    width:12px !important;
-    height:12px !important;
-  }
+  
 
-  #income .income-recent.qp-mobile-recent-stack .income-recent-page-indicator{
-    min-width:28px !important;
-    font-size:10px !important;
-  }
+  
 
   #income #incomeMonthSwitcher,
   #income .income-month-block > .income-chart-year-switcher{
@@ -2389,10 +2350,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 /* Mobile home header stage v17. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   /* Tighten the chart-to-collapse spacing. */
-  #income .income-top > .income-recent.qp-mobile-recent-stack{
-    margin-top:-8px !important;
-    padding-top:0 !important;
-  }
+  
 
   /* Exactly one row with two recent-income cards. */
   #income .income-recent.qp-mobile-recent-stack .income-recent-grid{
@@ -2493,9 +2451,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   }
 
   /* Selected month is a few shades darker than the chosen interface color. */
-  #income #incomeChartSvg .income-chart-bar.selected{
-    fill:color-mix(in srgb,var(--primary) 68%,black 32%) !important;
-  }
+  
 
   /* Month/year labels fill the vertical space of their controls. */
   #income .income-month-block.qp-mobile-period-row #monthSwitcherName,
@@ -2537,10 +2493,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     max-height:104px !important;
   }
 
-  #income .income-top > .income-recent.qp-mobile-recent-stack{
-    margin-top:-4px !important;
-    padding-top:0 !important;
-  }
+  
 
   /* Prevent long-press text selection/copy on the date. */
   #income .income-recent-date{
@@ -2551,30 +2504,12 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   }
 
   /* Reuse the same visual glyphs as mobile History. */
-  #income .income-recent-mobile-edit .history-action-pencil{
-    display:block !important;
-    font-size:18px !important;
-    line-height:1 !important;
-    font-weight:500 !important;
-  }
+  
 
-  #income .income-recent-mobile-delete .history-delete-close{
-    display:block !important;
-    width:18px !important;
-    height:18px !important;
-    fill:none !important;
-    stroke:currentColor !important;
-    stroke-width:2 !important;
-    stroke-linecap:round !important;
-    stroke-linejoin:round !important;
-  }
+  
 
   /* Samsung Browser: make the active month unmistakably darker without relying on color-mix. */
-  #income #incomeChartSvg .income-chart-bar.selected{
-    fill:var(--primary) !important;
-    filter:brightness(.62) saturate(1.08) !important;
-    opacity:1 !important;
-  }
+  
 }
 
 
@@ -2994,9 +2929,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     padding-bottom:calc(82px + env(safe-area-inset-bottom)) !important;
   }
 
-  body .add-income-btn{
-    bottom:max(8px,env(safe-area-inset-bottom)) !important;
-  }
+  
 
   #income .income-recent.is-history-open .income-recent-grid,
   #income .income-recent.is-history-open .income-recent-pager{
