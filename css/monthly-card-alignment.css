@@ -3038,12 +3038,12 @@
 
 /* Mobile category topline + summary swap v47. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  /* Swap previous-month comparison and average-day cards. */
+  /* Keep the mobile summary first; place the month graph directly below it. */
   #incomeAnalytics.is-monthly .monthly-summary-cards{
     grid-template-areas:
-      "hero hero"
       "best growth"
       "best average"
+      "hero hero"
       "year year" !important;
   }
 
