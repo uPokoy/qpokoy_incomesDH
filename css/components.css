@@ -4960,3 +4960,51 @@ body:not(.dark) .income-report-custom-range input{
     }
   }
 }
+
+
+/* Desktop year label hard lock v19: keep 2026 as plain text, never as a switcher control. */
+@media (hover:hover) and (pointer:fine){
+  #income .income-chart-year-bottom{
+    pointer-events:none !important;
+  }
+
+  #income .income-chart-year-bottom > .income-chart-year-switcher{
+    display:block !important;
+    width:auto !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    outline:0 !important;
+    grid-template-columns:none !important;
+  }
+
+  #income .income-chart-year-bottom > .income-chart-year-switcher > button{
+    display:none !important;
+  }
+
+  #income .income-chart-year-bottom > .income-chart-year-switcher > #incomeChartYear{
+    display:inline !important;
+    width:auto !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    color:var(--text-muted) !important;
+    font:inherit !important;
+    font-size:14px !important;
+    font-weight:600 !important;
+    line-height:1.2 !important;
+    cursor:default !important;
+  }
+}
