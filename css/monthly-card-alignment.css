@@ -2887,10 +2887,15 @@
 }
 
 
-/* Mobile best-category amount nudge v48. */
+/* Mobile best-category amount: align exactly like the best-month amount. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > b{
-    transform:translate(-15px,10px) !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:9px 0 0 !important;
+    overflow:visible !important;
+    text-align:center !important;
+    transform:translate(0,10px) !important;
   }
 }
 
