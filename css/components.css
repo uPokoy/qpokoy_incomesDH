@@ -824,10 +824,12 @@ main{
   background:color-mix(in srgb,var(--primary) 9%,transparent);
   pointer-events:none;
 }
-#incomeAnalytics .analytics-card:hover{
-  transform:translateY(-2px);
-  border-color:color-mix(in srgb,var(--primary) 45%,var(--border));
-  background:color-mix(in srgb,var(--panel-muted) 88%,var(--primary));
+@media (hover:hover) and (pointer:fine){
+  #incomeAnalytics .analytics-card:hover{
+    transform:translateY(-2px);
+    border-color:color-mix(in srgb,var(--primary) 45%,var(--border));
+    background:color-mix(in srgb,var(--panel-muted) 88%,var(--primary));
+  }
 }
 #incomeAnalytics .analytics-card-icon{
   position:relative;
