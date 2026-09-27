@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.24");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.24");
-@import url("./oauth-brand.css?v=dev-2026.09.27.24");
+@import url("./mobile-base.css?v=dev-2026.09.27.25");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.25");
+@import url("./oauth-brand.css?v=dev-2026.09.27.25");
 
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3413,10 +3413,11 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     display:none !important;
   }
 
-  /* With the bottom navigation removed, keep + low in the bottom-right corner without covering the gesture area. */
+  /* With the bottom navigation removed, anchor + to the visible viewport itself.
+     Do not use safe-area inset here: Samsung Browser was keeping it visually too high. */
   body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn,
   body .add-income-btn{
     right:12px !important;
-    bottom:max(2px,env(safe-area-inset-bottom)) !important;
+    bottom:8px !important;
   }
 }
