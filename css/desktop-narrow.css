@@ -328,26 +328,26 @@
 
 
 
-/* Desktop site header period controls v22: Month / Year +30%. */
+/* Desktop site header period controls v23: reduced 15% from v22. */
 @media (hover:hover) and (pointer:fine){
   #income #incomeMonthSwitcher,
   #income .income-chart-year-bottom > .income-chart-year-switcher{
-    grid-template-columns:39px minmax(94px,auto) 39px !important;
-    min-height:44px !important;
-    border-radius:13px !important;
+    grid-template-columns:33px minmax(80px,auto) 33px !important;
+    min-height:37px !important;
+    border-radius:11px !important;
   }
 
   #income #incomeMonthSwitcher > button,
   #income .income-chart-year-bottom > .income-chart-year-switcher > button{
-    width:39px !important;
-    height:39px !important;
-    border-radius:10px !important;
-    font-size:29px !important;
+    width:33px !important;
+    height:33px !important;
+    border-radius:9px !important;
+    font-size:25px !important;
   }
 
   #income #monthSwitcherName,
   #income .income-chart-year-bottom > .income-chart-year-switcher > span{
-    padding:0 5px !important;
-    font-size:18px !important;
+    padding:0 4px !important;
+    font-size:15px !important;
   }
 }
