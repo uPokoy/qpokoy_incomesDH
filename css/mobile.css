@@ -3197,3 +3197,14 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     box-sizing:border-box !important;
   }
 }
+
+
+/* DEV54 diagnostic: iPhone only. Replace only the standard body's layered
+   background with its base color; decorative pseudo layers remain unchanged. */
+@supports (-webkit-touch-callout:none){
+  @media (pointer:coarse){
+    html[data-theme="dark"] body.qp-bg-standard{
+      background:#070c14 !important;
+    }
+  }
+}
