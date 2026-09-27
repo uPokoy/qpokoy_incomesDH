@@ -282,7 +282,6 @@
   }
 }
 
-
 /* Desktop analytics Year label v20: only the Month/Year block shows plain year text. */
 @media (hover:hover) and (pointer:fine){
   #incomeAnalytics:not(.is-monthly) .analytics-mode-period .analytics-year-switcher{
@@ -328,20 +327,27 @@
 }
 
 
-/* Desktop analytics header tabs v21: Month / Year controls +30%. */
+
+/* Desktop site header period controls v22: Month / Year +30%. */
 @media (hover:hover) and (pointer:fine){
-  #incomeAnalytics .analytics-mode-row .analytics-mode-tabs{
-    width:286px !important;
-    max-width:286px !important;
-    padding:4px !important;
-    border-radius:14px !important;
+  #income #incomeMonthSwitcher,
+  #income .income-chart-year-bottom > .income-chart-year-switcher{
+    grid-template-columns:39px minmax(94px,auto) 39px !important;
+    min-height:44px !important;
+    border-radius:13px !important;
   }
 
-  #incomeAnalytics .analytics-mode-row .analytics-mode-tab{
-    height:44px !important;
-    min-height:44px !important;
-    padding:0 21px !important;
+  #income #incomeMonthSwitcher > button,
+  #income .income-chart-year-bottom > .income-chart-year-switcher > button{
+    width:39px !important;
+    height:39px !important;
     border-radius:10px !important;
-    font-size:17px !important;
+    font-size:29px !important;
+  }
+
+  #income #monthSwitcherName,
+  #income .income-chart-year-bottom > .income-chart-year-switcher > span{
+    padding:0 5px !important;
+    font-size:18px !important;
   }
 }
