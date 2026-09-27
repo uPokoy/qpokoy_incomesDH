@@ -3467,9 +3467,10 @@ body.qp-auth-locked #income .income-recent-pager{
     box-shadow:none;
   }
 
-  #income .income-recent-history-panel .income-list{
-    max-height:calc(100vh - 260px);
-    overflow:auto;
+  #income .income-recent-history-panel #history .income-list{
+    max-height:calc(100vh - 260px) !important;
+    height:auto !important;
+    overflow:auto !important;
     border:1px solid var(--border);
     border-radius:14px;
     background:var(--panel);
