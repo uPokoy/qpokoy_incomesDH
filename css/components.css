@@ -4896,12 +4896,17 @@ body:not(.dark) .income-report-custom-range input{
   }
 
   #qpAuthGate .qp-auth-message{
-    min-height:20px;
-    margin:13px 0 0;
+    display:none;
+    min-height:0;
+    margin:12px 0 10px;
     padding:0;
     font-size:13px;
     line-height:19px;
     color:#64748b;
+  }
+
+  #qpAuthGate .qp-auth-message:not(:empty){
+    display:block;
   }
 
   #qpAuthGate .qp-auth-message.success{
@@ -4909,9 +4914,10 @@ body:not(.dark) .income-report-custom-range input{
     align-items:flex-start;
     gap:8px;
     padding:11px 12px;
+    border:1px solid rgba(74,222,128,.28);
     border-radius:11px;
-    background:#ecfdf3;
-    color:#166534;
+    background:rgba(22,101,52,.18);
+    color:#86efac;
     font-weight:500;
   }
 
@@ -4933,6 +4939,8 @@ body:not(.dark) .income-report-custom-range input{
   }
 
   html[data-theme="dark"] #qpAuthGate .qp-auth-message.success{
+    border-color:rgba(74,222,128,.28);
+    background:rgba(22,101,52,.18);
     color:#86efac;
   }
 
