@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.25");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.25");
-@import url("./oauth-brand.css?v=dev-2026.09.27.25");
+@import url("./mobile-base.css?v=dev-2026.09.27.26");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.26");
+@import url("./oauth-brand.css?v=dev-2026.09.27.26");
 
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -11,7 +11,7 @@
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{bottom:calc(18px + env(safe-area-inset-bottom)) !important;background:color-mix(in srgb,var(--panel) 32%,transparent) !important;border-color:color-mix(in srgb,var(--border) 38%,rgba(255,255,255,.13)) !important;box-shadow:0 6px 16px rgba(0,0,0,.16),0 0 0 1px rgba(255,255,255,.010),inset 0 1px 0 rgba(255,255,255,.040),inset 0 -1px 0 rgba(255,255,255,.009) !important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
   .app:has(.sidebar.qp-bottom-nav-ready) .content{padding-bottom:calc(103px + env(safe-area-inset-bottom)) !important;}
-  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn{bottom:calc(96px + env(safe-area-inset-bottom)) !important;}
+  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn{bottom:max(8px,env(safe-area-inset-bottom)) !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item,.sidebar.qp-bottom-nav-ready .nav-icon,.sidebar.qp-bottom-nav-ready .nav-label{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
   .sidebar.qp-bottom-nav-ready > .nav-item:active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
   .sidebar.qp-bottom-nav-ready > .nav-item:focus:not(:focus-visible){outline:none;}
@@ -825,7 +825,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   body .add-income-btn{
     position:fixed !important;
     right:16px !important;
-    bottom:calc(98px + env(safe-area-inset-bottom)) !important;
+    bottom:max(8px,env(safe-area-inset-bottom)) !important;
     z-index:1100 !important;
     width:50px !important;
     min-width:50px !important;
@@ -1631,7 +1631,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
   body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn{
     right:16px !important;
-    bottom:calc(94px + env(safe-area-inset-bottom)) !important;
+    bottom:max(8px,env(safe-area-inset-bottom)) !important;
   }
 
   /* Development marker is not part of the mobile product UI. */
@@ -3245,7 +3245,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
   body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn,
   body .add-income-btn{
-    bottom:calc(18px + env(safe-area-inset-bottom)) !important;
+    bottom:max(8px,env(safe-area-inset-bottom)) !important;
   }
 
   #income .income-recent.is-history-open .income-recent-grid,
@@ -3413,11 +3413,11 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     display:none !important;
   }
 
-  /* With the bottom navigation removed, anchor + to the visible viewport itself.
-     Do not use safe-area inset here: Samsung Browser was keeping it visually too high. */
+  /* With the bottom navigation removed, anchor + low in the visible viewport.
+     Keep a small visual gap while respecting devices with a real bottom safe area. */
   body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn,
   body .add-income-btn{
     right:12px !important;
-    bottom:8px !important;
+    bottom:max(8px,env(safe-area-inset-bottom)) !important;
   }
 }
