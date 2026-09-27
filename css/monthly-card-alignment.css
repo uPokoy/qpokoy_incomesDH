@@ -4994,9 +4994,28 @@
 
   #incomeAnalytics.is-settings-open #settings .qp-settings-tabs{
     width:calc(100% - 54px) !important;
+    height:44px !important;
     min-height:44px !important;
+    max-height:44px !important;
     margin:0 54px 10px 0 !important;
+    padding:3px !important;
     box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics.is-settings-open #settings .qp-settings-tab{
+    height:36px !important;
+    min-height:36px !important;
+    max-height:36px !important;
+    padding:0 4px !important;
+    gap:3px !important;
+    font-size:9px !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics.is-settings-open #settings .qp-settings-tab svg{
+    width:14px !important;
+    min-width:14px !important;
+    height:14px !important;
   }
 
   #incomeAnalytics.is-settings-open #settings > .settings-card{
