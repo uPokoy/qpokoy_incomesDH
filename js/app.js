@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.27.31';
+const qPokoyDevVersion='dev-2026.09.27.32';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -73,13 +73,7 @@ navItems.forEach(item=>item.addEventListener('click',()=>{
   // Ручное переключение периода работает до ухода с вкладки.
   if(item.dataset.page==='income'){
     const now=new Date();
-    const period={month:now.getMonth(),year:now.getFullYear()};
-    localStorage.setItem('incomeSelectedPeriod',JSON.stringify(period));
-    const names=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-    const caption=document.getElementById('incomeMonthCaption');
-    const switcherName=document.getElementById('monthSwitcherName');
-    if(caption)caption.textContent=names[period.month];
-    if(switcherName)switcherName.textContent=names[period.month];
+    setSelectedIncomePeriod(now.getMonth(),now.getFullYear());
     deferIncomeRender();
   }
 
@@ -832,6 +826,10 @@ incomeRecentGrid?.addEventListener('contextmenu',e=>{
   if(window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches&&e.target.closest('.income-recent-card'))e.preventDefault();
 });
 
+function notifyIncomeDataRendered(){
+  window.dispatchEvent(new CustomEvent('qpokoy:income-data-rendered'));
+}
+
 window.renderIncomes=function renderIncomes(filteredData=null){
   clearHistoryNativeSwipeState();
   const latest=IncomeStore.load();
@@ -865,6 +863,7 @@ window.renderIncomes=function renderIncomes(filteredData=null){
     incomeList.innerHTML=header+'<div class="income-empty">Пока нет доходов</div>';
     if(typeof window.renderIncomeMonthChart==='function') window.renderIncomeMonthChart();
     if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
+    notifyIncomeDataRendered();
     return;
   }
 
@@ -893,6 +892,7 @@ window.renderIncomes=function renderIncomes(filteredData=null){
     }).join('');
   if(typeof window.renderIncomeMonthChart==='function') window.renderIncomeMonthChart();
   if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
+  notifyIncomeDataRendered();
 }
 
 function calculateIncomeAnalytics(year){
@@ -1180,12 +1180,16 @@ function setSelectedIncomePeriod(month,year){
   if(!Number.isInteger(m)||m<0||m>11) m=current.month;
   if(!Number.isInteger(y)||y<1970||y>9999) y=current.year;
   const period={month:m,year:y};
+  const changed=period.month!==current.month||period.year!==current.year;
   localStorage.setItem(INCOME_PERIOD_KEY,JSON.stringify(period));
   const names=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   const caption=document.getElementById('incomeMonthCaption');
   const switcherName=document.getElementById('monthSwitcherName');
   if(caption) caption.textContent=names[m];
   if(switcherName) switcherName.textContent=names[m];
+  if(changed){
+    window.dispatchEvent(new CustomEvent('qpokoy:income-period-change',{detail:{period:{...period}}}));
+  }
   return period;
 }
 function changeSelectedIncomeMonth(delta){
@@ -1198,7 +1202,15 @@ function changeSelectedIncomeMonth(delta){
   setSelectedIncomePeriod(month,year);
   if(typeof window.renderIncomes==='function') window.renderIncomes();
 }
+function changeSelectedIncomeYear(delta){
+  const current=getSelectedIncomePeriod();
+  const year=Math.max(1970,Math.min(9999,current.year+Number(delta||0)));
+  setSelectedIncomePeriod(current.month,year);
+  if(typeof window.renderIncomes==='function') window.renderIncomes();
+}
+window.qPokoyGetSelectedIncomePeriod=()=>({...getSelectedIncomePeriod()});
 window.qPokoyChangeSelectedIncomeMonth=changeSelectedIncomeMonth;
+window.qPokoyChangeSelectedIncomeYear=changeSelectedIncomeYear;
 
 
 (function(){
@@ -1743,16 +1755,8 @@ document.addEventListener('mouseup',()=>{
   }
   const yearPrev=document.getElementById('chartYearPrev');
   const yearNext=document.getElementById('chartYearNext');
-  const getYear=()=>getSelectedIncomePeriod().year;
-  const setYear=(y)=>{
-    y=Math.max(1970,Math.min(9999,Number(y)));
-    const period=getSelectedIncomePeriod();
-    setSelectedIncomePeriod(period.month,y);
-    draw();
-    if(typeof window.renderIncomes==='function') window.renderIncomes();
-  };
-  if(yearPrev&&!yearPrev.__bound){yearPrev.addEventListener('click',()=>setYear(getYear()-1));yearPrev.__bound=true;}
-  if(yearNext&&!yearNext.__bound){yearNext.addEventListener('click',()=>setYear(getYear()+1));yearNext.__bound=true;}
+  if(yearPrev&&!yearPrev.__bound){yearPrev.addEventListener('click',()=>changeSelectedIncomeYear(-1));yearPrev.__bound=true;}
+  if(yearNext&&!yearNext.__bound){yearNext.addEventListener('click',()=>changeSelectedIncomeYear(1));yearNext.__bound=true;}
   window.renderIncomeMonthChart=draw;
   draw();
   window.addEventListener('storage',draw);

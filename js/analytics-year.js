@@ -1,4 +1,3 @@
-
 (function(){
   const label=document.getElementById('analyticsYearControl');
   const prev=document.getElementById('analyticsYearPrev');
@@ -6,22 +5,30 @@
   const sourceYear=document.getElementById('incomeChartYear');
   if(!label||!prev||!next)return;
 
-  function sync(){
-    const value=sourceYear?.textContent?.trim();
-    if(value) label.textContent=value;
+  function readYear(){
+    try{
+      const period=window.qPokoyGetSelectedIncomePeriod?.();
+      if(Number.isInteger(period?.year))return period.year;
+    }catch(e){}
+    const fallback=Number(sourceYear?.textContent);
+    return Number.isInteger(fallback)?fallback:new Date().getFullYear();
   }
-  function forward(id){
-    const button=document.getElementById(id);
-    if(!button)return;
-    button.click();
-    setTimeout(sync,0);
+  function sync(event){
+    const eventYear=Number(event?.detail?.period?.year);
+    label.textContent=String(Number.isInteger(eventYear)?eventYear:readYear());
+  }
+  function changeYear(delta){
+    if(typeof window.qPokoyChangeSelectedIncomeYear==='function'){
+      window.qPokoyChangeSelectedIncomeYear(delta);
+      return;
+    }
+    const button=document.getElementById(delta<0?'chartYearPrev':'chartYearNext');
+    if(button)button.click();
+    sync();
   }
 
-  prev.addEventListener('click',()=>forward('chartYearPrev'));
-  next.addEventListener('click',()=>forward('chartYearNext'));
+  prev.addEventListener('click',()=>changeYear(-1));
+  next.addEventListener('click',()=>changeYear(1));
+  window.addEventListener('qpokoy:income-period-change',sync);
   sync();
-
-  if(sourceYear && window.MutationObserver){
-    new MutationObserver(sync).observe(sourceYear,{childList:true,characterData:true,subtree:true});
-  }
 })();

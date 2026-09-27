@@ -29,10 +29,21 @@
 
   function readPeriod(){
     try{
+      if(typeof window.qPokoyGetSelectedIncomePeriod==='function'){
+        const period=window.qPokoyGetSelectedIncomePeriod();
+        if(Number.isInteger(period?.month)&&period.month>=0&&period.month<12&&
+           Number.isInteger(period?.year)&&period.year>=1970&&period.year<=9999){
+          return {month:period.month,year:period.year};
+        }
+      }
+    }catch(e){}
+    // Fallback is only for isolated/partial loading where app.js is unavailable.
+    try{
       const raw=localStorage.getItem('incomeSelectedPeriod');
       if(raw){
         const parsed=JSON.parse(raw);
-        if(Number.isInteger(parsed.month)&&parsed.month>=0&&parsed.month<12&&Number.isInteger(parsed.year)){
+        if(Number.isInteger(parsed.month)&&parsed.month>=0&&parsed.month<12&&
+           Number.isInteger(parsed.year)&&parsed.year>=1970&&parsed.year<=9999){
           return {month:parsed.month,year:parsed.year};
         }
       }
@@ -489,16 +500,9 @@
     });
   }
 
-  ['monthSwitcherName','incomeChartYear','incomeTotal'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el&&window.MutationObserver){
-      new MutationObserver(scheduleRender).observe(el,{childList:true,characterData:true,subtree:true});
-    }
-  });
-  const list=document.getElementById('incomeList');
-  if(list&&window.MutationObserver){
-    new MutationObserver(scheduleRender).observe(list,{childList:true,subtree:true});
-  }
+  window.addEventListener('qpokoy:income-period-change',scheduleRender);
+  window.addEventListener('qpokoy:income-data-rendered',scheduleRender);
+  window.qPokoyRenderMonthlyAnalytics=scheduleRender;
 
   setMode('month',false);
   render();
