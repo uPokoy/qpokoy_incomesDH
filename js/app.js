@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.27.37';
+const qPokoyDevVersion='dev-2026.09.27.38';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -507,10 +507,20 @@ function resetForm(){
   categoryOptions.forEach(o=>o.classList.remove('selected'));
   formTitle.textContent='Новый доход';
   saveBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg>';
-  cancelBtn.style.display='inline-flex';
 }
 
-const historyEditHost=document.getElementById('history');
+function prepareIncomeEditor(income){
+  editingIncomeId=income.id;
+  incomeDate.value=formatDateShort(income.date||'');
+  incomeAmount.value=income.amount??'';
+  incomeDescription.value=income.description||'';
+  incomeCategory.value=income.category||'';
+  categoryValue.textContent=income.category||'Выберите категорию';
+  categoryOptions.forEach(o=>o.classList.toggle('selected',o.dataset.value===income.category));
+  formTitle.textContent='Редактировать доход';
+  saveBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg>';
+}
+
 const incomeFormHome=incomeForm.parentElement;
 const incomeFormHomeNext=incomeForm.nextSibling;
 
@@ -531,16 +541,7 @@ function openHistoryEdit(id){
   const income=incomes.find(item=>String(item.id)===String(id));
   if(!income)return;
 
-  editingIncomeId=income.id;
-  incomeDate.value=formatDateShort(income.date||'');
-  incomeAmount.value=income.amount??'';
-  incomeDescription.value=income.description||'';
-  incomeCategory.value=income.category||'';
-  categoryValue.textContent=income.category||'Выберите категорию';
-  categoryOptions.forEach(o=>o.classList.toggle('selected',o.dataset.value===income.category));
-  formTitle.textContent='Редактировать доход';
-  saveBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg>';
-  cancelBtn.style.display='inline-flex';
+  prepareIncomeEditor(income);
 
   // Перемещаем существующую форму добавления в Историю.
   // Благодаря этому внешний вид, календарь, категории и кнопки полностью
@@ -560,16 +561,7 @@ function openRecentIncomeEdit(id){
   if(!income)return;
 
   restoreIncomeFormHome();
-  editingIncomeId=income.id;
-  incomeDate.value=formatDateShort(income.date||'');
-  incomeAmount.value=income.amount??'';
-  incomeDescription.value=income.description||'';
-  incomeCategory.value=income.category||'';
-  categoryValue.textContent=income.category||'Выберите категорию';
-  categoryOptions.forEach(o=>o.classList.toggle('selected',o.dataset.value===income.category));
-  formTitle.textContent='Редактировать доход';
-  saveBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg>';
-  cancelBtn.style.display='inline-flex';
+  prepareIncomeEditor(income);
   incomeForm.hidden=false;
   requestAnimationFrame(()=>{
     setTimeout(()=>incomeForm.scrollIntoView({behavior:'smooth',block:'center'}),50);

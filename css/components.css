@@ -601,46 +601,10 @@ main{
   border-bottom:0 !important;
 }
 
-.history-edit-panel{margin:12px 0 16px;padding:18px;border:1px solid var(--border);border-radius:14px;background:var(--panel);box-shadow:var(--shadow-sm)}
-.history-edit-panel-title{font-weight:700;margin-bottom:14px}
-.history-edit-grid{display:grid;grid-template-columns:120px 140px 190px minmax(180px,1fr);gap:12px;align-items:end}
-.history-edit-grid label{display:grid;gap:6px;font-size:12px;color:var(--muted)}
-.history-edit-grid input,.history-edit-grid select{box-sizing:border-box;width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text)}
-.history-edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
-.history-edit-actions button{padding:9px 14px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text);cursor:pointer}
-@media(max-width:800px ) and (pointer:coarse){.history-edit-grid{grid-template-columns:1fr 1fr}}
-
 #history > .income-form{position:relative;z-index:100002 !important;overflow:visible}
 #history > .income-form .calendar-popup{z-index:1200}
-#history > .income-form .calendar-btn{display:grid;place-items:center}
-#history > .income-form .calendar-btn svg{display:block;width:19px;height:19px}
-#history > .income-form .cancel-btn{display:grid;place-items:center;z-index:20}
-#history > .income-form .cancel-btn svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+#history > .income-form .cancel-btn{z-index:20}
 #history > .income-form .save-btn{display:grid;place-items:center;z-index:20}
-#history > .income-form .save-btn svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
-#history .income-form .close-form,
-#history .income-form .form-close,
-#history .income-form .close-btn,
-#history .income-form button[aria-label="Закрыть"]{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  box-sizing:border-box !important;
-  line-height:0 !important;
-  text-align:center !important;
-  padding:0 !important;
-}
-#history .income-form .close-form svg,
-#history .income-form .form-close svg,
-#history .income-form .close-btn svg,
-#history .income-form button[aria-label="Закрыть"] svg{
-  display:block !important;
-  width:18px !important;
-  height:18px !important;
-  margin:0 !important;
-  transform:none !important;
-}
 
 /* Точная геометрия кнопки закрытия формы */
 .income-form .cancel-btn{
