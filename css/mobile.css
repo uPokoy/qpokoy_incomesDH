@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.33");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.33");
-@import url("./oauth-brand.css?v=dev-2026.09.27.33");
+@import url("./mobile-base.css?v=dev-2026.09.27.34");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.34");
+@import url("./oauth-brand.css?v=dev-2026.09.27.34");
 
 /* Mobile touch feedback: suppress Samsung/Chromium tap overlay without changing click handlers. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
@@ -984,13 +984,6 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
 /* Mobile history refresh after PC finalization. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  #history.page.active{
-    display:block !important;
-    width:100% !important;
-    min-width:0 !important;
-    padding:0 0 12px !important;
-  }
-
   #history #historySearchWrap{
     position:relative !important;
     width:100% !important;

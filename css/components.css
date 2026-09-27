@@ -535,15 +535,6 @@ main{
   border-radius:50% !important;
 }
 
-/* History: remove the artificial viewport on the income list. */
-#history .income-list,
-#history #incomeList{
-  max-height:none !important;
-  height:auto !important;
-  overflow-y:visible !important;
-  overflow-x:visible !important;
-}
-
 /* History table header — actual rendered element is .income-row.income-header. */
 #incomeList > .income-row.income-header{
   background:transparent !important;
@@ -3467,10 +3458,9 @@ body.qp-auth-locked #income .income-recent-pager{
     box-shadow:none;
   }
 
-  #income .income-recent-history-panel #history .income-list{
-    max-height:calc(100vh - 260px) !important;
-    height:auto !important;
-    overflow:auto !important;
+  #income .income-recent-history-panel .income-list{
+    max-height:calc(100vh - 260px);
+    overflow:auto;
     border:1px solid var(--border);
     border-radius:14px;
     background:var(--panel);

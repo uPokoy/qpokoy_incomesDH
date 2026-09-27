@@ -702,17 +702,9 @@ body:has(#incomeForm:not([hidden])) .add-income-btn{
   line-height:1.1 !important;
 }
 
-/* Десктоп: делаем нижний визуальный зазор у всех вкладок таким же,
-   как на Главной. На Главной последний блок .income-analytics уже имеет
-   margin-bottom:24px, поэтому приводим Историю и Настройки к тем же 24px. */
+/* Настройки: последний .settings-card уже имеет margin-bottom:16px.
+   Оставляем ещё 8px padding снизу: 16px + 8px = те же 24px, что на Главной. */
 @media (min-width:561px){
-  /* История: собственного нижнего зазора не было. */
-  #history.page.active{
-    padding-bottom:24px !important;
-  }
-
-  /* Настройки: последний .settings-card уже имеет margin-bottom:16px.
-     Оставляем ещё 8px padding снизу: 16px + 8px = те же 24px, что на Главной. */
   #settings.page.active{
     padding-bottom:8px !important;
   }
