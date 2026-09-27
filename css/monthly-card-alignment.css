@@ -1084,10 +1084,7 @@
     width:21px !important;
     height:21px !important;
   }
-  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-body{
-    display:contents !important;
-  }
-  #incomeAnalytics:not(.is-monthly) .analytics-category-panel-name,
+    #incomeAnalytics:not(.is-monthly) .analytics-category-panel-name,
   #incomeAnalytics.is-monthly .monthly-category-name{
     grid-column:2 !important;
     grid-row:1 !important;
@@ -1940,10 +1937,7 @@
   }
 
   /* Best-category share belongs in the card corner. */
-  #incomeAnalytics.is-monthly .monthly-summary-best{
-    position:relative !important;
-  }
-
+  
   #incomeAnalytics.is-monthly .monthly-summary-best .monthly-best-share{
     position:absolute !important;
     z-index:5 !important;
@@ -2063,10 +2057,7 @@
   }
 
   /* Remove the annual income-dynamics card from mobile. */
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth{
-    display:none !important;
-  }
-
+  
   /* Annual category cards: exactly the same base fill as recent-income cards. */
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel,
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel:hover,

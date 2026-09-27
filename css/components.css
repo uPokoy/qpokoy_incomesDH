@@ -3651,11 +3651,7 @@ body.qp-auth-locked #income .income-recent-pager{
   }
 
   /* The bottom-navigation appearance option is irrelevant in the desktop inline panel. */
-  #incomeAnalytics .analytics-settings-host .nav-label-mode-title,
-  #incomeAnalytics .analytics-settings-host .nav-label-mode-options{
-    display:none !important;
-  }
-
+  
   #incomeAnalytics.is-settings-open .analytics-mode-row{
     margin-bottom:14px !important;
   }
