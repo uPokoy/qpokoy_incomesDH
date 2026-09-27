@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.27.43';
+const qPokoyDevVersion='dev-2026.09.27.44';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -1572,7 +1572,6 @@ document.addEventListener('mouseup',()=>{
   function values(type){
     const all=read();
     if(type==='date'){
-      const ys=[...new Set(all.map(x=>parts(x.date)?.year).filter(Boolean))].sort((a,b)=>b-a);
       return [['date-desc','Сначала новые'],['date-asc','Сначала старые']];
     }
     if(type==='month')return [['all','Все месяцы'],...months.map((m,i)=>[String(i+1),m])];

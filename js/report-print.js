@@ -141,17 +141,6 @@
     return {records:filtered,label:label,period:period,range:range};
   }
 
-  function categoryRows(records,total){
-    const map=new Map();
-    records.forEach(function(item){
-      map.set(item.category,(map.get(item.category)||0)+item.amount);
-    });
-    return Array.from(map.entries()).sort(function(a,b){return b[1]-a[1];}).map(function(entry){
-      const share=total>0?Math.round(entry[1]/total*100):0;
-      return '<tr><td>'+escapeHtml(entry[0])+'</td><td class="number">'+escapeHtml(money(entry[1]))+'</td><td class="number">'+share+'%</td></tr>';
-    }).join('');
-  }
-
   function incomeRows(records){
     return records.map(function(item){
       return '<tr>'+
@@ -283,16 +272,6 @@
     const reportUrl=URL.createObjectURL(new Blob([buildReportHtml(report,mode,period,range)],{type:'text/html;charset=utf-8'}));
     window.open(reportUrl,'_blank','noopener');
     setTimeout(function(){URL.revokeObjectURL(reportUrl);},60000);
-  }
-
-  function reportYears(){
-    const years=new Set();
-    readRecords().forEach(function(item){
-      const date=parseDate(item&&item.date);
-      if(date)years.add(date.getFullYear());
-    });
-    years.add(readSelectedPeriod().year);
-    return Array.from(years).sort(function(a,b){return b-a;});
   }
 
   function reportCategories(){
