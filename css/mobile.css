@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.10");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.10");
-@import url("./oauth-brand.css?v=dev-2026.09.27.10");
+@import url("./mobile-base.css?v=dev-2026.09.27.11");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.11");
+@import url("./oauth-brand.css?v=dev-2026.09.27.11");
 
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -1865,7 +1865,33 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   }
 
   #settings .qp-category-list{
+    max-height:359px !important;
     gap:7px !important;
+    padding-right:4px !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    scrollbar-gutter:stable !important;
+    scrollbar-width:thin !important;
+    scrollbar-color:color-mix(in srgb,var(--text-muted) 48%,transparent) transparent !important;
+  }
+
+  #settings .qp-category-list::-webkit-scrollbar{
+    width:6px;
+  }
+
+  #settings .qp-category-list::-webkit-scrollbar-track{
+    background:transparent;
+  }
+
+  #settings .qp-category-list::-webkit-scrollbar-thumb{
+    border-radius:999px;
+    background:color-mix(in srgb,var(--text-muted) 48%,transparent);
+  }
+
+  #settings .qp-category-list::-webkit-scrollbar-button{
+    display:none;
+    width:0;
+    height:0;
   }
 
   #settings .qp-category-item{
