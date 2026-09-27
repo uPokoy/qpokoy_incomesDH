@@ -4925,3 +4925,15 @@ body:not(.dark) .income-report-custom-range input{
   font:inherit;
   cursor:pointer;
 }
+
+/* Shared notice dialog: available on desktop and mobile. */
+.qp-notice-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.34);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.qp-notice-dialog{width:min(460px,calc(100vw - 32px));box-sizing:border-box;padding:24px;border:1px solid var(--qp-border,#d7dde7);border-radius:18px;background:var(--qp-surface-strong,#fff);color:var(--qp-text,#172033);box-shadow:0 24px 70px rgba(15,23,42,.22);}
+.qp-notice-title{margin:0 0 8px;font-size:17px;line-height:24px;font-weight:700;}
+.qp-notice-message{margin:0;color:var(--qp-muted,#64748b);font-size:14px;line-height:21px;white-space:pre-wrap;overflow-wrap:anywhere;}
+.qp-notice-actions{display:flex;justify-content:flex-end;margin-top:20px;}
+.qp-notice-btn{min-width:96px;height:38px;padding:0 18px;border:1px solid var(--qp-border,#d7dde7);border-radius:10px;background:var(--qp-surface,#fff);color:var(--qp-text,#172033);font:inherit;cursor:pointer;}
+.qp-notice-btn:hover{background:rgba(100,116,139,.10);}
+.qp-notice-dialog[data-type="error"]{border-color:rgba(239,68,68,.35);}
+html[data-theme="dark"] .qp-notice-overlay{background:rgba(0,0,0,.52);}
+
