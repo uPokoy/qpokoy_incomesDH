@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.27.13';
+const qPokoyDevVersion='dev-2026.09.27.14';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -130,6 +130,10 @@ const incomeRecentHistoryPanel=document.getElementById('incomeRecentHistoryPanel
 const historyPage=document.getElementById('history');
 const historySearchWrap=document.getElementById('historySearchWrap');
 const incomeTableSection=document.getElementById('incomeTableSection');
+const mobileInlineHistoryMedia=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+const historyHomeParent=historyPage?.parentNode||null;
+const historyHomeAnchor=historyPage&&historyHomeParent?document.createComment('qPokoy-history-home'):null;
+if(historyHomeAnchor)historyHomeParent.insertBefore(historyHomeAnchor,historyPage);
 
 function syncIncomeRecentBody(){
   if(!incomeRecent||!incomeRecentHistoryPanel)return;
@@ -139,11 +143,18 @@ function syncIncomeRecentBody(){
   if(historyOpen){
     incomeRecentHistoryPanel.hidden=collapsed;
     if(!collapsed){
-      if(historySearchWrap&&historySearchWrap.parentElement!==incomeRecentHistoryPanel){
-        incomeRecentHistoryPanel.appendChild(historySearchWrap);
-      }
-      if(incomeTableSection&&incomeTableSection.parentElement!==incomeRecentHistoryPanel){
-        incomeRecentHistoryPanel.appendChild(incomeTableSection);
+      if(mobileInlineHistoryMedia.matches){
+        if(historyPage&&historyPage.parentElement!==incomeRecentHistoryPanel){
+          incomeRecentHistoryPanel.appendChild(historyPage);
+        }
+        historyPage?.classList.add('income-recent-inline-history');
+      }else{
+        if(historySearchWrap&&historySearchWrap.parentElement!==incomeRecentHistoryPanel){
+          incomeRecentHistoryPanel.appendChild(historySearchWrap);
+        }
+        if(incomeTableSection&&incomeTableSection.parentElement!==incomeRecentHistoryPanel){
+          incomeRecentHistoryPanel.appendChild(incomeTableSection);
+        }
       }
     }
   }else{
@@ -180,11 +191,18 @@ function setIncomeRecentHistoryOpen(open){
   if(next){
     // Full History must always become visible immediately, even if the recent block was collapsed.
     setIncomeRecentCollapsed(false,true);
-    if(historySearchWrap&&historySearchWrap.parentElement!==incomeRecentHistoryPanel){
-      incomeRecentHistoryPanel.appendChild(historySearchWrap);
-    }
-    if(incomeTableSection&&incomeTableSection.parentElement!==incomeRecentHistoryPanel){
-      incomeRecentHistoryPanel.appendChild(incomeTableSection);
+    if(mobileInlineHistoryMedia.matches){
+      if(historyPage&&historyPage.parentElement!==incomeRecentHistoryPanel){
+        incomeRecentHistoryPanel.appendChild(historyPage);
+      }
+      historyPage?.classList.add('income-recent-inline-history');
+    }else{
+      if(historySearchWrap&&historySearchWrap.parentElement!==incomeRecentHistoryPanel){
+        incomeRecentHistoryPanel.appendChild(historySearchWrap);
+      }
+      if(incomeTableSection&&incomeTableSection.parentElement!==incomeRecentHistoryPanel){
+        incomeRecentHistoryPanel.appendChild(incomeTableSection);
+      }
     }
     incomeRecentHistoryPanel.hidden=false;
     if(typeof window.renderIncomes==='function')window.renderIncomes();
@@ -197,6 +215,10 @@ function setIncomeRecentHistoryOpen(open){
     }
   }else{
     incomeRecentHistoryPanel.hidden=true;
+    historyPage?.classList.remove('income-recent-inline-history');
+    if(historyPage&&historyPage.parentElement===incomeRecentHistoryPanel&&historyHomeAnchor?.parentNode){
+      historyHomeAnchor.parentNode.insertBefore(historyPage,historyHomeAnchor.nextSibling);
+    }
     if(historySearchWrap&&historySearchWrap.parentElement!==historyPage)historyPage.appendChild(historySearchWrap);
     if(incomeTableSection&&incomeTableSection.parentElement!==historyPage)historyPage.appendChild(incomeTableSection);
     syncIncomeRecentBody();
@@ -234,15 +256,6 @@ if(incomeRecentHistory){
   incomeRecentHistory.addEventListener('click',event=>{
     event.preventDefault();
     event.stopPropagation();
-    if(window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches){
-      const historyNav=document.getElementById('historyNavItem');
-      if(historyNav){
-        historyNav.hidden=false;
-        historyNav.removeAttribute('aria-hidden');
-        historyNav.click();
-      }
-      return;
-    }
     setIncomeRecentHistoryOpen(!incomeRecent.classList.contains('is-history-open'));
   });
 }
