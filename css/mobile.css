@@ -10,35 +10,6 @@
   }
 }
 
-@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
-  .sidebar.qp-bottom-nav-ready > .nav-item{z-index:4 !important;}
-  .sidebar.qp-bottom-nav-ready > .nav-item.active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
-  .sidebar.qp-bottom-nav-ready .qp-bottom-nav-indicator{position:absolute;top:50%;left:0;z-index:2;width:88px;height:54px;pointer-events:none;border:1px solid color-mix(in srgb,var(--primary) 25%,rgba(255,255,255,.16));border-radius:27px;background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 8%,rgba(255,255,255,.115)),color-mix(in srgb,var(--primary) 6%,rgba(255,255,255,.065)));box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.10);transform:translate3d(-44px,-50%,0);will-change:transform;}
-}
-@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  .sidebar.qp-bottom-nav-ready{bottom:calc(18px + env(safe-area-inset-bottom)) !important;background:color-mix(in srgb,var(--panel) 32%,transparent) !important;border-color:color-mix(in srgb,var(--border) 38%,rgba(255,255,255,.13)) !important;box-shadow:0 6px 16px rgba(0,0,0,.16),0 0 0 1px rgba(255,255,255,.010),inset 0 1px 0 rgba(255,255,255,.040),inset 0 -1px 0 rgba(255,255,255,.009) !important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
-  .app:has(.sidebar.qp-bottom-nav-ready) .content{padding-bottom:calc(103px + env(safe-area-inset-bottom)) !important;}
-  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn{bottom:max(8px,env(safe-area-inset-bottom)) !important;}
-  .sidebar.qp-bottom-nav-ready > .nav-item,.sidebar.qp-bottom-nav-ready .nav-icon,.sidebar.qp-bottom-nav-ready .nav-label{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
-  .sidebar.qp-bottom-nav-ready > .nav-item:active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
-  .sidebar.qp-bottom-nav-ready > .nav-item:focus:not(:focus-visible){outline:none;}
-}
-@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  .sidebar.qp-bottom-nav-ready{background:color-mix(in srgb,var(--panel) 42%,transparent) !important;-webkit-backdrop-filter:blur(4px) brightness(82%) saturate(108%) !important;backdrop-filter:blur(4px) brightness(82%) saturate(108%) !important;border:1px solid rgba(255,255,255,.07) !important;box-shadow:0 6px 18px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.035) !important;}
-  .sidebar.qp-bottom-nav-ready > .nav-item{border-radius:999px !important;background:color-mix(in srgb,var(--panel) 18%,transparent) !important;border-color:color-mix(in srgb,var(--border) 28%,rgba(255,255,255,.10)) !important;box-shadow:0 2px 7px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.025) !important;}
-  .sidebar.qp-bottom-nav-ready > .nav-item:hover:not(.active){background:color-mix(in srgb,var(--panel) 18%,transparent) !important;}
-  .sidebar.qp-bottom-nav-ready > .nav-item.active{background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
-}
-@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  .sidebar.qp-bottom-nav-ready > .nav-item{z-index:auto !important;background:transparent !important;border-color:transparent !important;box-shadow:none !important;}
-  .sidebar.qp-bottom-nav-ready > .nav-item::before{display:none !important;content:"";position:absolute;top:50%;left:50%;z-index:1;width:88px;height:54px;border:1px solid color-mix(in srgb,var(--border) 28%,rgba(255,255,255,.10));border-radius:27px;background:color-mix(in srgb,var(--panel) 18%,transparent);box-shadow:0 2px 7px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.025);transform:translate(-50%,-50%);pointer-events:none;}
-  .sidebar.qp-bottom-nav-ready > .nav-item.active::before{opacity:0;}
-  .sidebar.qp-bottom-nav-ready > .nav-item .nav-icon,.sidebar.qp-bottom-nav-ready > .nav-item .nav-label{position:relative;z-index:3;}
-}
-@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  .sidebar.qp-bottom-nav-ready::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.11) 0,rgba(255,255,255,.05) 8px,rgba(255,255,255,.0165) 20px,transparent 34px,transparent calc(100% - 34px),rgba(255,255,255,.0165) calc(100% - 20px),rgba(255,255,255,.05) calc(100% - 8px),rgba(255,255,255,.11) 100%),linear-gradient(180deg,rgba(255,255,255,.092) 0,rgba(255,255,255,.032) 10px,transparent 24px,transparent calc(100% - 20px),rgba(0,0,0,.092) 100%);box-shadow:inset 1px 0 0 rgba(255,255,255,.083),inset -1px 0 0 rgba(255,255,255,.083),inset 0 1px 0 rgba(255,255,255,.11),inset 0 -1px 0 rgba(0,0,0,.11);}
-}
 #settings .qp-category-delete{flex:0 0 44px !important;width:44px !important;min-width:44px !important;height:44px !important;padding:0 !important;border:0 !important;border-radius:12px !important;background:transparent !important;box-shadow:none !important;color:rgba(239,68,68,.58) !important;font-size:17px !important;font-weight:500 !important;line-height:1 !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent;}
 #settings .qp-category-delete:hover,
 #settings .qp-category-delete:active{background:rgba(239,68,68,.07) !important;border-color:transparent !important;color:rgba(239,68,68,.88) !important;}
@@ -616,12 +587,8 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 }
 
 
-/* Mobile refresh after desktop finalization: keep phone navigation and touch controls current. */
+/* Mobile refresh after desktop finalization: keep touch controls current. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  .sidebar.qp-bottom-nav-ready{
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-  }
-
   /* Touch devices do not have hover: month/year arrows must remain visible. */
   #incomeMonthSwitcher > button,
   .income-chart-year-switcher > button{
@@ -1581,67 +1548,6 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     padding:12px !important;
   }
 
-  .app:has(.sidebar.qp-bottom-nav-ready) .content{
-    padding-bottom:calc(106px + env(safe-area-inset-bottom)) !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready{
-    left:12px !important;
-    right:12px !important;
-    bottom:calc(10px + env(safe-area-inset-bottom)) !important;
-    width:auto !important;
-    height:66px !important;
-    padding:0 6px !important;
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-    border-radius:28px !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready > .nav-item[data-page="settings"]{
-    display:none !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready > .nav-item{
-    min-width:0 !important;
-    height:58px !important;
-    margin:4px 2px !important;
-    padding:6px 4px !important;
-    border:0 !important;
-    background:transparent !important;
-    box-shadow:none !important;
-    transform:none !important;
-    -webkit-tap-highlight-color:transparent !important;
-    touch-action:manipulation !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready .nav-icon{
-    min-width:0 !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready .nav-icon svg{
-    width:22px !important;
-    height:22px !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready .nav-label{
-    max-width:100% !important;
-    overflow:hidden !important;
-    font-size:10.5px !important;
-    line-height:1.05 !important;
-    text-overflow:ellipsis !important;
-    white-space:nowrap !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready .qp-bottom-nav-indicator{
-    width:88px !important;
-    height:54px !important;
-    border-radius:27px !important;
-  }
-
-  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn{
-    right:16px !important;
-    bottom:max(8px,env(safe-area-inset-bottom)) !important;
-  }
-
   /* Development marker is not part of the mobile product UI. */
   #income .qp-dev-panel{
     display:none !important;
@@ -1750,15 +1656,6 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 @media(max-width:340px){
   main{
     padding:10px !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready{
-    left:8px !important;
-    right:8px !important;
-  }
-
-  .sidebar.qp-bottom-nav-ready .nav-label{
-    font-size:9.5px !important;
   }
 
   #qpAuthGate{
@@ -3242,16 +3139,14 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 /* Mobile final navigation/history merge v14. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   /* Full History now lives inside Последние доходы, so the bottom bar is no longer needed. */
-  .sidebar,
-  .sidebar.qp-bottom-nav-ready{
+  .sidebar{
     display:none !important;
   }
 
-  .app:has(.sidebar.qp-bottom-nav-ready) .content{
+  .app .content{
     padding-bottom:calc(82px + env(safe-area-inset-bottom)) !important;
   }
 
-  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn,
   body .add-income-btn{
     bottom:max(8px,env(safe-area-inset-bottom)) !important;
   }
@@ -3423,9 +3318,8 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 
   /* With the bottom navigation removed, anchor + low in the visible viewport.
      Keep a small visual gap while respecting devices with a real bottom safe area. */
-  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn,
   body .add-income-btn{
-    right:12px !important;
+    right:16px !important;
     bottom:max(8px,env(safe-area-inset-bottom)) !important;
   }
 }
