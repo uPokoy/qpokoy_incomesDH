@@ -1398,7 +1398,7 @@ html[data-theme="dark"]{
   --bg:#070b12;
   --bg-accent:#111827;
 }
-html[data-theme="dark"] body{
+html[data-theme="dark"] body:not(.qp-bg-standard):not(.qp-bg-custom){
   background:#070b12 !important;
 }
 
