@@ -18,6 +18,7 @@
     });
     var custom=document.getElementById("accentCustomColor");
     if(custom) custom.value=c;
+    if(typeof window.renderIncomeMonthChart==="function") window.renderIncomeMonthChart();
   }
   function init(){
     document.querySelectorAll(".accent-swatch").forEach(function(el){el.addEventListener("click",function(){apply(el.getAttribute("data-accent"));});});
