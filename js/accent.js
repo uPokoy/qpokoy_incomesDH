@@ -206,10 +206,12 @@
           setStatus("");
           return;
         }
-        readCustomBackground().then(function(blob){
-          if(blob){refreshCustomState(blob);storeMode("custom");setStatus("");}
-          else file.click();
-        }).catch(function(){file.click();});
+        if(btn.classList.contains("has-image")){
+          storeMode("custom");
+          setStatus("");
+          return;
+        }
+        file.click();
       });
     });
     file.addEventListener("change",function(){
