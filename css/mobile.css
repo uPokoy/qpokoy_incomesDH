@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.46");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.46");
-@import url("./oauth-brand.css?v=dev-2026.09.27.46");
+@import url("./mobile-base.css?v=dev-2026.09.27.47");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.47");
+@import url("./oauth-brand.css?v=dev-2026.09.27.47");
 
 /* Mobile touch feedback: suppress Samsung/Chromium tap overlay without changing click handlers. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
@@ -3144,5 +3144,56 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     box-shadow:none !important;
     transform:none !important;
     touch-action:manipulation !important;
+  }
+}
+
+/* Mobile auth lock: keep the auth viewport fixed while only the card itself may scroll. */
+@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  body.qp-auth-locked{
+    position:fixed !important;
+    inset:0 !important;
+    width:100% !important;
+    height:100dvh !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    min-height:0 !important;
+    max-height:100dvh !important;
+    margin:0 !important;
+    overflow:hidden !important;
+    overscroll-behavior:none !important;
+  }
+
+  body.qp-auth-locked #qpAuthGate{
+    position:fixed !important;
+    inset:0 !important;
+    width:auto !important;
+    height:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    min-height:0 !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:
+      max(14px,env(safe-area-inset-top))
+      14px
+      max(14px,env(safe-area-inset-bottom)) !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:hidden !important;
+    overscroll-behavior:none !important;
+    box-sizing:border-box !important;
+  }
+
+  body.qp-auth-locked #qpAuthGate .qp-auth-card{
+    flex:0 1 430px !important;
+    width:100% !important;
+    max-width:430px !important;
+    max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    margin:0 !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    overscroll-behavior:contain !important;
+    box-sizing:border-box !important;
   }
 }
