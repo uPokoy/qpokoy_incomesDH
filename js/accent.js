@@ -180,6 +180,7 @@
     settings.insertBefore(card,account||settings.lastChild);
 
     var file=document.getElementById("qpBackgroundFile");
+    if(file&&/Android/i.test(navigator.userAgent||"")) file.setAttribute("accept","image/*");
     var remove=document.getElementById("qpBackgroundRemove");
     var help=document.getElementById("qpBackgroundHelp");
     var helpWrap=help&&help.closest(".qp-background-help");
