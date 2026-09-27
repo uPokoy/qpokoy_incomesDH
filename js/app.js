@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.27.38';
+const qPokoyDevVersion='dev-2026.09.27.39';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -338,7 +338,7 @@ const openIncomeForm=document.getElementById('openIncomeForm');
 function closeCategoryPopup(){
   categoryPopup.classList.remove('open');
   categorySelect.classList.remove('open');
-  ['position','left','width','max-height','overflow-y','top','bottom'].forEach(property=>{
+  ['position','left','right','width','max-width','max-height','overflow-y','top','bottom'].forEach(property=>{
     categoryPopup.style.removeProperty(property);
   });
 }
@@ -361,8 +361,17 @@ function positionCategoryPopup(){
   const width=Math.min(rect.width,window.innerWidth-edge*2);
   const left=Math.min(Math.max(edge,rect.left),window.innerWidth-edge-width);
   categoryPopup.style.position='fixed';
-  categoryPopup.style.left=left+'px';
-  categoryPopup.style.width=width+'px';
+  if(mobile){
+    categoryPopup.style.setProperty('left',left+'px','important');
+    categoryPopup.style.setProperty('right','auto','important');
+    categoryPopup.style.setProperty('width',width+'px','important');
+    categoryPopup.style.setProperty('max-width',width+'px','important');
+  }else{
+    categoryPopup.style.left=left+'px';
+    categoryPopup.style.right='auto';
+    categoryPopup.style.width=width+'px';
+    categoryPopup.style.maxWidth='';
+  }
   categoryPopup.style.maxHeight=maxHeight+'px';
   categoryPopup.style.overflowY='auto';
   if(openBelow){
@@ -1312,6 +1321,7 @@ saveBtn.addEventListener('click',(e)=>{
 incomeList.addEventListener('click',e=>{
   const editButton=e.target.closest('.edit-income');
   if(editButton){
+    clearHistoryNativeSwipeState();
     openHistoryEdit(editButton.dataset.id);
     return;
   }
@@ -1421,13 +1431,27 @@ function positionCalendarPopup(){
   const gap=8;
   const viewportWidth=document.documentElement.clientWidth||window.innerWidth;
   const viewportHeight=window.innerHeight;
+  const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
+
+  if(mobile){
+    const fieldWidth=Math.min(rect.width,viewportWidth-gap*2);
+    calendarPopup.style.setProperty('width',Math.round(fieldWidth)+'px','important');
+    calendarPopup.style.setProperty('max-width',Math.round(fieldWidth)+'px','important');
+    calendarPopup.style.setProperty('right','auto','important');
+  }else{
+    calendarPopup.style.removeProperty('width');
+    calendarPopup.style.removeProperty('max-width');
+    calendarPopup.style.removeProperty('right');
+  }
+
   const width=calendarPopup.offsetWidth;
   const height=calendarPopup.offsetHeight;
 
   // Горизонталь: не выпускаем календарь за границы окна.
   const desiredLeft=Math.max(gap,Math.min(rect.left,viewportWidth-width-gap));
   const relativeLeft=desiredLeft-rect.left;
-  calendarPopup.style.left=Math.round(relativeLeft)+'px';
+  if(mobile)calendarPopup.style.setProperty('left',Math.round(relativeLeft)+'px','important');
+  else calendarPopup.style.left=Math.round(relativeLeft)+'px';
 
   const spaceBelow=viewportHeight-rect.bottom-gap;
   const spaceAbove=rect.top-gap;

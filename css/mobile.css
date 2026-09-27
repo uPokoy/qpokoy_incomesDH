@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.38");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.38");
-@import url("./oauth-brand.css?v=dev-2026.09.27.38");
+@import url("./mobile-base.css?v=dev-2026.09.27.39");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.39");
+@import url("./oauth-brand.css?v=dev-2026.09.27.39");
 
 /* Mobile touch feedback: suppress Samsung/Chromium tap overlay without changing click handlers. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
