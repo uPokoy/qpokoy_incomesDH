@@ -3199,12 +3199,28 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
 }
 
 
-/* DEV54 diagnostic: iPhone only. Replace only the standard body's layered
-   background with its base color; decorative pseudo layers remain unchanged. */
+
+/* DEV55: iPhone standard background lives on a dedicated viewport layer.
+   The body stays flat so Safari rubber-band cannot stretch its gradients. */
 @supports (-webkit-touch-callout:none){
   @media (pointer:coarse){
     html[data-theme="dark"] body.qp-bg-standard{
       background:#070c14 !important;
+    }
+    #qpStandardBackgroundLayer{
+      display:none;
+    }
+    html[data-theme="dark"] body.qp-bg-standard #qpStandardBackgroundLayer{
+      display:block;
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
+      background:
+        radial-gradient(120% 86% at 50% -24%,rgba(72,99,135,.42) 0 18%,rgba(32,48,70,.20) 34%,transparent 52%),
+        radial-gradient(80% 58% at -8% 72%,rgba(47,70,99,.34) 0 24%,transparent 54%),
+        radial-gradient(86% 62% at 108% 32%,rgba(46,69,98,.32) 0 22%,transparent 53%),
+        linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%);
     }
   }
 }
