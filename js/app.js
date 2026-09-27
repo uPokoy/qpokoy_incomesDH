@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.28.57';
+const qPokoyDevVersion='dev-2026.09.28.58';
 
 const qPokoyIOSMobile=/iPhone|iPad|iPod/.test(navigator.userAgent)&&window.matchMedia('(pointer:coarse)').matches;
 if(qPokoyIOSMobile){
@@ -512,6 +512,7 @@ window.qPokoyReplaceIncomes=function(records,cloudSync=true){
 };
 
 let editingIncomeId=null;
+let mobileIncomeEditOrigin=null;
 
 function resetForm(){
   editingIncomeId=null;
@@ -554,6 +555,7 @@ function closeIncomeEditor(){
 }
 
 function openHistoryEdit(id){
+  mobileIncomeEditOrigin=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches?'history':null;
   const income=incomes.find(item=>String(item.id)===String(id));
   if(!income)return;
 
@@ -573,6 +575,7 @@ function openRecentIncomeEdit(id){
   const desktopRecentEdit=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
   const mobileRecentEdit=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
   if(!desktopRecentEdit&&!mobileRecentEdit)return;
+  mobileIncomeEditOrigin=mobileRecentEdit?'recent':null;
   const income=incomes.find(item=>String(item.id)===String(id));
   if(!income)return;
 
@@ -1304,6 +1307,7 @@ saveBtn.addEventListener('click',(e)=>{
   if(!parsed||!incomeCategory.value||!amount||amount<0) return;
 
   const wasEditing=editingIncomeId!==null;
+  const editOrigin=mobileIncomeEditOrigin;
   const record={
     id:editingIncomeId??(crypto.randomUUID?.()||('income-'+Date.now()+'-'+Math.random().toString(36).slice(2,8))),
     date:`${String(parsed.getDate()).padStart(2,'0')}.${String(parsed.getMonth()+1).padStart(2,'0')}.${String(parsed.getFullYear()).slice(-2)}`,
@@ -1320,6 +1324,15 @@ saveBtn.addEventListener('click',(e)=>{
 
   renderIncomes();
   closeIncomeEditor();
+  if(wasEditing&&editOrigin){
+    mobileIncomeEditOrigin=null;
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        const target=editOrigin==='history'?incomeRecentHistoryPanel:incomeRecent;
+        if(target)target.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
+      });
+    });
+  }
   if(!wasEditing){
     window.scrollTo({top:0,left:0,behavior:'smooth'});
   }
