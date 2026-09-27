@@ -326,3 +326,22 @@
     cursor:default !important;
   }
 }
+
+
+/* Desktop analytics header tabs v21: Month / Year controls +30%. */
+@media (hover:hover) and (pointer:fine){
+  #incomeAnalytics .analytics-mode-row .analytics-mode-tabs{
+    width:286px !important;
+    max-width:286px !important;
+    padding:4px !important;
+    border-radius:14px !important;
+  }
+
+  #incomeAnalytics .analytics-mode-row .analytics-mode-tab{
+    height:44px !important;
+    min-height:44px !important;
+    padding:0 21px !important;
+    border-radius:10px !important;
+    font-size:17px !important;
+  }
+}
