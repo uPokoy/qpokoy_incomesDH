@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.16");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.16");
-@import url("./oauth-brand.css?v=dev-2026.09.27.16");
+@import url("./mobile-base.css?v=dev-2026.09.27.24");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.24");
+@import url("./oauth-brand.css?v=dev-2026.09.27.24");
 
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3413,9 +3413,10 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     display:none !important;
   }
 
-  /* With the bottom navigation removed, keep + close to the phone's safe bottom edge. */
+  /* With the bottom navigation removed, keep + low in the bottom-right corner without covering the gesture area. */
   body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn,
   body .add-income-btn{
-    bottom:calc(6px + env(safe-area-inset-bottom)) !important;
+    right:12px !important;
+    bottom:max(2px,env(safe-area-inset-bottom)) !important;
   }
 }
