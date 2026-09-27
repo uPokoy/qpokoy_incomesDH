@@ -3197,3 +3197,15 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     box-sizing:border-box !important;
   }
 }
+
+
+/* DEV53 diagnostic: iPhone only. Temporarily remove the two decorative
+   standard-background pseudo layers to identify the elastic-overscroll source. */
+@supports (-webkit-touch-callout:none){
+  @media (pointer:coarse){
+    html[data-theme="dark"] body.qp-bg-standard::before,
+    html[data-theme="dark"] body.qp-bg-standard::after{
+      display:none !important;
+    }
+  }
+}
