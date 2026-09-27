@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.15");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.15");
-@import url("./oauth-brand.css?v=dev-2026.09.27.15");
+@import url("./mobile-base.css?v=dev-2026.09.27.16");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.16");
+@import url("./oauth-brand.css?v=dev-2026.09.27.16");
 
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3402,5 +3402,20 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     width:15px !important;
     height:15px !important;
     flex-basis:15px !important;
+  }
+}
+
+
+/* Mobile recent/history finishing fixes v16. */
+@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  /* Full History uses its own scroll area; recent-income pager belongs only to Последние доходы. */
+  #income .income-recent.qp-mobile-recent-stack.is-history-open > .income-recent-bottom-actions .income-recent-pager{
+    display:none !important;
+  }
+
+  /* With the bottom navigation removed, keep + close to the phone's safe bottom edge. */
+  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn,
+  body .add-income-btn{
+    bottom:calc(6px + env(safe-area-inset-bottom)) !important;
   }
 }
