@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.11");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.11");
-@import url("./oauth-brand.css?v=dev-2026.09.27.11");
+@import url("./mobile-base.css?v=dev-2026.09.27.14");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.14");
+@import url("./oauth-brand.css?v=dev-2026.09.27.14");
 
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   .sidebar.qp-bottom-nav-ready{isolation:isolate;touch-action:pan-y;}
@@ -3227,5 +3227,60 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     background-color:var(--panel) !important;
     background-image:none !important;
     box-shadow:none !important;
+  }
+}
+
+
+/* Mobile final navigation/history merge v14. */
+@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  /* Full History now lives inside Последние доходы, so the bottom bar is no longer needed. */
+  .sidebar,
+  .sidebar.qp-bottom-nav-ready{
+    display:none !important;
+  }
+
+  .app:has(.sidebar.qp-bottom-nav-ready) .content{
+    padding-bottom:calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:has(.sidebar.qp-bottom-nav-ready) .add-income-btn,
+  body .add-income-btn{
+    bottom:calc(18px + env(safe-area-inset-bottom)) !important;
+  }
+
+  #income .income-recent.is-history-open .income-recent-grid,
+  #income .income-recent.is-history-open .income-recent-pager{
+    display:none !important;
+  }
+
+  #income .income-recent.is-history-open > .income-recent-bottom-actions{
+    justify-content:flex-start !important;
+  }
+
+  #income .income-recent.is-history-open > .income-recent-bottom-actions .income-recent-history{
+    display:inline-flex !important;
+  }
+
+  #income .income-recent-history-panel{
+    width:100% !important;
+    min-width:0 !important;
+    margin:8px 0 0 !important;
+    padding:0 !important;
+  }
+
+  #income .income-recent.is-history-open .income-recent-history-panel{
+    display:block !important;
+  }
+
+  #income .income-recent-history-panel > #history.income-recent-inline-history{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #income .income-recent-history-panel > #history.income-recent-inline-history #incomeList{
+    padding-bottom:8px !important;
   }
 }
