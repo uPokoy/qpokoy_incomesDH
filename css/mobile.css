@@ -3197,22 +3197,3 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     box-sizing:border-box !important;
   }
 }
-
-
-/* iPhone Safari elastic overscroll: keep decorative background layers in the document
-   paint layer instead of separate fixed compositor layers. Visual geometry is unchanged. */
-@supports (-webkit-touch-callout:none){
-  @media (pointer:coarse){
-    html[data-theme="dark"] body.qp-bg-standard{
-      isolation:auto;
-    }
-    html[data-theme="dark"] body.qp-bg-standard::before,
-    html[data-theme="dark"] body.qp-bg-standard::after{
-      position:absolute;
-    }
-    body.qp-bg-custom #qpCustomBackgroundLayer{
-      position:absolute;
-      min-height:100%;
-    }
-  }
-}
