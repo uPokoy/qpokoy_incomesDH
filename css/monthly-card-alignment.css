@@ -4939,3 +4939,69 @@
 #incomeAnalytics.is-settings-open > [hidden]{
   display:none !important;
 }
+
+
+/* Mobile inline settings polish v10: settings replace the analytics toolbar cleanly. */
+@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #incomeAnalytics.is-settings-open .analytics-mode-row{
+    display:grid !important;
+    grid-template-columns:38px !important;
+    justify-content:end !important;
+    align-items:center !important;
+    width:100% !important;
+    min-height:38px !important;
+    margin:0 0 10px !important;
+    gap:0 !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-mode-row .analytics-mode-tabs,
+  #incomeAnalytics.is-settings-open .analytics-mode-row .analytics-mode-period{
+    display:none !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-toggle.is-active{
+    position:static !important;
+    justify-self:end !important;
+    width:38px !important;
+    min-width:38px !important;
+    max-width:38px !important;
+    height:38px !important;
+    min-height:38px !important;
+    max-height:38px !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host #settings.analytics-inline-settings{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #incomeAnalytics.is-settings-open #settings .qp-settings-tabs{
+    width:100% !important;
+    margin:0 0 10px !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics.is-settings-open #settings > .settings-card{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  #incomeAnalytics.is-settings-open #settings[data-settings-tab="appearance"] > #qpBackgroundSettings,
+  #incomeAnalytics.is-settings-open #settings[data-settings-tab="data"] > #qpDataCard{
+    margin-top:10px !important;
+  }
+}
