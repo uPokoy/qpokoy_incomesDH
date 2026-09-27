@@ -863,7 +863,6 @@
     border-radius:12px !important;
   }
 
-  
   #incomeAnalytics.is-monthly .monthly-summary-card-body,
   #incomeAnalytics.is-monthly .monthly-summary-card .monthly-summary-card-body{
     width:calc(100% - 76px) !important;
@@ -1189,7 +1188,6 @@
 
 /* Monthly desktop parity with annual analytics: same metric/card scale. */
 @media (hover:hover) and (pointer:fine){
-  
   #incomeAnalytics.is-monthly .monthly-summary-card-body > span,
   #incomeAnalytics.is-monthly .monthly-summary-card-label{
     display:block !important;
@@ -1211,8 +1209,6 @@
   }
 
   
-  
-  
   #incomeAnalytics.is-monthly .monthly-best-share{
     min-width:44px !important;
     height:28px !important;
@@ -1226,7 +1222,6 @@
     opacity:.38 !important;
   }
 
-  
   #incomeAnalytics.is-monthly .monthly-category-card{
     min-height:104px !important;
     height:104px !important;
@@ -1234,7 +1229,6 @@
     background:var(--panel) !important;
   }
 
-  
   #incomeAnalytics.is-monthly .monthly-category-value{
     margin-top:4px !important;
     font-size:21px !important;
@@ -1242,7 +1236,7 @@
     line-height:1.08 !important;
   }
 
-  }
+}
 
 
 /* Monthly desktop visual scale correction against the annual reference. */

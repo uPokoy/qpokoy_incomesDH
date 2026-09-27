@@ -3650,8 +3650,6 @@ body.qp-auth-locked #income .income-recent-pager{
     background:color-mix(in srgb,var(--panel) 97%,var(--primary) 3%) !important;
   }
 
-  /* The bottom-navigation appearance option is irrelevant in the desktop inline panel. */
-  
   #incomeAnalytics.is-settings-open .analytics-mode-row{
     margin-bottom:14px !important;
   }
