@@ -47,9 +47,9 @@
     const signup=mode==='signup';
     submit.textContent=signup?'Создать аккаунт':'Вход';
     reset.hidden=signup;
-    oauthDivider.hidden=signup;
-    yandexButton.hidden=signup;
-    googleButton.hidden=signup;
+    oauthDivider.hidden=false;
+    yandexButton.hidden=false;
+    googleButton.hidden=false;
     confirmWrap.hidden=!signup;
     password.autocomplete=signup?'new-password':'current-password';
     setMessage('');
