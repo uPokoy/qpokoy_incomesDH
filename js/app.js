@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.27.15';
+const qPokoyDevVersion='dev-2026.09.27.16';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -254,7 +254,7 @@ function setIncomeRecentHistoryOpen(open){
 }
 
 if(incomeRecent&&incomeRecentToggle){
-  setIncomeRecentCollapsed(localStorage.getItem('incomeRecentCollapsed')==='1',false);
+  setIncomeRecentCollapsed(mobileInlineHistoryMedia.matches?true:localStorage.getItem('incomeRecentCollapsed')==='1',false);
   incomeRecentToggle.addEventListener('click',event=>{
     event.preventDefault();
     event.stopPropagation();
@@ -1840,7 +1840,7 @@ document.addEventListener('mouseup',()=>{
     if(autoHide){
       switcher.__qpArrowTimer=setTimeout(()=>{
         switcher.classList.remove('is-arrows-visible');
-      },1000);
+      },300);
     }
   }
 
