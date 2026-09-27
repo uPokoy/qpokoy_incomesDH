@@ -5,13 +5,13 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="css/main.css?v=dev-2026.09.27.28">
-<link rel="stylesheet" href="css/components.css?v=dev-2026.09.27.28">
-<link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.27.28" media="(pointer:coarse)">
-<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.27.28">
-<link rel="stylesheet" href="css/monthly-card-alignment.css?v=dev-2026.09.27.28">
-<link rel="stylesheet" href="css/desktop-narrow.css?v=dev-2026.09.27.28">
-<link rel="stylesheet" href="css/oauth-brand.css?v=dev-2026.09.27.28" media="(hover:hover) and (pointer:fine)">
+<link rel="stylesheet" href="css/main.css?v=dev-2026.09.27.29">
+<link rel="stylesheet" href="css/components.css?v=dev-2026.09.27.29">
+<link rel="stylesheet" href="css/mobile.css?v=dev-2026.09.27.29" media="(pointer:coarse)">
+<link rel="stylesheet" href="css/analytics-month.css?v=dev-2026.09.27.29">
+<link rel="stylesheet" href="css/monthly-card-alignment.css?v=dev-2026.09.27.29">
+<link rel="stylesheet" href="css/desktop-narrow.css?v=dev-2026.09.27.29">
+<link rel="stylesheet" href="css/oauth-brand.css?v=dev-2026.09.27.29" media="(hover:hover) and (pointer:fine)">
 <title>Доходы</title>
 <!-- qPokoy: Иконки сайта/ярлыков. Интерфейс сайта не изменяется. -->
 <meta name="application-name" content="Доходы">
@@ -143,7 +143,7 @@
     
     
     
-<script id="qPokoyCategoryManagerV1" src="js/categories.js?v=dev-2026.09.27.28"></script>
+<script id="qPokoyCategoryManagerV1" src="js/categories.js?v=dev-2026.09.27.29"></script>
 
 
 
@@ -151,7 +151,7 @@
 
 
 
-<script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.27.28"></script>
+<script id="qPokoyCenteredAppShellFinalJS" src="js/app-shell.js?v=dev-2026.09.27.29"></script>
 
 
 
@@ -225,7 +225,7 @@
       <section id="income" class="page active">
   <!-- TEMP DEV TOOL — remove after mobile development -->
   <div class="qp-dev-panel" style="display:none">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.27.28</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.27.29</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -261,17 +261,34 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
             </button>
           </div>
-          <div class="income-history-report-actions" aria-label="Печать отчёта">
-            <button type="button" class="income-history-report-btn" id="printIncomeHistoryReportBtn">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg>
-              <span>PDF / Печать</span>
-            </button>
-          </div>
         </div>
         <button class="add-income-btn" id="openIncomeForm" aria-label="Добавить доход" title="Добавить доход"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
       <div class="income-recent-grid" id="incomeRecentGrid"></div>
-      <div class="income-recent-history-panel" id="incomeRecentHistoryPanel" hidden></div>
+      <div class="income-recent-history-panel" id="incomeRecentHistoryPanel" hidden>
+        <section id="history" class="page income-recent-inline-history">
+          <div id="historySearchWrap">
+            <input id="historySearch" type="search" placeholder="Поиск по истории…" autocomplete="off">
+            <div class="income-history-report-actions" aria-label="Печать отчёта">
+              <button type="button" class="income-history-report-btn" id="printIncomeHistoryReportBtn">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg>
+                <span>PDF / Печать</span>
+              </button>
+            </div>
+          </div>
+          <div class="income-table-section" id="incomeTableSection">
+            <div class="income-table-section-head">
+              <div class="income-table-section-title-wrap">
+                <span class="income-table-section-title">История</span>
+                <button class="income-table-collapse" id="incomeTableCollapse" type="button" aria-label="Свернуть таблицу" title="Свернуть таблицу">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="income-list" id="incomeList"></div>
+          </div>
+        </section>
+      </div>
     </section>
   </div>
 
@@ -587,21 +604,6 @@
 
 
 </section>
-      <section id="history" class="page">
-  <div id="historySearchWrap"><input id="historySearch" type="search" placeholder="Поиск по истории…" autocomplete="off"></div>
-  <div class="income-table-section" id="incomeTableSection">
-    <div class="income-table-section-head">
-      <div class="income-table-section-title-wrap">
-        <span class="income-table-section-title">История</span>
-        <button class="income-table-collapse" id="incomeTableCollapse" type="button" aria-label="Свернуть таблицу" title="Свернуть таблицу">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
-        </button>
-      </div>
-    </div>
-    
-<div class="income-list" id="incomeList"></div>
-  </div>
-</section>
       <section id="settings" class="page" data-settings-tab="categories">
         <div class="qp-settings-tabs" role="tablist" aria-label="Разделы настроек">
           <button type="button" class="qp-settings-tab active" data-settings-tab-target="categories" role="tab" aria-selected="true">
@@ -681,18 +683,18 @@
   }catch(e){}
 })();
 </script>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.27.28"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.27.29"></script>
 
-<script id="qPokoyAccentStableJS" src="js/accent.js?v=dev-2026.09.27.28"></script>
+<script id="qPokoyAccentStableJS" src="js/accent.js?v=dev-2026.09.27.29"></script>
 
 <script id="qPokoyCustomConfirm" src="js/confirm.js"></script>
 
 <script src="js/backup-controls.js"></script>
-<script id="qPokoyReportPrintJS" src="js/report-print.js?v=dev-2026.09.27.28"></script>
+<script id="qPokoyReportPrintJS" src="js/report-print.js?v=dev-2026.09.27.29"></script>
 
 <script src="js/clear-data.js"></script>
 <script id="statistics-year-inline-v90-js" src="js/analytics-year.js"></script>
-<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.27.28"></script>
+<script id="qPokoyMonthlyAnalyticsJS" src="js/analytics-month.js?v=dev-2026.09.27.29"></script>
 
 
 <script id="qPokoyInlineNotice" src="js/notice.js"></script>
@@ -734,7 +736,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
-<script id="qPokoyAuth" src="js/auth.js?v=dev-2026.09.27.28"></script>
+<script id="qPokoyAuth" src="js/auth.js?v=dev-2026.09.27.29"></script>
 
 
 

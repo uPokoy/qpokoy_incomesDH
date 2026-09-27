@@ -3429,6 +3429,9 @@ body.qp-auth-locked #income .income-recent-pager{
 #income .income-recent-history-panel[hidden]{
   display:none !important;
 }
+#income .income-recent-history-panel > #history{
+  display:block;
+}
 @media (hover:hover) and (pointer:fine){
   #income .income-recent.is-history-open .income-recent-grid,
   #income .income-recent.is-history-open .income-recent-pager{
@@ -4145,6 +4148,13 @@ body.qp-auth-locked #income .income-recent-pager{
   #settings #printReportPeriod,
   #settings #printIncomeReportBtn{
     display:none !important;
+  }
+
+  #income .income-recent-history-panel #historySearchWrap > .income-history-report-actions{
+    position:absolute;
+    right:0;
+    bottom:0;
+    margin-left:0;
   }
 
   #income .income-recent.is-history-open .income-history-report-actions{

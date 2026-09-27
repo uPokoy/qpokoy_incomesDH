@@ -1,6 +1,6 @@
-@import url("./mobile-base.css?v=dev-2026.09.27.28");
-@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.28");
-@import url("./oauth-brand.css?v=dev-2026.09.27.28");
+@import url("./mobile-base.css?v=dev-2026.09.27.29");
+@import url("./mobile-swipe-actions.css?v=dev-2026.09.27.29");
+@import url("./oauth-brand.css?v=dev-2026.09.27.29");
 
 /* Mobile touch feedback: suppress Samsung/Chromium tap overlay without changing click handlers. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
@@ -2381,11 +2381,6 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     gap:6px !important;
   }
 
-  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-history,
-  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-history-report-actions{
-    display:none !important;
-  }
-
   #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-pager{
     margin:0 0 0 auto !important;
     display:flex !important;
@@ -2579,10 +2574,6 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     font-weight:600 !important;
     line-height:1 !important;
     box-shadow:none !important;
-  }
-
-  #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-history-report-actions{
-    display:none !important;
   }
 
   #income .income-recent.qp-mobile-recent-stack > .income-recent-bottom-actions .income-recent-pager{

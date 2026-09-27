@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.27.28';
+const qPokoyDevVersion='dev-2026.09.27.29';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -127,44 +127,14 @@ const incomeRecent=document.getElementById('incomeRecent');
 const incomeRecentToggle=document.getElementById('incomeRecentToggle');
 const incomeRecentHistory=document.getElementById('incomeRecentHistory');
 const incomeRecentHistoryPanel=document.getElementById('incomeRecentHistoryPanel');
-const historyPage=document.getElementById('history');
-const historySearchWrap=document.getElementById('historySearchWrap');
 const incomeTableSection=document.getElementById('incomeTableSection');
-const incomeRecentFooter=incomeRecent?.querySelector('.income-recent-bottom-actions');
-const incomeHistoryReportActions=document.querySelector('#income .income-history-report-actions');
 const mobileInlineHistoryMedia=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
-const historyHomeParent=historyPage?.parentNode||null;
-const historyHomeAnchor=historyPage&&historyHomeParent?document.createComment('qPokoy-history-home'):null;
-if(historyHomeAnchor)historyHomeParent.insertBefore(historyHomeAnchor,historyPage);
 
 function syncIncomeRecentBody(){
   if(!incomeRecent||!incomeRecentHistoryPanel)return;
   const collapsed=incomeRecent.classList.contains('is-collapsed');
   const historyOpen=incomeRecent.classList.contains('is-history-open');
-
-  if(historyOpen){
-    incomeRecentHistoryPanel.hidden=collapsed;
-    if(!collapsed){
-      if(mobileInlineHistoryMedia.matches){
-        if(historyPage&&historyPage.parentElement!==incomeRecentHistoryPanel){
-          incomeRecentHistoryPanel.appendChild(historyPage);
-        }
-        historyPage?.classList.add('income-recent-inline-history');
-        if(incomeHistoryReportActions&&historySearchWrap&&incomeHistoryReportActions.parentElement!==historySearchWrap){
-          historySearchWrap.appendChild(incomeHistoryReportActions);
-        }
-      }else{
-        if(historySearchWrap&&historySearchWrap.parentElement!==incomeRecentHistoryPanel){
-          incomeRecentHistoryPanel.appendChild(historySearchWrap);
-        }
-        if(incomeTableSection&&incomeTableSection.parentElement!==incomeRecentHistoryPanel){
-          incomeRecentHistoryPanel.appendChild(incomeTableSection);
-        }
-      }
-    }
-  }else{
-    incomeRecentHistoryPanel.hidden=true;
-  }
+  incomeRecentHistoryPanel.hidden=!historyOpen||collapsed;
 }
 
 function setIncomeRecentCollapsed(collapsed,persist=true){
@@ -187,7 +157,7 @@ function setIncomeRecentCollapsed(collapsed,persist=true){
 }
 
 function setIncomeRecentHistoryOpen(open){
-  if(!incomeRecent||!incomeRecentHistory||!incomeRecentHistoryPanel||!historyPage)return;
+  if(!incomeRecent||!incomeRecentHistory||!incomeRecentHistoryPanel)return;
   const next=!!open;
   incomeRecent.classList.toggle('is-history-open',next);
   incomeRecentHistory.textContent=next?'Последние доходы':'Вся история';
@@ -196,23 +166,6 @@ function setIncomeRecentHistoryOpen(open){
   if(next){
     // Full History must always become visible immediately, even if the recent block was collapsed.
     setIncomeRecentCollapsed(false,true);
-    if(mobileInlineHistoryMedia.matches){
-      if(historyPage&&historyPage.parentElement!==incomeRecentHistoryPanel){
-        incomeRecentHistoryPanel.appendChild(historyPage);
-      }
-      historyPage?.classList.add('income-recent-inline-history');
-      if(incomeHistoryReportActions&&historySearchWrap&&incomeHistoryReportActions.parentElement!==historySearchWrap){
-        historySearchWrap.appendChild(incomeHistoryReportActions);
-      }
-    }else{
-      if(historySearchWrap&&historySearchWrap.parentElement!==incomeRecentHistoryPanel){
-        incomeRecentHistoryPanel.appendChild(historySearchWrap);
-      }
-      if(incomeTableSection&&incomeTableSection.parentElement!==incomeRecentHistoryPanel){
-        incomeRecentHistoryPanel.appendChild(incomeTableSection);
-      }
-    }
-    incomeRecentHistoryPanel.hidden=false;
     if(typeof window.renderIncomes==='function')window.renderIncomes();
     if(mobileInlineHistoryMedia.matches){
       requestAnimationFrame(()=>{
@@ -229,16 +182,6 @@ function setIncomeRecentHistoryOpen(open){
       });
     }
   }else{
-    incomeRecentHistoryPanel.hidden=true;
-    historyPage?.classList.remove('income-recent-inline-history');
-    if(incomeHistoryReportActions&&incomeRecentFooter&&incomeHistoryReportActions.parentElement!==incomeRecentFooter){
-      incomeRecentFooter.appendChild(incomeHistoryReportActions);
-    }
-    if(historyPage&&historyPage.parentElement===incomeRecentHistoryPanel&&historyHomeAnchor?.parentNode){
-      historyHomeAnchor.parentNode.insertBefore(historyPage,historyHomeAnchor.nextSibling);
-    }
-    if(historySearchWrap&&historySearchWrap.parentElement!==historyPage)historyPage.appendChild(historySearchWrap);
-    if(incomeTableSection&&incomeTableSection.parentElement!==historyPage)historyPage.appendChild(incomeTableSection);
     syncIncomeRecentBody();
     if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
       const incomeTop=document.querySelector('#income .income-top');
@@ -278,8 +221,7 @@ if(incomeRecentHistory){
   });
 }
 
-// The old History navigation remains functional while this transition is in progress.
-// Restore its DOM before leaving the main page so that the standalone page is never empty.
+// Close full history before navigating away from the main page.
 document.querySelectorAll('.nav-item[data-page]').forEach(item=>{
   item.addEventListener('click',()=>{
     if(item.dataset.page!=='income'&&incomeRecent?.classList.contains('is-history-open')){
