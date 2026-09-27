@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const DEV='dev-2026.09.27.09';
+  const DEV='dev-2026.09.27.10';
   const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
   const HALF_WIDTH=44;
   const TRANSITION='transform 200ms cubic-bezier(.22,.8,.25,1)';
@@ -14,7 +14,7 @@
       historyItem.hidden=false;
       historyItem.removeAttribute('aria-hidden');
     }
-    const items=Array.from(sidebar.querySelectorAll('.nav-item[data-page]'));
+    const items=Array.from(sidebar.querySelectorAll('.nav-item[data-page]:not([data-page="settings"])'));
     if(!items.length)return;
     sidebar.dataset.qpBottomNavReady='1';
     sidebar.classList.add('qp-bottom-nav-ready');
