@@ -4669,3 +4669,286 @@ body:not(.dark) .income-report-custom-range input{
     box-shadow:none !important;
   }
 }
+
+
+/* Desktop auth shell: shared auth styles must not depend on mobile.css. */
+@media (hover:hover) and (pointer:fine){
+  #qpAuthGate{
+    position:fixed;
+    inset:0;
+    z-index:200000;
+    display:flex;
+    width:100vw;
+    height:100dvh;
+    min-height:100vh;
+    box-sizing:border-box;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    overflow:auto;
+    background:var(--bg,#f7f9fc);
+    color:var(--text,#172033);
+  }
+
+  html[data-theme="dark"] #qpAuthGate{
+    background:#070b12;
+  }
+
+  #qpAuthGate .qp-auth-card{
+    width:min(430px,calc(100vw - 32px));
+    max-height:calc(100dvh - 32px);
+    box-sizing:border-box;
+    padding:30px;
+    overflow:auto;
+    border:1px solid var(--border,#d7dde7);
+    border-radius:22px;
+    background:var(--panel,#fff);
+    box-shadow:0 24px 70px rgba(15,23,42,.14);
+  }
+
+  html[data-theme="dark"] #qpAuthGate .qp-auth-card{
+    background:#111827;
+    border-color:rgba(255,255,255,.10);
+    box-shadow:0 24px 70px rgba(0,0,0,.35);
+  }
+
+  #qpAuthGate .qp-auth-tabs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    padding:4px;
+    margin-bottom:20px;
+    border:1px solid var(--border,#d7dde7);
+    border-radius:12px;
+    background:rgba(100,116,139,.06);
+  }
+
+  #qpAuthGate .qp-auth-tab{
+    height:38px;
+    border:0;
+    border-radius:9px;
+    background:transparent;
+    color:var(--text-muted,#64748b);
+    font:inherit;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  #qpAuthGate .qp-auth-tab.active{
+    background:var(--panel,#fff);
+    color:var(--text,#172033);
+    box-shadow:0 1px 5px rgba(15,23,42,.08);
+  }
+
+  html[data-theme="dark"] #qpAuthGate .qp-auth-tab.active{
+    background:#1f2937;
+    color:#f8fafc;
+  }
+
+  #qpAuthGate .qp-auth-field{
+    display:block;
+    margin-bottom:13px;
+  }
+
+  #qpAuthGate .qp-auth-field span{
+    display:block;
+    margin-bottom:7px;
+    font-size:13px;
+    font-weight:600;
+  }
+
+  #qpAuthGate .qp-auth-field input{
+    width:100%;
+    height:44px;
+    box-sizing:border-box;
+    padding:0 13px;
+    border:1px solid var(--border,#d7dde7);
+    border-radius:11px;
+    background:var(--panel,#fff);
+    color:var(--text,#172033);
+    font:inherit;
+    outline:none;
+  }
+
+  #qpAuthGate .qp-auth-field input:focus{
+    border-color:#9aa5b8;
+    box-shadow:0 0 0 3px rgba(100,116,139,.12);
+  }
+
+  html[data-theme="dark"] #qpAuthGate .qp-auth-field input{
+    background:#0f172a;
+    border-color:rgba(255,255,255,.12);
+    color:#f8fafc;
+  }
+
+  #qpAuthGate .qp-auth-primary{
+    width:100%;
+    height:44px;
+    border:1px solid #cbd5e1;
+    border-radius:11px;
+    background:#e9edf2;
+    color:#374151;
+    font:inherit;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  #qpAuthGate .qp-auth-primary:hover{
+    background:#e2e7ed;
+  }
+
+  #qpAuthGate .qp-auth-primary:disabled{
+    opacity:.55;
+    cursor:wait;
+  }
+
+  html[data-theme="dark"] #qpAuthGate .qp-auth-primary{
+    background:#374151;
+    border-color:#4b5563;
+    color:#f8fafc;
+  }
+
+  #qpAuthGate .qp-auth-link{
+    display:block;
+    width:100%;
+    margin-top:13px;
+    border:0;
+    background:transparent;
+    color:#6b7280;
+    font:inherit;
+    font-size:13px;
+    cursor:pointer;
+  }
+
+  #qpAuthGate .qp-auth-link:hover{
+    text-decoration:underline;
+  }
+
+  #qpAuthGate .qp-auth-link.qp-auth-reset{
+    width:auto;
+    margin:-6px 0 6px auto;
+    padding:0;
+    text-align:right;
+  }
+
+  #qpAuthGate .qp-auth-divider{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:12px 0 2px;
+    color:#8b97a9;
+    font-size:12px;
+    line-height:16px;
+  }
+
+  #qpAuthGate .qp-auth-divider::before,
+  #qpAuthGate .qp-auth-divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:rgba(255,255,255,.12);
+  }
+
+  #qpAuthGate .qp-auth-oauth{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:10px;
+    padding:0 13px;
+    background:rgba(31,41,55,.92);
+    border-color:rgba(255,255,255,.18);
+    color:#f8fafc;
+    transition:background .16s ease,border-color .16s ease,transform .16s ease;
+  }
+
+  #qpAuthGate .qp-auth-oauth-icon,
+  #qpAuthGate .qp-auth-oauth-icon svg{
+    display:block;
+    width:20px;
+    height:20px;
+    flex:0 0 20px;
+  }
+
+  #qpAuthGate .qp-auth-oauth-label{
+    white-space:nowrap;
+  }
+
+  #qpAuthGate .qp-auth-reset-message{
+    display:none;
+    margin:0 0 8px;
+    padding:8px 10px;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:9px;
+    background:rgba(15,23,42,.58);
+    color:#cbd5e1;
+    font-size:12px;
+    line-height:18px;
+  }
+
+  #qpAuthGate .qp-auth-reset-message:not(:empty){
+    display:block;
+  }
+
+  #qpAuthGate .qp-auth-reset-message.error{
+    border-color:rgba(248,113,113,.32);
+    color:#fca5a5;
+  }
+
+  #qpAuthGate .qp-auth-message{
+    min-height:20px;
+    margin:13px 0 0;
+    padding:0;
+    font-size:13px;
+    line-height:19px;
+    color:#64748b;
+  }
+
+  #qpAuthGate .qp-auth-message.success{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    padding:11px 12px;
+    border-radius:11px;
+    background:#ecfdf3;
+    color:#166534;
+    font-weight:500;
+  }
+
+  #qpAuthGate .qp-auth-message.success::before{
+    content:'✓';
+    flex:0 0 auto;
+    font-size:15px;
+    line-height:19px;
+    font-weight:800;
+    color:#16a34a;
+  }
+
+  #qpAuthGate .qp-auth-message.error{
+    color:#b91c1c;
+  }
+
+  html[data-theme="dark"] #qpAuthGate .qp-auth-message.error{
+    color:#fca5a5;
+  }
+
+  html[data-theme="dark"] #qpAuthGate .qp-auth-message.success{
+    color:#86efac;
+  }
+
+  body.qp-auth-locked > *:not(#qpAuthGate){
+    pointer-events:none;
+  }
+
+  body.qp-auth-locked #qpAuthGate{
+    pointer-events:auto;
+  }
+
+  @media (max-height:600px){
+    #qpAuthGate{
+      align-items:flex-start;
+      padding-top:16px;
+      padding-bottom:16px;
+    }
+  }
+}
