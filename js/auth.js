@@ -45,7 +45,7 @@
     mode=next;
     tabs.forEach(t=>t.classList.toggle('active',t.dataset.authMode===mode));
     const signup=mode==='signup';
-    submit.textContent=signup?'Создать аккаунт':'Вход';
+    submit.textContent=signup?'Регистрация':'Вход';
     reset.hidden=signup;
     oauthDivider.hidden=false;
     yandexButton.hidden=false;
