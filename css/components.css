@@ -4636,6 +4636,22 @@ body:not(.dark) .income-report-custom-range input{
   }
 }
 
+/* The single Settings tree stays in its analytics host. The standalone route
+   uses display:contents so it occupies the same main-page layout as before. */
+#income.is-settings-route,
+#income.is-settings-route > #incomeAnalytics,
+#income.is-settings-route #analyticsSettingsHost{
+  display:contents !important;
+}
+#income.is-settings-route > :not(#incomeAnalytics),
+#income.is-settings-route > #incomeAnalytics > :not(#analyticsSettingsHost),
+#incomeAnalytics.is-settings-open > :not(.analytics-mode-row):not(.analytics-settings-host){
+  display:none !important;
+}
+#income.is-settings-route #settings .settings-card-subtitle{
+  display:block !important;
+}
+
 /* Desktop auth shell: shared auth styles must not depend on mobile.css. */
 @media (hover:hover) and (pointer:fine){
   #qpAuthGate{

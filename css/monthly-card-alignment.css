@@ -1849,7 +1849,7 @@
 
 /* Mobile inline settings order and label-above fix. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  /* The settings host is moved by JS directly below the toolbar. */
+  /* The settings host follows the toolbar in the fixed DOM layout. */
   #incomeAnalytics.is-settings-open .analytics-settings-host{
     order:2 !important;
     position:relative !important;
@@ -4934,12 +4934,6 @@
       "compare compare" !important;
   }
 }
-
-/* A hidden analytics section must not retain space beneath inline settings. */
-#incomeAnalytics.is-settings-open > [hidden]{
-  display:none !important;
-}
-
 
 /* Mobile inline settings polish v11: tabs share the top row with the close button. */
 @media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){

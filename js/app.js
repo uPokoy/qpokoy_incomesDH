@@ -3,7 +3,7 @@
 "use strict";
 
 // TEMP DEV TOOL — remove after mobile development
-const qPokoyDevVersion='dev-2026.09.27.29';
+const qPokoyDevVersion='dev-2026.09.27.30';
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
 if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
@@ -62,6 +62,7 @@ function deferIncomeRender(){
 navItems.forEach(item=>item.addEventListener('click',()=>{
   if(!item.classList.contains('active')&&!incomeForm.hidden) closeIncomeEditor();
   invalidateDeferredIncomeRender();
+  window.qPokoySetSettingsRoute?.(item.dataset.page==='settings');
   navItems.forEach(x=>x.classList.remove('active'));
   pages.forEach(x=>x.classList.remove('active'));
   item.classList.add('active');
@@ -1874,25 +1875,15 @@ document.addEventListener('mouseup',()=>{
   const toggle=document.getElementById('analyticsSettingsToggle');
   const host=document.getElementById('analyticsSettingsHost');
   const settings=document.getElementById('settings');
-  if(!analytics||!toggle||!host||!settings)return;
+  const income=document.getElementById('income');
+  if(!analytics||!toggle||!host||!settings||!income)return;
 
-  const homeParent=settings.parentNode;
-  const homeAnchor=document.createComment('qPokoy-settings-home');
-  homeParent.insertBefore(homeAnchor,settings);
   const desktop=()=>window.matchMedia('(hover:hover) and (pointer:fine)').matches;
   const inlineSettings=()=>desktop()||window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
 
-  function restoreSettingsHome(){
-    if(homeAnchor.parentNode&&settings.parentNode!==homeAnchor.parentNode){
-      homeAnchor.parentNode.insertBefore(settings,homeAnchor.nextSibling);
-    }
-    settings.classList.remove('analytics-inline-settings');
-  }
-
-  function setOpen(open){
+  function setOpen(open,scrollOnClose=true){
     const next=!!open&&inlineSettings();
     const mobileInline=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
-    const modeRow=analytics.querySelector('.analytics-mode-row');
 
     // Settings must always open over the compact analytics shell.
     // Collapse expanded category panels first so their temporary height
@@ -1915,18 +1906,8 @@ document.addEventListener('mouseup',()=>{
     toggle.title=next?'Закрыть настройки':'Настройки';
 
     if(next){
-      if(mobileInline&&modeRow){
-        modeRow.insertAdjacentElement('afterend',host);
-        Array.from(analytics.children).forEach(child=>{
-          if(child===modeRow||child===host)return;
-          child.dataset.qpMobileSettingsHidden=child.hidden?'1':'0';
-          child.hidden=true;
-        });
-      }
       host.hidden=false;
-      host.appendChild(settings);
       settings.classList.add('analytics-inline-settings');
-      settings.style.removeProperty('display');
       if(typeof window.qPokoySetSettingsTab==='function')window.qPokoySetSettingsTab('categories');
       requestAnimationFrame(()=>{
         requestAnimationFrame(()=>{
@@ -1934,22 +1915,9 @@ document.addEventListener('mouseup',()=>{
         });
       });
     }else{
-      if(mobileInline){
-        Array.from(analytics.children).forEach(child=>{
-          if(!Object.prototype.hasOwnProperty.call(child.dataset,'qpMobileSettingsHidden'))return;
-          const wasHidden=child.dataset.qpMobileSettingsHidden==='1';
-          child.hidden=wasHidden;
-          delete child.dataset.qpMobileSettingsHidden;
-        });
-        analytics.appendChild(host);
-      }
       host.hidden=true;
-      restoreSettingsHome();
-      const active=document.querySelector('.page.active');
-      if(active&&active.id!=='settings'){
-        settings.style.setProperty('display','none','important');
-      }
-      if(desktop()){
+      settings.classList.remove('analytics-inline-settings');
+      if(scrollOnClose&&desktop()){
         const incomeTop=document.querySelector('#income .income-top');
         if(incomeTop){
           requestAnimationFrame(()=>{
@@ -1960,6 +1928,14 @@ document.addEventListener('mouseup',()=>{
         }
       }
     }
+  }
+
+  // The standalone Settings route and the analytics gear share one fixed DOM tree.
+  function setRoute(open){
+    setOpen(false,false);
+    income.classList.toggle('is-settings-route',!!open);
+    host.classList.toggle('analytics-settings-host',!open);
+    host.hidden=!open;
   }
 
   toggle.addEventListener('click',event=>{
@@ -1973,6 +1949,7 @@ document.addEventListener('mouseup',()=>{
   },{passive:true});
 
   window.qPokoySetAnalyticsSettingsOpen=setOpen;
+  window.qPokoySetSettingsRoute=setRoute;
 
   // Close settings before actions that change the dashboard context.
   // Capture phase lets the original click continue normally afterwards.
@@ -2016,41 +1993,6 @@ document.addEventListener('mouseup',()=>{
   setTab('categories');
   window.qPokoySetSettingsTab=setTab;
 })();
-
-document.querySelectorAll('.page:not(#settings) .settings-card').forEach(el=>el.remove());
-
-(function(){
-  function enforceSettingsOnly(){
-    const settings=document.getElementById('settings');
-    if(!settings) return;
-    document.querySelectorAll('.settings-card').forEach(function(el){
-      if(!settings.contains(el)){
-        el.remove();
-      }
-    });
-    const active=document.querySelector('.page.active');
-    const inlineOpen=!!settings.closest('#analyticsSettingsHost')&&
-      document.getElementById('incomeAnalytics')?.classList.contains('is-settings-open');
-    if(inlineOpen){
-      settings.style.removeProperty('display');
-      settings.querySelectorAll('.settings-card').forEach(function(el){
-        el.style.removeProperty('display');
-      });
-    } else if(active && active.id!=='settings'){
-      settings.style.setProperty('display','none','important');
-      settings.querySelectorAll('.settings-card').forEach(function(el){
-        el.style.removeProperty('display');
-      });
-    } else if(active && active.id==='settings'){
-      settings.style.removeProperty('display');
-    }
-  }
-  enforceSettingsOnly();
-  document.querySelectorAll('.nav-item[data-page]').forEach(function(item){
-    item.addEventListener('click',enforceSettingsOnly);
-  });
-})();
-
 
 // Initialize the single source of truth for period, then render.
 const initialPeriod=getSelectedIncomePeriod();
