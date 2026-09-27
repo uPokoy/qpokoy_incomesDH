@@ -7,11 +7,6 @@ body.qp-bg-standard{
     radial-gradient(118% 84% at 50% -22%,rgba(72,99,135,.30) 0 18%,rgba(32,48,70,.14) 35%,transparent 54%),
     linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%) fixed !important;
 }
-@supports (-webkit-touch-callout:none){
-  @media (pointer:coarse){
-    body.qp-bg-standard{background-repeat:no-repeat !important;}
-  }
-}
 body.qp-bg-off{background:var(--bg) !important;}
 body.qp-bg-standard>.app,body.qp-bg-off>.app{background:transparent !important;}
 #qpCustomBackgroundLayer{position:fixed;inset:0;z-index:0;display:none;pointer-events:none;background-color:#070b12;background-position:center center;background-size:cover;background-repeat:no-repeat;}
