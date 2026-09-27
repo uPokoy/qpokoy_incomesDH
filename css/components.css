@@ -228,7 +228,7 @@ main{
 #settings #exportDataBtn,
 #settings #importDataBtn,
 #settings #printIncomeReportBtn{
-  background:var(--accent, #5b6cff);
+  background:var(--primary);
   color:#fff;
   border-color:transparent;
 }
@@ -270,7 +270,7 @@ main{
   right:-90px;
   top:-100px;
   border-radius:50%;
-  background:var(--accent, #5b6cff);
+  background:var(--primary);
   opacity:.07;
   pointer-events:none;
 }
@@ -3951,6 +3951,42 @@ body.qp-auth-locked #income .income-recent-pager{
     margin-top:12px !important;
   }
 
+  #incomeAnalytics .analytics-settings-host #qpAccountCard .qp-account-row{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:12px !important;
+    flex-wrap:wrap !important;
+    margin-top:10px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpAccountCard .qp-account-email{
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow:hidden !important;
+    color:var(--text-muted) !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpAccountCard #qpAuthLogoutBtn{
+    flex:0 0 auto !important;
+    min-width:82px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpDataCard > div[style]{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr)) !important;
+    gap:10px !important;
+    width:100% !important;
+    margin-top:10px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #qpDataCard > div[style] > button{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
   /* Categories keep a useful card width as the desktop window narrows. */
   #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-list{
     display:grid !important;
@@ -3985,12 +4021,12 @@ body.qp-auth-locked #income .income-recent-pager{
 @media (hover:hover) and (pointer:fine){
   #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
     box-sizing:border-box !important;
-    width:100% !important;
+    width:calc(100% - 50px) !important;
     height:38px !important;
     min-height:38px !important;
     max-height:38px !important;
     padding:2px !important;
-    margin:6px 0 18px 0 !important;
+    margin:0 50px 18px 0 !important;
   }
 
   #incomeAnalytics .analytics-settings-host .qp-settings-tab{
@@ -4027,6 +4063,12 @@ body.qp-auth-locked #income .income-recent-pager{
 
   #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-list::-webkit-scrollbar-track{
     background:transparent;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-list::-webkit-scrollbar-button{
+    display:none;
+    width:0;
+    height:0;
   }
 
   #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-list::-webkit-scrollbar-thumb{
@@ -4503,8 +4545,8 @@ body:not(.dark) .income-report-custom-range input{
   #incomeAnalytics.is-settings-open > .analytics-mode-row{
     position:absolute !important;
     z-index:42 !important;
-    top:20px !important;
-    right:24px !important;
+    top:24px !important;
+    right:26px !important;
     left:auto !important;
     width:38px !important;
     min-width:38px !important;
@@ -4545,7 +4587,7 @@ body:not(.dark) .income-report-custom-range input{
     min-height:0 !important;
     max-height:none !important;
     margin:0 !important;
-    padding:20px 0 20px 24px !important;
+    padding:0 !important;
     overflow:visible !important;
     box-sizing:border-box !important;
     border-radius:inherit !important;
