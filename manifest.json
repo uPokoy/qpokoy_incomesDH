@@ -1,6 +1,6 @@
 {
-  "name": "qPokoy",
-  "short_name": "qPokoy",
+  "name": "Доходы",
+  "short_name": "Доходы",
   "description": "qPokoy — учёт доходов",
   "lang": "ru",
   "id": "./",
@@ -11,13 +11,13 @@
   "theme_color": "#0b1018",
   "icons": [
     {
-      "src": "./icons/pwa-192-large.png",
+      "src": "./icons/pwa-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/pwa-512-large.png",
+      "src": "./icons/pwa-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
