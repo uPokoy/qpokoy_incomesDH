@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.28.78';
+const qPokoyDevVersion='dev-2026.09.28.79';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -1005,7 +1005,7 @@ window.renderIncomeAnalytics=function(){
   const hasPrevious=previous.total>0;
   const growth=hasPrevious?((a.total-previous.total)/previous.total*100):null;
   const annualDifference=a.total-previous.total;
-  growthEl.textContent=growth===null?'—':`${growth>=0?'+':''}${growth.toFixed(1)}%`;
+  growthEl.textContent=growth===null?'—':`${growth>=0?'+':'-'}${Math.round(Math.abs(growth))}%`;
   growthEl.classList.toggle('positive',growth!==null&&growth>0);
   growthEl.classList.toggle('negative',growth!==null&&growth<0);
   growthEl.classList.toggle('neutral',growth===0||growth===null);
@@ -1017,7 +1017,7 @@ window.renderIncomeAnalytics=function(){
   }
   if(annualYearCompareValueEl){
     annualYearCompareValueEl.classList.toggle('is-empty',growth===null);
-    annualYearCompareValueEl.textContent=growth===null?'—':(growth>=0?'+':'')+Math.trunc(growth)+'%';
+    annualYearCompareValueEl.textContent=growth===null?'—':(growth>=0?'+':'-')+Math.round(Math.abs(growth))+'%';
   }
   if(annualYearCompareNoteEl){
     const mobileAnnualCompare=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
@@ -1033,7 +1033,7 @@ window.renderIncomeAnalytics=function(){
   if(annualHeroGrowthEl){
     const annualGrowthBox=annualHeroGrowthEl.closest('.annual-total-growth');
     if(annualGrowthBox)annualGrowthBox.hidden=growth===null;
-    annualHeroGrowthEl.textContent=growth===null?'—':`${growth>=0?'↑ ':'↓ '}${Math.abs(growth).toFixed(1)}%`;
+    annualHeroGrowthEl.textContent=growth===null?'—':`${growth>=0?'↑ ':'↓ '}${Math.round(Math.abs(growth))}%`;
     annualHeroGrowthEl.classList.toggle('positive',growth!==null&&growth>0);
     annualHeroGrowthEl.classList.toggle('negative',growth!==null&&growth<0);
     annualHeroGrowthEl.classList.toggle('neutral',growth===0||growth===null);

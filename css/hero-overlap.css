@@ -1,0 +1,46 @@
+/* DEV79: reserve growth badge space only if hero amount would overlap it.
+   Applies to both desktop and touch/mobile layouts; does not touch other cards. */
+#incomeAnalytics:not(.is-monthly) .annual-total-desktop-head.qp-hero-avoid-growth > .annual-total-copy{
+  position:absolute!important;
+  top:0!important;
+  left:0!important;
+  right:auto!important;
+  width:calc(100% - var(--qp-hero-growth-reserve, 0px))!important;
+  max-width:calc(100% - var(--qp-hero-growth-reserve, 0px))!important;
+  min-width:0!important;
+  margin:0!important;
+  transform:none!important;
+  align-items:center!important;
+  text-align:center!important;
+  box-sizing:border-box!important;
+}
+#incomeAnalytics:not(.is-monthly) .annual-total-desktop-head.qp-hero-avoid-growth > .annual-total-copy > #annualHeroTotal{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  text-align:center!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  transform:none!important;
+  box-sizing:border-box!important;
+}
+#incomeAnalytics.is-monthly .monthly-total-head.qp-hero-avoid-growth > #monthlyHeroTotal{
+  position:absolute!important;
+  top:0!important;
+  left:0!important;
+  right:auto!important;
+  display:block!important;
+  width:calc(100% - var(--qp-hero-growth-reserve, 0px))!important;
+  max-width:calc(100% - var(--qp-hero-growth-reserve, 0px))!important;
+  min-width:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  text-align:center!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  transform:none!important;
+  box-sizing:border-box!important;
+}
