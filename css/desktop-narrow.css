@@ -508,3 +508,48 @@
     grid-template-columns:minmax(0,1fr) !important;
   }
 }
+
+/* DEV89: annual Average at 320px desktop: release the icon's track and
+   allow the complete monetary value to wrap inside the card. */
+@media (max-width:340px) and (hover:hover) and (pointer:fine){
+  #incomeAnalytics:not(.is-monthly):not(.is-settings-open) > .analytics-cards > .analytics-card.analytics-card-average{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    justify-content:center !important;
+    height:auto !important;
+    min-height:112px !important;
+    padding:12px !important;
+    gap:0 !important;
+  }
+  #incomeAnalytics:not(.is-monthly):not(.is-settings-open) > .analytics-cards > .analytics-card.analytics-card-average > .analytics-card-icon,
+  #incomeAnalytics:not(.is-monthly):not(.is-settings-open) > .analytics-cards > .analytics-card.analytics-card-average > .analytics-mini-step{
+    display:none !important;
+  }
+  #incomeAnalytics:not(.is-monthly):not(.is-settings-open) > .analytics-cards > .analytics-card.analytics-card-average > .analytics-card-body{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:6px !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    grid-template-columns:none !important;
+  }
+  #incomeAnalytics:not(.is-monthly):not(.is-settings-open) > .analytics-cards > .analytics-card.analytics-card-average #analyticsAverageActive{
+    display:block !important;
+    box-sizing:border-box !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    font-size:20px !important;
+    line-height:1.12 !important;
+    text-align:center !important;
+    white-space:normal !important;
+    overflow-wrap:anywhere !important;
+  }
+}
