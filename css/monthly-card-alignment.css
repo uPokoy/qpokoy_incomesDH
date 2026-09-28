@@ -4769,3 +4769,36 @@
     margin-top:10px !important;
   }
 }
+
+/* DEV86: year comparison label on phones occupies its own wrapping line.
+   Leave the desktop and the other dashboard cards unchanged. */
+@media (max-width:900px) and (pointer:coarse),
+       (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body{
+    padding:0!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-areas:"label" "amount"!important;
+    row-gap:6px!important;
+    align-content:center!important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body > #annualYearCompareLabel{
+    display:block!important;
+    width:min(88px,100%)!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:visible!important;
+    white-space:normal!important;
+    text-overflow:clip!important;
+    overflow-wrap:normal!important;
+    line-height:1.15!important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body > #annualYearCompareNote{
+    justify-self:start!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:left!important;
+  }
+}

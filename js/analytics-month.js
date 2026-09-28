@@ -17,6 +17,34 @@
     return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(Number(value)||0)+' ₽';
   }
 
+  /* Only the previous-month amount: preserve all digits and fit within its mobile card. */
+  const growthAmountMedia=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+  const growthMeasure=document.createElement('canvas').getContext('2d');
+  function fitMonthlyGrowthAmount(){
+    const note=document.getElementById('monthlyGrowthNote');
+    if(!note)return;
+    // Re-read the normal CSS font on every render; never accumulate previous shrinking.
+    note.style.removeProperty('font-size');
+    if(!growthAmountMedia.matches||!root.classList.contains('is-monthly'))return;
+    const host=note.closest('.monthly-summary-card-body');
+    if(!host||!host.clientWidth)return;
+    const hostStyle=getComputedStyle(host);
+    const available=host.clientWidth-(parseFloat(hostStyle.paddingLeft)||0)-(parseFloat(hostStyle.paddingRight)||0)-6;
+    const style=getComputedStyle(note);
+    const full=note.textContent.trim();
+    const base=parseFloat(style.fontSize);
+    if(!growthMeasure||available<=15||!Number.isFinite(base)||base<=0||!full)return;
+    const spacing=parseFloat(style.letterSpacing)||0;
+    function measured(size){
+      growthMeasure.font=[style.fontStyle,style.fontWeight,size+'px',style.fontFamily].join(' ');
+      return growthMeasure.measureText(full).width+Math.max(0,full.length-1)*spacing;
+    }
+    let size=base;
+    while(size>6&&measured(size)>available)size=Math.max(6,size-.5);
+    if(size<base)note.style.setProperty('font-size',size+'px','important');
+  }
+
+
   function parseDate(value){
     if(typeof textDateToDate==='function') return textDateToDate(value);
     const match=String(value||'').match(/^(\d{2})\.(\d{2})\.(\d{2}|\d{4})$/);
@@ -455,6 +483,8 @@
         }
       }
     }
+    // The amount is laid out after textContent has been updated for this period.
+    requestAnimationFrame(fitMonthlyGrowthAmount);
   }
 
   function escapeText(value){
@@ -503,6 +533,15 @@
   window.addEventListener('qpokoy:income-period-change',scheduleRender);
   window.addEventListener('qpokoy:income-data-rendered',scheduleRender);
   window.qPokoyRenderMonthlyAnalytics=scheduleRender;
+
+  // Observe only the fixed-size comparison card; font adjustments never resize it.
+  if(typeof ResizeObserver==='function'){
+    const growthCard=document.getElementById('monthlyGrowthCard');
+    if(growthCard){
+      const growthWidthObserver=new ResizeObserver(()=>requestAnimationFrame(fitMonthlyGrowthAmount));
+      growthWidthObserver.observe(growthCard);
+    }
+  }
 
   setMode('month',false);
   render();
