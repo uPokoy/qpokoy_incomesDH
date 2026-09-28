@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.28.64';
+const qPokoyDevVersion='dev-2026.09.28.65';
 
 const qPokoyIOSMobile=/iPhone|iPad|iPod/.test(navigator.userAgent)&&window.matchMedia('(pointer:coarse)').matches;
 if(qPokoyIOSMobile){
