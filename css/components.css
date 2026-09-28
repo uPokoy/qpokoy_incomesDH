@@ -779,7 +779,7 @@ main{
   background:color-mix(in srgb,var(--primary) 9%,transparent);
   pointer-events:none;
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics .analytics-card:hover{
     transform:translateY(-2px);
     border-color:color-mix(in srgb,var(--primary) 45%,var(--border));
@@ -1214,7 +1214,7 @@ main{
   font-size:12px !important;
   font-weight:600 !important;
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-category-panels{
     grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   }
@@ -1355,7 +1355,7 @@ html[data-theme="dark"] body:not(.qp-bg-standard):not(.qp-bg-custom){
 
 /* Desktop standard background: restore the original auth-screen canvas.
    Mobile keeps its own copy in mobile.css. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   html[data-theme="dark"] body.qp-bg-standard{
     isolation:isolate;
     overflow-x:hidden !important;
@@ -1700,12 +1700,12 @@ body.qp-auth-locked #income .income-recent-pager{
   white-space:nowrap;
 }
 
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income .income-recent-mobile-actions{
     display:none !important;
   }
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income .income-recent-card{
     cursor:pointer;
   }
@@ -1778,7 +1778,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual analytics desktop: two wide summary cards per row. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards{
     grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   }
@@ -1788,7 +1788,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual analytics desktop: match the compact monthly visual system. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card{
     min-height:146px !important;
     padding:16px 28px !important;
@@ -2003,7 +2003,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual category cards desktop: minimalist option 3. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-category-panels{
     gap:16px !important;
   }
@@ -2118,7 +2118,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Desktop experiment: best-month card with amount on a lower row. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best{
     align-items:center !important;
   }
@@ -2166,7 +2166,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Desktop experiment: compact width for best-month card. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best{
     width:min(390px,100%) !important;
     max-width:390px !important;
@@ -2176,7 +2176,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual desktop layout: asymmetric metric dashboard with central total. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   /* Total now lives in the central hero card on the annual desktop view. */
   #incomeAnalytics:not(.is-monthly) > .analytics-head{
     display:none !important;
@@ -2470,7 +2470,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual desktop palette: restrained premium banking treatment. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   /* Summary cards: neutral surfaces; semantic color stays in the data itself. */
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card{
     border-color:color-mix(in srgb,var(--border) 92%,#64748b 8%) !important;
@@ -2573,7 +2573,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual desktop palette: balanced color after muted pass. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   /* Bring back controlled color in summary cards. */
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card{
     border-color:color-mix(in srgb,var(--card-accent,var(--border)) 22%,var(--border)) !important;
@@ -2657,7 +2657,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual desktop surfaces: match recent-income card background exactly. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card,
   #incomeAnalytics:not(.is-monthly) .annual-total-card,
   #incomeAnalytics:not(.is-monthly) .analytics-category-panel{
@@ -2673,7 +2673,7 @@ body.qp-auth-locked #income .income-recent-pager{
 .analytics-mini-step{
   display:none;
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   /* Replace the old decorative slashes in the right-side annual cards. */
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average::before,
   #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-growth::before{
@@ -2742,7 +2742,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual growth card: use the same mini bars as best/worst. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-mini-step-growth{
     display:none !important;
   }
@@ -2792,7 +2792,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual average card: neutral mid-height mini bars. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-mini-step-average{
     display:none !important;
   }
@@ -2826,7 +2826,7 @@ body.qp-auth-locked #income .income-recent-pager{
   display:none;
 }
 
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .annual-total-card{
     min-height:270px !important;
     padding:16px !important;
@@ -3041,7 +3041,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual total — fit exactly inside the two-row desktop analytics grid. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .annual-total-card{
     min-height:238px !important;
     height:238px !important;
@@ -3088,7 +3088,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual total — let the monthly chart use all free vertical space. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .annual-total-desktop{
     flex:1 1 auto !important;
     min-height:0 !important;
@@ -3105,7 +3105,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual total — larger amount, positioned closer to the visual center. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .annual-total-desktop-head{
     position:relative !important;
     min-height:42px !important;
@@ -3135,7 +3135,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual monthly bars follow the accent color from Appearance settings. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .annual-total-bar{
     background:linear-gradient(
       180deg,
@@ -3150,7 +3150,7 @@ body.qp-auth-locked #income .income-recent-pager{
 #incomeAnalytics .annual-month-share{
   display:none;
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-card-best,
   #incomeAnalytics:not(.is-monthly) .analytics-card-worst{
     position:relative !important;
@@ -3197,7 +3197,7 @@ body.qp-auth-locked #income .income-recent-pager{
 #incomeAnalytics .annual-growth-tooltip{
   display:none !important;
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-card-growth .analytics-card-body > .annual-growth-label{
     position:relative !important;
     display:flex !important;
@@ -3254,7 +3254,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Annual best/worst: month name on the same line as the label. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body,
   #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body{
     display:grid !important;
@@ -3312,7 +3312,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Force annual best/worst title + month onto one physical line. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body,
   #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body{
     display:block !important;
@@ -3341,7 +3341,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Tighten annual title/month spacing and preserve month capitalization. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > strong,
   #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > strong{
     margin-left:2px !important;
@@ -3353,7 +3353,7 @@ body.qp-auth-locked #income .income-recent-pager{
 #income .income-recent-history{
   display:none;
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income .income-recent-history{
     height:30px;
     margin-left:8px;
@@ -3387,7 +3387,7 @@ body.qp-auth-locked #income .income-recent-pager{
 #income .income-recent-history-panel > #history{
   display:block;
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income .income-recent.is-history-open .income-recent-grid,
   #income .income-recent.is-history-open .income-recent-pager{
     display:none !important;
@@ -3432,7 +3432,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Inline History scrollbar: match the dark site chrome. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income .income-recent-history-panel .income-list{
     scrollbar-width:thin;
     scrollbar-color:color-mix(in srgb,var(--text-muted) 48%,transparent) transparent;
@@ -3472,7 +3472,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Desktop recent-income footer: pagination + full history stay in the cloud's lower-right corner. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income .income-recent{
     position:relative;
     padding-bottom:40px;
@@ -3520,7 +3520,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Hide full-history shortcut while recent-income shell is collapsed. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income .income-recent.is-collapsed .income-recent-history{
     display:none !important;
   }
@@ -3532,7 +3532,7 @@ body.qp-auth-locked #income .income-recent-pager{
   display:none;
 }
 
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   /* History + Settings now live on the main dashboard, so desktop no longer needs the bottom bar. */
   .sidebar{
     display:none !important;
@@ -3620,7 +3620,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Horizontal settings tabs: compact selected layout. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings{
     display:block !important;
     width:100%;
@@ -3810,7 +3810,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Desktop settings close control. The settings content stays in normal flow. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics{
     position:relative !important;
     overflow:hidden !important;
@@ -3861,7 +3861,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Settings cleanup: three tabs, merged account/data, fixed gear-close position. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics .analytics-settings-host .qp-settings-heading{
     display:none !important;
   }
@@ -3914,7 +3914,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Settings polish: tab clearance, appearance spacing, four-column categories. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   /* Keep the tab strip aligned with, but clear of, the close button. */
   #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
     width:calc(100% - 12px) !important;
@@ -4006,7 +4006,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Settings geometry: tabs match close button and content width. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
     box-sizing:border-box !important;
     width:calc(100% - 50px) !important;
@@ -4032,7 +4032,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Settings categories: hover clearance and scrollbar gap. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-list{
     box-sizing:border-box !important;
     padding:2px 12px 2px 2px !important;
@@ -4081,7 +4081,7 @@ body.qp-auth-locked #income .income-recent-pager{
 }
 
 /* Desktop settings: category add button without glow. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #settings .qp-category-add button,
   #settings .qp-category-add button:hover,
   #settings .qp-category-add button:active{
@@ -4093,7 +4093,7 @@ body.qp-auth-locked #income .income-recent-pager{
 #income .income-history-report-actions{
   display:none;
 }
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #settings #printReportPeriod,
   #settings #printIncomeReportBtn{
     display:none !important;
@@ -4346,7 +4346,7 @@ body:not(.dark) .income-report-custom-range input{
 }
 
 /* Desktop settings categories: keep the input and add control usable at narrow widths. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add{
     box-sizing:border-box !important;
     width:calc(100% - 12px) !important;
@@ -4381,7 +4381,7 @@ body:not(.dark) .income-report-custom-range input{
 
 /* Desktop category manager base v71.
    These styles used to arrive indirectly through mobile-base.css; keep desktop self-contained. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-manager{
     margin:0 !important;
     padding:0 !important;
@@ -4514,7 +4514,7 @@ body:not(.dark) .income-report-custom-range input{
 
 /* Desktop settings auto-height v73.
    Replace the old full-height overlay with content-sized settings layout. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics.is-settings-open{
     position:relative !important;
     height:auto !important;
@@ -4602,7 +4602,7 @@ body:not(.dark) .income-report-custom-range input{
 }
 
 /* Desktop auth shell: shared auth styles must not depend on mobile.css. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #qpAuthGate{
     position:fixed;
     inset:0;

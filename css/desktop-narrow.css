@@ -1,7 +1,7 @@
 /* qPokoy narrow desktop layout.
    Desktop remains desktop. Layout adapts to the actual analytics container width. */
 
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics{
     container-type:inline-size;
     container-name:qp-analytics;
@@ -283,7 +283,7 @@
 }
 
 /* Desktop analytics Year label v20: only the Month/Year block shows plain year text. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #incomeAnalytics:not(.is-monthly) .analytics-mode-period .analytics-year-switcher{
     display:block !important;
     width:auto !important;
@@ -329,7 +329,7 @@
 
 
 /* Desktop site header period controls v23: reduced 15% from v22. */
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income #incomeMonthSwitcher,
   #income .income-chart-year-bottom > .income-chart-year-switcher{
     grid-template-columns:33px minmax(80px,auto) 33px !important;

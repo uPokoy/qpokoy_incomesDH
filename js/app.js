@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.28.75';
+const qPokoyDevVersion='dev-2026.09.28.76';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -94,7 +94,7 @@ navItems.forEach(item=>item.addEventListener('click',()=>{
 }));
 
 window.addEventListener('load',()=>{
-  if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+  if(!window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches)return;
   const incomeTop=document.querySelector('#income .income-top');
   if(!incomeTop)return;
   requestAnimationFrame(()=>{
@@ -181,7 +181,7 @@ function setIncomeRecentHistoryOpen(open){
         });
       });
     }
-    if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+    if(window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches){
       requestAnimationFrame(()=>{
         requestAnimationFrame(()=>{
           incomeRecentHistoryPanel.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
@@ -200,7 +200,7 @@ function setIncomeRecentHistoryOpen(open){
         });
       }
     }
-    if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+    if(window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches){
       const incomeTop=document.querySelector('#income .income-top');
       if(incomeTop){
         requestAnimationFrame(()=>{
@@ -577,7 +577,7 @@ function openHistoryEdit(id){
 }
 
 function openRecentIncomeEdit(id){
-  const desktopRecentEdit=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const desktopRecentEdit=window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches;
   const mobileRecentEdit=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
   if(!desktopRecentEdit&&!mobileRecentEdit)return;
   mobileIncomeEditOrigin=mobileRecentEdit?'recent':null;
@@ -784,7 +784,7 @@ incomeRecentGrid?.addEventListener('click',e=>{
     return;
   }
 
-  if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+  if(!window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches)return;
   const editButton=e.target.closest('.income-recent-edit');
   if(editButton){
     e.stopPropagation();
@@ -1105,7 +1105,7 @@ window.renderIncomeAnalytics=function(){
   if(annualHeroCategoriesEl) annualHeroCategoriesEl.textContent=String(categories.length);
 
   if(catsEl){
-    const desktopCategories=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+    const desktopCategories=window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches;
     const mobileCategories=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
     const periodKey=String(a.year);
     if(catsEl.dataset.categoryPeriod!==periodKey){
@@ -1935,7 +1935,7 @@ document.addEventListener('mouseup',()=>{
   const income=document.getElementById('income');
   if(!analytics||!toggle||!host||!settings||!income)return;
 
-  const desktop=()=>window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const desktop=()=>window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches;
   const inlineSettings=()=>desktop()||window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
 
   function setOpen(open,scrollOnClose=true){
