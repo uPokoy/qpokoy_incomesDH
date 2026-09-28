@@ -169,7 +169,3 @@ html[data-theme="dark"] #qpAuthGate .qp-auth-card{
   html[data-theme="dark"] #qpAuthGate::after{width:78vw;height:34vw;right:-14vw;top:-8vw;}
 }
 
-/* Visible DEV marker for this isolated CSS patch. */
-#qPokoyDevVersion::after{
-  content:"dev-2026.09.15.58" !important;
-}
