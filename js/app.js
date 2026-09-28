@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.28.63';
+const qPokoyDevVersion='dev-2026.09.28.64';
 
 const qPokoyIOSMobile=/iPhone|iPad|iPod/.test(navigator.userAgent)&&window.matchMedia('(pointer:coarse)').matches;
 if(qPokoyIOSMobile){
@@ -1017,7 +1017,10 @@ window.renderIncomeAnalytics=function(){
     annualYearCompareValueEl.textContent=growth===null?'—':(growth>=0?'+':'')+Math.trunc(growth)+'%';
   }
   if(annualYearCompareNoteEl){
-    annualYearCompareNoteEl.textContent=hasPrevious?(annualDifference===0?'— 0 ₽':formatMoney(Math.abs(annualDifference))):'';
+    const mobileAnnualCompare=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
+    annualYearCompareNoteEl.textContent=hasPrevious
+      ?(annualDifference===0?'— 0 ₽':(mobileAnnualCompare?(annualDifference>0?'+':'-'):'')+formatMoney(Math.abs(annualDifference)))
+      :'';
   }
 
   const growthCaption=hasPrevious?`по сравнению с ${year-1} годом`:'нет данных за предыдущий год';

@@ -308,9 +308,9 @@
       if(previousTotal<=0){
         growthNoteEl.textContent='';
       }else if(difference>0){
-        growthNoteEl.textContent=money(Math.abs(difference));
+        growthNoteEl.textContent=(window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches?'+':'')+money(Math.abs(difference));
       }else if(difference<0){
-        growthNoteEl.textContent=money(Math.abs(difference));
+        growthNoteEl.textContent=(window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches?'-':'')+money(Math.abs(difference));
       }else{
         growthNoteEl.textContent='— 0 ₽';
       }
@@ -351,9 +351,9 @@
       if(lastYearTotal<=0){
         yearGrowthNoteEl.textContent='';
       }else if(yearDifference>0){
-        yearGrowthNoteEl.textContent=money(Math.abs(yearDifference));
+        yearGrowthNoteEl.textContent=(window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches?'+':'')+money(Math.abs(yearDifference));
       }else if(yearDifference<0){
-        yearGrowthNoteEl.textContent=money(Math.abs(yearDifference));
+        yearGrowthNoteEl.textContent=(window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches?'-':'')+money(Math.abs(yearDifference));
       }else{
         yearGrowthNoteEl.textContent='— 0 ₽';
       }
