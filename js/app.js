@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.28.61';
+const qPokoyDevVersion='dev-2026.09.28.62';
 
 const qPokoyIOSMobile=/iPhone|iPad|iPod/.test(navigator.userAgent)&&window.matchMedia('(pointer:coarse)').matches;
 if(qPokoyIOSMobile){
@@ -13,7 +13,9 @@ if(qPokoyIOSMobile){
 }
 const qPokoyDevVersionLabel=document.getElementById('qPokoyDevVersion');
 const qPokoyDevRefresh=document.getElementById('qPokoyDevRefresh');
-if(qPokoyDevVersionLabel)qPokoyDevVersionLabel.textContent=qPokoyDevVersion;
+if(qPokoyDevVersionLabel){
+  qPokoyDevVersionLabel.replaceChildren(document.createTextNode(qPokoyDevVersion));
+}
 qPokoyDevRefresh?.addEventListener('click',async()=>{
   try{
     if('caches' in window){
