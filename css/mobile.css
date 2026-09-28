@@ -3239,3 +3239,11 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     }
   }
 }
+
+/* DEV66: Android no longer has a bottom site navigation. Retain a modest
+   gap for the fixed add-income button; keep the iPhone-specific rules intact. */
+@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html.qp-android .app .content{
+    padding-bottom:calc(56px + env(safe-area-inset-bottom)) !important;
+  }
+}
