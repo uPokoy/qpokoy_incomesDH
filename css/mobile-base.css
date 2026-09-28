@@ -996,8 +996,8 @@ body.qp-auth-locked #qpAuthGate{pointer-events:auto;}
   }
 }
 
-/* Mobile history cards: visual-only redesign. No filtering or data logic changes. */
-@media (max-width:560px){
+/* Mobile history cards: portrait and touch-phone landscape use the same swipe-row structure. */
+@media (max-width:560px), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   #history .income-table-section{
     overflow:visible !important;
     background:transparent !important;
