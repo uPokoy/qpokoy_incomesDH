@@ -351,3 +351,24 @@
     font-size:15px !important;
   }
 }
+
+/* DEV87: a narrow desktop window with a mouse is not a mobile touch device.
+   Avoid the fixed 220px + 340px dashboard tracks overflowing 320–620px viewports. */
+@media (max-width:620px) and (hover:hover) and (pointer:fine){
+  #income .income-top{
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:18px;
+  }
+  #income .income-top > .income-month-block,
+  #income .income-top > .income-month-chart,
+  #income .income-top > #incomeRecent{
+    min-width:0 !important;
+    max-width:100%;
+  }
+  #income .income-top > #incomeRecent{
+    grid-column:1/-1 !important;
+  }
+  #income .income-recent-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+}
