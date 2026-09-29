@@ -59,7 +59,7 @@
     grid-area:amount!important;
     display:block!important;
     box-sizing:border-box!important;
-    justify-self:stretch!important;
+    justify-self:center!important;
     width:100%!important;
     max-width:100%!important;
     min-width:0!important;
@@ -70,7 +70,7 @@
     font-weight:760!important;
     line-height:1!important;
     letter-spacing:-.03em!important;
-    text-align:right!important;
+    text-align:center!important;
     overflow:hidden!important;
     white-space:nowrap!important;
     text-overflow:clip!important;
