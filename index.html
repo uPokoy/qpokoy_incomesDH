@@ -238,7 +238,7 @@
     <main>
       <section id="income" class="page active">
   <div class="qp-dev-panel" aria-label="Текущая версия сайта">
-    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.29.96</strong></span>
+    <span>DEV · <strong id="qPokoyDevVersion">dev-2026.09.29.97</strong></span>
     <button type="button" id="qPokoyDevRefresh">Обновить</button>
   </div>
   <div class="income-top">
@@ -685,7 +685,7 @@
     </main>
   </div>
 </div>
-<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.29.96"></script>
+<script id="qPokoy-app" src="js/app.js?v=dev-2026.09.29.97"></script>
 
 <script id="qPokoyAccentStableJS" src="js/accent.js?v=dev-2026.09.28.66"></script>
 
@@ -717,17 +717,17 @@
     <form id="qpAuthForm" novalidate>
       <label class="qp-auth-field">
         <span>Email</span>
-        <input id="qpAuthEmail" type="email" autocomplete="email" required>
+        <input id="qpAuthEmail" name="username" type="email" autocomplete="username" required>
       </label>
       <label class="qp-auth-field">
         <span>Пароль</span>
-        <input id="qpAuthPassword" type="password" autocomplete="current-password" minlength="6" required>
+        <input id="qpAuthPassword" name="password" type="password" autocomplete="current-password" minlength="6" required>
       </label>
       <button type="button" class="qp-auth-link qp-auth-reset" id="qpAuthReset">Забыли пароль?</button>
       <div class="qp-auth-reset-message" id="qpAuthResetMessage" aria-live="polite"></div>
       <label class="qp-auth-field" id="qpAuthPasswordConfirmWrap" hidden>
         <span>Повторите пароль</span>
-        <input id="qpAuthPasswordConfirm" type="password" autocomplete="new-password" minlength="6">
+        <input id="qpAuthPasswordConfirm" name="confirm_password" type="password" autocomplete="new-password" minlength="6" disabled>
       </label>
       <div class="qp-auth-message" id="qpAuthMessage" aria-live="polite"></div>
       <button type="submit" class="qp-auth-primary" id="qpAuthSubmit">Вход</button>
@@ -739,7 +739,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
-<script id="qPokoyAuth" src="js/auth.js?v=dev-2026.09.28.90"></script>
+<script id="qPokoyAuth" src="js/auth.js?v=dev-2026.09.29.97"></script>
 
 
 
