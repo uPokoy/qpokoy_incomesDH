@@ -1,7 +1,7 @@
 {
-  "name": "Доходы",
-  "short_name": "Доходы",
-  "description": "qPokoy — учёт доходов",
+  "name": "qPokoy — Учёт доходов",
+  "short_name": "qPokoy",
+  "description": "qPokoy — Учёт доходов",
   "lang": "ru",
   "id": "./",
   "start_url": "./",
