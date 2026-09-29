@@ -4901,3 +4901,17 @@
     overflow:visible !important;
   }
 }
+
+/* DEV93: default to the approved large touch typography; the app measures
+   the actual text and supplies a smaller font ONLY when it cannot fit. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #incomeAnalytics.is-monthly .monthly-summary-best .monthly-summary-card-body > #monthlyBestAmount,
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-best > .analytics-card-body > #analyticsBestAmount{
+    font-size:var(--qp-touch-money-size,25px) !important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-worst > .analytics-card-body > #analyticsWorstAmount,
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.analytics-card-average > .analytics-card-body > #analyticsAverageActive,
+  #incomeAnalytics:not(.is-monthly) .analytics-category-panel .analytics-category-panel-value{
+    font-size:var(--qp-touch-money-size,20px) !important;
+  }
+}

@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.29.92';
+const qPokoyDevVersion='dev-2026.09.29.93';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -2252,4 +2252,79 @@ function getAllIncomeRecords(){
     event.preventDefault();
     window.qPokoyChangeSelectedIncomeMonth(dx<0?1:-1);
   },{passive:false});
+})();
+
+/* DEV93: restore normal Android money typography. Only shrink a value when
+   its actual rendered text does not fit the available card width. */
+(function(){
+  const root=document.getElementById('incomeAnalytics');
+  if(!root)return;
+  const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+  const targets=[
+    ['#monthlyBestAmount',25,15],
+    ['#analyticsBestAmount',25,15],
+    ['#analyticsWorstAmount',20,12],
+    ['#analyticsAverageActive',20,13],
+    ['.analytics-category-panel-value',20,12]
+  ];
+  let frame=0;
+  function fit(){
+    if(!mobile.matches){
+      root.querySelectorAll('#monthlyBestAmount,#analyticsBestAmount,#analyticsWorstAmount,#analyticsAverageActive,.analytics-category-panel-value')
+        .forEach(node=>node.style.removeProperty('--qp-touch-money-size'));
+      return;
+    }
+    const probe=document.createElement('span');
+    probe.style.cssText='position:fixed;left:-10000px;top:0;display:inline-block;width:max-content;max-width:none;visibility:hidden;pointer-events:none;white-space:nowrap;';
+    document.body.appendChild(probe);
+    try{
+      targets.forEach(([selector,base,min])=>{
+        root.querySelectorAll(selector).forEach(node=>{
+          node.style.removeProperty('--qp-touch-money-size');
+          if(!node.getClientRects().length)return;
+          const available=node.getBoundingClientRect().width-4;
+          if(available<=0)return;
+          const computed=getComputedStyle(node);
+          probe.textContent=node.textContent.trim();
+          probe.style.fontFamily=computed.fontFamily;
+          probe.style.fontWeight=computed.fontWeight;
+          probe.style.fontStyle=computed.fontStyle;
+          probe.style.fontVariantNumeric=computed.fontVariantNumeric;
+          probe.style.letterSpacing=computed.letterSpacing;
+          probe.style.fontSize=base+'px';
+          const required=probe.getBoundingClientRect().width;
+          let size=base;
+          if(required>available){
+            size=Math.max(min,Math.floor(base*available/required*10)/10);
+            probe.style.fontSize=size+'px';
+            while(size>min && probe.getBoundingClientRect().width>available){
+              size=Math.max(min,Math.round((size-.5)*10)/10);
+              probe.style.fontSize=size+'px';
+            }
+          }
+          node.style.setProperty('--qp-touch-money-size',size+'px');
+        });
+      });
+    }finally{
+      probe.remove();
+    }
+  }
+  function schedule(){
+    cancelAnimationFrame(frame);
+    frame=requestAnimationFrame(fit);
+  }
+  // These observe only income amounts, view-mode classes and visible card widths.
+  // Inline --qp-touch-money-size updates do not trigger this observer.
+  const observer=new MutationObserver(schedule);
+  observer.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden']});
+  window.addEventListener('resize',schedule,{passive:true});
+  if(typeof ResizeObserver==='function'){
+    let lastWidth=0;
+    const resized=new ResizeObserver(entries=>{
+      const width=entries[0]?.contentRect.width||0;
+      if(width>0&&Math.abs(width-lastWidth)>.5){lastWidth=width;schedule();}
+    });
+    resized.observe(root);
+  }
+  schedule();
 })();
