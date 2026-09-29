@@ -9,7 +9,9 @@
 
   const gate=document.getElementById('qpAuthGate');
   const form=document.getElementById('qpAuthForm');
+  const signupForm=document.getElementById('qpAuthSignupForm');
   const submit=document.getElementById('qpAuthSubmit');
+  const signupSubmit=document.getElementById('qpAuthSignupSubmit');
   const yandexButton=document.getElementById('qpAuthYandex');
   const googleButton=document.getElementById('qpAuthGoogle');
   const reset=document.getElementById('qpAuthReset');
@@ -17,9 +19,11 @@
   const oauthDivider=document.getElementById('qpAuthOAuthDivider');
   const email=document.getElementById('qpAuthEmail');
   const password=document.getElementById('qpAuthPassword');
+  const signupEmail=document.getElementById('qpAuthSignupEmail');
+  const signupPassword=document.getElementById('qpAuthSignupPassword');
   const confirm=document.getElementById('qpAuthPasswordConfirm');
-  const confirmWrap=document.getElementById('qpAuthPasswordConfirmWrap');
   const message=document.getElementById('qpAuthMessage');
+  const signupMessage=document.getElementById('qpAuthSignupMessage');
   const tabs=[...document.querySelectorAll('[data-auth-mode]')];
   let mode='login';
   function oauthLabel(button){return button.querySelector('.qp-auth-oauth-label');}
@@ -37,24 +41,23 @@
     resetMessage.className='qp-auth-reset-message'+(text&&type?' '+type:'');
   }
 
-  function setMessage(text,type){
-    message.textContent=text||'';
-    message.className='qp-auth-message'+(type?' '+type:'');
+  function setMessage(text,type,target){
+    const box=target||(mode==='signup'?signupMessage:message);
+    box.textContent=text||'';
+    box.className='qp-auth-message'+(type?' '+type:'');
   }
   function setMode(next){
     mode=next;
     tabs.forEach(t=>t.classList.toggle('active',t.dataset.authMode===mode));
     const signup=mode==='signup';
-    submit.textContent=signup?'Регистрация':'Вход';
+    form.hidden=signup;
+    signupForm.hidden=!signup;
     reset.hidden=signup;
     oauthDivider.hidden=false;
     yandexButton.hidden=false;
     googleButton.hidden=false;
-    confirmWrap.hidden=!signup;
-    // Exclude the registration-only password confirmation from login autofill.
-    confirm.disabled=!signup;
-    password.autocomplete=signup?'new-password':'current-password';
-    setMessage('');
+    setMessage('',null,message);
+    setMessage('',null,signupMessage);
     setResetMessage('');
   }
   function showGate(show,checking=false){
@@ -112,18 +115,23 @@
       googleButton.disabled=false;
     }
   });
-  form.addEventListener('submit',async function(e){
+  async function handleAuthSubmit(e){
     e.preventDefault();
-    setMessage('');
-    const mail=email.value.trim();
-    const pass=password.value;
-    if(!mail||!email.checkValidity()){setMessage('Введите корректный email.','error');return;}
-    if(pass.length<6){setMessage('Пароль должен содержать минимум 6 символов.','error');return;}
-    if(mode==='signup' && pass!==confirm.value){setMessage('Пароли не совпадают.','error');return;}
+    const isSignup=e.currentTarget===signupForm;
+    const formEmail=isSignup?signupEmail:email;
+    const formPassword=isSignup?signupPassword:password;
+    const formSubmit=isSignup?signupSubmit:submit;
+    const feedback=isSignup?signupMessage:message;
+    setMessage('',null,feedback);
+    const mail=formEmail.value.trim();
+    const pass=formPassword.value;
+    if(!mail||!formEmail.checkValidity()){setMessage('Введите корректный email.','error',feedback);return;}
+    if(pass.length<6){setMessage('Пароль должен содержать минимум 6 символов.','error',feedback);return;}
+    if(isSignup && pass!==confirm.value){setMessage('Пароли не совпадают.','error',feedback);return;}
 
-    submit.disabled=true;
+    formSubmit.disabled=true;
     try{
-      if(mode==='signup'){
+      if(isSignup){
         const {data,error}=await client.auth.signUp({
           email:mail,password:pass
         });
@@ -132,26 +140,28 @@
           await window.qPokoySeedDefaultCategories(data.user.id);
         }
         if(data.session){
-          setMessage('Аккаунт создан. Проверьте почту и подтвердите email','success');
+          setMessage('Аккаунт создан. Проверьте почту и подтвердите email','success',feedback);
         }else{
-          setMessage('Аккаунт создан. Проверьте почту и подтвердите email','success');
-          form.reset();
+          setMessage('Аккаунт создан. Проверьте почту и подтвердите email','success',feedback);
+          signupForm.reset();
         }
       }else{
         const {error}=await client.auth.signInWithPassword({email:mail,password:pass});
         if(error) throw error;
       }
     }catch(err){
-      if(mode==='signup' && err && err.message==='User already registered'){
+      if(isSignup && err && err.message==='User already registered'){
         setMode('login');
         setMessage('Аккаунт с таким email уже существует. Введите пароль и выполните вход.','error');
       }else{
-        setMessage(friendlyError(err),'error');
+        setMessage(friendlyError(err),'error',feedback);
       }
     }finally{
-      submit.disabled=false;
+      formSubmit.disabled=false;
     }
-  });
+  }
+  form.addEventListener('submit',handleAuthSubmit);
+  signupForm.addEventListener('submit',handleAuthSubmit);
 
   reset.addEventListener('click',async function(){
     setResetMessage('');
