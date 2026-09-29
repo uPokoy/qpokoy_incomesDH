@@ -1,0 +1,308 @@
+/* DEV102 — qPokoy auth accent concept (visual only).
+   Scoped to the authentication gate; no dashboard or auth handlers changed. */
+#qpAuthGate[hidden]{display:none !important;}
+#qpAuthGate #qpAuthForm[hidden],
+#qpAuthGate #qpAuthSignupForm[hidden],
+#qpAuthGate #qpAuthReset[hidden]{display:none !important;}
+
+html #qpAuthGate{
+  isolation:isolate;
+  background:
+    radial-gradient(85% 62% at 94% 24%,rgba(39,77,132,.27),transparent 65%),
+    radial-gradient(72% 55% at -8% 96%,rgba(37,75,124,.34),transparent 66%),
+    linear-gradient(155deg,#090e17 0%,#0b1625 47%,#060c16 100%) !important;
+  color:#f5f8ff !important;
+}
+html #qpAuthGate::before,
+html #qpAuthGate::after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  pointer-events:none;
+  border-radius:50%;
+}
+html #qpAuthGate::before{
+  width:max(650px,70vw);
+  height:max(280px,30vw);
+  left:-28vw;
+  bottom:-18vw;
+  background:linear-gradient(155deg,rgba(56,103,169,.40),rgba(19,42,71,.75) 46%,rgba(9,19,32,.95) 78%);
+  box-shadow:0 -1px 1px rgba(141,188,244,.13),0 -36px 90px rgba(39,87,145,.13);
+  transform:rotate(13deg);
+}
+html #qpAuthGate::after{
+  width:max(650px,72vw);
+  height:max(300px,30vw);
+  right:-30vw;
+  top:-17vw;
+  background:linear-gradient(345deg,rgba(45,83,139,.42),rgba(18,39,68,.85) 48%,rgba(7,16,28,.95) 78%);
+  box-shadow:0 1px 1px rgba(141,188,244,.12),0 40px 100px rgba(39,87,145,.12);
+  transform:rotate(-10deg);
+}
+
+body.qp-auth-locked #qpAuthGate .qp-auth-card,
+#qpAuthGate .qp-auth-card{
+  position:relative;
+  z-index:1;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  align-content:center;
+  column-gap:10px;
+  width:min(420px,100%) !important;
+  max-width:420px !important;
+  margin:0 auto !important;
+  padding:24px 20px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#f5f8ff !important;
+  box-shadow:none !important;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(97,143,202,.35) transparent;
+}
+#qpAuthGate .qp-auth-brand,
+#qpAuthGate #qpAuthForm,
+#qpAuthGate #qpAuthSignupForm,
+#qpAuthGate .qp-auth-divider,
+#qpAuthGate .qp-auth-tabs,
+#qpAuthGate #qpAuthReset{
+  grid-column:1/-1;
+  min-width:0;
+}
+#qpAuthGate .qp-auth-brand{
+  margin:0 0 26px;
+  text-align:center;
+}
+#qpAuthGate .qp-auth-brand-name{
+  color:#fff;
+  font-size:clamp(36px,7vw,46px);
+  line-height:1.08;
+  font-weight:780;
+  letter-spacing:-.055em;
+}
+#qpAuthGate .qp-auth-brand-name span{
+  color:#66a5ff;
+  background:linear-gradient(105deg,#a5ceff 0%,#67abff 38%,#2479f4 100%);
+  background-clip:text;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+#qpAuthGate .qp-auth-brand-subtitle{
+  margin-top:6px;
+  color:#d2dbe9;
+  font-size:14px;
+  line-height:20px;
+  font-weight:500;
+}
+#qpAuthGate #qpAuthForm:not([hidden]),
+#qpAuthGate #qpAuthSignupForm:not([hidden]){
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+#qpAuthGate .qp-auth-field{
+  position:relative;
+  display:block;
+  margin:0 0 11px !important;
+}
+#qpAuthGate .qp-auth-field span{
+  position:absolute !important;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+#qpAuthGate .qp-auth-field::before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  left:14px;
+  top:14px;
+  width:19px;
+  height:19px;
+  background:center / contain no-repeat;
+  pointer-events:none;
+  opacity:.96;
+}
+#qpAuthGate .qp-auth-email-field::before{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23bdcce1' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='m4 7 8 6 8-6'/%3E%3C/svg%3E");
+}
+#qpAuthGate .qp-auth-password-field::before{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23bdcce1' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='5' y='10' width='14' height='11' rx='2'/%3E%3Cpath d='M8 10V7a4 4 0 0 1 8 0v3M12 14v3'/%3E%3C/svg%3E");
+}
+html #qpAuthGate .qp-auth-field input{
+  width:100% !important;
+  height:48px !important;
+  min-height:48px !important;
+  box-sizing:border-box !important;
+  padding:0 15px 0 43px !important;
+  border:1px solid rgba(119,157,209,.47) !important;
+  border-radius:12px !important;
+  outline:none;
+  background:rgba(19,35,56,.53) !important;
+  color:#f5f8ff !important;
+  caret-color:#f5f8ff;
+  font-size:16px !important;
+  font-weight:450;
+  color-scheme:dark;
+}
+html #qpAuthGate .qp-auth-field input::placeholder{
+  color:#a8b6cb;
+  opacity:1;
+}
+html #qpAuthGate .qp-auth-field input:focus{
+  border-color:rgba(98,164,255,.94) !important;
+  box-shadow:0 0 0 3px rgba(36,115,244,.17) !important;
+}
+html #qpAuthGate .qp-auth-field input:-webkit-autofill{
+  -webkit-text-fill-color:#f5f8ff !important;
+  -webkit-box-shadow:0 0 0 1000px #122139 inset !important;
+  box-shadow:0 0 0 1000px #122139 inset !important;
+}
+#qpAuthGate #qpAuthSubmit,
+#qpAuthGate #qpAuthSignupSubmit{
+  width:100% !important;
+  height:48px !important;
+  min-height:48px !important;
+  margin:2px 0 0;
+  border:1px solid rgba(83,155,255,.8) !important;
+  border-radius:11px !important;
+  background:linear-gradient(180deg,#2782ff 0%,#1068ee 100%) !important;
+  color:#fff !important;
+  font-size:15px !important;
+  font-weight:700 !important;
+  box-shadow:0 8px 22px rgba(13,88,209,.18) !important;
+}
+#qpAuthGate #qpAuthSubmit:hover,
+#qpAuthGate #qpAuthSignupSubmit:hover{
+  background:linear-gradient(180deg,#3a90ff,#1875fb) !important;
+}
+#qpAuthGate #qpAuthSubmit:disabled,
+#qpAuthGate #qpAuthSignupSubmit:disabled{
+  opacity:.65;
+  cursor:wait;
+}
+#qpAuthGate .qp-auth-divider{
+  display:flex !important;
+  align-items:center;
+  gap:10px;
+  margin:14px 0 4px !important;
+  color:#9caec9;
+  font-size:12px;
+  text-align:center;
+}
+#qpAuthGate .qp-auth-divider::before,
+#qpAuthGate .qp-auth-divider::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:rgba(149,178,216,.27);
+}
+#qpAuthGate .qp-auth-oauth{
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  gap:6px !important;
+  width:100% !important;
+  min-width:0 !important;
+  height:44px !important;
+  min-height:44px !important;
+  margin:8px 0 0 !important;
+  padding:0 8px !important;
+  border:1px solid rgba(143,169,201,.36) !important;
+  border-radius:11px !important;
+  background:rgba(11,21,35,.72) !important;
+  color:#f6f8fc !important;
+  font-size:12px !important;
+  font-weight:600 !important;
+  box-shadow:none !important;
+}
+#qpAuthGate .qp-auth-oauth:hover{
+  border-color:rgba(158,194,240,.63) !important;
+  background:rgba(24,42,67,.87) !important;
+}
+#qpAuthGate .qp-auth-oauth-icon,
+#qpAuthGate .qp-auth-oauth-icon svg{
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+}
+#qpAuthGate .qp-auth-oauth-label{
+  min-width:0;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-size:12px !important;
+  font-weight:550;
+}
+#qpAuthGate .qp-auth-tabs{
+  display:flex !important;
+  justify-content:center;
+  align-items:center;
+  padding:0 !important;
+  margin:17px 0 0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+#qpAuthGate .qp-auth-tab.active{display:none !important;}
+#qpAuthGate .qp-auth-tab:not(.active){
+  display:inline-flex !important;
+  justify-content:center;
+  align-items:center;
+  gap:4px;
+  width:auto;
+  max-width:100%;
+  min-height:26px !important;
+  height:auto !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#6aaeff !important;
+  font-size:13px !important;
+  font-weight:500 !important;
+  white-space:normal;
+  box-shadow:none !important;
+}
+#qpAuthGate .qp-auth-tab .qp-auth-muted{color:#e0e6ef;}
+#qpAuthGate .qp-auth-tab .qp-auth-highlight{color:#6aaeff;font-weight:600;}
+#qpAuthGate #qpAuthReset{
+  width:auto !important;
+  height:auto !important;
+  min-height:28px;
+  justify-self:center;
+  margin:4px 0 0 !important;
+  padding:0 4px !important;
+  border:0 !important;
+  background:transparent !important;
+  color:#6aaeff !important;
+  font-size:13px !important;
+  text-align:center !important;
+  cursor:pointer;
+}
+#qpAuthGate #qpAuthReset:hover,
+#qpAuthGate .qp-auth-tab:not(.active):hover .qp-auth-highlight{text-decoration:underline;}
+
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html #qpAuthGate::before{
+    width:150vw;height:73vw;left:-70vw;bottom:-12vw;
+  }
+  html #qpAuthGate::after{
+    width:160vw;height:74vw;right:-81vw;top:-8vw;
+  }
+  body.qp-auth-locked #qpAuthGate .qp-auth-card{
+    padding:20px 16px !important;
+  }
+  #qpAuthGate .qp-auth-brand{margin-bottom:26px;}
+  #qpAuthGate .qp-auth-oauth-label{font-size:clamp(10px,2.95vw,12px) !important;}
+}
+@media(max-height:570px){
+  #qpAuthGate .qp-auth-card{align-content:start;}
+  #qpAuthGate .qp-auth-brand{margin-bottom:17px;}
+  #qpAuthGate .qp-auth-tabs{margin-top:9px !important;}
+}
