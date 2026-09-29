@@ -1,0 +1,23 @@
+# Local environment settings. Public examples may still be committed.
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Private keys, certificates containing private material, and credentials.
+*.pem
+*.p8
+*.p12
+*.pfx
+*.key
+id_rsa
+id_ed25519
+credentials.json
+secrets.json
+.netrc
+.npmrc
+.pypirc
+
+# Local OS/editor files.
+.DS_Store
+Thumbs.db
