@@ -51,6 +51,8 @@
     yandexButton.hidden=false;
     googleButton.hidden=false;
     confirmWrap.hidden=!signup;
+    // Exclude the registration-only password confirmation from login autofill.
+    confirm.disabled=!signup;
     password.autocomplete=signup?'new-password':'current-password';
     setMessage('');
     setResetMessage('');
