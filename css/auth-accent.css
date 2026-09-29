@@ -5,7 +5,7 @@
 #qpAuthGate #qpAuthSignupForm[hidden],
 #qpAuthGate #qpAuthReset[hidden]{display:none !important;}
 
-html #qpAuthGate{
+html[data-theme] #qpAuthGate{
   isolation:isolate;
   background:
     radial-gradient(85% 62% at 94% 24%,rgba(39,77,132,.27),transparent 65%),
@@ -13,15 +13,15 @@ html #qpAuthGate{
     linear-gradient(155deg,#090e17 0%,#0b1625 47%,#060c16 100%) !important;
   color:#f5f8ff !important;
 }
-html #qpAuthGate::before,
-html #qpAuthGate::after{
+html[data-theme] #qpAuthGate::before,
+html[data-theme] #qpAuthGate::after{
   content:"";
   position:absolute;
   z-index:0;
   pointer-events:none;
   border-radius:50%;
 }
-html #qpAuthGate::before{
+html[data-theme] #qpAuthGate::before{
   width:max(650px,70vw);
   height:max(280px,30vw);
   left:-28vw;
@@ -30,7 +30,7 @@ html #qpAuthGate::before{
   box-shadow:0 -1px 1px rgba(141,188,244,.13),0 -36px 90px rgba(39,87,145,.13);
   transform:rotate(13deg);
 }
-html #qpAuthGate::after{
+html[data-theme] #qpAuthGate::after{
   width:max(650px,72vw);
   height:max(300px,30vw);
   right:-30vw;
@@ -133,7 +133,7 @@ body.qp-auth-locked #qpAuthGate .qp-auth-card,
 #qpAuthGate .qp-auth-password-field::before{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23bdcce1' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='5' y='10' width='14' height='11' rx='2'/%3E%3Cpath d='M8 10V7a4 4 0 0 1 8 0v3M12 14v3'/%3E%3C/svg%3E");
 }
-html #qpAuthGate .qp-auth-field input{
+html[data-theme] #qpAuthGate .qp-auth-field input{
   width:100% !important;
   height:48px !important;
   min-height:48px !important;
@@ -149,15 +149,15 @@ html #qpAuthGate .qp-auth-field input{
   font-weight:450;
   color-scheme:dark;
 }
-html #qpAuthGate .qp-auth-field input::placeholder{
+html[data-theme] #qpAuthGate .qp-auth-field input::placeholder{
   color:#a8b6cb;
   opacity:1;
 }
-html #qpAuthGate .qp-auth-field input:focus{
+html[data-theme] #qpAuthGate .qp-auth-field input:focus{
   border-color:rgba(98,164,255,.94) !important;
   box-shadow:0 0 0 3px rgba(36,115,244,.17) !important;
 }
-html #qpAuthGate .qp-auth-field input:-webkit-autofill{
+html[data-theme] #qpAuthGate .qp-auth-field input:-webkit-autofill{
   -webkit-text-fill-color:#f5f8ff !important;
   -webkit-box-shadow:0 0 0 1000px #122139 inset !important;
   box-shadow:0 0 0 1000px #122139 inset !important;
@@ -289,10 +289,10 @@ html #qpAuthGate .qp-auth-field input:-webkit-autofill{
 #qpAuthGate .qp-auth-tab:not(.active):hover .qp-auth-highlight{text-decoration:underline;}
 
 @media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  html #qpAuthGate::before{
+  html[data-theme] #qpAuthGate::before{
     width:150vw;height:73vw;left:-70vw;bottom:-12vw;
   }
-  html #qpAuthGate::after{
+  html[data-theme] #qpAuthGate::after{
     width:160vw;height:74vw;right:-81vw;top:-8vw;
   }
   body.qp-auth-locked #qpAuthGate .qp-auth-card{
