@@ -340,7 +340,7 @@
         '</div>'+
         '<div class="income-report-picker-actions">'+
           '<button type="button" class="income-report-picker-cancel">Отмена</button>'+
-          '<button type="button" class="income-report-picker-submit"><span class="qp-desktop-pdf-print-label">Печать / PDF</span><span class="qp-mobile-pdf-label">PDF</span></button>'+
+          '<button type="button" class="income-report-picker-submit">Печать / PDF</button>'+
         '</div>'+
       '</div>';
 
