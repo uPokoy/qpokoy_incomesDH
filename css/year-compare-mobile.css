@@ -1,0 +1,84 @@
+/* DEV94. Match Year comparison content arrangement to Month's previous-year card.
+   Layout only; no year/month totals, percentage arithmetic or handlers are modified. */
+@media (max-width:900px) and (pointer:coarse),
+       (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card{
+    min-height:78px!important;
+    height:78px!important;
+    padding:11px 12px!important;
+    display:grid!important;
+    grid-template-columns:30px minmax(0,1fr)!important;
+    gap:8px!important;
+    align-items:center!important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .analytics-card-icon{
+    position:static!important;
+    inset:auto!important;
+    width:30px!important;
+    min-width:30px!important;
+    height:30px!important;
+    min-height:30px!important;
+    margin:0!important;
+    transform:none!important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body{
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(80px,1fr) minmax(0,2fr)!important;
+    grid-template-areas:"label amount"!important;
+    column-gap:8px!important;
+    row-gap:0!important;
+    align-items:center!important;
+    align-content:center!important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body > #annualYearCompareLabel{
+    grid-area:label!important;
+    display:block!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+    color:var(--text-muted)!important;
+    font-size:12px!important;
+    font-weight:400!important;
+    line-height:1.2!important;
+    text-align:left!important;
+    overflow:hidden!important;
+    white-space:normal!important;
+    overflow-wrap:normal!important;
+    text-overflow:clip!important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body > #annualYearCompareNote{
+    grid-area:amount!important;
+    display:block!important;
+    box-sizing:border-box!important;
+    justify-self:stretch!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+    color:var(--text)!important;
+    font-size:clamp(12px,4.4vw,19px)!important;
+    font-weight:760!important;
+    line-height:1!important;
+    letter-spacing:-.03em!important;
+    text-align:right!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    text-overflow:clip!important;
+  }
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-percent{
+    position:absolute!important;
+    top:8px!important;
+    right:9px!important;
+    margin:0!important;
+  }
+}

@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.29.93';
+const qPokoyDevVersion='dev-2026.09.29.94';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
