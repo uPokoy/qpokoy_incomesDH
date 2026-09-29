@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1018">
+<meta name="robots" content="noindex,follow">
+<meta name="description" content="Планируемые тарифы qPokoy — Учёт доходов: 149 ₽ в месяц, 1 190 ₽ в год, бессрочный доступ 1 790 ₽. Пробный период 14 дней после запуска монетизации.">
+<title>Тарифы — qPokoy — Учёт доходов</title>
+<link rel="icon" type="image/png" href="./icons/pwa-192.png">
+<style>
+:root{color-scheme:dark;--bg:#08101c;--panel:#101f33;--line:rgba(151,189,237,.2);--text:#f2f7ff;--muted:#a9bdd6;--blue:#71afff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;min-height:100dvh;font:15px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:radial-gradient(80% 60% at 10% -10%,rgba(52,94,151,.25),transparent 68%),radial-gradient(65% 55% at 105% 25%,rgba(35,79,137,.19),transparent 70%),linear-gradient(145deg,#060a12,#0c1829 52%,#070d16)}
+a{color:inherit}a:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+.wrap{width:min(1120px,calc(100% - 36px));margin:auto}
+.head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:23px 0}
+.logo{font-weight:800;font-size:26px;letter-spacing:-.055em;text-decoration:none}.logo span{color:var(--blue)}
+.back{text-decoration:none;font-size:13px;color:#d7e8ff;border:1px solid var(--line);background:rgba(27,48,75,.55);padding:9px 14px;border-radius:12px}.back:hover{background:rgba(57,90,135,.45)}
+main{padding:36px 0 65px}.intro{text-align:center;max-width:730px;margin:0 auto 35px}
+.tag{display:inline-block;border:1px solid rgba(103,166,247,.35);background:rgba(48,107,180,.15);color:#b5d5ff;padding:6px 13px;border-radius:99px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:11px}
+h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin:18px 0 14px}
+.intro p{max-width:575px;margin:auto;color:var(--muted);font-size:16px}
+.trial{display:inline-block;margin-top:19px;border-radius:12px;border:1px solid rgba(92,191,142,.3);background:rgba(33,97,73,.2);color:#baf0d2;padding:10px 16px;font-size:13px;font-weight:700}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.plan{display:flex;flex-direction:column;border:1px solid var(--line);background:linear-gradient(150deg,rgba(25,43,69,.96),rgba(12,23,39,.96));padding:25px;border-radius:20px;min-width:0;box-shadow:0 15px 40px rgba(0,0,0,.13)}
+.plan.forever{border-color:rgba(110,168,253,.7);background:linear-gradient(150deg,#1b3558,#101f38)}
+.plan-head{display:flex;gap:7px;align-items:center;justify-content:space-between}
+.plan h2{margin:0;font-size:19px;line-height:1.2;letter-spacing:-.02em}
+.pill{padding:4px 8px;border:1px solid rgba(118,181,255,.28);background:rgba(68,134,232,.17);border-radius:99px;color:#cee4ff;font-size:10px;font-weight:700;white-space:nowrap}
+.price{font-size:clamp(36px,4vw,44px);font-weight:800;letter-spacing:-.06em;line-height:1.15;margin:25px 0 3px;white-space:nowrap}
+.price small{font-size:21px;letter-spacing:0}
+.cycle{color:var(--muted);font-size:13px}
+.line{height:1px;background:var(--line);margin:20px 0}
+.plan ul{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:12px;flex:1}
+.plan li{display:flex;align-items:flex-start;gap:9px;color:#dfebfa;font-size:13px}
+.plan li:before{content:"✓";color:#82bfff;font-weight:800}
+.unavailable{padding:10px 9px;border-radius:11px;background:rgba(97,131,178,.10);border:1px solid var(--line);text-align:center;color:#b7cbe3;font-weight:650;font-size:13px}
+.caption{text-align:center;color:var(--muted);font-size:12px;margin:17px 0 0}
+.section{margin-top:53px}.section h2{margin:0 0 17px;font-size:26px;line-height:1.25;letter-spacing:-.035em}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.card,.question{border:1px solid var(--line);border-radius:15px;background:rgba(17,32,53,.72);padding:19px 21px}
+.card h3,.question h3{margin:0 0 7px;font-size:15px}.card p,.question p{margin:0;color:var(--muted);font-size:13px}
+.faq{display:grid;gap:11px}.question{padding:16px 20px}
+.notice{margin-top:42px;padding:19px 21px;border:1px solid rgba(109,160,226,.27);border-radius:15px;background:rgba(52,95,151,.10);color:#c1d1e4;font-size:13px}.notice strong{color:#f2f7ff}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:23px 0 34px;border-top:1px solid var(--line);font-size:12px;color:#9aafc9}.foot a{text-decoration:none;color:#bedbff}
+@media(max-width:900px){.plans{grid-template-columns:1fr;max-width:520px;margin:auto}.cards{grid-template-columns:1fr}.plan{padding:23px}.price{margin-top:17px}.line{margin:16px 0}}
+@media(max-width:460px){.wrap{width:calc(100% - 28px)}.head{padding:18px 0}.logo{font-size:24px}.back{padding:8px 10px;font-size:12px}main{padding:25px 0 48px}h1{font-size:35px}.intro{margin-bottom:27px}.section{margin-top:42px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="head">
+<a class="logo" href="./" aria-label="qPokoy — на главную">q<span>Pokoy</span></a>
+<a class="back" href="./">Открыть qPokoy ↗</a>
+</header>
+<main>
+<section class="intro" aria-labelledby="intro-title">
+<span class="tag">Подготовка платной версии</span>
+<h1 id="intro-title">Учёт доходов.<br>Без лишнего.</h1>
+<p>Записывайте поступления, управляйте категориями, изучайте статистику и храните историю доходов в одном месте.</p>
+<div class="trial">✓ 14 дней бесплатно для новых пользователей · без карты</div>
+</section>
+<section class="plans" aria-label="Планируемые тарифы">
+<article class="plan">
+<div class="plan-head"><h2>Месяц</h2></div>
+<div class="price">149 <small>₽</small></div><div class="cycle">каждый месяц</div><div class="line"></div>
+<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Автопродление после согласия</li></ul>
+<div class="unavailable">Оплата пока не подключена</div>
+</article>
+<article class="plan">
+<div class="plan-head"><h2>Год</h2><span class="pill">12 месяцев</span></div>
+<div class="price">1 190 <small>₽</small></div><div class="cycle">каждый год</div><div class="line"></div>
+<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Автопродление после согласия</li></ul>
+<div class="unavailable">Оплата пока не подключена</div>
+</article>
+<article class="plan forever">
+<div class="plan-head"><h2>Бессрочный доступ</h2><span class="pill">Один платёж</span></div>
+<div class="price">1 790 <small>₽</small></div><div class="cycle">без повторных списаний</div><div class="line"></div>
+<ul><li>Все текущие функции qPokoy</li><li>Все будущие функции и обновления</li><li>Доступ с разных устройств</li><li>Без автоматического продления</li><li>На весь срок существования сервиса</li></ul>
+<div class="unavailable">Оплата пока не подключена</div>
+</article>
+</section>
+<p class="caption">Все варианты включают полный функционал. Цены указаны в российских рублях.</p>
+<section class="section" aria-labelledby="how-title">
+<h2 id="how-title">Как это будет работать</h2>
+<div class="cards">
+<article class="card"><h3>14 дней на знакомство</h3><p>После запуска платной версии новые пользователи получат 14 дней полного доступа без привязки карты.</p></article>
+<article class="card"><h3>Прозрачная подписка</h3><p>Месячный и годовой тарифы продлеваются автоматически только после первой оплаты и отдельного согласия на последующие списания.</p></article>
+<article class="card"><h3>Данные остаются вашими</h3><p>При окончании подписки сохраняется просмотр и экспорт записей. Добавление и редактирование доступны после возобновления доступа.</p></article>
+</div>
+</section>
+<section class="section" aria-labelledby="faq-title">
+<h2 id="faq-title">Условия доступа</h2>
+<div class="faq">
+<article class="question"><h3>Что будет с уже зарегистрированными пользователями?</h3><p>Все, кто зарегистрировался до запуска монетизации, сохранят бесплатный пожизненный доступ ко всем текущим и будущим функциям. Оформлять подписку не потребуется.</p></article>
+<article class="question"><h3>Можно ли отключить автопродление?</h3><p>Да. При подключении платежей в настройках появится управление подпиской. После отключения оплаченный доступ сохранится до завершения оплаченного периода.</p></article>
+<article class="question"><h3>Что, если очередной платёж не прошёл?</h3><p>Предусмотрены ещё 3 календарных дня полного доступа, затем — режим просмотра и экспорта до новой оплаты.</p></article>
+<article class="question"><h3>Что означает бессрочный доступ?</h3><p>Один платёж за все текущие и будущие функции на весь период существования сервиса. Автосписаний по этому тарифу нет.</p></article>
+</div>
+</section>
+<aside class="notice"><strong>Страница находится в подготовке.</strong> Оплата и платные ограничения сейчас не включены. До запуска будут опубликованы публичная оферта, политика конфиденциальности, сведения о продавце, контакты и условия возврата.</aside>
+</main>
+<footer class="foot"><span>© qPokoy — Учёт доходов</span><a href="./">Вернуться в приложение</a></footer>
+</div>
+</body></html>
