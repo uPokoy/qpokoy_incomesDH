@@ -4866,7 +4866,8 @@ body:not(.dark) .income-report-custom-range input{
 
 /* DEV96: signup success notice matches the login password-reset notification.
    Keep this outside pointer-specific media so phone and desktop share the same style. */
-#qpAuthGate #qpAuthMessage.success{
+#qpAuthGate #qpAuthMessage.success,
+#qpAuthGate #qpAuthSignupMessage.success{
   display:block;
   margin:0 0 8px;
   padding:8px 10px;
@@ -4879,7 +4880,8 @@ body:not(.dark) .income-report-custom-range input{
   line-height:18px;
   overflow-wrap:anywhere;
 }
-#qpAuthGate #qpAuthMessage.success::before{
+#qpAuthGate #qpAuthMessage.success::before,
+#qpAuthGate #qpAuthSignupMessage.success::before{
   content:none;
   display:none;
 }
