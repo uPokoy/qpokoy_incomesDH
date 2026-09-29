@@ -1,44 +1,46 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Политика конфиденциальности — qPokoy</title>
-  <style>
-    :root{color-scheme:dark;--bg:#0b1018;--panel:#151d2a;--text:#eef3fb;--muted:#a9b6c8;--border:#2b384b;--primary:#32c997}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#172338 0,var(--bg) 45%);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
-    main{width:min(100% - 32px,760px);margin:0 auto;padding:64px 0}
-    article{padding:clamp(24px,5vw,48px);background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--border);border-radius:24px;box-shadow:0 16px 48px rgba(0,0,0,.24)}
-    h1{margin:0 0 8px;font-size:clamp(30px,6vw,44px);line-height:1.15;letter-spacing:-.03em}
-    h2{margin:28px 0 10px;font-size:20px}
-    p,li{color:var(--muted)}
-    p{margin:0 0 16px} ul{margin:0;padding-left:24px}
-    nav{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
-    a{color:var(--text);text-decoration:none}
-    nav a{padding:10px 16px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.035)}
-    nav a:hover{border-color:var(--primary);color:var(--primary)}
-    .date{margin-bottom:24px;color:var(--muted)}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1018">
+
+<title>Политика конфиденциальности — qPokoy</title>
+<link rel="icon" href="./icons/pwa-192.png" type="image/png">
+<style>
+:root{color-scheme:dark;--bg:#0b1018;--panel:#151d2a;--text:#eef3fb;--muted:#a9b6c8;--border:#2b384b;--primary:#75b6ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#172338 0,var(--bg) 45%);color:var(--text);font:15px/1.62 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{width:min(100% - 32px,800px);margin:0 auto;padding:45px 0 70px}
+article{padding:clamp(23px,5vw,44px);background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--border);border-radius:24px;box-shadow:0 16px 48px rgba(0,0,0,.24)}
+h1{margin:0 0 9px;font-size:clamp(29px,6vw,43px);line-height:1.15;letter-spacing:-.03em}h2{font-size:19px;line-height:1.3;margin:29px 0 10px}
+p,li{color:var(--muted)}p{margin:0 0 14px}ul{margin:0 0 15px;padding-left:22px}li{margin:5px 0}
+a{color:#bcdcff}a:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:31px}
+nav a{padding:9px 13px;border:1px solid var(--border);border-radius:99px;text-decoration:none;color:var(--text);font-size:13px}
+nav a:hover{border-color:var(--primary);color:var(--primary)}
+.note{padding:14px 16px;background:rgba(98,154,232,.10);border:1px solid rgba(117,170,245,.32);border-radius:12px}
+.meta{color:#a8bedb;font-size:13px;margin-bottom:24px}
+@media(max-width:480px){main{padding-top:24px}article{border-radius:18px}}
+</style>
 </head>
-<body>
-  <main>
-    <article>
-      <h1>Политика конфиденциальности — qPokoy</h1>
-      <p class="date">Дата: 17 сентября 2026 г.</p>
-      <h2>Какие данные обрабатываются</h2>
-      <p>Для работы qPokoy может обрабатывать email, идентификатор пользователя, OAuth-данные, необходимые для входа, а также введённые пользователем доходы, категории и настройки.</p>
-      <h2>Вход через Google</h2>
-      <p>Google OAuth используется только для идентификации пользователя и входа в приложение. Пароль от Google qPokoy не получает. OAuth-данные не используются для рекламы.</p>
-      <h2>Для чего используются данные</h2>
-      <p>Данные используются для авторизации, синхронизации между устройствами и работы функций приложения. Инфраструктура хранения и авторизации предоставляется Supabase.</p>
-      <h2>Передача и удаление данных</h2>
-      <p>qPokoy не продаёт пользовательские данные. Для удаления аккаунта или данных напишите на <a href="mailto:ratkwg@gmail.com">ratkwg@gmail.com</a>.</p>
-      <nav aria-label="Публичные страницы">
-        <a href="/about.html">О qPokoy</a>
-        <a href="/">В приложение</a>
-      </nav>
-    </article>
-  </main>
-</body>
-</html>
+<body><main><article>
+<h1>Политика конфиденциальности qPokoy</h1>
+<p class="meta">Редакция от 29 сентября 2026 г.</p>
+<h2>1. Оператор и контакт</h2>
+<p>Оператор персональных данных — Синюк Владимир Андреевич, самозанятый (налог на профессиональный доход). Вопросы об обработке персональных данных и запросы субъектов принимаются по адресу <a href="mailto:qqpokoy@gmail.com">qqpokoy@gmail.com</a>.</p>
+<h2>2. Какие сведения обрабатываются</h2>
+<p>В зависимости от выбранного способа входа и используемых функций: электронная почта, идентификатор аккаунта, технические данные авторизации и сессии, сведения от подключённых провайдеров входа Google и Яндекс, введённые пользователем доходы, категории, настройки и технические события, необходимые для работы и безопасности сервиса. Пароли от аккаунтов Google и Яндекс qPokoy не получает.</p>
+<h2>3. Цели и основания обработки</h2>
+<p>Регистрация и вход в аккаунт, предоставление функций учёта доходов, синхронизация, техническое обслуживание, обеспечение безопасности, поддержка пользователей и исполнение предусмотренных законом обязанностей. В зависимости от операции обработка осуществляется для исполнения пользовательских отношений, на основании согласия или иных предусмотренных законом оснований.</p>
+<h2>4. Инфраструктура и получатели</h2>
+<p>Для работы текущей версии сервиса используются Supabase (авторизация и облачное хранение данных), а также внешние поставщики входа при выборе соответствующего способа авторизации. Текущий облачный проект Supabase размещён в зарубежном регионе eu-west-1. Вопрос локализации персональных данных граждан РФ и применимых процедур трансграничной передачи подлежит отдельному решению до коммерческого запуска. Данные пользователей не продаются.</p>
+<p>После подключения приёма оплаты политика будет дополнена сведениями об обработке платёжных событий и о задействованных поставщиках. qPokoy не предполагает хранение полного номера банковской карты и CVV на собственном фронтенде.</p>
+<h2>5. Сроки хранения и защита</h2>
+<p>Данные аккаунта и история сохраняются, пока необходимы для работы сервиса и отношений с пользователем, если иное не требуется законом. Отсутствие платной подписки само по себе не означает автоматического удаления пользовательских записей. Доступ пользователей к данным разграничивается посредством механизмов авторизации и серверных правил доступа.</p>
+<h2>6. Доступ, исправление и удаление</h2>
+<p>Пользователь вправе обратиться за сведениями о своих персональных данных, их уточнением, блокированием либо удалением в предусмотренных законом случаях по адресу <a href="mailto:qqpokoy@gmail.com">qqpokoy@gmail.com</a>. Для защиты аккаунта может потребоваться подтверждение принадлежности запроса пользователю. Самостоятельное полное удаление данных и аккаунта предусмотрено в планируемой системе подписок; до ввода соответствующей функции обращения об удалении принимаются по электронной почте.</p>
+<p>После прекращения обработки отдельные сведения могут сохраняться в объёме и на сроки, прямо требуемые законом, включая обязательные учётные документы после запуска оплаты. Порядок удаления данных из резервных копий будет закреплён при настройке резервного хранения.</p>
+<h2>7. Изменение политики</h2>
+<p>При изменении функций сервиса или перечня обработчиков публикуется новая редакция политики с актуальной датой. По вопросам обработки персональных данных: <a href="mailto:qqpokoy@gmail.com">qqpokoy@gmail.com</a>.</p>
+<nav aria-label="Публичные страницы"><a href="./about.html">О qPokoy</a><a href="./pricing.html">Тарифы</a><a href="./offer.html">Проект оферты</a><a href="./">В приложение</a></nav>
+</article></main></body></html>
