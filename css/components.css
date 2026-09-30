@@ -5109,5 +5109,23 @@ html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-back{
     justify-self:end !important;
     margin-left:0 !important;
   }
+
+  /* DEV128: when Recent incomes is collapsed, keep the invisible hit area
+     extending through the empty strip below the chevron. The extension stays
+     inside the left grid column, so the 96px safety gap and + remain separate. */
+  #income .income-recent.is-collapsed #incomeRecentToggle.income-recent-toggle{
+    position:relative !important;
+    z-index:2 !important;
+    overflow:visible !important;
+  }
+
+  #income .income-recent.is-collapsed #incomeRecentToggle.income-recent-toggle::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:100%;
+    height:40px;
+  }
 }
 
