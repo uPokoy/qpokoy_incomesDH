@@ -76,6 +76,49 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
       VALUES ($id,$uid,$hash,$created,$expires);`,
       { $id: U(s.session_id), $uid: U(s.user_id), $hash: U(s.secret_hash), $created: T(s.created_at), $expires: T(s.expires_at) }),
     revokeSession: (id, when) => query('DECLARE $id AS Utf8; DECLARE $when AS Timestamp; UPDATE `sessions` SET revoked_at=$when WHERE session_id=$id;', { $id: U(id), $when: T(when) }),
+    createPasswordResetToken: (row) => transaction([
+      {
+        sql: 'DECLARE $uid AS Utf8; DELETE FROM `password_reset_tokens` WHERE user_id=$uid;',
+        params: { $uid: U(row.user_id) }
+      },
+      {
+        sql: `DECLARE $hash AS Utf8; DECLARE $uid AS Utf8; DECLARE $created AS Timestamp; DECLARE $expires AS Timestamp;
+          INSERT INTO \`password_reset_tokens\` (token_hash,user_id,created_at,expires_at)
+          VALUES ($hash,$uid,$created,$expires);`,
+        params: { $hash: U(row.token_hash), $uid: U(row.user_id), $created: T(row.created_at), $expires: T(row.expires_at) }
+      }
+    ]),
+    deletePasswordResetToken: (hash) => query('DECLARE $hash AS Utf8; DELETE FROM `password_reset_tokens` WHERE token_hash=$hash;', { $hash: U(hash) }),
+    async resetPassword(tokenHash, passwordHash, when) {
+      await ready();
+      return driver.tableClient.withSession(async (session) => {
+        const meta = await session.beginTransaction({ serializableReadWrite: {} });
+        const control = { txId: meta.id };
+        try {
+          const result = await session.executeQuery(
+            'DECLARE $hash AS Utf8; SELECT token_hash,user_id,created_at,expires_at,used_at FROM `password_reset_tokens` WHERE token_hash=$hash;',
+            { $hash: U(tokenHash) }, control);
+          const token = result.resultSets?.[0] ? TypedData.createNativeObjects(result.resultSets[0])[0] : null;
+          if (!token || token.used_at || new Date(token.expires_at) <= when) {
+            await session.rollbackTransaction(control);
+            return false;
+          }
+          await session.executeQuery(
+            `DECLARE $uid AS Utf8; DECLARE $provider AS Utf8; DECLARE $password AS Utf8;
+             DECLARE $when AS Timestamp; DECLARE $hash AS Utf8;
+             UPDATE \`auth_identities\` SET password_hash=$password WHERE provider=$provider AND user_id=$uid;
+             UPDATE \`sessions\` SET revoked_at=$when WHERE user_id=$uid AND revoked_at IS NULL;
+             UPDATE \`password_reset_tokens\` SET used_at=$when WHERE token_hash=$hash;
+             DELETE FROM \`password_reset_tokens\` WHERE user_id=$uid AND token_hash<>$hash;`,
+            { $uid: U(token.user_id), $provider: U('email'), $password: U(passwordHash), $when: T(when), $hash: U(tokenHash) }, control);
+          await session.commitTransaction(control);
+          return true;
+        } catch (error) {
+          try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
+          throw error;
+        }
+      });
+    },
     listIncomes: (uid) => query(`DECLARE $uid AS Utf8;
       SELECT user_id,id,income_date,category,description,amount,created_at,updated_at FROM \`incomes\`
       WHERE user_id=$uid ORDER BY income_date DESC,created_at DESC;`, { $uid: U(uid) }),
@@ -132,7 +175,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
       return rows;
     },
     deleteAccount: (uid) => transaction([
-      'incomes', 'categories', 'settings', 'sessions', 'auth_identities', 'users'
+      'incomes', 'categories', 'settings', 'sessions', 'password_reset_tokens', 'auth_identities', 'users'
     ].map((table) => ({ sql: `DECLARE $uid AS Utf8; DELETE FROM \`${table}\` WHERE user_id=$uid;`, params: { $uid: U(uid) } }))),
     listCategories: (uid) => query(`DECLARE $uid AS Utf8;
       SELECT user_id,id,name,created_at FROM \`categories\` WHERE user_id=$uid ORDER BY created_at ASC;`, { $uid: U(uid) }),
