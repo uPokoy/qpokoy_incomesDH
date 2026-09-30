@@ -5066,28 +5066,42 @@ html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-back{
     min-height:48px !important;
     padding:0 !important;
     justify-content:flex-start !important;
+    appearance:none !important;
+    -webkit-appearance:none !important;
     border:0 !important;
     border-radius:0 !important;
+    outline:0 !important;
     background:transparent !important;
     box-shadow:none !important;
   }
 
-  #income #incomeRecentToggle.income-recent-toggle:hover{
+  #income #incomeRecentToggle.income-recent-toggle:hover,
+  #income #incomeRecentToggle.income-recent-toggle:focus,
+  #income #incomeRecentToggle.income-recent-toggle:focus-visible{
+    border:0 !important;
+    outline:0 !important;
     background:transparent !important;
+    box-shadow:none !important;
     color:var(--text) !important;
   }
 
   #income #incomeRecentToggle.income-recent-toggle svg{
-    width:20px !important;
-    height:20px !important;
+    width:22px !important;
+    height:22px !important;
     box-sizing:content-box !important;
-    padding:8px !important;
-    border-radius:10px !important;
-    background:var(--panel-muted) !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    outline:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
   }
 
-  #income #incomeRecentToggle.income-recent-toggle:hover svg{
-    background:var(--active) !important;
+  #income #incomeRecentToggle.income-recent-toggle:hover svg,
+  #income #incomeRecentToggle.income-recent-toggle:focus svg,
+  #income #incomeRecentToggle.income-recent-toggle:focus-visible svg{
+    background:transparent !important;
+    box-shadow:none !important;
   }
 
   #income .income-recent-controls > .add-income-btn{
