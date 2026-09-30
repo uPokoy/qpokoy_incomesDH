@@ -45,6 +45,52 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
     health: async () => { await query('SELECT 1 AS ok;'); },
     getUser: (id) => first('DECLARE $id AS Utf8; SELECT user_id,email,status,created_at,updated_at,trial_ends_at FROM `users` WHERE user_id=$id;', { $id: U(id) }),
     getIdentity: (provider, providerUserId) => first('DECLARE $p AS Utf8; DECLARE $id AS Utf8; SELECT provider,provider_user_id,user_id,password_hash FROM `auth_identities` WHERE provider=$p AND provider_user_id=$id;', { $p: U(provider), $id: U(providerUserId) }),
+    async getEmailVerification(uid) {
+      const row = await first('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT setting_value FROM `settings` WHERE user_id=$uid AND setting_key=$key;',
+        { $uid: U(uid), $key: U('auth.email_verification') });
+      if (!row?.setting_value) return null;
+      try { return JSON.parse(row.setting_value); } catch (_) { return null; }
+    },
+    createEmailVerification: (row) => query(`DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DECLARE $value AS Utf8; DECLARE $updated AS Timestamp;
+      UPSERT INTO \`settings\` (user_id,setting_key,setting_value,updated_at) VALUES ($uid,$key,$value,$updated);`,
+      { $uid: U(row.user_id), $key: U('auth.email_verification'), $value: U(JSON.stringify({
+        token_hash: row.token_hash,
+        created_at: row.created_at.toISOString(),
+        expires_at: row.expires_at.toISOString()
+      })), $updated: T(row.created_at) }),
+    async confirmEmailVerification(uid, tokenHash, when, trialEndsAt) {
+      await ready();
+      return driver.tableClient.withSession(async (session) => {
+        const meta = await session.beginTransaction({ serializableReadWrite: {} });
+        const control = { txId: meta.id };
+        try {
+          const verificationResult = await session.executeQuery(
+            'DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT setting_value FROM `settings` WHERE user_id=$uid AND setting_key=$key;',
+            { $uid: U(uid), $key: U('auth.email_verification') }, control);
+          const verificationRow = verificationResult.resultSets?.[0] ? TypedData.createNativeObjects(verificationResult.resultSets[0])[0] : null;
+          let verification = null;
+          try { verification = verificationRow?.setting_value ? JSON.parse(verificationRow.setting_value) : null; } catch (_) { verification = null; }
+          const userResult = await session.executeQuery(
+            'DECLARE $uid AS Utf8; SELECT status FROM `users` WHERE user_id=$uid;',
+            { $uid: U(uid) }, control);
+          const user = userResult.resultSets?.[0] ? TypedData.createNativeObjects(userResult.resultSets[0])[0] : null;
+          if (!verification || verification.token_hash !== tokenHash || new Date(verification.expires_at) <= when || user?.status !== 'pending_email') {
+            await session.rollbackTransaction(control);
+            return false;
+          }
+          await session.executeQuery(
+            `DECLARE $uid AS Utf8; DECLARE $status AS Utf8; DECLARE $when AS Timestamp; DECLARE $trial AS Timestamp; DECLARE $key AS Utf8;
+             UPDATE \`users\` SET status=$status,updated_at=$when,trial_ends_at=$trial WHERE user_id=$uid;
+             DELETE FROM \`settings\` WHERE user_id=$uid AND setting_key=$key;`,
+            { $uid: U(uid), $status: U('active'), $when: T(when), $trial: T(trialEndsAt), $key: U('auth.email_verification') }, control);
+          await session.commitTransaction(control);
+          return true;
+        } catch (error) {
+          try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
+          throw error;
+        }
+      });
+    },
     async register(user, passwordHash, categories) {
       const existing = await this.getIdentity('email', user.email);
       if (existing) return false;
