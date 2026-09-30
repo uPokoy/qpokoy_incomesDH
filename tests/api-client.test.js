@@ -38,6 +38,25 @@ test('register and login store token; restore uses bearer; logout clears it',asy
   assert.equal(h.values.has(TOKEN_KEY),false);
 });
 
+test('pending registration and email verification endpoints are public',async()=>{
+  const pending={ok:true,verification_required:true,user:{...user,status:'pending_email'}};
+  const h=harness([
+    ok(pending,201),
+    ok({ok:true},202),
+    {status:204}
+  ]);
+  assert.deepEqual(await h.api.register(user.email,'пароль123'),pending);
+  assert.equal(h.values.has(TOKEN_KEY),false);
+  assert.equal(h.calls[0].headers.Authorization,undefined);
+  assert.deepEqual(await h.api.resendEmailVerification(user.email),{ok:true});
+  assert.equal(h.calls[1].url,API_BASE_URL+'/auth/email-verification/resend');
+  assert.equal(h.calls[1].headers.Authorization,undefined);
+  await h.api.confirmEmailVerification('user.secret');
+  assert.equal(h.calls[2].url,API_BASE_URL+'/auth/email-verification/confirm');
+  assert.equal(h.calls[2].headers.Authorization,undefined);
+  assert.deepEqual(h.calls[2].body,{token:'user.secret'});
+});
+
 test('401 clears stored session and restore reports signed-out',async()=>{
   const h=harness([{status:401,body:{error:{code:'unauthorized',message:'Invalid session'}}}]);
   h.values.set(TOKEN_KEY,'expired');
