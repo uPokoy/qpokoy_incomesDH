@@ -5049,3 +5049,51 @@ html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-back{
   transform:translateY(4px) !important;
 }
 
+/* DEV125: desktop-only large hit area for Recent incomes collapse/expand.
+   The whole left side of the controls row is clickable, with a 96px safety gap before +.
+   Mobile/coarse-pointer rules remain untouched. */
+@media (hover:hover) and (pointer:fine){
+  #income .income-recent-controls{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 48px !important;
+    column-gap:96px !important;
+    align-items:stretch !important;
+  }
+
+  #income #incomeRecentToggle.income-recent-toggle{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:48px !important;
+    padding:0 !important;
+    justify-content:flex-start !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  #income #incomeRecentToggle.income-recent-toggle:hover{
+    background:transparent !important;
+    color:var(--text) !important;
+  }
+
+  #income #incomeRecentToggle.income-recent-toggle svg{
+    width:20px !important;
+    height:20px !important;
+    box-sizing:content-box !important;
+    padding:8px !important;
+    border-radius:10px !important;
+    background:var(--panel-muted) !important;
+  }
+
+  #income #incomeRecentToggle.income-recent-toggle:hover svg{
+    background:var(--active) !important;
+  }
+
+  #income .income-recent-controls > .add-income-btn{
+    grid-column:2 !important;
+    justify-self:end !important;
+    margin-left:0 !important;
+  }
+}
+
