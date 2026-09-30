@@ -5031,3 +5031,21 @@ html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-back{
   }
 }
 
+/* DEV124: annual “Динамика доходов” no-data mark matches monthly comparison cards.
+   Only the empty state is restyled; real percentage values keep their existing layout. */
+#incomeAnalytics:not(.is-monthly) #analyticsGrowth.is-empty{
+  position:relative !important;
+  color:transparent !important;
+}
+#incomeAnalytics:not(.is-monthly) #analyticsGrowth.is-empty::after{
+  content:"" !important;
+  position:absolute !important;
+  left:0 !important;
+  top:50% !important;
+  width:16px !important;
+  height:2px !important;
+  border-radius:999px !important;
+  background:var(--text-muted) !important;
+  transform:translateY(4px) !important;
+}
+
