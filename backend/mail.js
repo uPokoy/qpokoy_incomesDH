@@ -59,4 +59,51 @@ async function sendPasswordResetEmail({ to, resetUrl, from = 'noreply@qpokoy.ru'
   return raw ? JSON.parse(raw) : {};
 }
 
-module.exports = { getIamToken, sendPasswordResetEmail, METADATA_TOKEN_URL, POSTBOX_SEND_URL };
+async function sendEmailVerificationEmail({ to, verificationUrl, from = 'noreply@qpokoy.ru', fetchImpl = globalThis.fetch }) {
+  const iamToken = await getIamToken(fetchImpl);
+  const subject = 'Подтверждение email qPokoy';
+  const text = [
+    'Подтвердите email для аккаунта qPokoy.',
+    '',
+    'Чтобы завершить регистрацию, откройте ссылку:',
+    verificationUrl,
+    '',
+    'Ссылка действует 24 часа и может быть использована только один раз.',
+    'Если вы не регистрировались в qPokoy, просто проигнорируйте это письмо.'
+  ].join('\n');
+  const html = `<!doctype html><html lang="ru"><body style="font-family:Arial,sans-serif;line-height:1.5;color:#172033">
+    <h2>Подтверждение email qPokoy</h2>
+    <p>Подтвердите email для аккаунта qPokoy.</p>
+    <p><a href="${verificationUrl}">Подтвердить email</a></p>
+    <p>Ссылка действует 24 часа и может быть использована только один раз.</p>
+    <p>Если вы не регистрировались в qPokoy, просто проигнорируйте это письмо.</p>
+  </body></html>`;
+  const response = await fetchImpl(POSTBOX_SEND_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-YaCloud-SubjectToken': iamToken
+    },
+    body: JSON.stringify({
+      FromEmailAddress: from,
+      Destination: { ToAddresses: [to] },
+      Content: {
+        Simple: {
+          Subject: { Data: subject, Charset: 'UTF-8' },
+          Body: {
+            Text: { Data: text, Charset: 'UTF-8' },
+            Html: { Data: html, Charset: 'UTF-8' }
+          }
+        }
+      }
+    })
+  });
+  if (!response.ok) {
+    const details = await response.text().catch(() => '');
+    throw new Error(`Postbox send failed (${response.status})${details ? ': ' + details.slice(0, 500) : ''}`);
+  }
+  const raw = await response.text();
+  return raw ? JSON.parse(raw) : {};
+}
+
+module.exports = { getIamToken, sendPasswordResetEmail, sendEmailVerificationEmail, METADATA_TOKEN_URL, POSTBOX_SEND_URL };
