@@ -11,14 +11,31 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
   if (!env.ENDPOINT || !env.DATABASE) throw new Error('ENDPOINT and DATABASE are required');
   const driver = new DriverClass({ endpoint: env.ENDPOINT, database: env.DATABASE, authService: new MetadataAuthService() });
   let readyPromise;
-  async function query(text, params = {}) {
+  async function ready() {
     readyPromise ||= driver.ready(10000);
     try {
       if (!await readyPromise) throw new Error('YDB driver is not ready');
     } catch (error) { readyPromise = null; throw error; }
+  }
+  async function query(text, params = {}) {
+    await ready();
     return driver.tableClient.withSession(async (session) => {
       const result = await session.executeQuery(text, params);
       return result.resultSets?.[0] ? TypedData.createNativeObjects(result.resultSets[0]) : [];
+    });
+  }
+  async function transaction(steps) {
+    await ready();
+    return driver.tableClient.withSession(async (session) => {
+      const meta = await session.beginTransaction({ serializableReadWrite: {} });
+      const control = { txId: meta.id };
+      try {
+        for (const { sql, params } of steps) await session.executeQuery(sql, params, control);
+        await session.commitTransaction(control);
+      } catch (error) {
+        try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
+        throw error;
+      }
     });
   }
   const first = async (text, params) => (await query(text, params))[0] || null;
@@ -91,6 +108,32 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
       await query('DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DELETE FROM `incomes` WHERE user_id=$uid AND id=$id;', { $uid: U(uid), $id: U(id) });
       return true;
     },
+    deleteAllIncomes: (uid) => query('DECLARE $uid AS Utf8; DELETE FROM `incomes` WHERE user_id=$uid;', { $uid: U(uid) }),
+    async replaceIncomes(uid, rows) {
+      const steps = [{ sql: 'DECLARE $uid AS Utf8; DELETE FROM `incomes` WHERE user_id=$uid;', params: { $uid: U(uid) } }];
+      if (rows.length) {
+        const declarations = ['DECLARE $uid AS Utf8;'];
+        const values = [];
+        const params = { $uid: U(uid) };
+        rows.forEach((row, index) => {
+          declarations.push(`DECLARE $id${index} AS Utf8; DECLARE $date${index} AS Utf8; DECLARE $category${index} AS Utf8; DECLARE $description${index} AS Utf8; DECLARE $amount${index} AS Double; DECLARE $created${index} AS Timestamp; DECLARE $updated${index} AS Timestamp;`);
+          values.push(`($uid,$id${index},$date${index},$category${index},$description${index},$amount${index},$created${index},$updated${index})`);
+          params[`$id${index}`] = U(row.id);
+          params[`$date${index}`] = U(row.income_date);
+          params[`$category${index}`] = U(row.category);
+          params[`$description${index}`] = U(row.description);
+          params[`$amount${index}`] = D(row.amount);
+          params[`$created${index}`] = T(row.created_at);
+          params[`$updated${index}`] = T(row.updated_at);
+        });
+        steps.push({ sql: `${declarations.join(' ')} UPSERT INTO \`incomes\` (user_id,id,income_date,category,description,amount,created_at,updated_at) VALUES ${values.join(',')};`, params });
+      }
+      await transaction(steps);
+      return rows;
+    },
+    deleteAccount: (uid) => transaction([
+      'incomes', 'categories', 'settings', 'sessions', 'auth_identities', 'users'
+    ].map((table) => ({ sql: `DECLARE $uid AS Utf8; DELETE FROM \`${table}\` WHERE user_id=$uid;`, params: { $uid: U(uid) } }))),
     listCategories: (uid) => query(`DECLARE $uid AS Utf8;
       SELECT user_id,id,name,created_at FROM \`categories\` WHERE user_id=$uid ORDER BY created_at ASC;`, { $uid: U(uid) }),
     getCategory: (uid, id) => first(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8;

@@ -3,6 +3,7 @@
 const { randomUUID } = require('node:crypto');
 const { hashPassword, verifyPassword, newSession, parseToken, verifySecret } = require('./security');
 const DEFAULT_CATEGORIES = ['Зарплата', 'Подработка', 'Прочее'];
+const MAX_REPLACE_INCOMES = 500;
 
 class HttpError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
@@ -103,17 +104,39 @@ function createApp(store, options = {}) {
       const { user, session } = await authenticate(headers);
       const userId = user.user_id;
       if (method === 'GET' && pathname === '/auth/me') return response(200, { user: publicUser(user) });
+      if (method === 'DELETE' && pathname === '/auth/me') {
+        await store.deleteAccount(userId);
+        return response(204, null);
+      }
       if (method === 'POST' && pathname === '/auth/logout') {
         await store.revokeSession(session.session_id, now());
         return response(204, null);
       }
       if (pathname === '/incomes' && method === 'GET') return response(200, { data: await store.listIncomes(userId) });
+      if (pathname === '/incomes' && method === 'DELETE') {
+        await store.deleteAllIncomes(userId);
+        return response(204, null);
+      }
       if (pathname === '/incomes' && method === 'POST') {
         const value = incomeValue(body);
         const id = body.id === undefined ? randomUUID() : uuidValue(body.id);
         const created = await store.addIncome({ user_id: userId, id, ...value, created_at: now(), updated_at: now() });
         if (!created) throw new HttpError(409, 'income_exists', 'Income already exists');
         return response(201, { data: await store.getIncome(userId, id) });
+      }
+      if (pathname === '/incomes/replace' && method === 'POST') {
+        if (!Array.isArray(body.incomes)) bad('incomes must be an array');
+        if (body.incomes.length > MAX_REPLACE_INCOMES) throw new HttpError(413, 'too_many_incomes', `Maximum ${MAX_REPLACE_INCOMES} incomes per request`);
+        const seen = new Set();
+        const timestamp = now();
+        const rows = body.incomes.map((item) => {
+          const value = incomeValue(item);
+          const id = item.id === undefined ? randomUUID() : uuidValue(item.id);
+          if (seen.has(id.toLowerCase())) bad('Duplicate income id');
+          seen.add(id.toLowerCase());
+          return { user_id: userId, id, ...value, created_at: timestamp, updated_at: timestamp };
+        });
+        return response(200, { data: await store.replaceIncomes(userId, rows) });
       }
       const incomeMatch = /^\/incomes\/([^/]+)$/.exec(pathname);
       if (incomeMatch && (method === 'PUT' || method === 'PATCH')) {

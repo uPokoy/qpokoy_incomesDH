@@ -19,14 +19,19 @@ Request and response bodies are JSON. A successful GET or write returns `{ "data
 | POST | `/auth/login` | `{email,password}`; returns session |
 | POST | `/auth/logout` | Revokes current session |
 | GET | `/auth/me` | Current user |
+| DELETE | `/auth/me` | Atomically deletes the authenticated account, identities, sessions, incomes, categories and settings |
 | GET, POST | `/incomes` | List/create income |
+| DELETE | `/incomes` | Deletes only the authenticated user's incomes; leaves their account, categories and settings intact |
+| POST | `/incomes/replace` | Atomically replaces all own incomes with `{incomes:[...]}`; an empty array clears them |
 | PUT, PATCH, DELETE | `/incomes/:id` | Update/delete own income |
 | GET, POST | `/categories` | List/create category |
 | DELETE | `/categories/:id` | Delete own category except `Зарплата` |
 | GET | `/settings` | List own setting rows |
 | PUT | `/settings/:key` | Save `{setting_value: string}` |
 
-Income JSON uses `id`, `user_id`, `income_date` (`YYYY-MM-DD`), `category`, `description`, `amount`, `created_at`, `updated_at`—matching the existing cloud row semantics. Category JSON uses `id`, `user_id`, `name`, `created_at`. Registration saves `trial_ends_at` exactly 14 days after `created_at` and creates `Зарплата`, `Подработка`, and `Прочее` in the same YDB transaction as the user and email identity. There is no trial enforcement yet. This first version does not implement Supabase OAuth identities, backup import/export, subscriptions, payments, or frontend cutover. Email registration here is a **separate** account namespace from Supabase; existing site passwords and sessions cannot be used to log into this backend. No live data migration is attempted.
+Income JSON uses `id`, `user_id`, `income_date` (`YYYY-MM-DD`), `category`, `description`, `amount`, `created_at`, `updated_at`—matching the existing cloud row semantics. Category JSON uses `id`, `user_id`, `name`, `created_at`. Registration saves `trial_ends_at` exactly 14 days after `created_at` and creates `Зарплата`, `Подработка`, and `Прочее` in the same YDB transaction as the user and email identity. There is no trial enforcement yet. `POST /incomes/replace` accepts at most 500 records; the complete JSON request body is capped at **2 MiB (2,097,152 UTF-8 bytes)** in `index.js`. It validates the entire array before starting a single serializable YDB transaction. Supplied `user_id` is ignored and the authenticated user's ID is used. This version does not implement Supabase OAuth identities, subscriptions, payments, or frontend cutover. Email registration here is a **separate** account namespace from Supabase; existing site passwords and sessions cannot be used to log into this backend. No live data migration is attempted.
+
+The existing API Gateway must forward `POST /incomes/replace`, `DELETE /incomes`, and `DELETE /auth/me` to this function. These URLs reuse existing path shapes, but whether a Gateway configuration change is required depends on its current per-method route declarations; this repository does not contain the deployed Gateway specification. The Gateway may impose its own request-size cap below 2 MiB, so verify that separately before enabling large imports.
 
 ## Security and verification
 

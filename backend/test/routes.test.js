@@ -40,6 +40,15 @@ function memoryStore() {
       Object.assign(row, value, { updated_at }); return true;
     },
     deleteIncome: async (uid, id) => incomes.delete(key(uid, id)),
+    deleteAllIncomes: async (uid) => { for (const row of owned(incomes, uid)) incomes.delete(key(uid, row.id)); },
+    replaceIncomes: async (uid, rows) => {
+      const next = new Map(incomes);
+      for (const row of owned(next, uid)) next.delete(key(uid, row.id));
+      for (const row of rows) next.set(key(uid, row.id), row);
+      incomes.clear();
+      for (const [id, row] of next) incomes.set(id, row);
+      return rows;
+    },
     listCategories: async (uid) => owned(categories, uid),
     getCategory: async (uid, id) => categories.get(key(uid, id)),
     addCategory: async (row) => {
@@ -48,7 +57,13 @@ function memoryStore() {
     },
     deleteCategory: async (uid, id) => categories.delete(key(uid, id)),
     listSettings: async (uid) => owned(settings, uid),
-    putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); }
+    putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); },
+    deleteAccount: async (uid) => {
+      for (const map of [incomes, categories, settings, sessions, identities]) {
+        for (const [id, row] of map) if (row.user_id === uid) map.delete(id);
+      }
+      users.delete(uid);
+    }
   };
 }
 
@@ -126,4 +141,82 @@ test('rejects malformed inputs and expired or forged tokens', async () => {
   assert.equal((await app.handle('GET', '/auth/me', {}, auth(forged))).status, 401);
   const expired = createApp(memoryStore(), { now: () => new Date('2100-01-01') });
   assert.equal((await expired.handle('GET', '/auth/me', {}, auth(account.token))).status, 401);
+});
+
+test('atomic replace validates all rows, ignores client ownership, and accepts empty array', async () => {
+  const app = make();
+  const alice = (await register(app, 'alice@example.com')).body;
+  const bob = (await register(app, 'bob@example.com')).body;
+  const payload = { income_date: '2026-09-15', category: 'Зарплата', description: 'old', amount: 10 };
+  await app.handle('POST', '/incomes', payload, auth(alice.token));
+  await app.handle('POST', '/incomes', payload, auth(bob.token));
+  const existing = (await app.handle('GET', '/incomes', {}, auth(alice.token))).body.data;
+  const id = 'f1a32abb-dfc0-4348-a3a6-2a487524d9fd';
+  const replacement = [
+    { ...payload, id, user_id: bob.user.user_id, description: 'новый доход', amount: 100 },
+    { ...payload, description: 'second', amount: 200 }
+  ];
+  assert.equal((await app.handle('POST', '/incomes/replace', { incomes: replacement })).status, 401);
+  const invalid = await app.handle('POST', '/incomes/replace', { incomes: [replacement[0], { ...replacement[1], income_date: '2026-02-30' }] }, auth(alice.token));
+  assert.equal(invalid.status, 400);
+  for (const malformed of [
+    { ...replacement[1], amount: 0 },
+    { ...replacement[1], category: 'x'.repeat(81) },
+    { ...replacement[1], description: 'x'.repeat(5001) },
+    { ...replacement[1], id: 'not-a-uuid' }
+  ]) {
+    assert.equal((await app.handle('POST', '/incomes/replace', { incomes: [replacement[0], malformed] }, auth(alice.token))).status, 400);
+  }
+  assert.equal((await app.handle('POST', '/incomes/replace', { incomes: {} }, auth(alice.token))).status, 400);
+  assert.deepEqual((await app.handle('GET', '/incomes', {}, auth(alice.token))).body.data, existing);
+  assert.equal((await app.handle('POST', '/incomes/replace', { incomes: [replacement[0], replacement[0]] }, auth(alice.token))).status, 400);
+  assert.equal((await app.handle('POST', '/incomes/replace', { incomes: Array(501).fill(replacement[0]) }, auth(alice.token))).status, 413);
+  const result = await app.handle('POST', '/incomes/replace', { incomes: replacement }, auth(alice.token));
+  assert.equal(result.status, 200);
+  assert.equal(result.body.data.length, 2);
+  assert.equal(result.body.data[0].id, id);
+  assert.equal(result.body.data[0].user_id, alice.user.user_id);
+  assert.match(result.body.data[1].id, /^[0-9a-f-]{36}$/);
+  assert.equal((await app.handle('GET', '/incomes', {}, auth(bob.token))).body.data.length, 1);
+  assert.equal((await app.handle('POST', '/incomes/replace', { incomes: [] }, auth(alice.token))).status, 200);
+  assert.equal((await app.handle('GET', '/incomes', {}, auth(alice.token))).body.data.length, 0);
+  assert.equal((await app.handle('GET', '/categories', {}, auth(alice.token))).body.data.length, 3);
+});
+
+test('DELETE /incomes clears only current user income', async () => {
+  const app = make();
+  const alice = (await register(app, 'alice@example.com')).body;
+  const bob = (await register(app, 'bob@example.com')).body;
+  const row = { income_date: '2026-09-15', category: 'Зарплата', description: '', amount: 10 };
+  await app.handle('POST', '/incomes', row, auth(alice.token));
+  await app.handle('POST', '/incomes', row, auth(bob.token));
+  assert.equal((await app.handle('DELETE', '/incomes')).status, 401);
+  assert.equal((await app.handle('DELETE', '/incomes', { user_id: bob.user.user_id }, auth(alice.token))).status, 204);
+  assert.equal((await app.handle('GET', '/incomes', {}, auth(alice.token))).body.data.length, 0);
+  assert.equal((await app.handle('GET', '/incomes', {}, auth(bob.token))).body.data.length, 1);
+  assert.equal((await app.handle('GET', '/categories', {}, auth(alice.token))).body.data.length, 3);
+});
+
+test('DELETE /auth/me removes all own data and sessions, not another account', async () => {
+  const store = memoryStore();
+  const app = createApp(store);
+  const alice = (await register(app, 'alice@example.com')).body;
+  const aliceSecond = (await app.handle('POST', '/auth/login', { email: 'alice@example.com', password: 'very-secret-password' })).body;
+  const bob = (await register(app, 'bob@example.com')).body;
+  const row = { income_date: '2026-09-15', category: 'Зарплата', description: '', amount: 10 };
+  await app.handle('POST', '/incomes', row, auth(alice.token));
+  await app.handle('POST', '/incomes', row, auth(bob.token));
+  await app.handle('PUT', '/settings/theme', { setting_value: 'dark' }, auth(alice.token));
+  assert.equal((await app.handle('DELETE', '/auth/me')).status, 401);
+  assert.equal((await app.handle('DELETE', '/auth/me', { user_id: bob.user.user_id }, auth(alice.token))).status, 204);
+  assert.equal(await store.getUser(alice.user.user_id), undefined);
+  assert.equal(await store.getIdentity('email', 'alice@example.com'), undefined);
+  assert.equal((await store.listCategories(alice.user.user_id)).length, 0);
+  assert.equal((await store.listIncomes(alice.user.user_id)).length, 0);
+  assert.equal((await store.listSettings(alice.user.user_id)).length, 0);
+  assert.equal((await app.handle('GET', '/auth/me', {}, auth(alice.token))).status, 401);
+  assert.equal((await app.handle('GET', '/auth/me', {}, auth(aliceSecond.token))).status, 401);
+  assert.equal((await app.handle('POST', '/auth/login', { email: 'alice@example.com', password: 'very-secret-password' })).status, 401);
+  assert.equal((await app.handle('GET', '/auth/me', {}, auth(bob.token))).status, 200);
+  assert.equal((await app.handle('GET', '/incomes', {}, auth(bob.token))).body.data.length, 1);
 });
