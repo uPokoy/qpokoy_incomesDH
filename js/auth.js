@@ -118,7 +118,7 @@
         if(result&&result.verification_required){
           setMode('login');
           email.value=mail;
-          setMessage('Аккаунт создан. Проверьте почту и подтвердите email','success',message);
+          setMessage('Проверьте почту и подтвердите email','success',message);
         }else{
           await sync({user:apiUser(result)});
         }
