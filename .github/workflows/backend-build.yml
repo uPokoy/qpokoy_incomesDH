@@ -6,6 +6,8 @@ on:
     paths:
       - 'backend/**'
       - 'js/api-client.js'
+      - 'js/auth.js'
+      - 'index.html'
       - 'tests/api-client.test.js'
       - '.github/workflows/backend-build.yml'
 
