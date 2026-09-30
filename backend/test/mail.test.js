@@ -28,7 +28,7 @@ test('Postbox sender gets IAM token from metadata and sends UTF-8 reset email', 
   assert.equal(calls[0].init.headers['Metadata-Flavor'], 'Google');
   assert.equal(calls[1].init.headers['X-YaCloud-SubjectToken'], 'iam-token');
   const body = JSON.parse(calls[1].init.body);
-  assert.equal(body.FromEmailAddress, 'noreply@qpokoy.ru');
+  assert.equal(body.FromEmailAddress, 'qPokoy <noreply@qpokoy.ru>');
   assert.deepEqual(body.Destination.ToAddresses, ['тест@example.com']);
   assert.equal(body.Content.Simple.Subject.Data, 'qPokoy — восстановление пароля');
   assert.match(body.Content.Simple.Body.Text.Data, /30 минут/);
