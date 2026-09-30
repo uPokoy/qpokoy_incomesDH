@@ -5,12 +5,18 @@
   const gate=document.getElementById('qpAuthGate');
   const form=document.getElementById('qpAuthForm');
   const signupForm=document.getElementById('qpAuthSignupForm');
+  const resetForm=document.getElementById('qpAuthResetForm');
   const submit=document.getElementById('qpAuthSubmit');
   const signupSubmit=document.getElementById('qpAuthSignupSubmit');
+  const resetSubmit=document.getElementById('qpAuthResetSubmit');
   const yandexButton=document.getElementById('qpAuthYandex');
   const googleButton=document.getElementById('qpAuthGoogle');
   const reset=document.getElementById('qpAuthReset');
   const resetMessage=document.getElementById('qpAuthResetMessage');
+  const resetPassword=document.getElementById('qpAuthResetPassword');
+  const resetPasswordConfirm=document.getElementById('qpAuthResetPasswordConfirm');
+  const resetConfirmMessage=document.getElementById('qpAuthResetConfirmMessage');
+  const resetBack=document.getElementById('qpAuthResetBack');
   const oauthDivider=document.getElementById('qpAuthOAuthDivider');
   const email=document.getElementById('qpAuthEmail');
   const password=document.getElementById('qpAuthPassword');
@@ -20,7 +26,8 @@
   const message=document.getElementById('qpAuthMessage');
   const signupMessage=document.getElementById('qpAuthSignupMessage');
   const tabs=[...document.querySelectorAll('[data-auth-mode]')];
-  let mode='login';
+  const resetToken=new URLSearchParams(location.search).get('reset_token')||'';
+  let mode=resetToken?'reset':'login';
   function oauthLabel(button){return button.querySelector('.qp-auth-oauth-label');}
   function setOAuthButtonText(button,text){oauthLabel(button).textContent=text;}
   function resetOAuthButtons(){
@@ -37,7 +44,7 @@
   }
 
   function setMessage(text,type,target){
-    const box=target||(mode==='signup'?signupMessage:message);
+    const box=target||(mode==='signup'?signupMessage:(mode==='reset'?resetConfirmMessage:message));
     box.textContent=text||'';
     box.className='qp-auth-message'+(type?' '+type:'');
   }
@@ -45,14 +52,17 @@
     mode=next;
     tabs.forEach(t=>t.classList.toggle('active',t.dataset.authMode===mode));
     const signup=mode==='signup';
-    form.hidden=signup;
+    const resetting=mode==='reset';
+    form.hidden=signup||resetting;
     signupForm.hidden=!signup;
-    reset.hidden=signup;
-    oauthDivider.hidden=false;
-    yandexButton.hidden=false;
-    googleButton.hidden=false;
+    resetForm.hidden=!resetting;
+    reset.hidden=signup||resetting;
+    oauthDivider.hidden=resetting;
+    yandexButton.hidden=resetting;
+    googleButton.hidden=resetting;
     setMessage('',null,message);
     setMessage('',null,signupMessage);
+    setMessage('',null,resetConfirmMessage);
     setResetMessage('');
   }
   function showGate(show,checking=false){
@@ -122,9 +132,68 @@
   form.addEventListener('submit',handleAuthSubmit);
   signupForm.addEventListener('submit',handleAuthSubmit);
 
-  reset.addEventListener('click',function(){
+  reset.addEventListener('click',async function(){
     setResetMessage('');
-    setResetMessage('Восстановление пароля временно недоступно.','error');
+    const mail=email.value.trim();
+    if(!mail||!email.checkValidity()){
+      setResetMessage('Введите email аккаунта выше.','error');
+      email.focus();
+      return;
+    }
+    reset.disabled=true;
+    try{
+      await api.requestPasswordReset(mail);
+      setResetMessage('Если аккаунт с таким email существует, письмо со ссылкой уже отправлено.','success');
+    }catch(error){
+      setResetMessage('Не удалось отправить запрос. Проверьте соединение и повторите попытку.','error');
+    }finally{
+      reset.disabled=false;
+    }
+  });
+
+  resetForm.addEventListener('submit',async function(event){
+    event.preventDefault();
+    setMessage('',null,resetConfirmMessage);
+    const pass=resetPassword.value;
+    if(pass.length<8){
+      setMessage('Пароль должен содержать минимум 8 символов.','error',resetConfirmMessage);
+      return;
+    }
+    if(pass!==resetPasswordConfirm.value){
+      setMessage('Пароли не совпадают.','error',resetConfirmMessage);
+      return;
+    }
+    if(!resetToken){
+      setMessage('Ссылка восстановления недействительна. Запросите новую.','error',resetConfirmMessage);
+      return;
+    }
+    resetSubmit.disabled=true;
+    try{
+      await api.confirmPasswordReset(resetToken,pass);
+      api.clearToken();
+      const url=new URL(location.href);
+      url.searchParams.delete('reset_token');
+      history.replaceState(null,'',url.pathname+url.search+url.hash);
+      resetForm.reset();
+      setMode('login');
+      showGate(true);
+      setMessage('Пароль изменён. Теперь войдите с новым паролем.','success',message);
+    }catch(error){
+      if(error&&error.code==='invalid_reset_token'){
+        setMessage('Ссылка недействительна или уже истекла. Запросите восстановление заново.','error',resetConfirmMessage);
+      }else{
+        setMessage(friendlyError(error),'error',resetConfirmMessage);
+      }
+    }finally{
+      resetSubmit.disabled=false;
+    }
+  });
+  resetBack.addEventListener('click',function(){
+    const url=new URL(location.href);
+    url.searchParams.delete('reset_token');
+    history.replaceState(null,'',url.pathname+url.search+url.hash);
+    setMode('login');
+    showGate(true);
   });
 
   const logout=document.getElementById('qpAuthLogoutBtn');
@@ -526,10 +595,15 @@
     }
   }
   api.setUnauthorizedHandler(()=>sync(null));
-  api.restoreSession().then(user=>sync(user?{user:apiUser(user)}:null)).catch(error=>{
+  if(resetToken){
+    setMode('reset');
     showGate(true);
-    setMessage(friendlyError(error),'error');
-  });
+  }else{
+    api.restoreSession().then(user=>sync(user?{user:apiUser(user)}:null)).catch(error=>{
+      showGate(true);
+      setMessage(friendlyError(error),'error');
+    });
+  }
 
   window.qPokoyAuth={client:api,showGate,setMode};
 })();
