@@ -21,72 +21,104 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function qPokoyEmailTemplate({ title, text, actionLabel, actionUrl, note }) {
-  const safeTitle = escapeHtml(title);
-  const safeText = escapeHtml(text);
-  const safeLabel = escapeHtml(actionLabel);
+function qPokoyEmailTemplate({
+  pageTitle,
+  icon,
+  title,
+  firstLine,
+  secondLine,
+  actionLabel,
+  actionUrl,
+  ignoreText
+}) {
   const safeUrl = escapeHtml(actionUrl);
-  const safeNote = escapeHtml(note);
-
   return `<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="color-scheme" content="dark">
-  <meta name="supported-color-schemes" content="dark">
-  <title>${safeTitle}</title>
+  <meta name="color-scheme" content="dark light">
+  <title>${escapeHtml(pageTitle)}</title>
+  <style>
+    @media only screen and (max-width:620px) {
+      .qp-outer { padding:16px 10px !important; }
+      .qp-main { padding:26px 22px 28px !important; }
+      .qp-header { padding:24px 22px !important; }
+      .qp-h1 { font-size:25px !important; line-height:1.2 !important; }
+      .qp-button { width:100% !important; }
+      .qp-button a { display:block !important; width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+      .qp-body-text { font-size:15px !important; }
+    }
+  </style>
 </head>
-<body style="margin:0;padding:0;background:#050914;color:#f8fafc;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#050914;">
-    <tr>
-      <td align="center" style="padding:28px 12px 36px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:560px;">
-          <tr>
-            <td style="height:54px;overflow:hidden;border-radius:28px 28px 0 0;background:#081426;">
-              <div style="height:54px;border-radius:0 0 70% 45%;background:#0b2344;"></div>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:0 14px;background:#081426;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#0b1220;border:1px solid #1d2b40;border-radius:20px;">
-                <tr>
-                  <td style="padding:34px 30px 30px;">
-                    <div style="margin:0 0 24px;font-size:24px;line-height:1;font-weight:700;letter-spacing:-0.6px;color:#f8fafc;">qPokoy</div>
-                    <h1 style="margin:0 0 14px;font-size:26px;line-height:1.25;font-weight:700;letter-spacing:-0.4px;color:#f8fafc;">${safeTitle}</h1>
-                    <p style="margin:0 0 26px;font-size:15px;line-height:1.65;color:#cbd5e1;">${safeText}</p>
-
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                      <tr>
-                        <td style="border-radius:12px;background:#e9edf2;">
-                          <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:13px 20px;font-size:14px;line-height:18px;font-weight:700;color:#273142;text-decoration:none;border-radius:12px;">${safeLabel}</a>
-                        </td>
-                      </tr>
-                    </table>
-
-                    <p style="margin:26px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">${safeNote}</p>
-                    <p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:#64748b;">Если кнопка не открывается, скопируйте ссылку в браузер:<br>
-                      <a href="${safeUrl}" style="color:#94a3b8;text-decoration:underline;word-break:break-all;">${safeUrl}</a>
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <tr>
-            <td style="height:70px;overflow:hidden;border-radius:0 0 28px 28px;background:#081426;">
-              <div style="height:70px;border-radius:65% 40% 0 0;background:#0b2344;"></div>
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding:18px 18px 0;font-size:11px;line-height:1.55;color:#526277;">
-              qPokoy · учёт доходов
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+<body style="margin:0;padding:0;background:#070d16;color:#f4f7ff;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#070d16" style="width:100%;border-collapse:collapse;background-color:#070d16;background-image:radial-gradient(115% 62% at -12% 82%,#19283b 0%,#19283b 54%,transparent 55%),radial-gradient(120% 58% at 112% -8%,#19283b 0%,#19283b 51%,transparent 52%);">
+  <tr>
+    <td align="center" class="qp-outer" style="padding:36px 16px 42px;">
+      <!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600"><tr><td><![endif]-->
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;border-collapse:separate;border-spacing:0;background:#152941;border:1px solid #3568ac;border-radius:20px;overflow:hidden;">
+        <tr>
+          <td class="qp-header" bgcolor="#132c4b" style="background:#132c4b;background-image:linear-gradient(135deg,#15395e 0%,#10243d 100%);padding:29px 36px 25px;border-bottom:1px solid #315781;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td valign="middle" align="left">
+                  <span style="font-size:31px;font-weight:800;letter-spacing:-1px;line-height:1;color:#ffffff;"><span style="color:#398df9;">q</span>Pokoy</span><br>
+                  <span style="display:inline-block;margin-top:5px;color:#c4d3e8;font-size:13px;letter-spacing:.3px;">Учёт доходов</span>
+                </td>
+                <td align="right" valign="bottom" width="85" style="width:85px;white-space:nowrap;">
+                  <table role="presentation" cellpadding="0" cellspacing="3" border="0" align="right" style="height:48px;">
+                    <tr valign="bottom">
+                      <td valign="bottom"><div style="width:10px;height:17px;background:#388df3;border-radius:5px 5px 0 0;">&nbsp;</div></td>
+                      <td valign="bottom"><div style="width:10px;height:28px;background:#388df3;border-radius:5px 5px 0 0;">&nbsp;</div></td>
+                      <td valign="bottom"><div style="width:10px;height:39px;background:#388df3;border-radius:5px 5px 0 0;">&nbsp;</div></td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="qp-main" bgcolor="#152941" align="center" style="padding:36px 36px 34px;background-color:#152941;background-image:linear-gradient(155deg,#183455 0%,#14283f 55%,#12263e 100%);">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr><td align="center" style="padding:0 0 23px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr><td align="center" valign="middle" width="70" height="70" bgcolor="#194576" style="width:70px;height:70px;border:1px solid #368bfa;border-radius:18px;background:#194576;color:#80bbff;font-family:Arial,Helvetica,sans-serif;font-size:43px;font-weight:700;line-height:70px;">${icon}</td></tr>
+                </table>
+              </td></tr>
+              <tr><td align="center" style="padding:0 0 25px;">
+                <h1 class="qp-h1" style="margin:0;color:#f7faff;font-size:29px;font-weight:750;line-height:1.2;">${escapeHtml(title)}</h1>
+              </td></tr>
+              <tr><td align="center" class="qp-body-text" style="color:#dce6f4;font-size:16px;line-height:1.6;padding:0 0 12px;">${escapeHtml(firstLine)}</td></tr>
+              <tr><td align="center" class="qp-body-text" style="color:#dce6f4;font-size:16px;line-height:1.6;padding:0 0 29px;">${escapeHtml(secondLine)}</td></tr>
+              <tr><td align="center" style="padding:0 0 24px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="qp-button" style="border-collapse:separate;">
+                  <tr><td align="center" bgcolor="#2477ef" style="border-radius:13px;background:#2477ef;">
+                    <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;box-sizing:border-box;min-width:250px;padding:16px 24px;border:1px solid #4396ff;border-radius:13px;background:#2477ef;color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;line-height:1.35;text-align:center;mso-padding-alt:0;text-underline-color:#2477ef;">${escapeHtml(actionLabel)} &nbsp;&rarr;</a>
+                  </td></tr>
+                </table>
+              </td></tr>
+              <tr><td style="padding:0 0 25px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border:1px solid #315277;border-radius:12px;background:#1a3553;">
+                  <tr><td style="padding:14px 17px;color:#d4e0ef;font-size:13px;line-height:1.55;">
+                    Если кнопка не работает, скопируйте ссылку из письма и откройте её в браузере.<br>
+                    <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:7px;color:#81bdff;text-decoration:underline;overflow-wrap:anywhere;word-break:break-all;">${safeUrl}</a>
+                  </td></tr>
+                </table>
+              </td></tr>
+              <tr><td style="height:1px;background:#315477;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+              <tr><td align="center" style="padding:20px 0 0;color:#bccce0;font-size:13px;line-height:1.55;">${escapeHtml(ignoreText)}</td></tr>
+            </table>
+          </td>
+        </tr>
+        <tr><td bgcolor="#102640" align="center" style="border-top:1px solid #315277;background:#102640;padding:20px 20px 24px;color:#bdcee4;font-size:13px;line-height:1.7;">
+          С уважением,<br><strong style="font-size:14px;color:#f5f9ff;">Команда qPokoy</strong>
+        </td></tr>
+      </table>
+      <!--[if mso]></td></tr></table><![endif]-->
+    </td>
+  </tr>
+</table>
 </body>
 </html>`;
 }
@@ -124,21 +156,24 @@ async function sendPostboxEmail({ to, from, subject, text, html, fetchImpl }) {
 async function sendPasswordResetEmail({ to, resetUrl, from = 'noreply@qpokoy.ru', fetchImpl = globalThis.fetch }) {
   const subject = 'qPokoy — восстановление пароля';
   const text = [
-    'Восстановление пароля qPokoy',
+    'Сбросьте пароль — qPokoy',
     '',
-    'Вы запросили восстановление пароля.',
-    'Чтобы задать новый пароль, откройте ссылку:',
+    'Вы отправили запрос на восстановление пароля в qPokoy.',
+    'Чтобы установить новый пароль, откройте ссылку:',
     resetUrl,
     '',
     'Ссылка действует 30 минут и может быть использована только один раз.',
-    'Если вы не запрашивали восстановление, просто проигнорируйте это письмо.'
+    'Если вы не отправляли запрос на восстановление пароля, просто проигнорируйте это письмо.'
   ].join('\n');
   const html = qPokoyEmailTemplate({
-    title: 'Восстановление пароля',
-    text: 'Вы запросили восстановление пароля. Нажмите кнопку ниже, чтобы задать новый пароль.',
-    actionLabel: 'Задать новый пароль',
+    pageTitle: 'Сбросьте пароль — qPokoy',
+    icon: '&#8635;',
+    title: 'Сбросьте пароль',
+    firstLine: 'Вы отправили запрос на восстановление пароля в qPokoy.',
+    secondLine: 'Чтобы установить новый пароль, перейдите по ссылке ниже.',
+    actionLabel: 'Сбросить пароль',
     actionUrl: resetUrl,
-    note: 'Ссылка действует 30 минут и может быть использована только один раз. Если вы не запрашивали восстановление, просто проигнорируйте это письмо.'
+    ignoreText: 'Если вы не отправляли запрос на восстановление пароля, просто проигнорируйте это письмо.'
   });
   return sendPostboxEmail({ to, from, subject, text, html, fetchImpl });
 }
@@ -146,20 +181,24 @@ async function sendPasswordResetEmail({ to, resetUrl, from = 'noreply@qpokoy.ru'
 async function sendEmailVerificationEmail({ to, verificationUrl, from = 'noreply@qpokoy.ru', fetchImpl = globalThis.fetch }) {
   const subject = 'qPokoy — подтверждение электронной почты';
   const text = [
-    'Подтверждение электронной почты qPokoy',
+    'Подтвердите ваш email — qPokoy',
     '',
-    'Чтобы завершить регистрацию, подтвердите адрес электронной почты:',
+    'Вы создали аккаунт в qPokoy.',
+    'Чтобы завершить регистрацию и начать пользоваться сервисом, подтвердите адрес электронной почты:',
     verificationUrl,
     '',
     'Ссылка действует 24 часа и может быть использована только один раз.',
-    'Если вы не регистрировались в qPokoy, просто проигнорируйте это письмо.'
+    'Если вы не создавали аккаунт в qPokoy, просто проигнорируйте это письмо.'
   ].join('\n');
   const html = qPokoyEmailTemplate({
-    title: 'Подтверждение электронной почты',
-    text: 'Спасибо за регистрацию в qPokoy. Подтвердите адрес электронной почты, чтобы завершить создание аккаунта.',
-    actionLabel: 'Подтвердить почту',
+    pageTitle: 'Подтвердите ваш email — qPokoy',
+    icon: '&#10003;',
+    title: 'Подтвердите ваш email',
+    firstLine: 'Вы создали аккаунт в qPokoy.',
+    secondLine: 'Чтобы завершить регистрацию и начать пользоваться сервисом, подтвердите адрес электронной почты.',
+    actionLabel: 'Подтвердить email',
     actionUrl: verificationUrl,
-    note: 'Ссылка действует 24 часа и может быть использована только один раз. Если вы не регистрировались в qPokoy, просто проигнорируйте это письмо.'
+    ignoreText: 'Если вы не создавали аккаунт в qPokoy, просто проигнорируйте это письмо.'
   });
   return sendPostboxEmail({ to, from, subject, text, html, fetchImpl });
 }
