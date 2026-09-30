@@ -4966,6 +4966,7 @@ html[data-theme="dark"] .qp-notice-overlay{background:rgba(0,0,0,.52);}
   color:var(--text-muted,#64748b);
   font-size:12px;
   line-height:1.35;
+  opacity:.5;
 }
 
 #qpAuthResetForm #qpAuthResetSubmit{
