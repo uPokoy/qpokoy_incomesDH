@@ -2,6 +2,7 @@
 
 const { randomUUID } = require('node:crypto');
 const { hashPassword, verifyPassword, newSession, parseToken, verifySecret } = require('./security');
+const DEFAULT_CATEGORIES = ['Зарплата', 'Подработка', 'Прочее'];
 
 class HttpError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
@@ -79,9 +80,12 @@ function createApp(store, options = {}) {
       if (method === 'POST' && pathname === '/auth/register') {
         const email = emailValue(body.email);
         const password = passwordValue(body.password);
-        const user = { user_id: randomUUID(), email, status: 'active', created_at: now(), updated_at: now(), trial_ends_at: now() };
+        const createdAt = now();
+        const user = { user_id: randomUUID(), email, status: 'active', created_at: createdAt,
+          updated_at: createdAt, trial_ends_at: new Date(createdAt.getTime() + 14 * 86400000) };
+        const categories = DEFAULT_CATEGORIES.map((name) => ({ user_id: user.user_id, id: randomUUID(), name, created_at: createdAt }));
         const passwordHash = await hashPassword(password);
-        const created = await store.register(user, passwordHash);
+        const created = await store.register(user, passwordHash, categories);
         if (!created) throw new HttpError(409, 'email_exists', 'Email already registered');
         return response(201, await createSession(user));
       }
@@ -162,7 +166,8 @@ function createApp(store, options = {}) {
 }
 
 function publicUser(user) {
-  return { user_id: user.user_id, email: user.email, status: user.status, created_at: user.created_at };
+  return { user_id: user.user_id, email: user.email, status: user.status,
+    created_at: user.created_at, trial_ends_at: user.trial_ends_at };
 }
 function response(status, body) { return { status, body }; }
 module.exports = { createApp };

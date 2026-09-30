@@ -7,9 +7,9 @@ const U = TypedValues.utf8;
 const T = TypedValues.timestamp;
 const D = TypedValues.double;
 
-function createYdbStore(env = process.env) {
+function createYdbStore(env = process.env, DriverClass = Driver) {
   if (!env.ENDPOINT || !env.DATABASE) throw new Error('ENDPOINT and DATABASE are required');
-  const driver = new Driver({ endpoint: env.ENDPOINT, database: env.DATABASE, authService: new MetadataAuthService() });
+  const driver = new DriverClass({ endpoint: env.ENDPOINT, database: env.DATABASE, authService: new MetadataAuthService() });
   let readyPromise;
   async function query(text, params = {}) {
     readyPromise ||= driver.ready(10000);
@@ -28,20 +28,27 @@ function createYdbStore(env = process.env) {
     health: async () => { await query('SELECT 1 AS ok;'); },
     getUser: (id) => first('DECLARE $id AS Utf8; SELECT user_id,email,status,created_at,updated_at,trial_ends_at FROM `users` WHERE user_id=$id;', { $id: U(id) }),
     getIdentity: (provider, providerUserId) => first('DECLARE $p AS Utf8; DECLARE $id AS Utf8; SELECT provider,provider_user_id,user_id,password_hash FROM `auth_identities` WHERE provider=$p AND provider_user_id=$id;', { $p: U(provider), $id: U(providerUserId) }),
-    async register(user, passwordHash) {
+    async register(user, passwordHash, categories) {
       const existing = await this.getIdentity('email', user.email);
       if (existing) return false;
       try {
-        // Both INSERT statements execute in one YDB table transaction.
+        // One AUTO_TX (serializable read/write, commitTx) covers the identity,
+        // user and all default categories. A failure rolls back the entire query.
         await query(`DECLARE $uid AS Utf8; DECLARE $email AS Utf8; DECLARE $provider AS Utf8; DECLARE $status AS Utf8;
           DECLARE $created AS Timestamp; DECLARE $updated AS Timestamp; DECLARE $trial AS Timestamp;
           DECLARE $hash AS Utf8;
+          DECLARE $cat0 AS Utf8; DECLARE $cat1 AS Utf8; DECLARE $cat2 AS Utf8;
+          DECLARE $name0 AS Utf8; DECLARE $name1 AS Utf8; DECLARE $name2 AS Utf8;
           INSERT INTO \`auth_identities\` (provider,provider_user_id,user_id,password_hash,created_at)
           VALUES ($provider,$email,$uid,$hash,$created);
           INSERT INTO \`users\` (user_id,email,status,created_at,updated_at,trial_ends_at)
-          VALUES ($uid,$email,$status,$created,$updated,$trial);`,
+          VALUES ($uid,$email,$status,$created,$updated,$trial);
+          INSERT INTO \`categories\` (user_id,id,name,created_at) VALUES
+          ($uid,$cat0,$name0,$created),($uid,$cat1,$name1,$created),($uid,$cat2,$name2,$created);`,
         { $uid: U(user.user_id), $email: U(user.email), $provider: U('email'), $status: U(user.status), $created: T(user.created_at),
-          $updated: T(user.updated_at), $trial: T(user.trial_ends_at), $hash: U(passwordHash) });
+          $updated: T(user.updated_at), $trial: T(user.trial_ends_at), $hash: U(passwordHash),
+          $cat0: U(categories[0].id), $cat1: U(categories[1].id), $cat2: U(categories[2].id),
+          $name0: U(categories[0].name), $name1: U(categories[1].name), $name2: U(categories[2].name) });
         return true;
       } catch (error) { if (conflict(error)) return false; throw error; }
     },

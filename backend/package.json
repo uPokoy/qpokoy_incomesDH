@@ -6,5 +6,8 @@
   "main": "index.js",
   "engines": { "node": "22.x" },
   "scripts": { "test": "node --test" },
-  "dependencies": { "ydb-sdk": "5.11.1" }
+  "dependencies": {
+    "@yandex-cloud/nodejs-sdk": "2.9.3",
+    "ydb-sdk": "5.11.1"
+  }
 }

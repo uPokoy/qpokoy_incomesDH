@@ -15,10 +15,11 @@ function memoryStore() {
   const key = (uid, id) => `${uid}:${id}`;
   return {
     health: async () => {},
-    register: async (user, hash) => {
+    register: async (user, hash, defaults) => {
       if (identities.has(user.email)) return false;
       users.set(user.user_id, user);
       identities.set(user.email, { user_id: user.user_id, password_hash: hash });
+      defaults.forEach((row) => categories.set(key(row.user_id, row.id), row));
       return true;
     },
     getIdentity: async (_provider, email) => identities.get(email),
@@ -61,6 +62,9 @@ test('health, register, login, me, logout and old-token rejection', async () => 
   const registered = await register(app, 'A@example.com');
   assert.equal(registered.status, 201);
   assert.equal(registered.body.user.email, 'a@example.com');
+  assert.equal(new Date(registered.body.user.trial_ends_at) - new Date(registered.body.user.created_at), 14 * 86400000);
+  assert.deepEqual((await app.handle('GET', '/categories', {}, auth(registered.body.token))).body.data.map((x) => x.name),
+    ['Зарплата', 'Подработка', 'Прочее']);
   assert.equal((await register(app, 'a@example.com')).status, 409);
   assert.equal((await app.handle('POST', '/auth/login', { email: 'a@example.com', password: 'wrong-password' })).status, 401);
   const login = await app.handle('POST', '/auth/login', { email: 'A@example.com', password: 'very-secret-password' });
@@ -94,13 +98,19 @@ test('categories and settings are per-user; protected category cannot be removed
   const app = make();
   const alice = (await register(app, 'alice@example.com')).body;
   const bob = (await register(app, 'bob@example.com')).body;
-  const salary = await app.handle('POST', '/categories', { name: 'Зарплата', user_id: bob.user.user_id }, auth(alice.token));
-  assert.equal(salary.status, 201);
-  const id = salary.body.data.id;
-  assert.equal((await app.handle('DELETE', `/categories/${id}`, {}, auth(alice.token))).status, 403);
-  assert.equal((await app.handle('GET', '/categories', {}, auth(bob.token))).body.data.length, 0);
-  const other = await app.handle('POST', '/categories', { name: 'Прочее' }, auth(alice.token));
-  assert.equal((await app.handle('DELETE', `/categories/${other.body.data.id}`, {}, auth(bob.token))).status, 404);
+  const defaults = (await app.handle('GET', '/categories', {}, auth(alice.token))).body.data;
+  assert.deepEqual(defaults.map((x) => x.name), ['Зарплата', 'Подработка', 'Прочее']);
+  assert.equal((await app.handle('DELETE', `/categories/${defaults[0].id}`, {}, auth(alice.token))).status, 403);
+  for (const category of defaults.slice(1)) {
+    assert.equal((await app.handle('DELETE', `/categories/${category.id}`, {}, auth(bob.token))).status, 404);
+    assert.equal((await app.handle('DELETE', `/categories/${category.id}`, {}, auth(alice.token))).status, 204);
+  }
+  assert.deepEqual((await app.handle('GET', '/categories', {}, auth(alice.token))).body.data.map((x) => x.name), ['Зарплата']);
+  assert.deepEqual((await app.handle('GET', '/categories', {}, auth(bob.token))).body.data.map((x) => x.name),
+    ['Зарплата', 'Подработка', 'Прочее']);
+  assert.equal((await app.handle('POST', '/categories', { name: 'Зарплата' }, auth(alice.token))).status, 409);
+  const other = await app.handle('POST', '/categories', { name: 'Тестовая' }, auth(alice.token));
+  assert.equal(other.status, 201);
   assert.equal((await app.handle('DELETE', `/categories/${other.body.data.id}`, {}, auth(alice.token))).status, 204);
   assert.equal((await app.handle('PUT', '/settings/theme', { user_id: bob.user.user_id, setting_value: 'dark' }, auth(alice.token))).status, 200);
   assert.equal((await app.handle('GET', '/settings', {}, auth(bob.token))).body.data.length, 0);

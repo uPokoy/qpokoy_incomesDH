@@ -4,7 +4,7 @@ This is an independent Yandex Cloud Functions API. The published qPokoy site sti
 
 ## Deployable files
 
-Upload the entire `backend/` directory contents as the Cloud Function source: `index.js`, `app.js`, `security.js`, `ydb.js`, `package.json`, and `package-lock.json`. Tests and this README are not needed at runtime. Use Node.js 22 and entrypoint `index.handler`. Install dependencies from the lockfile (`npm ci --omit=dev`) before packaging if uploading an archive. There are no credentials in this repository.
+Upload the entire `backend/` directory contents as the Cloud Function source: `index.js`, `app.js`, `security.js`, `ydb.js`, `package.json`, and `package-lock.json`. Tests and this README are not needed at runtime. Use Node.js 22 and entrypoint `index.handler`. Install dependencies from the lockfile (`npm ci --omit=dev`) before packaging if uploading an archive. Both `ydb-sdk@5.11.1` and its compatible `@yandex-cloud/nodejs-sdk@2.9.3` must be present. There are no credentials in this repository.
 
 The function service account must have permission to access the existing YDB database. Set `ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:2135` and `DATABASE=/ru-central1/b1gpa63ouuea1kj8rm5d/etnov7clc5jg5habs3kg` in Cloud Functions. The SDK uses `MetadataAuthService` and the function's attached service account; do not upload a service-account key. `ALLOWED_ORIGINS` can contain a comma-separated explicit allowlist for a future frontend (for example, the qpokoy.ru and GitHub Pages origins). Leave it empty while the API is private. API Gateway must route the listed paths and methods to this private function, with its gateway service account as invoker. This repository does not change the deployed function, gateway, DNS, Supabase, or payment resources.
 
@@ -26,7 +26,7 @@ Request and response bodies are JSON. A successful GET or write returns `{ "data
 | GET | `/settings` | List own setting rows |
 | PUT | `/settings/:key` | Save `{setting_value: string}` |
 
-Income JSON uses `id`, `user_id`, `income_date` (`YYYY-MM-DD`), `category`, `description`, `amount`, `created_at`, `updated_at`—matching the existing cloud row semantics. Category JSON uses `id`, `user_id`, `name`, `created_at`. This first version does not implement Supabase OAuth identities, backup import/export, subscriptions, payments, or frontend cutover. Email registration here is a **separate** account namespace from Supabase; existing site passwords and sessions cannot be used to log into this backend. No live data migration is attempted.
+Income JSON uses `id`, `user_id`, `income_date` (`YYYY-MM-DD`), `category`, `description`, `amount`, `created_at`, `updated_at`—matching the existing cloud row semantics. Category JSON uses `id`, `user_id`, `name`, `created_at`. Registration saves `trial_ends_at` exactly 14 days after `created_at` and creates `Зарплата`, `Подработка`, and `Прочее` in the same YDB transaction as the user and email identity. There is no trial enforcement yet. This first version does not implement Supabase OAuth identities, backup import/export, subscriptions, payments, or frontend cutover. Email registration here is a **separate** account namespace from Supabase; existing site passwords and sessions cannot be used to log into this backend. No live data migration is attempted.
 
 ## Security and verification
 
