@@ -120,3 +120,15 @@ test('account deletion clears token only after server success',async()=>{
   assert.equal(h.calls[0].method,'DELETE');
   assert.equal(h.values.has(TOKEN_KEY),false);
 });
+
+test('password reset endpoints are public and do not require a session',async()=>{
+  const h=harness([ok({ok:true},202),{status:204}]);
+  assert.deepEqual(await h.api.requestPasswordReset('тест@example.com'),{ok:true});
+  assert.equal(h.calls[0].url,API_BASE_URL+'/auth/password-reset/request');
+  assert.equal(h.calls[0].headers.Authorization,undefined);
+  assert.deepEqual(h.calls[0].body,{email:'тест@example.com'});
+  await h.api.confirmPasswordReset('reset-token','новый-пароль123');
+  assert.equal(h.calls[1].url,API_BASE_URL+'/auth/password-reset/confirm');
+  assert.equal(h.calls[1].headers.Authorization,undefined);
+  assert.deepEqual(h.calls[1].body,{token:'reset-token',password:'новый-пароль123'});
+});
