@@ -75,6 +75,36 @@ function memoryStore() {
     deleteCategory: async (uid, id) => categories.delete(key(uid, id)),
     listSettings: async (uid) => owned(settings, uid),
     putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); },
+    getEmailVerification: async (uid) => {
+      const row = settings.get(key(uid, 'auth.email_verification'));
+      if (!row) return null;
+      try { return JSON.parse(row.setting_value); } catch (_) { return null; }
+    },
+    createEmailVerification: async (row) => {
+      settings.set(key(row.user_id, 'auth.email_verification'), {
+        user_id: row.user_id,
+        setting_key: 'auth.email_verification',
+        setting_value: JSON.stringify({
+          token_hash: row.token_hash,
+          created_at: row.created_at.toISOString(),
+          expires_at: row.expires_at.toISOString()
+        }),
+        updated_at: row.created_at
+      });
+    },
+    confirmEmailVerification: async (uid, tokenHash, when, trialEndsAt) => {
+      const row = settings.get(key(uid, 'auth.email_verification'));
+      const user = users.get(uid);
+      if (!row || !user || user.status !== 'pending_email') return false;
+      let verification;
+      try { verification = JSON.parse(row.setting_value); } catch (_) { return false; }
+      if (verification.token_hash !== tokenHash || new Date(verification.expires_at) <= when) return false;
+      user.status = 'active';
+      user.updated_at = when;
+      user.trial_ends_at = trialEndsAt;
+      settings.delete(key(uid, 'auth.email_verification'));
+      return true;
+    },
     deleteAccount: async (uid) => {
       for (const map of [incomes, categories, settings, sessions, resetTokens, identities]) {
         for (const [id, row] of map) if (row.user_id === uid) map.delete(id);
@@ -84,7 +114,7 @@ function memoryStore() {
   };
 }
 
-const make = () => createApp(memoryStore());
+const make = () => createApp(memoryStore(), { requireEmailVerification: false });
 const register = (app, email) => app.handle('POST', '/auth/register', { email, password: 'very-secret-password' });
 const auth = (token) => ({ authorization: `Bearer ${token}` });
 
@@ -108,11 +138,57 @@ test('health, register, login, me, logout and old-token rejection', async () => 
 });
 
 
+test('email verification gates registration, expires, is single-use and starts the trial on confirmation', async () => {
+  const store = memoryStore();
+  const sent = [];
+  let current = new Date('2026-09-30T12:00:00.000Z');
+  const app = createApp(store, {
+    now: () => current,
+    requireEmailVerification: true,
+    emailVerificationBaseUrl: 'https://qpokoy.ru/',
+    sendEmailVerificationEmail: async (message) => { sent.push(message); }
+  });
+
+  const registered = await register(app, 'verify@example.com');
+  assert.equal(registered.status, 201);
+  assert.equal(registered.body.verification_required, true);
+  assert.equal(registered.body.token, undefined);
+  assert.equal(sent.length, 1);
+  assert.equal((await app.handle('POST', '/auth/login', { email: 'verify@example.com', password: 'wrong-password' })).status, 401);
+  const blocked = await app.handle('POST', '/auth/login', { email: 'verify@example.com', password: 'very-secret-password' });
+  assert.equal(blocked.status, 403);
+  assert.equal(blocked.body.error.code, 'email_not_verified');
+
+  const firstUrl = new URL(sent[0].verificationUrl);
+  const firstToken = firstUrl.searchParams.get('verify_token');
+  assert.match(firstToken, /^[0-9a-f-]{36}\.[A-Za-z0-9_-]{43}$/i);
+  assert.equal((await app.handle('POST', '/auth/email-verification/confirm', { token: 'bad' })).status, 400);
+
+  current = new Date(current.getTime() + 25 * 3600000);
+  assert.equal((await app.handle('POST', '/auth/email-verification/confirm', { token: firstToken })).status, 400);
+
+  const resent = await app.handle('POST', '/auth/email-verification/resend', { email: 'verify@example.com' });
+  assert.equal(resent.status, 202);
+  assert.equal(sent.length, 2);
+  const secondToken = new URL(sent[1].verificationUrl).searchParams.get('verify_token');
+  assert.equal((await app.handle('POST', '/auth/email-verification/confirm', { token: secondToken })).status, 204);
+  assert.equal((await app.handle('POST', '/auth/email-verification/confirm', { token: secondToken })).status, 400);
+
+  const login = await app.handle('POST', '/auth/login', { email: 'verify@example.com', password: 'very-secret-password' });
+  assert.equal(login.status, 200);
+  assert.equal(new Date(login.body.user.trial_ends_at) - current, 14 * 86400000);
+
+  const unknown = await app.handle('POST', '/auth/email-verification/resend', { email: 'missing@example.com' });
+  assert.equal(unknown.status, 202);
+  assert.equal(sent.length, 2);
+});
+
 test('password reset is private, single-use, expires, changes password and revokes sessions', async () => {
   const store = memoryStore();
   const sent = [];
   let current = new Date('2026-09-30T12:00:00.000Z');
   const app = createApp(store, {
+    requireEmailVerification: false,
     now: () => current,
     passwordResetBaseUrl: 'https://qpokoy.ru/',
     sendPasswordResetEmail: async (message) => { sent.push(message); }
@@ -150,6 +226,7 @@ test('password reset is private, single-use, expires, changes password and revok
 test('password reset request keeps generic success even if Postbox fails', async () => {
   const errors = [];
   const app = createApp(memoryStore(), {
+    requireEmailVerification: false,
     sendPasswordResetEmail: async () => { throw new Error('mail unavailable'); },
     onError: (error) => errors.push(error)
   });
@@ -209,7 +286,7 @@ test('rejects malformed inputs and expired or forged tokens', async () => {
   assert.equal((await app.handle('PUT', '/settings/a%20b', { setting_value: 'x' }, auth(account.token))).status, 400);
   const forged = account.token.slice(0, -1) + (account.token.endsWith('a') ? 'b' : 'a');
   assert.equal((await app.handle('GET', '/auth/me', {}, auth(forged))).status, 401);
-  const expired = createApp(memoryStore(), { now: () => new Date('2100-01-01') });
+  const expired = createApp(memoryStore(), { requireEmailVerification: false, now: () => new Date('2100-01-01') });
   assert.equal((await expired.handle('GET', '/auth/me', {}, auth(account.token))).status, 401);
 });
 
@@ -269,7 +346,7 @@ test('DELETE /incomes clears only current user income', async () => {
 
 test('DELETE /auth/me removes all own data and sessions, not another account', async () => {
   const store = memoryStore();
-  const app = createApp(store);
+  const app = createApp(store, { requireEmailVerification: false });
   const alice = (await register(app, 'alice@example.com')).body;
   const aliceSecond = (await app.handle('POST', '/auth/login', { email: 'alice@example.com', password: 'very-secret-password' })).body;
   const bob = (await register(app, 'bob@example.com')).body;
