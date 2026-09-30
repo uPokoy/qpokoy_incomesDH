@@ -30,12 +30,12 @@ async function handler(event = {}) {
       sendPasswordResetEmail: ({ to, resetUrl }) => sendPasswordResetEmail({
         to,
         resetUrl,
-        from: process.env.POSTBOX_FROM || 'noreply@qpokoy.ru'
+        from: process.env.POSTBOX_FROM || 'qPokoy <noreply@qpokoy.ru>'
       }),
       sendEmailVerificationEmail: ({ to, verificationUrl }) => sendEmailVerificationEmail({
         to,
         verificationUrl,
-        from: process.env.POSTBOX_FROM || 'noreply@qpokoy.ru'
+        from: process.env.POSTBOX_FROM || 'qPokoy <noreply@qpokoy.ru>'
       })
     });
     const result = await app.handle(method, path, body, headers);
