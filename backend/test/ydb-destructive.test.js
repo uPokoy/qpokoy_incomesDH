@@ -56,7 +56,7 @@ test('account deletion uses the same transaction for every user-owned table', as
   await store.deleteAccount('user-1');
   const queries = calls.filter((call) => call.action === 'query');
   assert.deepEqual(queries.map((call) => /DELETE FROM `([^`]+)`/.exec(call.sql)[1]),
-    ['incomes', 'categories', 'settings', 'sessions', 'auth_identities', 'users']);
+    ['incomes', 'categories', 'settings', 'sessions', 'password_reset_tokens', 'auth_identities', 'users']);
   assert.ok(queries.every((call) => call.sql.includes('WHERE user_id=$uid') && call.control.txId === 'tx-1'));
   assert.equal(calls.at(-1).action, 'commit');
   const failed = fakeStore('`sessions`');
