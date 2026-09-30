@@ -5052,7 +5052,7 @@ html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-back{
 /* DEV125: desktop-only large hit area for Recent incomes collapse/expand.
    The whole left side of the controls row is clickable, with a 96px safety gap before +.
    Mobile/coarse-pointer rules remain untouched. */
-@media (hover:hover) and (pointer:fine){
+@media (pointer:fine){
   #income .income-recent-controls{
     display:grid !important;
     grid-template-columns:minmax(0,1fr) 48px !important;
