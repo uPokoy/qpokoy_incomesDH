@@ -252,6 +252,9 @@ test('income CRUD is bound to the verified session, never client user_id', async
   assert.equal((await app.handle('PUT', `/incomes/${id}`, input, auth(bob.token))).status, 404);
   assert.equal((await app.handle('DELETE', `/incomes/${id}`, {}, auth(bob.token))).status, 404);
   assert.equal((await app.handle('PUT', `/incomes/${id}`, { ...input, amount: 42 }, auth(alice.token))).body.data.amount, 42);
+  assert.equal((await app.handle('PUT', `/incomes/${id}`, { ...input, amount: 42.5 }, auth(alice.token))).status, 400);
+  const fractionalId = '7dfabf32-bb83-4dc9-b67f-8a2975258de8';
+  assert.equal((await app.handle('POST', '/incomes', { ...input, id: fractionalId, amount: 99.99 }, auth(alice.token))).status, 400);
   assert.equal((await app.handle('DELETE', `/incomes/${id}`, {}, auth(alice.token))).status, 204);
   assert.equal((await app.handle('GET', '/incomes', {}, auth(alice.token))).body.data.length, 0);
 });
@@ -308,6 +311,7 @@ test('atomic replace validates all rows, ignores client ownership, and accepts e
   assert.equal(invalid.status, 400);
   for (const malformed of [
     { ...replacement[1], amount: 0 },
+    { ...replacement[1], amount: 100.5 },
     { ...replacement[1], category: 'x'.repeat(81) },
     { ...replacement[1], description: 'x'.repeat(5001) },
     { ...replacement[1], id: 'not-a-uuid' }
