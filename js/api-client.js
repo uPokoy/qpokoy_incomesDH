@@ -55,6 +55,8 @@
       setUnauthorizedHandler(handler){unauthorizedHandler=handler;},
       async register(email,password){return saveSession(await request('POST','/auth/register',{email,password},false));},
       async login(email,password){return saveSession(await request('POST','/auth/login',{email,password},false));},
+      async requestPasswordReset(email){return request('POST','/auth/password-reset/request',{email},false);},
+      async confirmPasswordReset(token,password){return request('POST','/auth/password-reset/confirm',{token,password},false);},
       async restoreSession(){
         if(!getToken())return null;
         try{return (await request('GET','/auth/me')).user;}
