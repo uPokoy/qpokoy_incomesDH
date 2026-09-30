@@ -1787,6 +1787,7 @@ body.qp-auth-locked #incomeAnalytics .monthly-corner-percent{
     background:var(--text-muted) !important;
     -webkit-mask:none !important;
     mask:none !important;
+    transform:translateY(4px) !important;
   }
 }
 
