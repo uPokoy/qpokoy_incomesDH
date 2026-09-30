@@ -1,7 +1,7 @@
 'use strict';
 
 const { randomUUID } = require('node:crypto');
-const { hashPassword, verifyPassword, newSession, parseToken, verifySecret } = require('./security');
+const { hashPassword, verifyPassword, newSession, parseToken, verifySecret, newPasswordResetToken, hashPasswordResetToken } = require('./security');
 const DEFAULT_CATEGORIES = ['Зарплата', 'Подработка', 'Прочее'];
 const MAX_REPLACE_INCOMES = 500;
 
@@ -47,6 +47,9 @@ const incomeValue = (body) => {
 function createApp(store, options = {}) {
   const now = options.now || (() => new Date());
   const sessionDays = 30;
+  const resetMinutes = 30;
+  const resetBaseUrl = options.passwordResetBaseUrl || 'https://qpokoy.ru/';
+  const sendPasswordResetEmail = options.sendPasswordResetEmail || (async () => {});
 
   async function authenticate(headers) {
     const token = parseToken(headers.authorization || headers.Authorization);
@@ -100,6 +103,45 @@ function createApp(store, options = {}) {
         const user = await store.getUser(identity.user_id);
         if (!user || user.status !== 'active') throw new HttpError(401, 'invalid_credentials', 'Invalid email or password');
         return response(200, await createSession(user));
+      }
+      if (method === 'POST' && pathname === '/auth/password-reset/request') {
+        const email = emailValue(body.email);
+        const identity = await store.getIdentity('email', email);
+        if (identity) {
+          const user = await store.getUser(identity.user_id);
+          if (user && user.status === 'active') {
+            const issuedAt = now();
+            const reset = newPasswordResetToken();
+            await store.createPasswordResetToken({
+              token_hash: reset.tokenHash,
+              user_id: user.user_id,
+              created_at: issuedAt,
+              expires_at: new Date(issuedAt.getTime() + resetMinutes * 60000)
+            });
+            const resetUrl = new URL(resetBaseUrl);
+            resetUrl.searchParams.set('reset_token', reset.token);
+            try {
+              await sendPasswordResetEmail({ to: user.email, resetUrl: resetUrl.toString() });
+            } catch (error) {
+              try { await store.deletePasswordResetToken(reset.tokenHash); } catch (cleanupError) {
+                if (options.onError) options.onError(cleanupError);
+              }
+              if (options.onError) options.onError(error);
+            }
+          }
+        }
+        // Always return the same response so the endpoint does not reveal whether an email is registered.
+        return response(202, { ok: true });
+      }
+      if (method === 'POST' && pathname === '/auth/password-reset/confirm') {
+        const token = requiredString(body.token, 'token', 200);
+        const tokenHash = hashPasswordResetToken(token);
+        if (!tokenHash) bad('Invalid reset token');
+        const password = passwordValue(body.password);
+        const passwordHash = await hashPassword(password);
+        const changed = await store.resetPassword(tokenHash, passwordHash, now());
+        if (!changed) throw new HttpError(400, 'invalid_reset_token', 'Reset link is invalid or expired');
+        return response(204, null);
       }
       const { user, session } = await authenticate(headers);
       const userId = user.user_id;
