@@ -4962,10 +4962,11 @@ html[data-theme="dark"] .qp-notice-overlay{background:rgba(0,0,0,.52);}
 }
 
 #qpAuthResetForm .qp-auth-reset-hint{
-  margin:-7px 0 14px;
+  margin:-7px 0 8px;
   color:var(--text-muted,#64748b);
   font-size:12px;
   line-height:1.35;
+  text-align:right;
   opacity:.5;
 }
 
