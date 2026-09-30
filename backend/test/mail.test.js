@@ -33,7 +33,7 @@ test('Postbox sender gets IAM token from metadata and sends UTF-8 reset email', 
   assert.equal(body.Content.Simple.Subject.Data, 'qPokoy — восстановление пароля');
   assert.match(body.Content.Simple.Body.Text.Data, /30 минут/);
   assert.match(body.Content.Simple.Body.Html.Data, /Сбросьте пароль/);
-  assert.match(body.Content.Simple.Body.Html.Data, /#2477ef/);
+  assert.match(body.Content.Simple.Body.Html.Data, /#2c6fe4/);
   assert.match(body.Content.Simple.Body.Html.Data, /Учёт доходов/);
   assert.match(body.Content.Simple.Body.Html.Data, /Команда qPokoy/);
   assert.match(body.Content.Simple.Body.Html.Data, /reset_token=abc/);
@@ -55,6 +55,8 @@ test('Postbox sender sends UTF-8 registration verification email', async () => {
   assert.match(body.Content.Simple.Body.Text.Data, /24 часа/);
   assert.match(body.Content.Simple.Body.Html.Data, /Подтвердите ваш email/);
   assert.match(body.Content.Simple.Body.Html.Data, /Подтвердить email/);
+  assert.match(body.Content.Simple.Body.Html.Data, /#070b12/);
+  assert.match(body.Content.Simple.Body.Html.Data, /#121a25/);
   assert.match(body.Content.Simple.Body.Html.Data, /#398df9/);
   assert.match(body.Content.Simple.Body.Html.Data, /verify_token=user.secret/);
 });
