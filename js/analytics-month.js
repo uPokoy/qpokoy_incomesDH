@@ -398,7 +398,7 @@
 
       if(!categories.length){
         catsEl.classList.remove('is-collapsed','is-expanded');
-        catsEl.innerHTML='<div class="monthly-analytics-empty">Нет доходов за выбранный месяц</div>';
+        catsEl.innerHTML='<div class="monthly-analytics-empty">Нет данных за этот месяц</div>';
         if(monthlyCategoriesToggleEl)monthlyCategoriesToggleEl.hidden=true;
       }else if(desktopCategories){
         let visibleCategories=categories.map(([name,value])=>({name,value,grouped:false,count:1}));
