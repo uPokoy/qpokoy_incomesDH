@@ -153,7 +153,7 @@ async function sendPostboxEmail({ to, from, subject, text, html, fetchImpl }) {
   return raw ? JSON.parse(raw) : {};
 }
 
-async function sendPasswordResetEmail({ to, resetUrl, from = 'noreply@qpokoy.ru', fetchImpl = globalThis.fetch }) {
+async function sendPasswordResetEmail({ to, resetUrl, from = 'qPokoy <noreply@qpokoy.ru>', fetchImpl = globalThis.fetch }) {
   const subject = 'qPokoy — восстановление пароля';
   const text = [
     'Сбросьте пароль — qPokoy',
@@ -178,7 +178,7 @@ async function sendPasswordResetEmail({ to, resetUrl, from = 'noreply@qpokoy.ru'
   return sendPostboxEmail({ to, from, subject, text, html, fetchImpl });
 }
 
-async function sendEmailVerificationEmail({ to, verificationUrl, from = 'noreply@qpokoy.ru', fetchImpl = globalThis.fetch }) {
+async function sendEmailVerificationEmail({ to, verificationUrl, from = 'qPokoy <noreply@qpokoy.ru>', fetchImpl = globalThis.fetch }) {
   const subject = 'qPokoy — подтверждение электронной почты';
   const text = [
     'Подтвердите ваш email — qPokoy',
