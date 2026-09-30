@@ -5006,3 +5006,28 @@ html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-back{
     font-size:20px;
   }
 }
+
+/* DEV123: annual summary card titles use one visual style on desktop.
+   Keep a smaller size in narrow desktop windows so the cards do not overflow. */
+@media (hover:hover) and (pointer:fine){
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .annual-growth-label-text{
+    color:color-mix(in srgb,var(--text) 72%,var(--text-muted)) !important;
+    font-family:inherit !important;
+    font-size:13px !important;
+    font-weight:400 !important;
+    line-height:1.25 !important;
+    letter-spacing:0 !important;
+  }
+}
+@media (hover:hover) and (pointer:fine) and (max-width:1050px){
+  #incomeAnalytics:not(.is-monthly) .analytics-card-best .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-worst .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-average .analytics-card-body > span,
+  #incomeAnalytics:not(.is-monthly) .analytics-card-growth .annual-growth-label-text{
+    font-size:12px !important;
+  }
+}
+
