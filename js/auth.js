@@ -71,7 +71,7 @@
       'Invalid login credentials':'Неверный email или пароль.',
       'Email not confirmed':'Подтвердите email по ссылке из письма.',
       'User already registered':'Аккаунт с таким email уже существует.',
-      'Password should be at least 6 characters.':'Пароль должен содержать минимум 6 символов.'
+      'Password should be at least 6 characters.':'Пароль должен содержать минимум 8 символов.'
     };
     return map[msg]||msg;
   }
@@ -126,7 +126,7 @@
     const mail=formEmail.value.trim();
     const pass=formPassword.value;
     if(!mail||!formEmail.checkValidity()){setMessage('Введите корректный email.','error',feedback);return;}
-    if(pass.length<6){setMessage('Пароль должен содержать минимум 6 символов.','error',feedback);return;}
+    if(pass.length<8){setMessage('Пароль должен содержать минимум 8 символов.','error',feedback);return;}
     if(isSignup && pass!==confirm.value){setMessage('Пароли не совпадают.','error',feedback);return;}
 
     formSubmit.disabled=true;
