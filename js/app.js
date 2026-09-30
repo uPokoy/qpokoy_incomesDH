@@ -2128,7 +2128,7 @@ function getAllIncomeRecords(){
     }
     const restored=await window.qPokoyCloudRestoreBackup(clean);
     if(!restored){
-      throw new Error('Резервная копия не была полностью восстановлена. Данные синхронизированы с фактическим состоянием облака.');
+      throw new Error('Резервная копия не была восстановлена. Проверьте соединение и повторите попытку.');
     }
     return IncomeStore.load();
   }
@@ -2189,6 +2189,7 @@ function getAllIncomeRecords(){
     }).filter(Boolean);
 
     if(!clean.length) throw new Error('В файле нет корректных записей.');
+    if(clean.length!==incoming.length) throw new Error('В файле есть запись с некорректным форматом или суммой.');
 
     // Импорт резервной копии восстанавливает именно содержимое файла,
     // а не смешивает его со случайными локальными данными.

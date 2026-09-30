@@ -84,3 +84,39 @@ test('logout clears token even when server is unavailable',async()=>{
   await assert.rejects(h.api.logout(),error=>error.status===500);
   assert.equal(h.values.has(TOKEN_KEY),false);
 });
+
+test('replace incomes sends one authenticated batch and returns server rows',async()=>{
+  const income={income_date:'2026-09-15',category:'Зарплата',description:'Импорт',amount:123};
+  const saved={...income,id:'server-id'};
+  const h=harness([ok({data:[saved]})]);
+  h.values.set(TOKEN_KEY,'secret');
+  assert.deepEqual(await h.api.replaceIncomes([income]),[saved]);
+  assert.equal(h.calls.length,1);
+  assert.equal(h.calls[0].url,API_BASE_URL+'/incomes/replace');
+  assert.equal(h.calls[0].method,'POST');
+  assert.deepEqual(h.calls[0].body,{incomes:[income]});
+  assert.equal(h.calls[0].headers.Authorization,'Bearer secret');
+});
+
+test('delete all incomes uses one request and keeps the session',async()=>{
+  const h=harness([{status:204}]);
+  h.values.set(TOKEN_KEY,'secret');
+  await h.api.deleteAllIncomes();
+  assert.equal(h.calls[0].url,API_BASE_URL+'/incomes');
+  assert.equal(h.calls[0].method,'DELETE');
+  assert.equal(h.values.get(TOKEN_KEY),'secret');
+});
+
+test('account deletion clears token only after server success',async()=>{
+  const h=harness([
+    {status:500,body:{error:{code:'internal_error',message:'Try again'}}},
+    {status:204}
+  ]);
+  h.values.set(TOKEN_KEY,'secret');
+  await assert.rejects(h.api.deleteAccount(),error=>error.status===500);
+  assert.equal(h.values.get(TOKEN_KEY),'secret');
+  await h.api.deleteAccount();
+  assert.equal(h.calls[0].url,API_BASE_URL+'/auth/me');
+  assert.equal(h.calls[0].method,'DELETE');
+  assert.equal(h.values.has(TOKEN_KEY),false);
+});

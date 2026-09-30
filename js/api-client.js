@@ -61,7 +61,10 @@
         catch(error){if(error.status===401)return null;throw error;}
       },
       async logout(){try{await request('POST','/auth/logout');}finally{clearToken();}},
+      async deleteAccount(){await request('DELETE','/auth/me');clearToken();},
       async listIncomes(){return (await request('GET','/incomes')).data;},
+      async replaceIncomes(incomes){return (await request('POST','/incomes/replace',{incomes})).data;},
+      async deleteAllIncomes(){return request('DELETE','/incomes');},
       async addIncome(row){return (await request('POST','/incomes',row)).data;},
       async updateIncome(id,row){return (await request('PUT',`/incomes/${encodeURIComponent(id)}`,row)).data;},
       async deleteIncome(id){return request('DELETE',`/incomes/${encodeURIComponent(id)}`);},

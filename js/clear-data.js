@@ -1,7 +1,13 @@
 
 (function(){
-  function clearAllIncomeData(){
-    if(typeof window.qPokoyNotice==='function')window.qPokoyNotice('Действие недоступно','Полное удаление доходов пока не поддерживается сервером. Данные не изменены.','error');
+  function clearAllIncomeData(btn){
+    if(typeof window.qPokoyConfirm!=='function')return;
+    window.qPokoyConfirm('Удалить все доходы?','Все доходы будут безвозвратно удалены из облака.',async function(){
+      btn.disabled=true;
+      try{
+        if(typeof window.qPokoyCloudDeleteAll==='function')await window.qPokoyCloudDeleteAll();
+      }finally{btn.disabled=false;}
+    });
   }
 
   function bindClearButton(){
@@ -10,7 +16,7 @@
       btn.addEventListener('click',function(e){
         e.preventDefault();
         e.stopImmediatePropagation();
-        clearAllIncomeData();
+        clearAllIncomeData(btn);
       },true);
       btn.__qPokoyClearBound=true;
     }

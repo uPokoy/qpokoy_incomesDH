@@ -128,6 +128,7 @@
   });
 
   const logout=document.getElementById('qpAuthLogoutBtn');
+  const deleteAccount=document.getElementById('qpAuthDeleteAccountBtn');
   const accountEmail=document.getElementById('qpAccountEmail');
 
   if(logout){
@@ -172,6 +173,9 @@
   function pendingForUser(userId){
     return readPendingCloudWrites().filter(x=>x.userId===String(userId));
   }
+  function clearPendingForUser(userId){
+    savePendingCloudWrites(readPendingCloudWrites().filter(x=>x.userId!==String(userId)));
+  }
   function samePendingRecord(a,b){return JSON.stringify(a)===JSON.stringify(b);}
   function enqueuePendingCloudWrite(userId,record,kind){
     if(!userId||!record||!isUuid(record.id))throw new Error('Невозможно защитить несохранённый доход: отсутствует идентификатор.');
@@ -193,6 +197,13 @@
     if(!m)return null;
     let y=Number(m[3]); if(y<100)y+=2000;
     return `${y}-${m[2]}-${m[1]}`;
+  }
+  function validIsoDate(value){
+    const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||''));
+    if(!match)return false;
+    const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]);
+    const date=new Date(Date.UTC(year,month-1,day));
+    return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day;
   }
   function fromIsoDate(value){
     const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -232,6 +243,13 @@
   function cloudError(title,error){
     console.error('[qPokoy cloud]',title,error);
     if(window.qPokoyNotice) window.qPokoyNotice('Ошибка синхронизации',title+' '+((error&&error.message)||''),'error');
+  }
+  function refreshIncomeViews(){
+    if(typeof window.applyIncomeHeaderFilters==='function')window.applyIncomeHeaderFilters();
+    else if(typeof window.renderIncomes==='function')window.renderIncomes();
+    if(typeof window.renderIncomeAnalytics==='function')window.renderIncomeAnalytics();
+    if(typeof window.renderDashboard==='function')window.renderDashboard();
+    if(typeof window.renderAnalytics==='function')window.renderAnalytics();
   }
 
   async function sendPendingCloudWrite(entry,userId){
@@ -342,68 +360,31 @@
   async function restoreBackupCloud(records,userId){
     if(!userId)return false;
     cloudBusy=true;
-    const inserted=[];
-    let deletingOld=false;
     try{
       const source=Array.isArray(records)?records:[];
       const rows=source.map(record=>{
         const row=uiToRow(record,userId);
-        delete row.id;
+        delete row.user_id;
         return row;
       });
-      if(rows.some(row=>!row.income_date||!Number.isFinite(row.amount)||row.amount<=0)){
+      if(rows.some(row=>!validIsoDate(row.income_date)||!Number.isFinite(row.amount)||row.amount<=0)){
         throw new Error('В резервной копии есть запись с некорректной датой или суммой.');
       }
-      const before=await api.listIncomes();
-      const oldIds=before.map(row=>String(row.id));
       if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
         throw new Error('Сессия изменилась до начала восстановления.');
       }
-      for(const row of rows){
-        const saved=await api.addIncome(row);
-        if(!saved?.id)throw new Error('Облако не подтвердило сохранение записи резервной копии.');
-        inserted.push(saved);
-      }
-      if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
-        throw new Error('Сессия изменилась во время восстановления. Старые данные не удалялись.');
-      }
-      deletingOld=true;
-      for(const id of oldIds){
-        await api.deleteIncome(id);
-      }
+      const finalRows=await api.replaceIncomes(rows);
+      if(!Array.isArray(finalRows)||finalRows.length!==rows.length)throw new Error('Сервер не подтвердил полную замену доходов.');
       if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
         throw new Error('Сессия изменилась после восстановления.');
       }
-      const finalRows=await api.listIncomes();
-      const expectedIds=new Set(inserted.map(row=>String(row.id)));
-      const actualRows=Array.isArray(finalRows)?finalRows:[];
-      if(actualRows.length!==inserted.length || actualRows.some(row=>!expectedIds.has(String(row.id)))){
-        throw new Error('Облачные доходы изменились параллельно восстановлению. Данные не скрыты; обновите страницу и повторите импорт.');
-      }
-
-      IncomeStore.save(actualRows.map(rowToUi));
+      clearPendingForUser(userId);
+      IncomeStore.save(finalRows.map(rowToUi));
       cloudReady=true;
-      if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
-      else if(typeof window.renderIncomes==='function') window.renderIncomes();
-      if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
+      refreshIncomeViews();
       return true;
     }catch(error){
-      if(!deletingOld){
-        // The old data is still intact. Remove only newly inserted rows.
-        for(const row of inserted){try{await api.deleteIncome(row.id);}catch(cleanupError){console.error('[qPokoy cloud] backup cleanup failed',cleanupError);}}
-      }
       cloudError('Не удалось безопасно восстановить резервную копию.',error);
-      if(cloudUser&&String(cloudUser.id||'')===String(userId)){
-        try{
-          const data=await api.listIncomes();
-          IncomeStore.save((Array.isArray(data)?data:[]).map(rowToUi));
-          if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
-          else if(typeof window.renderIncomes==='function') window.renderIncomes();
-          if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
-        }catch(reloadError){
-          console.error('[qPokoy cloud] Не удалось перечитать доходы после ошибки восстановления.',reloadError);
-        }
-      }
       return false;
     }finally{
       cloudBusy=false;
@@ -414,12 +395,53 @@
     if(cloudUser&&cloudReady&&!cloudBusy){
       const userId=cloudUser.id;
       return flushPendingCloudRecords().then(()=>{
-        if(pendingForUser(userId).length)return false;
+        if(cloudBusy||!cloudUser||String(cloudUser.id)!==String(userId)||!cloudReady||pendingForUser(userId).length)return false;
         return restoreBackupCloud(records,userId);
       });
     }
     return Promise.resolve(false);
   };
+
+  window.qPokoyCloudDeleteAll=async function(){
+    if(!cloudUser||!cloudReady||cloudBusy)return false;
+    const userId=String(cloudUser.id);
+    await flushPendingCloudRecords();
+    if(cloudBusy||!cloudUser||String(cloudUser.id)!==userId||!cloudReady||pendingForUser(userId).length){
+      cloudError('Дождитесь синхронизации доходов перед удалением.');
+      return false;
+    }
+    cloudBusy=true;
+    try{
+      await api.deleteAllIncomes();
+      if(!cloudUser||String(cloudUser.id)!==userId||!cloudReady)throw new Error('Сессия изменилась во время удаления.');
+      clearPendingForUser(userId);
+      IncomeStore.save([]);
+      refreshIncomeViews();
+      return true;
+    }catch(error){cloudError('Не удалось удалить доходы.',error);return false;}
+    finally{cloudBusy=false;}
+  };
+
+  if(deleteAccount){
+    deleteAccount.addEventListener('click',function(){
+      if(typeof window.qPokoyConfirm!=='function')return;
+      window.qPokoyConfirm('Удалить аккаунт?','Аккаунт, доходы, категории и настройки будут удалены без возможности восстановления.',async function(){
+        if(!cloudUser||!cloudReady||cloudBusy)return;
+        deleteAccount.disabled=true;
+        const userId=String(cloudUser.id);
+        try{
+          await pendingWriteFlush;
+          if(!cloudUser||String(cloudUser.id)!==userId||cloudBusy)return;
+          cloudBusy=true;
+          await api.deleteAccount();
+          clearPendingForUser(userId);
+          IncomeStore.save([]);
+          await sync(null);
+        }catch(error){cloudError('Не удалось удалить аккаунт.',error);}
+        finally{cloudBusy=false;deleteAccount.disabled=false;}
+      });
+    });
+  }
 
   window.qPokoyCloudReplace=function(){
     if(window.qPokoyNotice)window.qPokoyNotice('Действие недоступно','Полная замена данных пока не поддерживается сервером.','error');
