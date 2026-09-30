@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { getIamToken, sendPasswordResetEmail, METADATA_TOKEN_URL, POSTBOX_SEND_URL } = require('../mail');
+const { getIamToken, sendPasswordResetEmail, sendEmailVerificationEmail, METADATA_TOKEN_URL, POSTBOX_SEND_URL } = require('../mail');
 
 function response(status, body, asJson = false) {
   return {
@@ -32,6 +32,23 @@ test('Postbox sender gets IAM token from metadata and sends UTF-8 reset email', 
   assert.deepEqual(body.Destination.ToAddresses, ['тест@example.com']);
   assert.match(body.Content.Simple.Body.Text.Data, /30 минут/);
   assert.match(body.Content.Simple.Body.Html.Data, /reset_token=abc/);
+});
+
+test('Postbox sender sends UTF-8 registration verification email', async () => {
+  const calls = [];
+  const fakeFetch = async (url, init = {}) => {
+    calls.push({ url, init });
+    if (url === METADATA_TOKEN_URL) return response(200, { access_token: 'iam-token' }, true);
+    if (url === POSTBOX_SEND_URL) return response(200, '{"MessageId":"message-verify"}');
+    throw new Error('unexpected URL');
+  };
+  const verificationUrl = 'https://qpokoy.ru/?verify_token=user.secret';
+  const result = await sendEmailVerificationEmail({ to: 'тест@example.com', verificationUrl, fetchImpl: fakeFetch });
+  assert.equal(result.MessageId, 'message-verify');
+  const body = JSON.parse(calls[1].init.body);
+  assert.match(body.Content.Simple.Subject.Data, /Подтверждение email/);
+  assert.match(body.Content.Simple.Body.Text.Data, /24 часа/);
+  assert.match(body.Content.Simple.Body.Html.Data, /verify_token=user.secret/);
 });
 
 test('IAM and Postbox failures are surfaced to the caller', async () => {
