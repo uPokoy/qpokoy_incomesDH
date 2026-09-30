@@ -1,11 +1,10 @@
 
 (function(){
-  const TABLE='qpokoy_categories';
-  const DEFAULTS=['Зарплата','Подработка','Прочее'];
   let currentUser=null;
   let categories=[];
+  let loadGeneration=0;
 
-  function client(){return window.qPokoySupabase||null;}
+  function client(){return window.qPokoyApi||null;}
   function normalizeName(value){return String(value||'').trim().replace(/\s+/g,' ');}
   function categoryRank(name){return normalizeName(name).toLocaleLowerCase('ru-RU')==='зарплата'?0:1;}
   function sortCategories(list){
@@ -15,22 +14,10 @@
     }).map(x=>x.item);
   }
 
-  async function ensureSalaryCategory(userId, existing){
-    const c=client();
-    if(!c||!userId)return existing||[];
-    const list=Array.isArray(existing)?existing.slice():await fetchCategories(userId);
-    if(list.some(x=>normalizeName(x.name).toLocaleLowerCase('ru-RU')==='зарплата'))return list;
-    const {data,error}=await c.from(TABLE).insert({user_id:userId,name:'Зарплата'}).select('id,user_id,name,created_at').single();
-    if(error){console.error('[qPokoy categories] salary ensure error',error);return list;}
-    if(data)list.push({id:String(data.id),name:normalizeName(data.name)});
-    return sortCategories(list);
-  }
-
   async function fetchCategories(userId){
     const c=client();
     if(!c||!userId)return [];
-    const {data,error}=await c.from(TABLE).select('id,user_id,name,created_at').eq('user_id',userId).order('created_at',{ascending:true});
-    if(error){console.error('[qPokoy categories] load error',error);return [];}
+    const data=await c.listCategories();
     return sortCategories((data||[]).map(x=>({id:String(x.id),name:normalizeName(x.name)})).filter(x=>x.name));
   }
 
@@ -181,32 +168,14 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
   }
 
   async function loadForUser(user){
+    const generation=++loadGeneration;
+    const nextCategories=user?await fetchCategories(user.id):[];
+    if(generation!==loadGeneration)return;
     currentUser=user||null;
-    categories=user?await fetchCategories(user.id):[];
-    if(user)categories=await ensureSalaryCategory(user.id,categories);
+    categories=nextCategories;
     renderManager();
     renderIncomeCategoryOptions();
   }
-
-  window.qPokoySeedDefaultCategories=async function(userId){
-    const c=client();
-    if(!c||!userId)return;
-    const existing=await fetchCategories(userId);
-    if(existing.length){
-      categories=await ensureSalaryCategory(userId,existing);
-      currentUser={id:userId};
-      renderManager();
-      renderIncomeCategoryOptions();
-      return;
-    }
-    const rows=DEFAULTS.map(name=>({user_id:userId,name}));
-    const {data,error}=await c.from(TABLE).insert(rows).select('id,user_id,name,created_at');
-    if(error){console.error('[qPokoy categories] seed error',error);return;}
-    currentUser={id:userId};
-    categories=(data||[]).map(x=>({id:String(x.id),name:normalizeName(x.name)}));
-    categories=await ensureSalaryCategory(userId,categories);
-    renderManager();renderIncomeCategoryOptions();
-  };
 
   async function createCategoryRecord(rawName){
     const c=client();
@@ -214,8 +183,9 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
     if(!c||!currentUser)return null;
     if(!name){if(window.qPokoyNotice)window.qPokoyNotice('Категория не добавлена','Введите название категории.','error');return null;}
     if(categories.some(x=>x.name.toLocaleLowerCase('ru-RU')===name.toLocaleLowerCase('ru-RU'))){if(window.qPokoyNotice)window.qPokoyNotice('Категория уже существует','Введите другое название.','error');return null;}
-    const {data,error}=await c.from(TABLE).insert({user_id:currentUser.id,name}).select('id,user_id,name,created_at').single();
-    if(error){console.error('[qPokoy categories] add error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось добавить категорию',error.message||'Попробуйте ещё раз.','error');return null;}
+    let data;
+    try{data=await c.addCategory(name);}
+    catch(error){console.error('[qPokoy categories] add error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось добавить категорию',error.message||'Попробуйте ещё раз.','error');return null;}
     const created={id:String(data.id),name:normalizeName(data.name)};
     categories=sortCategories(categories.concat(created));
     return created;
@@ -239,8 +209,8 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
     }
     const doRemove=async function(){
       const c=client();if(!c||!currentUser)return;
-      const {error}=await c.from(TABLE).delete().eq('id',cat.id).eq('user_id',currentUser.id);
-      if(error){console.error('[qPokoy categories] delete error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось удалить категорию',error.message||'Попробуйте ещё раз.','error');return;}
+      try{await c.deleteCategory(cat.id);}
+      catch(error){console.error('[qPokoy categories] delete error',error);if(window.qPokoyNotice)window.qPokoyNotice('Не удалось удалить категорию',error.message||'Попробуйте ещё раз.','error');return;}
       categories=sortCategories(categories.filter(x=>x.id!==cat.id));
       if(document.getElementById('incomeCategory')?.value===cat.name){document.getElementById('incomeCategory').value='';document.getElementById('categoryValue').textContent=categories.length? 'Выберите категорию':'Добавьте категорию';}
       renderManager();renderIncomeCategoryOptions();
@@ -252,15 +222,8 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
   window.qPokoyLoadCategories=loadForUser;
   window.qPokoyGetCategories=function(){return sortCategories(categories);};
 
-  function bindAuth(){
-    const c=client();if(!c)return false;
-    c.auth.onAuthStateChange(function(_event,session){loadForUser(session?.user||null);});
-    c.auth.getSession().then(r=>loadForUser(r.data?.session?.user||null));
-    return true;
-  }
   function init(){
     renderManager();
-    if(!bindAuth())setTimeout(init,100);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

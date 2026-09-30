@@ -1,11 +1,6 @@
 
 (function(){
-  const SUPABASE_URL='https://jrpialhwbliicbsmzmvb.supabase.co';
-  const SUPABASE_PUBLISHABLE_KEY='sb_publishable_KXwgGRgVxKUmlLvTlFs3HQ_3Wz6kcAt';
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}
-  });
-  window.qPokoySupabase=client;
+  const api=window.qPokoyApi;
 
   const gate=document.getElementById('qpAuthGate');
   const form=document.getElementById('qpAuthForm');
@@ -68,52 +63,25 @@
   function friendlyError(error){
     const msg=(error&&error.message)||'Не удалось выполнить действие.';
     const map={
-      'Invalid login credentials':'Неверный email или пароль.',
-      'Email not confirmed':'Подтвердите email по ссылке из письма.',
-      'User already registered':'Аккаунт с таким email уже существует.',
-      'Password should be at least 6 characters.':'Пароль должен содержать минимум 8 символов.'
+      'Invalid email or password':'Неверный email или пароль.',
+      'Email already registered':'Аккаунт с таким email уже существует.',
+      'Password must be 8–1024 characters':'Пароль должен содержать минимум 8 символов.'
     };
     return map[msg]||msg;
   }
+  function apiUser(user){return user?{...user,id:String(user.user_id||user.id)}:null;}
 
   tabs.forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.authMode)));
-  yandexButton.addEventListener('click',async function(){
-    const originalText=oauthLabel(yandexButton).textContent;
-    setMessage('');
-    yandexButton.disabled=true;
-    setOAuthButtonText(yandexButton,'Переходим в Яндекс…');
-    try{
-      const redirectTo=location.origin+location.pathname;
-      const {error}=await client.auth.signInWithOAuth({
-        provider:'custom:yandex',
-        options:{redirectTo}
-      });
-      if(error) throw error;
-    }catch(err){
-      setMessage(friendlyError(err),'error');
-      setOAuthButtonText(yandexButton,originalText);
-      yandexButton.disabled=false;
-    }
-  });
-
-  googleButton.addEventListener('click',async function(){
-    const originalText=oauthLabel(googleButton).textContent;
+  yandexButton.addEventListener('click',function(){
     setMessage('');
     setResetMessage('');
-    googleButton.disabled=true;
-    setOAuthButtonText(googleButton,'Переходим в Google…');
-    try{
-      const redirectTo=location.origin+location.pathname;
-      const {error}=await client.auth.signInWithOAuth({
-        provider:'google',
-        options:{redirectTo}
-      });
-      if(error) throw error;
-    }catch(err){
-      setMessage(friendlyError(err),'error');
-      setOAuthButtonText(googleButton,originalText);
-      googleButton.disabled=false;
-    }
+    setMessage('Вход через Яндекс пока не подключён.','error');
+  });
+
+  googleButton.addEventListener('click',function(){
+    setMessage('');
+    setResetMessage('');
+    setMessage('Вход через Google пока не подключён.','error');
   });
   async function handleAuthSubmit(e){
     e.preventDefault();
@@ -132,25 +100,16 @@
     formSubmit.disabled=true;
     try{
       if(isSignup){
-        const {data,error}=await client.auth.signUp({
-          email:mail,password:pass
-        });
-        if(error) throw error;
-        if(data.user && typeof window.qPokoySeedDefaultCategories==='function'){
-          await window.qPokoySeedDefaultCategories(data.user.id);
-        }
-        if(data.session){
-          setMessage('Аккаунт создан. Проверьте почту и подтвердите email','success',feedback);
-        }else{
-          setMessage('Аккаунт создан. Проверьте почту и подтвердите email','success',feedback);
-          signupForm.reset();
-        }
+        const user=await api.register(mail,pass);
+        signupForm.reset();
+        await sync({user:apiUser(user)});
       }else{
-        const {error}=await client.auth.signInWithPassword({email:mail,password:pass});
-        if(error) throw error;
+        const user=await api.login(mail,pass);
+        setResetMessage('');
+        await sync({user:apiUser(user)});
       }
     }catch(err){
-      if(isSignup && err && err.message==='User already registered'){
+      if(isSignup && err && err.code==='email_exists'){
         setMode('login');
         setMessage('Аккаунт с таким email уже существует. Введите пароль и выполните вход.','error');
       }else{
@@ -163,25 +122,9 @@
   form.addEventListener('submit',handleAuthSubmit);
   signupForm.addEventListener('submit',handleAuthSubmit);
 
-  reset.addEventListener('click',async function(){
+  reset.addEventListener('click',function(){
     setResetMessage('');
-    const mail=email.value.trim();
-    if(!mail||!email.checkValidity()){
-      setResetMessage('Сначала введите email, для которого нужно восстановить пароль.','error');
-      return;
-    }
-    reset.disabled=true;
-    try{
-      const redirectTo=(location.protocol==='http:'||location.protocol==='https:')?location.href:null;
-      const options=redirectTo?{redirectTo}:undefined;
-      const {error}=await client.auth.resetPasswordForEmail(mail,options);
-      if(error) throw error;
-      setResetMessage('Если аккаунт существует, письмо для восстановления отправлено на указанный email.','success');
-    }catch(err){
-      setResetMessage(friendlyError(err),'error');
-    }finally{
-      reset.disabled=false;
-    }
+    setResetMessage('Восстановление пароля временно недоступно.','error');
   });
 
   const logout=document.getElementById('qpAuthLogoutBtn');
@@ -191,18 +134,18 @@
     logout.addEventListener('click',async function(){
       logout.disabled=true;
       try{
-        const {error}=await client.auth.signOut();
-        if(error) throw error;
+        await api.logout();
+        await sync(null);
       }catch(error){
         cloudError('Не удалось выйти из аккаунта.',error);
+        await sync(null);
       }finally{
         logout.disabled=false;
       }
     });
   }
 
-  // Cloud income storage: public.qpokoy_incomes, protected by RLS and linked to auth.uid().
-  const CLOUD_TABLE='qpokoy_incomes';
+  // Cloud income storage is scoped by the REST API's bearer session.
   let cloudUser=null;
   let cloudReady=false;
   let cloudBusy=false;
@@ -212,7 +155,6 @@
   // A durable per-user write journal survives immediate tab close and reload.
   // Never erase it when clearing the local cloud cache or changing accounts.
   const CLOUD_WRITE_JOURNAL_KEY='qPokoyIncomeWriteJournalV1';
-  const CLOUD_FIELDS='id,user_id,income_date,category,description,amount';
 
   function clearLocalIncomeCache(){
     try{ localStorage.removeItem('incomes'); }catch(e){}
@@ -298,20 +240,20 @@
     if(entry.kind==='add'){
       // Explicit UUID makes retry idempotent when an old request reached
       // the server but its response was lost as the tab closed.
-      const {data,error}=await client.from(CLOUD_TABLE).insert(row).select(CLOUD_FIELDS).single();
-      if(error&&error.code==='23505'){
-        const {data:existing,error:readError}=await client.from(CLOUD_TABLE).select(CLOUD_FIELDS)
-          .eq('id',row.id).eq('user_id',userId).maybeSingle();
-        if(readError||!existing)throw readError||error;
+      try{
+        const saved=await api.addIncome(row);
+        if(!saved)throw new Error('Сервер не подтвердил сохранение дохода.');
+        return saved;
+      }catch(error){
+        if(error.status!==409||error.code!=='income_exists')throw error;
+        const existing=(await api.listIncomes()).find(item=>String(item.id)===String(row.id));
+        if(!existing)throw error;
         return existing;
       }
-      if(error||!data)throw error||new Error('Сервер не подтвердил сохранение дохода.');
-      return data;
     }
-    const {data,error}=await client.from(CLOUD_TABLE).update(row).eq('id',row.id)
-      .eq('user_id',userId).select(CLOUD_FIELDS).single();
-    if(error||!data)throw error||new Error('Сервер не подтвердил изменение дохода.');
-    return data;
+    const saved=await api.updateIncome(row.id,row);
+    if(!saved)throw new Error('Сервер не подтвердил изменение дохода.');
+    return saved;
   }
 
   function flushPendingCloudRecords(){
@@ -359,9 +301,10 @@
     cloudUser=session.user;
     cloudReady=false;
     clearLocalIncomeCache();
-    const {data,error}=await client.from(CLOUD_TABLE).select('id,user_id,income_date,category,description,amount,created_at,updated_at').eq('user_id',requestedUserId).order('income_date',{ascending:false}).order('created_at',{ascending:false});
+    let data;
+    try{data=await api.listIncomes();}
+    catch(error){if(runId===authSyncRun)cloudError('Не удалось загрузить доходы из облака.',error);return false;}
     if(runId!==authSyncRun||!cloudUser||String(cloudUser.id||'')!==requestedUserId)return false;
-    if(error){ cloudError('Не удалось загрузить доходы из облака.',error); return false; }
 
     const cloudRows=Array.isArray(data)?data:[];
     const mapped=cloudRows.map(rowToUi);
@@ -399,6 +342,8 @@
   async function restoreBackupCloud(records,userId){
     if(!userId)return false;
     cloudBusy=true;
+    const inserted=[];
+    let deletingOld=false;
     try{
       const source=Array.isArray(records)?records:[];
       const rows=source.map(record=>{
@@ -406,53 +351,30 @@
         delete row.id;
         return row;
       });
-      const valid=rows.filter(row=>row.income_date && Number.isFinite(row.amount) && row.amount>0);
-      if(valid.length!==source.length){
+      if(rows.some(row=>!row.income_date||!Number.isFinite(row.amount)||row.amount<=0)){
         throw new Error('В резервной копии есть запись с некорректной датой или суммой.');
       }
-
-      const {data:before,error:beforeError}=await client.from(CLOUD_TABLE).select('id').eq('user_id',userId);
-      if(beforeError)throw beforeError;
-      const oldIds=(Array.isArray(before)?before:[]).map(row=>String(row.id||'')).filter(Boolean);
-
+      const before=await api.listIncomes();
+      const oldIds=before.map(row=>String(row.id));
       if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
         throw new Error('Сессия изменилась до начала восстановления.');
       }
-
-      let inserted=[];
-      if(valid.length){
-        const {data,error}=await client.from(CLOUD_TABLE).insert(valid).select('id,user_id,income_date,category,description,amount,created_at,updated_at');
-        if(error)throw error;
-        inserted=Array.isArray(data)?data:[];
-        if(inserted.length!==valid.length){
-          throw new Error('Облако не подтвердило сохранение всех записей резервной копии.');
-        }
+      for(const row of rows){
+        const saved=await api.addIncome(row);
+        if(!saved?.id)throw new Error('Облако не подтвердило сохранение записи резервной копии.');
+        inserted.push(saved);
       }
-
       if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
         throw new Error('Сессия изменилась во время восстановления. Старые данные не удалялись.');
       }
-
-      for(let i=0;i<oldIds.length;i+=100){
-        const batch=oldIds.slice(i,i+100);
-        const {data:deleted,error:deleteError}=await client.from(CLOUD_TABLE).delete().eq('user_id',userId).in('id',batch).select('id');
-        if(deleteError)throw deleteError;
-        if(!Array.isArray(deleted)||deleted.length!==batch.length){
-          throw new Error('Не удалось подтвердить удаление прежних записей. Повторите импорт.');
-        }
+      deletingOld=true;
+      for(const id of oldIds){
+        await api.deleteIncome(id);
       }
-
       if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
         throw new Error('Сессия изменилась после восстановления.');
       }
-
-      const {data:finalRows,error:finalError}=await client.from(CLOUD_TABLE)
-        .select('id,user_id,income_date,category,description,amount,created_at,updated_at')
-        .eq('user_id',userId)
-        .order('income_date',{ascending:false})
-        .order('created_at',{ascending:false});
-      if(finalError)throw finalError;
-
+      const finalRows=await api.listIncomes();
       const expectedIds=new Set(inserted.map(row=>String(row.id)));
       const actualRows=Array.isArray(finalRows)?finalRows:[];
       if(actualRows.length!==inserted.length || actualRows.some(row=>!expectedIds.has(String(row.id)))){
@@ -466,22 +388,18 @@
       if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
       return true;
     }catch(error){
+      if(!deletingOld){
+        // The old data is still intact. Remove only newly inserted rows.
+        for(const row of inserted){try{await api.deleteIncome(row.id);}catch(cleanupError){console.error('[qPokoy cloud] backup cleanup failed',cleanupError);}}
+      }
       cloudError('Не удалось безопасно восстановить резервную копию.',error);
       if(cloudUser&&String(cloudUser.id||'')===String(userId)){
         try{
-          const {data,error:reloadError}=await client.from(CLOUD_TABLE)
-            .select('id,user_id,income_date,category,description,amount,created_at,updated_at')
-            .eq('user_id',userId)
-            .order('income_date',{ascending:false})
-            .order('created_at',{ascending:false});
-          if(!reloadError){
-            IncomeStore.save((Array.isArray(data)?data:[]).map(rowToUi));
-            if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
-            else if(typeof window.renderIncomes==='function') window.renderIncomes();
-            if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
-          }else{
-            console.error('[qPokoy cloud] Не удалось перечитать доходы после ошибки восстановления.',reloadError);
-          }
+          const data=await api.listIncomes();
+          IncomeStore.save((Array.isArray(data)?data:[]).map(rowToUi));
+          if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
+          else if(typeof window.renderIncomes==='function') window.renderIncomes();
+          if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
         }catch(reloadError){
           console.error('[qPokoy cloud] Не удалось перечитать доходы после ошибки восстановления.',reloadError);
         }
@@ -493,36 +411,19 @@
   }
 
   window.qPokoyCloudRestoreBackup=function(records){
-    if(cloudUser&&cloudReady&&!cloudBusy) return restoreBackupCloud(records,cloudUser.id);
+    if(cloudUser&&cloudReady&&!cloudBusy){
+      const userId=cloudUser.id;
+      return flushPendingCloudRecords().then(()=>{
+        if(pendingForUser(userId).length)return false;
+        return restoreBackupCloud(records,userId);
+      });
+    }
     return Promise.resolve(false);
   };
 
-  async function replaceCloud(records,userId){
-    if(!userId)return;
-    cloudBusy=true;
-    try{
-      const {error:delError}=await client.from(CLOUD_TABLE).delete().eq('user_id',userId);
-      if(delError)throw delError;
-      const valid=(Array.isArray(records)?records:[]).map(r=>uiToRow(r,userId)).filter(r=>r.income_date && Number.isFinite(r.amount) && r.amount>0);
-      if(valid.length){
-        const {data,error}=await client.from(CLOUD_TABLE).insert(valid).select('id,user_id,income_date,category,description,amount,created_at,updated_at');
-        if(error)throw error;
-        IncomeStore.save((data||[]).map(rowToUi));
-      }else{
-        IncomeStore.save([]);
-      }
-      cloudReady=true;
-      if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
-      else if(typeof window.renderIncomes==='function') window.renderIncomes();
-      if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
-    }catch(error){
-      cloudError('Не удалось сохранить данные доходов в облаке.',error);
-    }finally{ cloudBusy=false; }
-  }
-
-  window.qPokoyCloudReplace=function(records){
-    if(cloudUser && cloudReady) return replaceCloud(records,cloudUser.id);
-    return Promise.resolve();
+  window.qPokoyCloudReplace=function(){
+    if(window.qPokoyNotice)window.qPokoyNotice('Действие недоступно','Полная замена данных пока не поддерживается сервером.','error');
+    return Promise.resolve(false);
   };
   window.qPokoyCloudAdd=function(record){
     const userId=cloudUser&&String(cloudUser.id||'');
@@ -546,9 +447,7 @@
           throw new Error('Доход ещё ожидает синхронизации. Повторите удаление после подключения к сети.');
         }
       }
-      const {data,error}=await client.from(CLOUD_TABLE).delete().eq('id',id).eq('user_id',userId).select('id');
-      if(error)throw error;
-      if(!data||data.length!==1||String(data[0].id)!==String(id)) throw new Error('Удаление не подтверждено. Обновите страницу для синхронизации.');
+      await api.deleteIncome(id);
       if(!cloudUser||cloudUser.id!==userId||!cloudReady) throw new Error('Сессия изменилась. Обновите страницу для синхронизации.');
       return true;
     }catch(error){ cloudError('Не удалось удалить доход.',error); return false; }
@@ -558,9 +457,8 @@
     try{
       const rows=records.map(r=>{const row=uiToRow(r,cloudUser.id); delete row.id; return row;}).filter(r=>r.income_date && Number.isFinite(r.amount) && r.amount>0);
       if(!rows.length)return;
-      const {data,error}=await client.from(CLOUD_TABLE).insert(rows).select('id,user_id,income_date,category,description,amount');
-      if(error)throw error;
-      const appended=(data||[]).map(rowToUi);
+      const appended=[];
+      for(const row of rows)appended.push(rowToUi(await api.addIncome(row)));
       const old=IncomeStore.load().filter(x=>!records.some(r=>String(r.id)===String(x.id)));
       IncomeStore.save([...old,...appended]);
     }catch(error){ cloudError('Не удалось импортировать доходы в облако.',error); }
@@ -585,6 +483,15 @@
         }
         return;
       }
+      if(typeof window.qPokoyLoadCategories==='function'){
+        try{await window.qPokoyLoadCategories(session.user);}
+        catch(error){
+          cloudError('Не удалось загрузить категории.',error);
+          showGate(true);
+          setMessage('Не удалось загрузить категории. Проверьте соединение и обновите страницу.','error');
+          return;
+        }
+      }
       await flushPendingCloudRecords();
       if(runId===authSyncRun&&cloudUser&&String(cloudUser.id||'')===nextUserId&&cloudReady) showGate(false);
     }else{
@@ -593,32 +500,14 @@
       try{ localStorage.removeItem(LOCAL_INCOME_OWNER_KEY); }catch(e){}
       showGate(true);
       if(accountEmail) accountEmail.textContent='—';
+      if(typeof window.qPokoyLoadCategories==='function')window.qPokoyLoadCategories(null);
     }
   }
-
-  function isRoutineSessionRefresh(event,session){
-    if(event!=='SIGNED_IN'&&event!=='TOKEN_REFRESHED') return false;
-    if(!session||!session.user||!cloudUser||!cloudReady) return false;
-    return String(session.user.id||'')===String(cloudUser.id||'');
-  }
-
-  client.auth.onAuthStateChange(function(event,session){
-    if(isRoutineSessionRefresh(event,session)){
-      cloudUser=session.user;
-      if(accountEmail) accountEmail.textContent=session.user.email||'';
-      return;
-    }
-    sync(session);
+  api.setUnauthorizedHandler(()=>sync(null));
+  api.restoreSession().then(user=>sync(user?{user:apiUser(user)}:null)).catch(error=>{
+    showGate(true);
+    setMessage(friendlyError(error),'error');
   });
 
-  client.auth.getSession().then(function(result){
-    if(result.error){
-      showGate(true);
-      setMessage(result.error.message,'error');
-      return;
-    }
-    sync(result.data.session);
-  });
-
-  window.qPokoyAuth={client,showGate,setMode};
+  window.qPokoyAuth={client:api,showGate,setMode};
 })();

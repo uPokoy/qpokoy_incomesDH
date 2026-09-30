@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.30.104';
+const qPokoyDevVersion='dev-2026.09.30.105';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -507,9 +507,12 @@ window.IncomeStore={
 };
 
 window.qPokoyReplaceIncomes=function(records,cloudSync=true){
+  if(cloudSync){
+    if(window.qPokoyNotice)window.qPokoyNotice('Действие недоступно','Полная замена данных пока не поддерживается сервером. Данные не изменены.','error');
+    return IncomeStore.load();
+  }
   const clean=Array.isArray(records)?records:[];
   IncomeStore.save(clean);
-  if(cloudSync && typeof window.qPokoyCloudReplace==='function') window.qPokoyCloudReplace(clean);
   if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
   else if(typeof window.renderIncomes==='function') window.renderIncomes();
   if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
