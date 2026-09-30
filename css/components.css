@@ -4946,7 +4946,7 @@ html[data-theme="dark"] .qp-notice-overlay{background:rgba(0,0,0,.52);}
 }
 
 #qpAuthResetForm .qp-auth-reset-intro h2{
-  margin:0 0 7px;
+  margin:0;
   color:inherit;
   font-size:22px;
   line-height:1.2;
