@@ -53,8 +53,13 @@
     return {
       getToken,clearToken,request,
       setUnauthorizedHandler(handler){unauthorizedHandler=handler;},
-      async register(email,password){return saveSession(await request('POST','/auth/register',{email,password},false));},
+      async register(email,password){
+        const payload=await request('POST','/auth/register',{email,password},false);
+        return payload?.token&&payload?.user ? saveSession(payload) : payload;
+      },
       async login(email,password){return saveSession(await request('POST','/auth/login',{email,password},false));},
+      async resendEmailVerification(email){return request('POST','/auth/email-verification/resend',{email},false);},
+      async confirmEmailVerification(token){return request('POST','/auth/email-verification/confirm',{token},false);},
       async requestPasswordReset(email){return request('POST','/auth/password-reset/request',{email},false);},
       async confirmPasswordReset(token,password){return request('POST','/auth/password-reset/confirm',{token,password},false);},
       async restoreSession(){
