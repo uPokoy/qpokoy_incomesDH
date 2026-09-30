@@ -17,6 +17,7 @@
   const resetPasswordConfirm=document.getElementById('qpAuthResetPasswordConfirm');
   const resetConfirmMessage=document.getElementById('qpAuthResetConfirmMessage');
   const resetBack=document.getElementById('qpAuthResetBack');
+  const verifyResend=document.getElementById('qpAuthVerifyResend');
   const oauthDivider=document.getElementById('qpAuthOAuthDivider');
   const email=document.getElementById('qpAuthEmail');
   const password=document.getElementById('qpAuthPassword');
@@ -26,7 +27,9 @@
   const message=document.getElementById('qpAuthMessage');
   const signupMessage=document.getElementById('qpAuthSignupMessage');
   const tabs=[...document.querySelectorAll('[data-auth-mode]')];
-  const resetToken=new URLSearchParams(location.search).get('reset_token')||'';
+  const params=new URLSearchParams(location.search);
+  const resetToken=params.get('reset_token')||'';
+  const verifyToken=params.get('verify_token')||'';
   let mode=resetToken?'reset':'login';
   function oauthLabel(button){return button.querySelector('.qp-auth-oauth-label');}
   function setOAuthButtonText(button,text){oauthLabel(button).textContent=text;}
@@ -61,6 +64,7 @@
     oauthDivider.hidden=resetting;
     yandexButton.hidden=resetting;
     googleButton.hidden=resetting;
+    if(verifyResend)verifyResend.hidden=true;
     setMessage('',null,message);
     setMessage('',null,signupMessage);
     setMessage('',null,resetConfirmMessage);
@@ -111,18 +115,35 @@
     formSubmit.disabled=true;
     try{
       if(isSignup){
-        const user=await api.register(mail,pass);
+        const result=await api.register(mail,pass);
         signupForm.reset();
-        await sync({user:apiUser(user)});
+        if(result&&result.verification_required){
+          setMode('login');
+          email.value=mail;
+          setMessage('Аккаунт создан. Проверьте почту и подтвердите email','success',message);
+          if(verifyResend)verifyResend.hidden=false;
+        }else{
+          await sync({user:apiUser(result)});
+        }
       }else{
         const user=await api.login(mail,pass);
         setResetMessage('');
+        if(verifyResend)verifyResend.hidden=true;
         await sync({user:apiUser(user)});
       }
     }catch(err){
       if(isSignup && err && err.code==='email_exists'){
         setMode('login');
+        email.value=mail;
         setMessage('Аккаунт с таким email уже существует. Введите пароль и выполните вход.','error');
+      }else if(isSignup && err && err.code==='verification_email_failed'){
+        setMode('login');
+        email.value=mail;
+        setMessage('Аккаунт создан, но письмо не удалось отправить. Отправьте письмо повторно.','error',message);
+        if(verifyResend)verifyResend.hidden=false;
+      }else if(!isSignup && err && err.code==='email_not_verified'){
+        setMessage('Подтвердите email по ссылке из письма.','error',feedback);
+        if(verifyResend)verifyResend.hidden=false;
       }else{
         setMessage(friendlyError(err),'error',feedback);
       }
@@ -132,6 +153,25 @@
   }
   form.addEventListener('submit',handleAuthSubmit);
   signupForm.addEventListener('submit',handleAuthSubmit);
+
+  if(verifyResend)verifyResend.addEventListener('click',async function(){
+    const mail=email.value.trim();
+    if(!mail||!email.checkValidity()){
+      setMessage('Введите корректный email.','error',message);
+      email.focus();
+      return;
+    }
+    verifyResend.disabled=true;
+    try{
+      await api.resendEmailVerification(mail);
+      setMessage('Если аккаунт ожидает подтверждения, письмо отправлено повторно.','success',message);
+    }catch(error){
+      setMessage('Не удалось отправить письмо. Проверьте соединение и повторите попытку.','error',message);
+    }finally{
+      verifyResend.disabled=false;
+      verifyResend.hidden=false;
+    }
+  });
 
   reset.addEventListener('click',async function(){
     setResetMessage('');
@@ -599,6 +639,27 @@
   if(resetToken){
     setMode('reset');
     showGate(true);
+  }else if(verifyToken){
+    setMode('login');
+    showGate(true,true);
+    api.confirmEmailVerification(verifyToken).then(()=>{
+      api.clearToken();
+      const url=new URL(location.href);
+      url.searchParams.delete('verify_token');
+      history.replaceState(null,'',url.pathname+url.search+url.hash);
+      setMode('login');
+      showGate(true);
+      setMessage('Почта подтверждена. Теперь войдите в аккаунт.','success',message);
+    }).catch(error=>{
+      const url=new URL(location.href);
+      url.searchParams.delete('verify_token');
+      history.replaceState(null,'',url.pathname+url.search+url.hash);
+      setMode('login');
+      showGate(true);
+      setMessage(error&&error.code==='invalid_verification_token'
+        ?'Ссылка подтверждения недействительна или уже истекла. Войдите с email и паролем и отправьте письмо повторно.'
+        :friendlyError(error),'error',message);
+    });
   }else{
     api.restoreSession().then(user=>sync(user?{user:apiUser(user)}:null)).catch(error=>{
       showGate(true);
