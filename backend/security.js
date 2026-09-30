@@ -31,6 +31,15 @@ function hashSecret(secret) {
   return createHash('sha256').update(secret, 'utf8').digest('hex');
 }
 
+function newPasswordResetToken() {
+  const token = randomBytes(32).toString('base64url');
+  return { token, tokenHash: hashSecret(token) };
+}
+
+function hashPasswordResetToken(token) {
+  return /^[A-Za-z0-9_-]{43}$/.test(String(token || '')) ? hashSecret(token) : null;
+}
+
 function parseToken(header) {
   const match = /^Bearer ([0-9a-f-]{36})\.([A-Za-z0-9_-]{43})$/i.exec(String(header || ''));
   return match ? { sessionId: match[1], secret: match[2] } : null;
@@ -41,4 +50,4 @@ function verifySecret(secret, storedHash) {
   return timingSafeEqual(Buffer.from(hashSecret(secret), 'hex'), Buffer.from(storedHash, 'hex'));
 }
 
-module.exports = { hashPassword, verifyPassword, newSession, parseToken, verifySecret };
+module.exports = { hashPassword, verifyPassword, newSession, parseToken, verifySecret, newPasswordResetToken, hashPasswordResetToken };
