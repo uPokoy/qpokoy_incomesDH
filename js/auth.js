@@ -341,7 +341,7 @@
 
   async function sendPendingCloudWrite(entry,userId){
     const row=uiToRow(entry.record,userId);
-    if(!row.id||!row.income_date||!Number.isFinite(row.amount)||row.amount<=0)throw new Error('Некорректная дата, сумма или идентификатор ожидающего дохода.');
+    if(!row.id||!row.income_date||!Number.isInteger(row.amount)||row.amount<=0)throw new Error('Некорректная дата, сумма или идентификатор ожидающего дохода. Сумма должна быть указана целыми рублями.');
     if(entry.kind==='add'){
       // Explicit UUID makes retry idempotent when an old request reached
       // the server but its response was lost as the tab closed.
@@ -454,8 +454,8 @@
         delete row.user_id;
         return row;
       });
-      if(rows.some(row=>!validIsoDate(row.income_date)||!Number.isFinite(row.amount)||row.amount<=0)){
-        throw new Error('В резервной копии есть запись с некорректной датой или суммой.');
+      if(rows.some(row=>!validIsoDate(row.income_date)||!Number.isInteger(row.amount)||row.amount<=0)){
+        throw new Error('В резервной копии есть некорректная дата или сумма. Суммы должны быть целыми рублями без копеек.');
       }
       if(!cloudUser||String(cloudUser.id||'')!==String(userId)||!cloudReady){
         throw new Error('Сессия изменилась до начала восстановления.');
@@ -564,7 +564,7 @@
   window.qPokoyCloudAddMany=async function(records){
     if(!cloudUser||!cloudReady||cloudBusy||!records.length)return;
     try{
-      const rows=records.map(r=>{const row=uiToRow(r,cloudUser.id); delete row.id; return row;}).filter(r=>r.income_date && Number.isFinite(r.amount) && r.amount>0);
+      const rows=records.map(r=>{const row=uiToRow(r,cloudUser.id); delete row.id; return row;}).filter(r=>r.income_date && Number.isInteger(r.amount) && r.amount>0);
       if(!rows.length)return;
       const appended=[];
       for(const row of rows)appended.push(rowToUi(await api.addIncome(row)));
