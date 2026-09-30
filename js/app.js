@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.30.127';
+const qPokoyDevVersion='dev-2026.09.30.128';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -156,9 +156,10 @@ function setIncomeRecentCollapsed(collapsed,persist=true){
   }
   incomeRecentToggle.setAttribute('aria-expanded',next?'false':'true');
   const historyOpen=incomeRecent.classList.contains('is-history-open');
-  incomeRecentToggle.setAttribute('title',next
+  incomeRecentToggle.setAttribute('aria-label',next
     ?(historyOpen?'Показать историю':'Показать последние доходы')
     :(historyOpen?'Скрыть историю':'Скрыть последние доходы'));
+  incomeRecentToggle.removeAttribute('title');
   syncIncomeRecentBody();
   if(persist)localStorage.setItem('incomeRecentCollapsed',next?'1':'0');
 }
