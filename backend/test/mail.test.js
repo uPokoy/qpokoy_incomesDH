@@ -32,9 +32,10 @@ test('Postbox sender gets IAM token from metadata and sends UTF-8 reset email', 
   assert.deepEqual(body.Destination.ToAddresses, ['тест@example.com']);
   assert.equal(body.Content.Simple.Subject.Data, 'qPokoy — восстановление пароля');
   assert.match(body.Content.Simple.Body.Text.Data, /30 минут/);
-  assert.match(body.Content.Simple.Body.Html.Data, /Восстановление пароля/);
-  assert.match(body.Content.Simple.Body.Html.Data, /#050914/);
-  assert.match(body.Content.Simple.Body.Html.Data, /#0b2344/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Сбросьте пароль/);
+  assert.match(body.Content.Simple.Body.Html.Data, /#2477ef/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Учёт доходов/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Команда qPokoy/);
   assert.match(body.Content.Simple.Body.Html.Data, /reset_token=abc/);
 });
 
@@ -52,23 +53,30 @@ test('Postbox sender sends UTF-8 registration verification email', async () => {
   const body = JSON.parse(calls[1].init.body);
   assert.equal(body.Content.Simple.Subject.Data, 'qPokoy — подтверждение электронной почты');
   assert.match(body.Content.Simple.Body.Text.Data, /24 часа/);
-  assert.match(body.Content.Simple.Body.Html.Data, /Подтверждение электронной почты/);
-  assert.match(body.Content.Simple.Body.Html.Data, /Подтвердить почту/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Подтвердите ваш email/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Подтвердить email/);
+  assert.match(body.Content.Simple.Body.Html.Data, /#398df9/);
   assert.match(body.Content.Simple.Body.Html.Data, /verify_token=user.secret/);
 });
 
 test('qPokoy email template escapes dynamic text and link attributes', () => {
   const html = qPokoyEmailTemplate({
+    pageTitle: '<Письмо>',
+    icon: '&#10003;',
     title: '<Подтверждение>',
-    text: 'Текст & проверка',
+    firstLine: 'Текст & проверка',
+    secondLine: 'Вторая <строка>',
     actionLabel: 'Открыть "ссылку"',
     actionUrl: 'https://qpokoy.ru/?x=1&y="2"',
-    note: "Примечание <тест>"
+    ignoreText: "Примечание <тест>"
   });
+  assert.match(html, /&lt;Письмо&gt;/);
   assert.match(html, /&lt;Подтверждение&gt;/);
   assert.match(html, /Текст &amp; проверка/);
+  assert.match(html, /Вторая &lt;строка&gt;/);
   assert.match(html, /Открыть &quot;ссылку&quot;/);
   assert.match(html, /x=1&amp;y=&quot;2&quot;/);
+  assert.match(html, /Примечание &lt;тест&gt;/);
   assert.doesNotMatch(html, /<Подтверждение>/);
 });
 
