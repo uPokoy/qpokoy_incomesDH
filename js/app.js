@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.30.123';
+const qPokoyDevVersion='dev-2026.09.30.124';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -1012,6 +1012,7 @@ window.renderIncomeAnalytics=function(){
   growthEl.classList.toggle('positive',growth!==null&&growth>0);
   growthEl.classList.toggle('negative',growth!==null&&growth<0);
   growthEl.classList.toggle('neutral',growth===0||growth===null);
+  growthEl.classList.toggle('is-empty',growth===null);
 
   if(annualYearCompareLabelEl)annualYearCompareLabelEl.textContent='Сравнение с '+(year-1);
   if(annualYearCompareCardEl){
