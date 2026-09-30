@@ -35,7 +35,7 @@ const uuidValue = (value) => {
 const incomeValue = (body) => {
   if (!body || typeof body !== 'object' || Array.isArray(body)) bad('Expected JSON object');
   const amount = body.amount;
-  if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount > 1e12) bad('Invalid amount');
+  if (typeof amount !== 'number' || !Number.isInteger(amount) || amount <= 0 || amount > 1e12) bad('Invalid amount');
   if (typeof body.description !== 'string' || body.description.length > 5000) bad('Invalid description');
   return {
     income_date: validDate(body.income_date),
