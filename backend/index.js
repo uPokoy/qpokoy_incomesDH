@@ -2,6 +2,7 @@
 
 const { createApp } = require('./app');
 const { createYdbStore } = require('./ydb');
+const { sendPasswordResetEmail } = require('./mail');
 let app;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 
@@ -21,7 +22,15 @@ async function handler(event = {}) {
     if (Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) return json(413, { error: { code: 'payload_too_large', message: 'Request body too large' } }, cors);
     let body = {};
     try { if (raw) body = JSON.parse(raw); } catch { return json(400, { error: { code: 'bad_json', message: 'Invalid JSON' } }, cors); }
-    app ||= createApp(createYdbStore(), { onError: (error) => console.error('API error', error) });
+    app ||= createApp(createYdbStore(), {
+      onError: (error) => console.error('API error', error),
+      passwordResetBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
+      sendPasswordResetEmail: ({ to, resetUrl }) => sendPasswordResetEmail({
+        to,
+        resetUrl,
+        from: process.env.POSTBOX_FROM || 'noreply@qpokoy.ru'
+      })
+    });
     const result = await app.handle(method, path, body, headers);
     return json(result.status, result.body, cors);
   } catch (error) {
