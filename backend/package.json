@@ -1,0 +1,10 @@
+{
+  "name": "qpokoy-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.js",
+  "engines": { "node": "22.x" },
+  "scripts": { "test": "node --test" },
+  "dependencies": { "ydb-sdk": "5.11.1" }
+}
