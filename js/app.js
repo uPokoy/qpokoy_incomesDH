@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.30.128';
+const qPokoyDevVersion='dev-2026.09.30.129';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -125,6 +125,21 @@ const incomeDescription=document.getElementById('incomeDescription');
 const incomeCategory=document.getElementById('incomeCategory');
 const incomeAmount=document.getElementById('incomeAmount');
 const categorySelect=document.getElementById('categorySelect');
+
+if(incomeAmount){
+  incomeAmount.addEventListener('keydown',event=>{
+    if(['.',',','e','E','+','-'].includes(event.key))event.preventDefault();
+  });
+  incomeAmount.addEventListener('paste',event=>{
+    const text=String(event.clipboardData?.getData('text')||'').trim();
+    if(text&&!/^\d+$/.test(text))event.preventDefault();
+  });
+  incomeAmount.addEventListener('input',()=>{
+    const value=String(incomeAmount.value||'');
+    if(value&&!/^\d+$/.test(value))incomeAmount.value='';
+  });
+}
+
 const categoryPopup=document.getElementById('categoryPopup');
 const categoryValue=document.getElementById('categoryValue');
 const categoryOptions=document.querySelectorAll('.category-option');
@@ -428,7 +443,7 @@ try{
 }catch(e){ incomes=[]; }
 
 function formatMoney(value){
-  return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(value)+' ₽';
+  return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(value)+' ₽';
 }
 function textDateToDate(value){
   const m=String(value||'').match(/^(\d{2})\.(\d{2})\.(\d{2}|\d{4})$/);
@@ -1308,7 +1323,7 @@ saveBtn.addEventListener('click',(e)=>{
   let invalid=false;
   required.forEach(({el,wrap})=>{
     const value=String(el?.value||'').trim();
-    if(!value || (el===incomeAmount && Number(value)<=0)) {
+    if(!value || (el===incomeAmount && (!Number.isInteger(Number(value)) || Number(value)<=0))) {
       wrap?.classList.add('field-invalid');
       invalid=true;
     }
@@ -1317,7 +1332,7 @@ saveBtn.addEventListener('click',(e)=>{
 
   const amount=Number(incomeAmount.value);
   const parsed=textDateToDate(incomeDate.value.trim());
-  if(!parsed||!incomeCategory.value||!amount||amount<0) return;
+  if(!parsed||!incomeCategory.value||!Number.isInteger(amount)||amount<=0) return;
 
   const wasEditing=editingIncomeId!==null;
   const editOrigin=mobileIncomeEditOrigin;
@@ -2180,6 +2195,14 @@ function getAllIncomeRecords(){
 
     const incoming=Array.isArray(payload) ? payload : (payload && Array.isArray(payload.incomes) ? payload.incomes : null);
     if(!Array.isArray(incoming)) throw new Error('В файле не найден массив доходов.');
+
+    const hasFractionalAmount=incoming.some(item=>{
+      if(!item || typeof item!=='object')return false;
+      const raw=item.amount!=null?item.amount:(item.sum!=null?item.sum:item.value);
+      const amount=Number(raw);
+      return Number.isFinite(amount)&&!Number.isInteger(amount);
+    });
+    if(hasFractionalAmount) throw new Error('Суммы доходов должны быть указаны целыми рублями, без копеек.');
 
     const clean=incoming.map(item=>{
       if(!item || typeof item!=='object') return null;
