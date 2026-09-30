@@ -2,7 +2,7 @@
 
 const { createApp } = require('./app');
 const { createYdbStore } = require('./ydb');
-const { sendPasswordResetEmail } = require('./mail');
+const { sendPasswordResetEmail, sendEmailVerificationEmail } = require('./mail');
 let app;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 
@@ -25,9 +25,16 @@ async function handler(event = {}) {
     app ||= createApp(createYdbStore(), {
       onError: (error) => console.error('API error', error),
       passwordResetBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
+      emailVerificationBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
+      requireEmailVerification: String(process.env.REQUIRE_EMAIL_VERIFICATION || '').toLowerCase() === 'true',
       sendPasswordResetEmail: ({ to, resetUrl }) => sendPasswordResetEmail({
         to,
         resetUrl,
+        from: process.env.POSTBOX_FROM || 'noreply@qpokoy.ru'
+      }),
+      sendEmailVerificationEmail: ({ to, verificationUrl }) => sendEmailVerificationEmail({
+        to,
+        verificationUrl,
         from: process.env.POSTBOX_FROM || 'noreply@qpokoy.ru'
       })
     });
