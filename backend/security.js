@@ -40,6 +40,16 @@ function hashPasswordResetToken(token) {
   return /^[A-Za-z0-9_-]{43}$/.test(String(token || '')) ? hashSecret(token) : null;
 }
 
+function newEmailVerificationToken(userId) {
+  const secret = randomBytes(32).toString('base64url');
+  return { token: `${userId}.${secret}`, tokenHash: hashSecret(secret) };
+}
+
+function parseEmailVerificationToken(token) {
+  const match = /^([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.([A-Za-z0-9_-]{43})$/i.exec(String(token || ''));
+  return match ? { userId: match[1], tokenHash: hashSecret(match[2]) } : null;
+}
+
 function parseToken(header) {
   const match = /^Bearer ([0-9a-f-]{36})\.([A-Za-z0-9_-]{43})$/i.exec(String(header || ''));
   return match ? { sessionId: match[1], secret: match[2] } : null;
@@ -50,4 +60,4 @@ function verifySecret(secret, storedHash) {
   return timingSafeEqual(Buffer.from(hashSecret(secret), 'hex'), Buffer.from(storedHash, 'hex'));
 }
 
-module.exports = { hashPassword, verifyPassword, newSession, parseToken, verifySecret, newPasswordResetToken, hashPasswordResetToken };
+module.exports = { hashPassword, verifyPassword, newSession, parseToken, verifySecret, newPasswordResetToken, hashPasswordResetToken, newEmailVerificationToken, parseEmailVerificationToken };
