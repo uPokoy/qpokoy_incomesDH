@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.09.30.129';
+const qPokoyDevVersion='dev-2026.09.30.130';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -2112,7 +2112,7 @@ window.qPokoyDeleteIncome=function(id){
   try{ records=JSON.parse(localStorage.getItem('incomes')||'[]'); }catch(e){ records=[]; }
   const record=Array.isArray(records)?records.find(x=>String(x.id)===String(id)):null;
   const message=record
-    ? `Удалить доход ${Number(record.amount||0).toLocaleString('ru-RU')} ₽ от ${record.date||''}?`
+    ? `Удалить доход ${Number(record.amount||0).toLocaleString('ru-RU',{maximumFractionDigits:0})} ₽ от ${record.date||''}?`
     : 'Удалить выбранный доход?';
   if(typeof window.qPokoyConfirm==='function'){
     window.qPokoyConfirm('Удалить доход?',message,async function(){
