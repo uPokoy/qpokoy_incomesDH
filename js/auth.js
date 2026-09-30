@@ -161,7 +161,7 @@
     reset.disabled=true;
     try{
       await api.requestPasswordReset(mail);
-      setResetMessage('Если аккаунт с таким email существует, письмо со ссылкой уже отправлено.','success');
+      setResetMessage('Письмо для восстановления отправлено.','success');
     }catch(error){
       setResetMessage('Не удалось отправить запрос. Проверьте соединение и повторите попытку.','error');
     }finally{
