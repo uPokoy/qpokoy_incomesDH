@@ -4932,3 +4932,75 @@ body:not(.dark) .income-report-custom-range input{
 .qp-notice-dialog[data-type="error"]{border-color:rgba(239,68,68,.35);}
 html[data-theme="dark"] .qp-notice-overlay{background:rgba(0,0,0,.52);}
 
+
+
+/* DEV109: password reset uses the existing qPokoy auth card and colors.
+   Background is intentionally untouched. */
+#qpAuthGate.qp-auth-reset-mode .qp-auth-tabs{
+  display:none !important;
+}
+
+#qpAuthResetForm .qp-auth-reset-intro{
+  margin:0 0 22px;
+  text-align:center;
+}
+
+#qpAuthResetForm .qp-auth-reset-intro h2{
+  margin:0 0 7px;
+  color:inherit;
+  font-size:22px;
+  line-height:1.2;
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+
+#qpAuthResetForm .qp-auth-reset-intro p{
+  margin:0;
+  color:var(--text-muted,#64748b);
+  font-size:13px;
+  line-height:1.45;
+}
+
+#qpAuthResetForm .qp-auth-reset-hint{
+  margin:-7px 0 14px;
+  color:var(--text-muted,#64748b);
+  font-size:12px;
+  line-height:1.35;
+}
+
+#qpAuthResetForm #qpAuthResetSubmit{
+  margin-top:3px;
+}
+
+#qpAuthResetForm .qp-auth-reset-back{
+  display:block;
+  width:100% !important;
+  margin:13px 0 0 !important;
+  padding:0 !important;
+  border:0;
+  background:transparent;
+  color:var(--text-muted,#64748b) !important;
+  font:inherit;
+  font-size:13px;
+  text-align:center !important;
+  cursor:pointer;
+}
+
+#qpAuthResetForm .qp-auth-reset-back:hover{
+  text-decoration:underline;
+}
+
+html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-intro p,
+html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-hint,
+html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-back{
+  color:#94a3b8 !important;
+}
+
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #qpAuthResetForm .qp-auth-reset-intro{
+    margin-bottom:18px;
+  }
+  #qpAuthResetForm .qp-auth-reset-intro h2{
+    font-size:20px;
+  }
+}
