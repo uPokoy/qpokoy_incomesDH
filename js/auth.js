@@ -53,6 +53,7 @@
     tabs.forEach(t=>t.classList.toggle('active',t.dataset.authMode===mode));
     const signup=mode==='signup';
     const resetting=mode==='reset';
+    gate.classList.toggle('qp-auth-reset-mode',resetting);
     form.hidden=signup||resetting;
     signupForm.hidden=!signup;
     resetForm.hidden=!resetting;
