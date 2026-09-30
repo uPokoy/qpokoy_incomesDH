@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { getIamToken, sendPasswordResetEmail, sendEmailVerificationEmail, METADATA_TOKEN_URL, POSTBOX_SEND_URL } = require('../mail');
+const { getIamToken, sendPasswordResetEmail, sendEmailVerificationEmail, qPokoyEmailTemplate, METADATA_TOKEN_URL, POSTBOX_SEND_URL } = require('../mail');
 
 function response(status, body, asJson = false) {
   return {
@@ -30,7 +30,11 @@ test('Postbox sender gets IAM token from metadata and sends UTF-8 reset email', 
   const body = JSON.parse(calls[1].init.body);
   assert.equal(body.FromEmailAddress, 'noreply@qpokoy.ru');
   assert.deepEqual(body.Destination.ToAddresses, ['тест@example.com']);
+  assert.equal(body.Content.Simple.Subject.Data, 'qPokoy — восстановление пароля');
   assert.match(body.Content.Simple.Body.Text.Data, /30 минут/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Восстановление пароля/);
+  assert.match(body.Content.Simple.Body.Html.Data, /#050914/);
+  assert.match(body.Content.Simple.Body.Html.Data, /#0b2344/);
   assert.match(body.Content.Simple.Body.Html.Data, /reset_token=abc/);
 });
 
@@ -46,9 +50,26 @@ test('Postbox sender sends UTF-8 registration verification email', async () => {
   const result = await sendEmailVerificationEmail({ to: 'тест@example.com', verificationUrl, fetchImpl: fakeFetch });
   assert.equal(result.MessageId, 'message-verify');
   const body = JSON.parse(calls[1].init.body);
-  assert.match(body.Content.Simple.Subject.Data, /Подтверждение email/);
+  assert.equal(body.Content.Simple.Subject.Data, 'qPokoy — подтверждение электронной почты');
   assert.match(body.Content.Simple.Body.Text.Data, /24 часа/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Подтверждение электронной почты/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Подтвердить почту/);
   assert.match(body.Content.Simple.Body.Html.Data, /verify_token=user.secret/);
+});
+
+test('qPokoy email template escapes dynamic text and link attributes', () => {
+  const html = qPokoyEmailTemplate({
+    title: '<Подтверждение>',
+    text: 'Текст & проверка',
+    actionLabel: 'Открыть "ссылку"',
+    actionUrl: 'https://qpokoy.ru/?x=1&y="2"',
+    note: "Примечание <тест>"
+  });
+  assert.match(html, /&lt;Подтверждение&gt;/);
+  assert.match(html, /Текст &amp; проверка/);
+  assert.match(html, /Открыть &quot;ссылку&quot;/);
+  assert.match(html, /x=1&amp;y=&quot;2&quot;/);
+  assert.doesNotMatch(html, /<Подтверждение>/);
 });
 
 test('IAM and Postbox failures are surfaced to the caller', async () => {
