@@ -11,6 +11,7 @@ function memoryStore() {
   const incomes = new Map();
   const categories = new Map();
   const settings = new Map();
+  const resetTokens = new Map();
   const owned = (map, uid) => [...map.values()].filter((row) => row.user_id === uid);
   const key = (uid, id) => `${uid}:${id}`;
   return {
@@ -27,6 +28,22 @@ function memoryStore() {
     addSession: async (row) => { sessions.set(row.session_id, row); },
     getSession: async (id) => sessions.get(id),
     revokeSession: async (id, when) => { sessions.get(id).revoked_at = when; },
+    createPasswordResetToken: async (row) => {
+      for (const [hash, token] of resetTokens) if (token.user_id === row.user_id) resetTokens.delete(hash);
+      resetTokens.set(row.token_hash, { ...row, used_at: null });
+    },
+    deletePasswordResetToken: async (hash) => { resetTokens.delete(hash); },
+    resetPassword: async (hash, passwordHash, when) => {
+      const token = resetTokens.get(hash);
+      if (!token || token.used_at || new Date(token.expires_at) <= when) return false;
+      const identity = [...identities.values()].find((row) => row.user_id === token.user_id);
+      if (!identity) return false;
+      identity.password_hash = passwordHash;
+      token.used_at = when;
+      for (const [otherHash, other] of resetTokens) if (other.user_id === token.user_id && otherHash !== hash) resetTokens.delete(otherHash);
+      for (const session of sessions.values()) if (session.user_id === token.user_id && !session.revoked_at) session.revoked_at = when;
+      return true;
+    },
     listIncomes: async (uid) => owned(incomes, uid),
     getIncome: async (uid, id) => incomes.get(key(uid, id)),
     addIncome: async (row) => {
@@ -59,7 +76,7 @@ function memoryStore() {
     listSettings: async (uid) => owned(settings, uid),
     putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); },
     deleteAccount: async (uid) => {
-      for (const map of [incomes, categories, settings, sessions, identities]) {
+      for (const map of [incomes, categories, settings, sessions, resetTokens, identities]) {
         for (const [id, row] of map) if (row.user_id === uid) map.delete(id);
       }
       users.delete(uid);
@@ -88,6 +105,59 @@ test('health, register, login, me, logout and old-token rejection', async () => 
   assert.equal((await app.handle('GET', '/auth/me', {}, auth(login.body.token))).body.user.email, 'a@example.com');
   assert.equal((await app.handle('POST', '/auth/logout', {}, auth(login.body.token))).status, 204);
   assert.equal((await app.handle('GET', '/auth/me', {}, auth(login.body.token))).status, 401);
+});
+
+
+test('password reset is private, single-use, expires, changes password and revokes sessions', async () => {
+  const store = memoryStore();
+  const sent = [];
+  let current = new Date('2026-09-30T12:00:00.000Z');
+  const app = createApp(store, {
+    now: () => current,
+    passwordResetBaseUrl: 'https://qpokoy.ru/',
+    sendPasswordResetEmail: async (message) => { sent.push(message); }
+  });
+  const account = (await register(app, 'reset@example.com')).body;
+  const second = (await app.handle('POST', '/auth/login', { email: 'reset@example.com', password: 'very-secret-password' })).body;
+
+  const unknown = await app.handle('POST', '/auth/password-reset/request', { email: 'missing@example.com' });
+  assert.equal(unknown.status, 202);
+  assert.equal(sent.length, 0);
+
+  const requested = await app.handle('POST', '/auth/password-reset/request', { email: 'RESET@example.com' });
+  assert.equal(requested.status, 202);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].to, 'reset@example.com');
+  const url = new URL(sent[0].resetUrl);
+  const token = url.searchParams.get('reset_token');
+  assert.match(token, /^[A-Za-z0-9_-]{43}$/);
+
+  assert.equal((await app.handle('POST', '/auth/password-reset/confirm', { token: 'bad', password: 'new-secret-password' })).status, 400);
+  assert.equal((await app.handle('POST', '/auth/password-reset/confirm', { token, password: 'short' })).status, 400);
+  assert.equal((await app.handle('POST', '/auth/password-reset/confirm', { token, password: 'new-secret-password' })).status, 204);
+  assert.equal((await app.handle('GET', '/auth/me', {}, auth(account.token))).status, 401);
+  assert.equal((await app.handle('GET', '/auth/me', {}, auth(second.token))).status, 401);
+  assert.equal((await app.handle('POST', '/auth/login', { email: 'reset@example.com', password: 'very-secret-password' })).status, 401);
+  assert.equal((await app.handle('POST', '/auth/login', { email: 'reset@example.com', password: 'new-secret-password' })).status, 200);
+  assert.equal((await app.handle('POST', '/auth/password-reset/confirm', { token, password: 'another-password' })).status, 400);
+
+  await app.handle('POST', '/auth/password-reset/request', { email: 'reset@example.com' });
+  const expiredToken = new URL(sent.at(-1).resetUrl).searchParams.get('reset_token');
+  current = new Date(current.getTime() + 31 * 60000);
+  assert.equal((await app.handle('POST', '/auth/password-reset/confirm', { token: expiredToken, password: 'another-password' })).status, 400);
+});
+
+test('password reset request keeps generic success even if Postbox fails', async () => {
+  const errors = [];
+  const app = createApp(memoryStore(), {
+    sendPasswordResetEmail: async () => { throw new Error('mail unavailable'); },
+    onError: (error) => errors.push(error)
+  });
+  await register(app, 'reset@example.com');
+  const result = await app.handle('POST', '/auth/password-reset/request', { email: 'reset@example.com' });
+  assert.equal(result.status, 202);
+  assert.deepEqual(result.body, { ok: true });
+  assert.equal(errors.length, 1);
 });
 
 test('income CRUD is bound to the verified session, never client user_id', async () => {
