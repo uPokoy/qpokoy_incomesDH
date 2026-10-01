@@ -43,6 +43,51 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
 
   return {
     health: async () => { await query('SELECT 1 AS ok;'); },
+    async consumeRateLimit(bucketKey, limit, windowMs, when) {
+      const uid = '__rate_limit__';
+      const settingKey = 'rate.' + bucketKey;
+      const nowMs = when.getTime();
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await ready();
+          return await driver.tableClient.withSession(async (session) => {
+            const meta = await session.beginTransaction({ serializableReadWrite: {} });
+            const control = { txId: meta.id };
+            try {
+              const result = await session.executeQuery(
+                'DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT setting_value FROM `settings` WHERE user_id=$uid AND setting_key=$key;',
+                { $uid: U(uid), $key: U(settingKey) }, control);
+              const row = result.resultSets?.[0] ? TypedData.createNativeObjects(result.resultSets[0])[0] : null;
+              let state = null;
+              try { state = row?.setting_value ? JSON.parse(row.setting_value) : null; } catch (_) { state = null; }
+              let count = Number(state?.count);
+              let resetAt = Date.parse(state?.reset_at || '');
+              if (!Number.isInteger(count) || count < 0 || !Number.isFinite(resetAt) || resetAt <= nowMs) {
+                count = 0;
+                resetAt = nowMs + windowMs;
+              }
+              const allowed = count < limit;
+              if (allowed) {
+                const value = JSON.stringify({ count: count + 1, reset_at: new Date(resetAt).toISOString() });
+                await session.executeQuery(
+                  'DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DECLARE $value AS Utf8; DECLARE $updated AS Timestamp; UPSERT INTO `settings` (user_id,setting_key,setting_value,updated_at) VALUES ($uid,$key,$value,$updated);',
+                  { $uid: U(uid), $key: U(settingKey), $value: U(value), $updated: T(when) }, control);
+              }
+              await session.commitTransaction(control);
+              return {
+                allowed,
+                retry_after_seconds: allowed ? 0 : Math.max(1, Math.ceil((resetAt - nowMs) / 1000))
+              };
+            } catch (error) {
+              try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
+              throw error;
+            }
+          });
+        } catch (error) {
+          if (attempt >= 2 || !/aborted|serialization|conflict|transaction.*lock/i.test(String(error?.message || ''))) throw error;
+        }
+      }
+    },
     getUser: (id) => first('DECLARE $id AS Utf8; SELECT user_id,email,status,created_at,updated_at,trial_ends_at FROM `users` WHERE user_id=$id;', { $id: U(id) }),
     getIdentity: (provider, providerUserId) => first('DECLARE $p AS Utf8; DECLARE $id AS Utf8; SELECT provider,provider_user_id,user_id,password_hash FROM `auth_identities` WHERE provider=$p AND provider_user_id=$id;', { $p: U(provider), $id: U(providerUserId) }),
     getSetting: (uid, key) => first('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT user_id,setting_key,setting_value,updated_at FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(uid), $key: U(key) }),
