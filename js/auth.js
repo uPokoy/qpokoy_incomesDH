@@ -77,6 +77,7 @@
     document.body.classList.toggle('qp-auth-checking',show&&checking);
   }
   function friendlyError(error){
+    if(error&&error.code==='rate_limited')return 'Слишком много попыток. Попробуйте позже.';
     const msg=(error&&error.message)||'Не удалось выполнить действие.';
     const map={
       'Invalid email or password':'Неверный email или пароль.',
@@ -178,7 +179,7 @@
       await api.requestPasswordReset(mail);
       setResetMessage('Письмо для восстановления отправлено.','success');
     }catch(error){
-      setResetMessage('Не удалось отправить запрос. Проверьте соединение и повторите попытку.','error');
+      setResetMessage(error&&error.code==='rate_limited'?friendlyError(error):'Не удалось отправить запрос. Проверьте соединение и повторите попытку.','error');
     }finally{
       reset.disabled=false;
     }
@@ -676,7 +677,9 @@
       ?'Вход через '+providerName+' отменён.'
       :(oauthError==='oauth_not_configured'
         ?'Вход через '+providerName+' пока не настроен.'
-        :'Не удалось войти через '+providerName+'. Попробуйте ещё раз.');
+        :(oauthError==='rate_limited'
+          ?'Слишком много попыток входа. Попробуйте позже.'
+          :'Не удалось войти через '+providerName+'. Попробуйте ещё раз.'));
     setMessage(errorText,'error',message);
   }else{
     api.restoreSession().then(user=>sync(user?{user:apiUser(user)}:null)).catch(error=>{
