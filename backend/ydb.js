@@ -2,10 +2,13 @@
 
 // The SDK is loaded only in the deployed adapter; route tests use an in-memory store.
 const { Driver, MetadataAuthService, TypedValues, TypedData } = require('ydb-sdk');
+const { randomUUID } = require('node:crypto');
 
 const U = TypedValues.utf8;
 const T = TypedValues.timestamp;
 const D = TypedValues.double;
+const REVISION_KEY = 'system.data_revision';
+const internalSetting = (key) => /^(auth|system|rate)\./.test(key);
 
 function createYdbStore(env = process.env, DriverClass = Driver) {
   if (!env.ENDPOINT || !env.DATABASE) throw new Error('ENDPOINT and DATABASE are required');
@@ -38,7 +41,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
   async function query(text, params = {}) {
     await ready();
     return withResourceRetry(() => driver.tableClient.withSession(async (session) => {
-      const result = await session.executeQuery(text, params);
+      const result = await session.executeQuery(text, typeof params === 'function' ? params() : params);
       return result.resultSets?.[0] ? TypedData.createNativeObjects(result.resultSets[0]) : [];
     }));
   }
@@ -48,7 +51,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
       const meta = await session.beginTransaction({ serializableReadWrite: {} });
       const control = { txId: meta.id };
       try {
-        for (const { sql, params } of steps) await session.executeQuery(sql, params, control);
+        for (const { sql, params } of steps) await session.executeQuery(sql, typeof params === 'function' ? params() : params, control);
         await session.commitTransaction(control);
       } catch (error) {
         try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
@@ -58,39 +61,69 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
   }
   const first = async (text, params) => (await query(text, params))[0] || null;
   const conflict = (error) => /already exists|duplicate|precondition.failed|constraint/i.test(String(error?.message || ''));
+  const revisionDeclarations = 'DECLARE $revisionKey AS Utf8; DECLARE $revision AS Utf8; DECLARE $revisionTime AS Timestamp;';
+  const revisionWrite = `UPSERT INTO \`settings\` (user_id,setting_key,setting_value,updated_at)
+    VALUES ($uid,$revisionKey,$revision,$revisionTime);`;
+  const revisionSql = revisionDeclarations + '\n' + revisionWrite;
+  const revisionParams = () => ({ $revisionKey: U(REVISION_KEY), $revision: U(randomUUID()), $revisionTime: T(new Date()) });
+  // The data write and revision share one AUTO_TX, never two independent commits.
+  // Fresh per attempt prevents reusing an older revision after a retried commit.
+  const mutate = (sql, params) => query(revisionDeclarations + '\n' + sql + '\n' + revisionWrite, () => ({ ...params, ...revisionParams() }));
 
   return {
-    // Two executeQuery calls in one borrowed session. Validate the bearer secret
-    // before reading any user-owned data; never cache authentication across requests.
-    async loadBootstrap(sessionId, validate) {
+    // One consistent transaction binds the revision to the returned data snapshot.
+    // A cache hit reads only session/user/revision; bearer validation is never cached.
+    async loadBootstrap(sessionId, validate, knownRevision = '') {
       await ready();
       return withResourceRetry(() => driver.tableClient.withSession(async (session) => {
-        const authResult = await session.executeQuery(`DECLARE $id AS Utf8;
-          SELECT s.session_id AS session_id,s.user_id AS user_id,s.secret_hash AS secret_hash,
-            s.created_at AS session_created_at,s.expires_at AS expires_at,
-            s.last_seen_at AS last_seen_at,s.revoked_at AS revoked_at,
-            u.email AS email,u.status AS status,u.created_at AS created_at,
-            u.updated_at AS updated_at,u.trial_ends_at AS trial_ends_at
-          FROM (SELECT session_id,user_id,secret_hash,created_at,expires_at,last_seen_at,revoked_at
-            FROM \`sessions\` WHERE session_id=$id) AS s
-          INNER JOIN \`users\` AS u ON s.user_id=u.user_id;`, { $id: U(sessionId) });
-        const row = authResult.resultSets?.[0] ? TypedData.createNativeObjects(authResult.resultSets[0])[0] : null;
-        const auth = {
-          session: row ? { session_id: row.session_id, user_id: row.user_id, secret_hash: row.secret_hash,
-            created_at: row.session_created_at, expires_at: row.expires_at,
-            last_seen_at: row.last_seen_at, revoked_at: row.revoked_at } : null,
-          user: row ? { user_id: row.user_id, email: row.email, status: row.status,
-            created_at: row.created_at, updated_at: row.updated_at, trial_ends_at: row.trial_ends_at } : null
-        };
-        validate(auth);
-        const result = await session.executeQuery(`DECLARE $uid AS Utf8;
-          SELECT user_id,id,income_date,category,description,amount,created_at,updated_at
-            FROM \`incomes\` WHERE user_id=$uid ORDER BY income_date DESC,created_at DESC;
-          SELECT user_id,id,name,created_at FROM \`categories\` WHERE user_id=$uid ORDER BY created_at ASC;
-          SELECT user_id,setting_key,setting_value,updated_at FROM \`settings\` WHERE user_id=$uid ORDER BY setting_key;`,
-        { $uid: U(auth.user.user_id) });
-        const rows = (index) => result.resultSets?.[index] ? TypedData.createNativeObjects(result.resultSets[index]) : [];
-        return { user: auth.user, incomes: rows(0), categories: rows(1), settings: rows(2) };
+        const meta = await session.beginTransaction({ serializableReadWrite: {} });
+        const control = { txId: meta.id };
+        try {
+          const authResult = await session.executeQuery(`DECLARE $id AS Utf8; DECLARE $revisionKey AS Utf8;
+            SELECT s.session_id AS session_id,s.user_id AS user_id,s.secret_hash AS secret_hash,
+              s.created_at AS session_created_at,s.expires_at AS expires_at,
+              s.last_seen_at AS last_seen_at,s.revoked_at AS revoked_at,
+              u.email AS email,u.status AS status,u.created_at AS created_at,
+              u.updated_at AS updated_at,u.trial_ends_at AS trial_ends_at,r.setting_value AS data_revision
+            FROM (SELECT session_id,user_id,secret_hash,created_at,expires_at,last_seen_at,revoked_at,$revisionKey AS revision_key
+              FROM \`sessions\` WHERE session_id=$id) AS s
+            INNER JOIN \`users\` AS u ON s.user_id=u.user_id
+            LEFT JOIN \`settings\` AS r ON r.user_id=u.user_id AND r.setting_key=s.revision_key;`,
+          { $id: U(sessionId), $revisionKey: U(REVISION_KEY) }, control);
+          const row = authResult.resultSets?.[0] ? TypedData.createNativeObjects(authResult.resultSets[0])[0] : null;
+          const auth = {
+            session: row ? { session_id: row.session_id, user_id: row.user_id, secret_hash: row.secret_hash,
+              created_at: row.session_created_at, expires_at: row.expires_at,
+              last_seen_at: row.last_seen_at, revoked_at: row.revoked_at } : null,
+            user: row ? { user_id: row.user_id, email: row.email, status: row.status,
+              created_at: row.created_at, updated_at: row.updated_at, trial_ends_at: row.trial_ends_at } : null
+          };
+          validate(auth);
+          const revision = row.data_revision || randomUUID();
+          if (row.data_revision && knownRevision === revision) {
+            await session.commitTransaction(control);
+            return { user: auth.user, revision, not_modified: true };
+          }
+          // Initialize legacy accounts in the same serializable transaction that read
+          // the missing key: a concurrent mutation cannot be overwritten silently.
+          const initialize = !row.data_revision;
+          const result = await session.executeQuery(`DECLARE $uid AS Utf8;
+            ${initialize ? revisionDeclarations : ''}
+            SELECT user_id,id,income_date,category,description,amount,created_at,updated_at
+              FROM \`incomes\` WHERE user_id=$uid ORDER BY income_date DESC,created_at DESC;
+            SELECT user_id,id,name,created_at FROM \`categories\` WHERE user_id=$uid ORDER BY created_at ASC;
+            SELECT user_id,setting_key,setting_value,updated_at FROM \`settings\` WHERE user_id=$uid ORDER BY setting_key;
+            ${initialize ? revisionWrite : ''}`,
+          { $uid: U(auth.user.user_id), ...(initialize ? {
+            $revisionKey: U(REVISION_KEY), $revision: U(revision), $revisionTime: T(new Date())
+          } : {}) }, control);
+          const rows = (index) => result.resultSets?.[index] ? TypedData.createNativeObjects(result.resultSets[index]) : [];
+          await session.commitTransaction(control);
+          return { user: auth.user, revision, not_modified: false, incomes: rows(0), categories: rows(1), settings: rows(2) };
+        } catch (error) {
+          try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
+          throw error;
+        }
       }));
     },
     health: async () => { await query('SELECT 1 AS ok;'); },
@@ -149,7 +182,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
     getUser: (id) => first('DECLARE $id AS Utf8; SELECT user_id,email,status,created_at,updated_at,trial_ends_at FROM `users` WHERE user_id=$id;', { $id: U(id) }),
     getIdentity: (provider, providerUserId) => first('DECLARE $p AS Utf8; DECLARE $id AS Utf8; SELECT provider,provider_user_id,user_id,password_hash FROM `auth_identities` WHERE provider=$p AND provider_user_id=$id;', { $p: U(provider), $id: U(providerUserId) }),
     getSetting: (uid, key) => first('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT user_id,setting_key,setting_value,updated_at FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(uid), $key: U(key) }),
-    deleteSetting: (uid, key) => query('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DELETE FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(uid), $key: U(key) }),
+    deleteSetting: (uid, key) => (internalSetting(key) ? query : mutate)('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DELETE FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(uid), $key: U(key) }),
     async linkIdentity(provider, providerUserId, uid, createdAt) {
       const existing = await this.getIdentity(provider, providerUserId);
       if (existing) return existing.user_id === uid;
@@ -325,7 +358,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
     async addIncome(row) {
       if (await this.getIncome(row.user_id, row.id)) return false;
       try {
-        await query(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DECLARE $date AS Utf8;
+        await mutate(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DECLARE $date AS Utf8;
           DECLARE $category AS Utf8; DECLARE $description AS Utf8; DECLARE $amount AS Double;
           DECLARE $created AS Timestamp; DECLARE $updated AS Timestamp;
           INSERT INTO \`incomes\` (user_id,id,income_date,category,description,amount,created_at,updated_at)
@@ -335,7 +368,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
     },
     async updateIncome(uid, id, row, updatedAt) {
       if (!await this.getIncome(uid, id)) return false;
-      await query(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DECLARE $date AS Utf8;
+      await mutate(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DECLARE $date AS Utf8;
         DECLARE $category AS Utf8; DECLARE $description AS Utf8; DECLARE $amount AS Double;
         DECLARE $updated AS Timestamp;
         UPDATE \`incomes\` SET income_date=$date,category=$category,description=$description,amount=$amount,updated_at=$updated
@@ -345,10 +378,10 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
     },
     async deleteIncome(uid, id) {
       if (!await this.getIncome(uid, id)) return false;
-      await query('DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DELETE FROM `incomes` WHERE user_id=$uid AND id=$id;', { $uid: U(uid), $id: U(id) });
+      await mutate('DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DELETE FROM `incomes` WHERE user_id=$uid AND id=$id;', { $uid: U(uid), $id: U(id) });
       return true;
     },
-    deleteAllIncomes: (uid) => query('DECLARE $uid AS Utf8; DELETE FROM `incomes` WHERE user_id=$uid;', { $uid: U(uid) }),
+    deleteAllIncomes: (uid) => mutate('DECLARE $uid AS Utf8; DELETE FROM `incomes` WHERE user_id=$uid;', { $uid: U(uid) }),
     async replaceIncomes(uid, rows) {
       const steps = [{ sql: 'DECLARE $uid AS Utf8; DELETE FROM `incomes` WHERE user_id=$uid;', params: { $uid: U(uid) } }];
       if (rows.length) {
@@ -368,6 +401,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
         });
         steps.push({ sql: `${declarations.join(' ')} UPSERT INTO \`incomes\` (user_id,id,income_date,category,description,amount,created_at,updated_at) VALUES ${values.join(',')};`, params });
       }
+      steps.push({ sql: 'DECLARE $uid AS Utf8; ' + revisionSql, params: () => ({ $uid: U(uid), ...revisionParams() }) });
       await transaction(steps);
       return rows;
     },
@@ -381,15 +415,15 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
     async addCategory(row) {
       const list = await this.listCategories(row.user_id);
       if (list.some((x) => x.name.toLocaleLowerCase('ru-RU') === row.name.toLocaleLowerCase('ru-RU'))) return false;
-      await query(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DECLARE $name AS Utf8; DECLARE $created AS Timestamp;
+      await mutate(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DECLARE $name AS Utf8; DECLARE $created AS Timestamp;
         INSERT INTO \`categories\` (user_id,id,name,created_at) VALUES ($uid,$id,$name,$created);`,
       { $uid: U(row.user_id), $id: U(row.id), $name: U(row.name), $created: T(row.created_at) });
       return true;
     },
-    deleteCategory: (uid, id) => query('DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DELETE FROM `categories` WHERE user_id=$uid AND id=$id;', { $uid: U(uid), $id: U(id) }),
+    deleteCategory: (uid, id) => mutate('DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DELETE FROM `categories` WHERE user_id=$uid AND id=$id;', { $uid: U(uid), $id: U(id) }),
     listSettings: (uid) => query(`DECLARE $uid AS Utf8; SELECT user_id,setting_key,setting_value,updated_at
       FROM \`settings\` WHERE user_id=$uid ORDER BY setting_key;`, { $uid: U(uid) }),
-    putSetting: (row) => query(`DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DECLARE $value AS Utf8; DECLARE $updated AS Timestamp;
+    putSetting: (row) => (internalSetting(row.setting_key) ? query : mutate)(`DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DECLARE $value AS Utf8; DECLARE $updated AS Timestamp;
       UPSERT INTO \`settings\` (user_id,setting_key,setting_value,updated_at) VALUES ($uid,$key,$value,$updated);`,
     { $uid: U(row.user_id), $key: U(row.setting_key), $value: U(row.setting_value), $updated: T(row.updated_at) })
   };

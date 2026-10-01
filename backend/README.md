@@ -38,6 +38,59 @@ DEV137 startup uses `GET /bootstrap`. Publish the backend and ensure the Gateway
 
 ## Security and verification
 
+### DEV139: revision-validated startup cache
+
+`GET /bootstrap?revision=<opaque token>` still verifies the bearer secret, session
+expiry/revocation and active user on **every** request. `system.data_revision` is a
+server-managed UUID in the existing settings table; the public settings endpoint
+cannot overwrite it and it is not exposed as an ordinary setting. Bootstrap also
+omits internal `auth.*`, `system.*` and `rate.*` settings.
+
+| Startup, without retries/pending writes | Borrowed YDB sessions | executeQuery calls | Full income/category/settings reads |
+| --- | ---: | ---: | ---: |
+| First launch / missing or invalid cache | 1 | 2 | 1 bundle |
+| Reload, unchanged revision | 1 | 1 | 0 |
+| Reload after any device changed data | 1 | 2 | 1 bundle |
+
+Bootstrap uses one explicit serializable transaction (with begin/commit RPCs in
+addition to the counted query calls), so the revision and full bundle belong to
+one consistent snapshot. Legacy users get their initial revision in that same
+transaction. No tables/schema migration is needed. Concurrent writes or initial
+revision creation can cause a transaction conflict; no extra application retry
+has been added. DEV136 RESOURCE_EXHAUSTED delays/jitter are unchanged.
+
+Income create/update/delete/delete-all, category create/delete, and public setting
+writes update revision in the **same AUTO_TX query** as the data mutation. Income
+replacement adds the revision write to its existing explicit transaction. A
+revision failure therefore aborts the data write too. OAuth tickets, verification
+records and rate-limit/internal settings do not bump the revision. Failed/no-op
+income lookups and duplicate inserts do not bump it. Account deletion removes the
+revision with the rest of the account's settings.
+Revision UUIDs are generated anew for each existing retry attempt, avoiding reuse
+of an older token; no retry count/delay is increased. Transaction isolation follows
+the [YDB serializable transaction contract](https://ydb.tech/docs/en/concepts/transactions).
+
+Frontend stores raw server rows in `qPokoyBootstrapCacheV1`, separate from both
+`IncomeStore` and the durable write journal. The bundle has a schema version, user
+id, session id (not the bearer secret), revision, and a corruption checksum. It is
+used only after a successful server revision check and matching returned user id;
+it is not an offline authorization cache or a TTL cache. Corrupt/unsupported
+bundles, storage quota failures, account changes and lost mutation responses
+fall back to full bootstrap. Writes invalidate the local bundle **before** sending
+the request; successful logout/account deletion and authenticated 401 clear it.
+500/network errors preserve the stored session. Auth hydration and pending-journal
+reconciliation are unchanged, including DEV138's unlock-before-sync UX.
+
+Before production merge: deploy/test the revision-aware backend before the frontend,
+check the existing Gateway forwards `revision` query parameters, and verify YDB's
+auth JOIN uses primary-key lookups rather than wide scans. Measure actual RU with
+large histories and rapid reloads; mock query counts do not measure billing.
+Exercise concurrent multi-device changes, lost write responses, rollback on injected
+revision failures and legacy initialization against real YDB. All writers must
+use the revision-aware backend; direct DB edits or rollback to an old writer do
+not invalidate caches automatically. When rolling back, use the pre-cache frontend
+first. No Cloud Function/Gateway deployment is performed by this patch.
+
 Passwords use Node's scrypt (N=16384, r=8, p=1) with a unique 16-byte salt. Session secrets are 32 cryptographically random bytes and stored only as SHA-256 hashes; sessions expire after 30 days and can be revoked. All SQL uses typed parameters. Input lengths, dates, amounts, IDs and JSON size are validated. API errors do not include stack traces or database details. The gateway should retain its restricted invoker configuration, enforce HTTPS, and add rate limits for register/login before public exposure. Email verification, abuse protection, password reset, session cleanup, and production YDB integration tests are still required before replacing Supabase.
 
 Run `npm ci` then `npm test` inside `backend/`. The tests use an in-memory store to exercise routes and ownership checks and do not contact the configured YDB database. A real Cloud Function → YDB smoke test has **not** been run by this change. Verify that separately in a staging gateway before any production switch.

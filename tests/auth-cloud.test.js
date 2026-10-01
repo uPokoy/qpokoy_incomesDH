@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
+const {createApiClient,TOKEN_KEY,BOOTSTRAP_CACHE_KEY}=require('../js/api-client');
 
 const source=fs.readFileSync(path.join(__dirname,'../js/auth.js'),'utf8');
 const user={user_id:'user-1',email:'test@example.com'};
@@ -12,7 +13,7 @@ const otherEntry={userId:'user-2',kind:'add',record:{id:'22222222-2222-4222-8222
 const journalKey='qPokoyIncomeWriteJournalV1';
 
 function setup(overrides={},options={}){
-  const values=new Map([[journalKey,JSON.stringify(options.journal||[otherEntry])]]);
+  const values=options.values||new Map([[journalKey,JSON.stringify(options.journal||[otherEntry])]]);
   const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
   const nodes=new Map();
   function node(id){
@@ -33,7 +34,7 @@ function setup(overrides={},options={}){
   const calls=[];
   let categoryLoads=0;
   let confirmation=null;
-  const api={
+  const api=options.apiFactory?options.apiFactory(storage):{
     setUnauthorizedHandler(){},
     async bootstrap(){calls.push('bootstrap');return {user,incomes:[oldRow],categories:[],settings:[]};},
     async listIncomes(){calls.push('list');return [oldRow];},
@@ -62,6 +63,43 @@ test('startup consumes bootstrap data with no legacy GETs and exposes settings',
   assert.equal(h.calls.includes('list'),false);
   assert.equal(h.calls.find(x=>x.categories)?.categories[0].name,'Зарплата');
   assert.equal(h.win.qPokoyAuth.getSettings()[0].setting_value,'dark');
+});
+
+test('cached bootstrap reconciles a server-saved journal entry without duplicate INSERT',async()=>{
+  const requests=[];
+  const values=new Map([[TOKEN_KEY,'session.secret'],[journalKey,JSON.stringify([otherEntry])]]);
+  const apiFactory=storage=>createApiClient({storage,fetchImpl:async(url,init)=>{
+    requests.push({url,method:init.method});
+    assert.equal(init.method,'GET'); // No duplicate add/update during recovery.
+    assert.ok(url.includes('/bootstrap'));
+    const body=url.includes('?revision=revision-a')?{user,revision:'revision-a',not_modified:true}
+      :{user,revision:'revision-a',not_modified:false,incomes:[oldRow],categories:[],settings:[]};
+    return {ok:true,status:200,text:async()=>JSON.stringify(body)};
+  }});
+  const first=setup({}, {values,apiFactory});
+  await ready(first);
+  assert.ok(values.has(BOOTSTRAP_CACHE_KEY));
+  const savedEntry={userId:user.user_id,kind:'add',record:{id:oldRow.id,date:'01.09.26',category:oldRow.category,description:oldRow.description,amount:oldRow.amount}};
+  values.set(journalKey,JSON.stringify([otherEntry,savedEntry]));
+  const reload=setup({}, {values,apiFactory});
+  await ready(reload);
+  assert.equal(requests.length,2);
+  assert.ok(requests[1].url.endsWith('?revision=revision-a'));
+  assert.equal(reload.records.length,1);
+  assert.deepEqual(JSON.parse(values.get(journalKey)),[otherEntry]);
+});
+
+test('cached startup preserves unsaved pending journal and DEV138 unlocks UI before sync finishes',async()=>{
+  let finish;
+  const pending=new Promise(resolve=>{finish=resolve;});
+  const ownEntry={userId:user.user_id,kind:'add',record:{id:'44444444-4444-4444-8444-444444444444',date:'03.09.26',category:'Зарплата',description:'Ожидает',amount:30}};
+  const h=setup({async addIncome(){await pending;throw new Error('offline');}}, {journal:[otherEntry,ownEntry]});
+  await ready(h);
+  assert.equal(h.records.length,2);
+  assert.equal(h.nodes.get('qpAuthGate').hidden,true);
+  finish();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(JSON.parse(h.values.get(journalKey)),[otherEntry,ownEntry]);
 });
 
 test('email login and OAuth ticket both initialize through bootstrap',async()=>{

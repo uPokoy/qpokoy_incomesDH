@@ -28,18 +28,20 @@ test('replace deletes then upserts with bound parameters in one explicit transac
   const row = { user_id: 'user-1', id: 'id-1', income_date: '2026-09-15', category: 'Зарплата',
     description: 'русский текст', amount: 123.45, created_at: timestamp, updated_at: timestamp };
   assert.deepEqual(await store.replaceIncomes('user-1', [row]), [row]);
-  assert.deepEqual(calls.map((call) => call.action), ['begin', 'query', 'query', 'commit']);
+  assert.deepEqual(calls.map((call) => call.action), ['begin', 'query', 'query', 'query', 'commit']);
   assert.deepEqual(calls[0].settings, { serializableReadWrite: {} });
   assert.match(calls[1].sql, /DELETE FROM `incomes` WHERE user_id=\$uid/);
   assert.match(calls[2].sql, /UPSERT INTO `incomes`/);
   assert.equal(calls[1].control.txId, 'tx-1');
   assert.equal(calls[2].control.txId, 'tx-1');
   assert.equal(calls[3].control.txId, 'tx-1');
+  assert.match(calls[3].sql, /UPSERT INTO `settings`/);
+  assert.equal(calls[3].params.$revisionKey.value.textValue, 'system.data_revision');
   assert.equal(calls[2].params.$description0.value.textValue, 'русский текст');
   assert.doesNotMatch(calls[2].sql, /русский текст|user-1|id-1/);
 });
 
-test('failed replace rolls back; empty replace commits only the scoped delete', async () => {
+test('failed replace rolls back; empty replace commits scoped delete and revision together', async () => {
   const timestamp = new Date();
   const row = { user_id: 'user-1', id: 'id-1', income_date: '2026-09-15', category: 'Зарплата',
     description: '', amount: 1, created_at: timestamp, updated_at: timestamp };
@@ -48,7 +50,8 @@ test('failed replace rolls back; empty replace commits only the scoped delete', 
   assert.deepEqual(failed.calls.map((call) => call.action), ['begin', 'query', 'query', 'rollback']);
   const empty = fakeStore();
   assert.deepEqual(await empty.store.replaceIncomes('user-1', []), []);
-  assert.deepEqual(empty.calls.map((call) => call.action), ['begin', 'query', 'commit']);
+  assert.deepEqual(empty.calls.map((call) => call.action), ['begin', 'query', 'query', 'commit']);
+  assert.match(empty.calls[2].sql, /UPSERT INTO `settings`/);
 });
 
 test('account deletion uses the same transaction for every user-owned table', async () => {
@@ -71,4 +74,13 @@ test('DELETE /incomes runs one scoped auto-commit query', async () => {
   assert.equal(calls.length, 1);
   assert.match(calls[0].sql, /DELETE FROM `incomes` WHERE user_id=\$uid/);
   assert.equal(calls[0].params.$uid.value.textValue, 'user-1');
+  assert.match(calls[0].sql, /UPSERT INTO `settings`/);
+  assert.equal(calls[0].params.$revisionKey.value.textValue, 'system.data_revision');
+});
+
+test('replace revision failure rolls back the entire income replacement', async () => {
+  const failed = fakeStore('$revisionKey');
+  await assert.rejects(failed.store.replaceIncomes('user-1', []), /simulated write failure/);
+  assert.equal(failed.calls.at(-1).action, 'rollback');
+  assert.ok(!failed.calls.some(call => call.action === 'commit'));
 });

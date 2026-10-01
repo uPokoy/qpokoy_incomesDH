@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createApp } = require('../app');
+const { randomUUID } = require('node:crypto');
 
 function memoryStore() {
   const users = new Map();
@@ -13,15 +14,20 @@ function memoryStore() {
   const settings = new Map();
   const resetTokens = new Map();
   const rateLimits = new Map();
+  const revisions = new Map();
+  const bump = uid => revisions.set(uid, randomUUID());
   const owned = (map, uid) => [...map.values()].filter((row) => row.user_id === uid);
   const key = (uid, id) => `${uid}:${id}`;
   const identityKey = (provider, providerUserId) => `${provider}:${providerUserId}`;
   return {
-    async loadBootstrap(id, validate) {
+    async loadBootstrap(id, validate, knownRevision) {
       const session = await this.getSession(id);
       const user = session ? await this.getUser(session.user_id) : null;
       validate({ session, user });
-      return { user, incomes: await this.listIncomes(user.user_id),
+      if (!revisions.has(user.user_id)) bump(user.user_id);
+      const revision = revisions.get(user.user_id);
+      if (knownRevision === revision) return { user, revision, not_modified: true };
+      return { user, revision, not_modified: false, incomes: await this.listIncomes(user.user_id),
         categories: await this.listCategories(user.user_id), settings: await this.listSettings(user.user_id) };
     },
     health: async () => {},
@@ -94,33 +100,34 @@ function memoryStore() {
     addIncome: async (row) => {
       const k = key(row.user_id, row.id);
       if (incomes.has(k)) return false;
-      incomes.set(k, row); return true;
+      incomes.set(k, row); bump(row.user_id); return true;
     },
     updateIncome: async (uid, id, value, updated_at) => {
       const row = incomes.get(key(uid, id));
       if (!row) return false;
-      Object.assign(row, value, { updated_at }); return true;
+      Object.assign(row, value, { updated_at }); bump(uid); return true;
     },
-    deleteIncome: async (uid, id) => incomes.delete(key(uid, id)),
-    deleteAllIncomes: async (uid) => { for (const row of owned(incomes, uid)) incomes.delete(key(uid, row.id)); },
+    deleteIncome: async (uid, id) => { const removed = incomes.delete(key(uid, id)); if (removed) bump(uid); return removed; },
+    deleteAllIncomes: async (uid) => { for (const row of owned(incomes, uid)) incomes.delete(key(uid, row.id)); bump(uid); },
     replaceIncomes: async (uid, rows) => {
       const next = new Map(incomes);
       for (const row of owned(next, uid)) next.delete(key(uid, row.id));
       for (const row of rows) next.set(key(uid, row.id), row);
       incomes.clear();
       for (const [id, row] of next) incomes.set(id, row);
+      bump(uid);
       return rows;
     },
     listCategories: async (uid) => owned(categories, uid),
     getCategory: async (uid, id) => categories.get(key(uid, id)),
     addCategory: async (row) => {
       if (owned(categories, row.user_id).some((x) => x.name.toLowerCase() === row.name.toLowerCase())) return false;
-      categories.set(key(row.user_id, row.id), row); return true;
+      categories.set(key(row.user_id, row.id), row); bump(row.user_id); return true;
     },
-    deleteCategory: async (uid, id) => categories.delete(key(uid, id)),
+    deleteCategory: async (uid, id) => { const removed = categories.delete(key(uid, id)); if (removed) bump(uid); return removed; },
     listSettings: async (uid) => owned(settings, uid),
     getSetting: async (uid, settingKey) => settings.get(key(uid, settingKey)),
-    putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); },
+    putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); if (!/^(auth|system|rate)\./.test(row.setting_key)) bump(row.user_id); },
     deleteSetting: async (uid, settingKey) => { settings.delete(key(uid, settingKey)); },
     getEmailVerification: async (uid) => {
       const row = settings.get(key(uid, 'auth.email_verification'));
@@ -157,6 +164,7 @@ function memoryStore() {
         for (const [id, row] of map) if (row.user_id === uid) map.delete(id);
       }
       users.delete(uid);
+      revisions.delete(uid);
     }
   };
 }
@@ -164,6 +172,62 @@ function memoryStore() {
 const make = () => createApp(memoryStore(), { requireEmailVerification: false });
 const register = (app, email) => app.handle('POST', '/auth/register', { email, password: 'very-secret-password' });
 const auth = (token) => ({ authorization: `Bearer ${token}` });
+
+test('revision cache detects every bootstrap mutation and isolates devices/users', async () => {
+  const store = memoryStore();
+  const app = createApp(store, { requireEmailVerification: false });
+  const account = (await register(app, 'revision@example.com')).body;
+  const other = (await register(app, 'revision-other@example.com')).body;
+  const headers = auth(account.token);
+  const bootstrap = revision => app.handle('GET', '/bootstrap' + (revision ? '?revision=' + revision : ''), {}, headers);
+  let full = (await bootstrap()).body;
+  assert.equal(full.not_modified, false);
+  assert.ok(full.revision);
+  const otherRevision = (await app.handle('GET', '/bootstrap', {}, auth(other.token))).body.revision;
+  let dataReads = 0;
+  for (const name of ['listIncomes', 'listCategories', 'listSettings']) {
+    const original = store[name];
+    store[name] = async (...args) => { dataReads++; return original(...args); };
+  }
+  assert.equal((await bootstrap(full.revision)).body.not_modified, true);
+  assert.equal(dataReads, 0);
+  assert.equal((await bootstrap('stale')).body.not_modified, false);
+  assert.equal(dataReads, 3);
+  const row = { income_date: '2026-09-15', category: 'Зарплата', description: 'Revision', amount: 123 };
+  async function mutation(method, path, body, status) {
+    const response = await app.handle(method, path, body, headers);
+    assert.equal(response.status, status, path);
+    const previous = full.revision;
+    full = (await bootstrap(previous)).body;
+    assert.equal(full.not_modified, false, path);
+    assert.notEqual(full.revision, previous, path);
+    assert.equal((await bootstrap(full.revision)).body.not_modified, true);
+    assert.equal((await app.handle('GET', '/bootstrap?revision=' + otherRevision, {}, auth(other.token))).body.not_modified, true);
+    return response.body;
+  }
+  const added = await mutation('POST', '/incomes', row, 201);
+  await mutation('PUT', '/incomes/' + added.data.id, { ...row, amount: 456 }, 200);
+  await mutation('DELETE', '/incomes/' + added.data.id, {}, 204);
+  await mutation('POST', '/incomes', row, 201);
+  await mutation('DELETE', '/incomes', {}, 204);
+  await mutation('POST', '/incomes/replace', { incomes: [row] }, 200);
+  const cat = await mutation('POST', '/categories', { name: 'Revision category' }, 201);
+  await mutation('DELETE', '/categories/' + cat.data.id, {}, 204);
+  await mutation('PUT', '/settings/theme', { setting_value: 'dark' }, 200);
+  for (const key of ['auth.oauth_ticket', 'system.internal', 'rate.internal']) {
+    await store.putSetting({ user_id: account.user.user_id, setting_key: key, setting_value: 'private' });
+    assert.equal((await bootstrap(full.revision)).body.not_modified, true);
+  }
+  await store.consumeRateLimit('bucket', 10, 60000, new Date());
+  assert.equal((await bootstrap(full.revision)).body.not_modified, true);
+  assert.equal((await app.handle('PUT', '/settings/system.data_revision', { setting_value: full.revision }, headers)).status, 403);
+  assert.ok((await bootstrap()).body.settings.every(row => !/^(auth|system|rate)\./.test(row.setting_key)));
+  // Another session of the same user sees the same version, not a per-device token.
+  const second = (await app.handle('POST', '/auth/login', { email: account.user.email, password: 'very-secret-password' })).body;
+  assert.equal((await app.handle('GET', '/bootstrap?revision=' + full.revision, {}, auth(second.token))).body.not_modified, true);
+  await app.handle('POST', '/incomes', row, auth(second.token));
+  assert.equal((await bootstrap(full.revision)).body.not_modified, false);
+});
 
 test('bootstrap authenticates once, isolates user data, and reduces startup reads', async () => {
   const store = memoryStore();

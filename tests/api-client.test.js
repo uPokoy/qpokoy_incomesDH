@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {createApiClient,TOKEN_KEY,API_BASE_URL}=require('../js/api-client');
+const {createApiClient,TOKEN_KEY,BOOTSTRAP_CACHE_KEY,API_BASE_URL}=require('../js/api-client');
 
 function harness(responses){
   const values=new Map();
@@ -17,6 +17,101 @@ function harness(responses){
 }
 const ok=(data,status=200)=>({status,body:data});
 const user={user_id:'user-1',email:'тест@example.com'};
+const cachedRow={id:'income-1',user_id:user.user_id,income_date:'2026-09-15',category:'Зарплата',description:'Кэш',amount:123};
+const bundle=(revision='revision-a')=>({user,revision,not_modified:false,incomes:[cachedRow],categories:[{id:'c1',name:'Зарплата'}],settings:[]});
+
+test('first full bootstrap saves cache; reload validates revision with no legacy requests',async()=>{
+  const h=harness([ok(bundle()),ok({user,revision:'revision-a',not_modified:true})]);
+  h.values.set(TOKEN_KEY,'session.secret');
+  await h.api.bootstrap();
+  const cache=JSON.parse(h.values.get(BOOTSTRAP_CACHE_KEY));
+  assert.equal(cache.version,1);
+  assert.equal(cache.user_id,user.user_id);
+  assert.equal(cache.revision,'revision-a');
+  const hit=await h.api.bootstrap();
+  assert.deepEqual(hit.incomes,[cachedRow]);
+  assert.equal(hit.not_modified,true);
+  assert.equal(h.calls[1].url,API_BASE_URL+'/bootstrap?revision=revision-a');
+  assert.ok(h.calls.every(call=>call.url.includes('/bootstrap')));
+  // Another API instance represents a page reload reading the same storage.
+  const storage={getItem:key=>h.values.get(key)||null,setItem:(key,value)=>h.values.set(key,value),removeItem:key=>h.values.delete(key)};
+  const fresh=createApiClient({storage,fetchImpl:async url=>{
+    assert.ok(url.endsWith('?revision=revision-a'));
+    return {ok:true,status:200,text:async()=>JSON.stringify({user,revision:'revision-a',not_modified:true})};
+  }});
+  assert.deepEqual((await fresh.bootstrap()).incomes,[cachedRow]);
+});
+
+test('stale revision replaces cache with the fresh server bundle',async()=>{
+  const updated={...bundle('revision-b'),incomes:[{...cachedRow,amount:456}]};
+  const h=harness([ok(bundle()),ok(updated)]);
+  h.values.set(TOKEN_KEY,'session.secret');
+  await h.api.bootstrap();
+  assert.equal((await h.api.bootstrap()).incomes[0].amount,456);
+  assert.equal(JSON.parse(h.values.get(BOOTSTRAP_CACHE_KEY)).revision,'revision-b');
+});
+
+test('invalid, corrupted, wrong-version and other-session caches force a full bootstrap',async()=>{
+  for(const corrupt of [()=>'{broken',cache=>JSON.stringify({...cache,version:999}),
+    cache=>JSON.stringify({...cache,sessionId:'other'}),
+    cache=>JSON.stringify({...cache,incomes:[{...cachedRow,amount:999}]})]){
+    const h=harness([ok(bundle()),ok(bundle('revision-b'))]);
+    h.values.set(TOKEN_KEY,'session.secret');
+    await h.api.bootstrap();
+    h.values.set(BOOTSTRAP_CACHE_KEY,corrupt(JSON.parse(h.values.get(BOOTSTRAP_CACHE_KEY))));
+    await h.api.bootstrap();
+    assert.equal(h.calls[1].url,API_BASE_URL+'/bootstrap');
+  }
+});
+
+test('a not_modified response for another user never exposes the old cache',async()=>{
+  const other={user_id:'user-2',email:'other@example.com'};
+  const otherBundle={...bundle('revision-b'),user:other,incomes:[],categories:[],settings:[]};
+  const h=harness([ok(bundle()),ok({user:other,revision:'revision-a',not_modified:true}),ok(otherBundle)]);
+  h.values.set(TOKEN_KEY,'session.secret');
+  await h.api.bootstrap();
+  const result=await h.api.bootstrap();
+  assert.equal(result.user.user_id,'user-2');
+  assert.deepEqual(result.incomes,[]);
+  assert.equal(h.calls[2].url,API_BASE_URL+'/bootstrap');
+  assert.equal(JSON.parse(h.values.get(BOOTSTRAP_CACHE_KEY)).user_id,'user-2');
+});
+
+test('logout/account deletion/401 clear cache; 500 preserves session and cache',async()=>{
+  for(const action of ['logout','deleteAccount','unauthorized','serverError']){
+    const status=action==='unauthorized'?401:action==='serverError'?500:204;
+    const h=harness([ok(bundle()),{status,body:{error:{message:'failed'}}}]);
+    h.values.set(TOKEN_KEY,'session.secret');
+    await h.api.bootstrap();
+    if(action==='logout'||action==='deleteAccount')await h.api[action]();
+    else if(action==='unauthorized')assert.equal(await h.api.bootstrap(),null);
+    else await assert.rejects(h.api.bootstrap(),error=>error.status===500);
+    assert.equal(h.values.has(BOOTSTRAP_CACHE_KEY),action==='serverError');
+    assert.equal(h.values.has(TOKEN_KEY),action==='serverError');
+  }
+});
+
+test('writes invalidate before sending, even when the response is lost, without touching journal',async()=>{
+  const h=harness([ok(bundle()),{status:500,body:{error:{message:'lost response'}}}]);
+  h.values.set(TOKEN_KEY,'session.secret');
+  h.values.set('qPokoyIncomeWriteJournalV1','durable');
+  await h.api.bootstrap();
+  await assert.rejects(h.api.addIncome(cachedRow));
+  assert.equal(h.values.has(BOOTSTRAP_CACHE_KEY),false);
+  assert.equal(h.values.get('qPokoyIncomeWriteJournalV1'),'durable');
+  assert.equal(h.values.get(TOKEN_KEY),'session.secret');
+});
+
+test('new email/OAuth sessions discard prior cache before user hydration',async()=>{
+  for(const method of ['login','exchangeOAuthTicket']){
+    const h=harness([ok(bundle()),ok({token:'other-session.secret',user:{user_id:'user-2'}})]);
+    h.values.set(TOKEN_KEY,'session.secret');
+    await h.api.bootstrap();
+    await h.api[method]('test@example.com','password123');
+    assert.equal(h.values.has(BOOTSTRAP_CACHE_KEY),false);
+    assert.equal(h.values.get(TOKEN_KEY),'other-session.secret');
+  }
+});
 
 test('bootstrap loads all startup data in one bearer request and skips signed-out sessions',async()=>{
   const startup={user,incomes:[],categories:[],settings:[]};

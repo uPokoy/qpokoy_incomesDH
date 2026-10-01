@@ -409,13 +409,19 @@ function createApp(store, options = {}) {
       if (method === 'GET' && pathname === '/bootstrap') {
         const token = parseToken(headers.authorization || headers.Authorization);
         if (!token) throw new HttpError(401, 'unauthorized', 'Authentication required');
+        const revision = url.searchParams.get('revision') || '';
+        if (revision.length > 128) bad('Invalid revision');
         const startup = await store.loadBootstrap(token.sessionId, ({ session, user }) => {
           validateSession(session, token);
           validateUser(user);
+        }, revision);
+        if (startup.not_modified) return response(200, {
+          user: publicUser(startup.user), revision: startup.revision, not_modified: true
         });
         return response(200, {
+          revision: startup.revision, not_modified: false,
           user: publicUser(startup.user), incomes: startup.incomes, categories: startup.categories,
-          settings: startup.settings.filter((row) => !String(row.setting_key).startsWith('auth.'))
+          settings: startup.settings.filter((row) => !/^(auth|system|rate)\./.test(String(row.setting_key)))
         });
       }
       const { user, session } = await authenticate(headers);
@@ -485,11 +491,14 @@ function createApp(store, options = {}) {
         await store.deleteCategory(userId, id);
         return response(204, null);
       }
-      if (pathname === '/settings' && method === 'GET') return response(200, { data: await store.listSettings(userId) });
+      if (pathname === '/settings' && method === 'GET') return response(200, {
+        data: (await store.listSettings(userId)).filter(row => row.setting_key !== 'system.data_revision')
+      });
       const settingMatch = /^\/settings\/([^/]+)$/.exec(pathname);
       if (settingMatch && method === 'PUT') {
         const key = requiredString(decodeURIComponent(settingMatch[1]), 'setting_key', 80);
         if (!/^[A-Za-z0-9_.-]+$/.test(key)) bad('Invalid setting_key');
+        if (key === 'system.data_revision') throw new HttpError(403, 'reserved_setting', 'Data revision is server-managed');
         if (typeof body.setting_value !== 'string' || body.setting_value.length > 65536) bad('Invalid setting_value');
         const row = { user_id: userId, setting_key: key, setting_value: body.setting_value, updated_at: now() };
         await store.putSetting(row);
