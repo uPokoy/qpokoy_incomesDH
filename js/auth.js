@@ -527,22 +527,42 @@
 
   if(deleteAccount){
     deleteAccount.addEventListener('click',function(){
-      if(typeof window.qPokoyConfirm!=='function')return;
-      window.qPokoyConfirm('Удалить аккаунт?','Аккаунт, доходы, категории и настройки будут удалены без возможности восстановления.',async function(){
-        if(!cloudUser||!cloudReady||cloudBusy)return;
-        deleteAccount.disabled=true;
-        const userId=String(cloudUser.id);
-        try{
-          await pendingWriteFlush;
-          if(!cloudUser||String(cloudUser.id)!==userId||cloudBusy)return;
-          cloudBusy=true;
-          await api.deleteAccount();
-          clearPendingForUser(userId);
-          IncomeStore.save([]);
-          await sync(null);
-        }catch(error){cloudError('Не удалось удалить аккаунт.',error);}
-        finally{cloudBusy=false;deleteAccount.disabled=false;}
-      });
+      if(typeof window.qPokoyConfirm!=='function'||typeof window.qPokoyConfirmPhrase!=='function')return;
+      window.qPokoyConfirm(
+        'Удалить аккаунт?',
+        'Все доходы, категории и настройки будут удалены без возможности восстановления.',
+        function(){
+          window.qPokoyConfirmPhrase(
+            'Подтверждение удаления',
+            'Для подтверждения введите УДАЛИТЬ.',
+            'УДАЛИТЬ',
+            async function(){
+              if(!cloudUser||!cloudReady||cloudBusy)return;
+              deleteAccount.disabled=true;
+              const userId=String(cloudUser.id);
+              try{
+                await pendingWriteFlush;
+                if(!cloudUser||String(cloudUser.id)!==userId||cloudBusy)return;
+                cloudBusy=true;
+                await api.deleteAccount();
+                clearPendingForUser(userId);
+                IncomeStore.save([]);
+                await sync(null);
+              }catch(error){cloudError('Не удалось удалить аккаунт.',error);}
+              finally{cloudBusy=false;deleteAccount.disabled=false;}
+            },
+            {
+              inputLabel:'Введите слово «УДАЛИТЬ»',
+              cancelLabel:'Отмена',
+              confirmLabel:'Удалить аккаунт навсегда'
+            }
+          );
+        },
+        {
+          cancelLabel:'Отмена',
+          confirmLabel:'Да, удалить'
+        }
+      );
     });
   }
 
