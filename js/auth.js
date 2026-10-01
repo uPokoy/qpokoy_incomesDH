@@ -560,7 +560,8 @@
         },
         {
           cancelLabel:'Отмена',
-          confirmLabel:'Да, удалить'
+          confirmLabel:'Удалить',
+          danger:true
         }
       );
     });
