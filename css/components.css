@@ -1512,11 +1512,25 @@ html[data-nav-label-mode="text"] .nav-item{gap:0;}
 .qp-confirm-btn:hover{background:#f1f3f6}
 .qp-confirm-btn-primary{border-color:#2563eb;background:#2563eb;color:#fff}
 .qp-confirm-btn-primary:hover{background:#1d4ed8}
+.qp-confirm-phrase-form{margin-top:16px}
+.qp-confirm-phrase-label{display:block;margin:0 0 7px;color:var(--text,#172033);font-size:13px;font-weight:600;line-height:18px}
+.qp-confirm-input{display:block;width:100%;height:42px;box-sizing:border-box;padding:0 12px;border:1px solid rgba(100,116,139,.34);border-radius:10px;background:var(--surface,#fff);color:var(--text,#172033);font:inherit;font-size:14px;outline:none}
+.qp-confirm-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.14)}
+.qp-confirm-btn-danger{border-color:#dc2626;background:#dc2626;color:#fff}
+.qp-confirm-btn-danger:hover:not(:disabled){background:#b91c1c}
+.qp-confirm-btn:disabled{opacity:.45;cursor:not-allowed}
+.qp-confirm-btn-danger:disabled:hover{background:#dc2626}
 html[data-theme="dark"] .qp-confirm-overlay{background:rgba(0,0,0,.52)}
 html[data-theme="dark"] .qp-confirm-dialog{background:#151b2a;color:#edf1f7;border-color:rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.45)}
 html[data-theme="dark"] .qp-confirm-message{color:#9aa5b8}
+html[data-theme="dark"] .qp-confirm-phrase-label{color:#edf1f7}
+html[data-theme="dark"] .qp-confirm-input{background:#101624;color:#edf1f7;border-color:rgba(255,255,255,.16)}
+html[data-theme="dark"] .qp-confirm-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
 html[data-theme="dark"] .qp-confirm-btn{background:#1b2232;color:#edf1f7;border-color:rgba(255,255,255,.12)}
 html[data-theme="dark"] .qp-confirm-btn:hover{background:#232c40}
+html[data-theme="dark"] .qp-confirm-btn-danger{border-color:#dc2626;background:#dc2626;color:#fff}
+html[data-theme="dark"] .qp-confirm-btn-danger:hover:not(:disabled){background:#b91c1c}
+html[data-theme="dark"] .qp-confirm-btn-danger:disabled:hover{background:#dc2626}
 @media(max-width:520px ) and (pointer:coarse){.qp-confirm-dialog{padding:20px}.qp-confirm-actions{flex-direction:column-reverse}.qp-confirm-btn{width:100%;min-height:44px}}
 
 /* Home: four most recently added incomes inside the top summary card. */
