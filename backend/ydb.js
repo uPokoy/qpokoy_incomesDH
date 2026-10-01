@@ -45,6 +45,54 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
     health: async () => { await query('SELECT 1 AS ok;'); },
     getUser: (id) => first('DECLARE $id AS Utf8; SELECT user_id,email,status,created_at,updated_at,trial_ends_at FROM `users` WHERE user_id=$id;', { $id: U(id) }),
     getIdentity: (provider, providerUserId) => first('DECLARE $p AS Utf8; DECLARE $id AS Utf8; SELECT provider,provider_user_id,user_id,password_hash FROM `auth_identities` WHERE provider=$p AND provider_user_id=$id;', { $p: U(provider), $id: U(providerUserId) }),
+    getSetting: (uid, key) => first('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT user_id,setting_key,setting_value,updated_at FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(uid), $key: U(key) }),
+    deleteSetting: (uid, key) => query('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DELETE FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(uid), $key: U(key) }),
+    async linkIdentity(provider, providerUserId, uid, createdAt) {
+      const existing = await this.getIdentity(provider, providerUserId);
+      if (existing) return existing.user_id === uid;
+      try {
+        await query(`DECLARE $provider AS Utf8; DECLARE $providerId AS Utf8; DECLARE $uid AS Utf8; DECLARE $hash AS Utf8; DECLARE $created AS Timestamp;
+          INSERT INTO \`auth_identities\` (provider,provider_user_id,user_id,password_hash,created_at)
+          VALUES ($provider,$providerId,$uid,$hash,$created);`,
+        { $provider: U(provider), $providerId: U(providerUserId), $uid: U(uid), $hash: U(''), $created: T(createdAt) });
+        return true;
+      } catch (error) { if (conflict(error)) return false; throw error; }
+    },
+    async registerOAuth(user, provider, providerUserId, categories) {
+      if (await this.getIdentity(provider, providerUserId) || await this.getIdentity('email', user.email)) return false;
+      try {
+        await query(`DECLARE $uid AS Utf8; DECLARE $email AS Utf8; DECLARE $provider AS Utf8; DECLARE $providerId AS Utf8;
+          DECLARE $emailProvider AS Utf8; DECLARE $status AS Utf8; DECLARE $hash AS Utf8;
+          DECLARE $created AS Timestamp; DECLARE $updated AS Timestamp; DECLARE $trial AS Timestamp;
+          DECLARE $cat0 AS Utf8; DECLARE $cat1 AS Utf8; DECLARE $cat2 AS Utf8;
+          DECLARE $name0 AS Utf8; DECLARE $name1 AS Utf8; DECLARE $name2 AS Utf8;
+          INSERT INTO \`auth_identities\` (provider,provider_user_id,user_id,password_hash,created_at) VALUES
+          ($emailProvider,$email,$uid,$hash,$created),($provider,$providerId,$uid,$hash,$created);
+          INSERT INTO \`users\` (user_id,email,status,created_at,updated_at,trial_ends_at)
+          VALUES ($uid,$email,$status,$created,$updated,$trial);
+          INSERT INTO \`categories\` (user_id,id,name,created_at) VALUES
+          ($uid,$cat0,$name0,$created),($uid,$cat1,$name1,$created),($uid,$cat2,$name2,$created);`,
+        { $uid: U(user.user_id), $email: U(user.email), $provider: U(provider), $providerId: U(providerUserId),
+          $emailProvider: U('email'), $status: U(user.status), $hash: U(''), $created: T(user.created_at),
+          $updated: T(user.updated_at), $trial: T(user.trial_ends_at),
+          $cat0: U(categories[0].id), $cat1: U(categories[1].id), $cat2: U(categories[2].id),
+          $name0: U(categories[0].name), $name1: U(categories[1].name), $name2: U(categories[2].name) });
+        return true;
+      } catch (error) { if (conflict(error)) return false; throw error; }
+    },
+    async activateUser(uid, when, trialEndsAt) {
+      await transaction([
+        {
+          sql: 'DECLARE $uid AS Utf8; DECLARE $status AS Utf8; DECLARE $when AS Timestamp; DECLARE $trial AS Timestamp; UPDATE `users` SET status=$status,updated_at=$when,trial_ends_at=$trial WHERE user_id=$uid;',
+          params: { $uid: U(uid), $status: U('active'), $when: T(when), $trial: T(trialEndsAt) }
+        },
+        {
+          sql: 'DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DELETE FROM `settings` WHERE user_id=$uid AND setting_key=$key;',
+          params: { $uid: U(uid), $key: U('auth.email_verification') }
+        }
+      ]);
+      return this.getUser(uid);
+    },
     async getEmailVerification(uid) {
       const row = await first('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT setting_value FROM `settings` WHERE user_id=$uid AND setting_key=$key;',
         { $uid: U(uid), $key: U('auth.email_verification') });
