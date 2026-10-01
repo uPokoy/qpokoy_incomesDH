@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.10.01.141';
+const qPokoyDevVersion='dev-2026.10.01.142';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -1105,7 +1105,7 @@ window.renderIncomeAnalytics=function(){
   }else{
     bestEl.textContent='—';
     if(bestAmountEl) bestAmountEl.textContent='0 ₽';
-    if(bestShareEl) bestShareEl.hidden=true;
+    if(bestShareEl){ bestShareEl.textContent='0%'; bestShareEl.hidden=true; }
   }
   if(a.worst>=0){
     worstEl.textContent=fullNames[a.worst];
@@ -1118,7 +1118,7 @@ window.renderIncomeAnalytics=function(){
   }else{
     worstEl.textContent='—';
     if(worstAmountEl) worstAmountEl.textContent='0 ₽';
-    if(worstShareEl) worstShareEl.hidden=true;
+    if(worstShareEl){ worstShareEl.textContent='0%'; worstShareEl.hidden=true; }
   }
 
   const categories=Object.entries(a.categoryTotals).sort((x,y)=>y[1]-x[1]);
