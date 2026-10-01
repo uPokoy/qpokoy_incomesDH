@@ -29,6 +29,9 @@
   const params=new URLSearchParams(location.search);
   const resetToken=params.get('reset_token')||'';
   const verifyToken=params.get('verify_token')||'';
+  const oauthTicket=params.get('oauth_ticket')||'';
+  const oauthError=params.get('oauth_error')||'';
+  const oauthProvider=params.get('oauth_provider')||'';
   let mode=resetToken?'reset':'login';
   function oauthLabel(button){return button.querySelector('.qp-auth-oauth-label');}
   function setOAuthButtonText(button,text){oauthLabel(button).textContent=text;}
@@ -78,24 +81,36 @@
     const map={
       'Invalid email or password':'Неверный email или пароль.',
       'Email already registered':'Аккаунт с таким email уже существует.',
-      'Password must be 8–1024 characters':'Пароль должен содержать минимум 8 символов.'
+      'Password must be 8–1024 characters':'Пароль должен содержать минимум 8 символов.',
+      'OAuth provider is not configured':'Этот способ входа пока не настроен.'
     };
     return map[msg]||msg;
   }
   function apiUser(user){return user?{...user,id:String(user.user_id||user.id)}:null;}
 
   tabs.forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.authMode)));
-  yandexButton.addEventListener('click',function(){
-    setMessage('');
-    setResetMessage('');
-    setMessage('Вход через Яндекс пока не подключён.','error');
-  });
 
-  googleButton.addEventListener('click',function(){
+  async function beginOAuth(provider,button,label){
     setMessage('');
     setResetMessage('');
-    setMessage('Вход через Google пока не подключён.','error');
-  });
+    button.disabled=true;
+    setOAuthButtonText(button,'Переход…');
+    try{
+      const url=await api.startOAuth(provider);
+      location.assign(url);
+    }catch(error){
+      button.disabled=false;
+      setOAuthButtonText(button,label);
+      if(error&&error.code==='oauth_not_configured'){
+        setMessage('Этот способ входа пока не настроен.','error');
+      }else{
+        setMessage(friendlyError(error),'error');
+      }
+    }
+  }
+
+  yandexButton.addEventListener('click',()=>beginOAuth('yandex',yandexButton,'Вход через Яндекс'));
+  googleButton.addEventListener('click',()=>beginOAuth('google',googleButton,'Вход через Google'));
   async function handleAuthSubmit(e){
     e.preventDefault();
     const isSignup=e.currentTarget===signupForm;
@@ -637,6 +652,32 @@
         ?'Ссылка подтверждения недействительна или уже истекла.'
         :friendlyError(error),'error',message);
     });
+  }else if(oauthTicket){
+    setMode('login');
+    showGate(true,true);
+    const cleanUrl=new URL(location.href);
+    cleanUrl.searchParams.delete('oauth_ticket');
+    history.replaceState(null,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
+    api.exchangeOAuthTicket(oauthTicket).then(user=>sync({user:apiUser(user)})).catch(error=>{
+      showGate(true);
+      setMessage(error&&error.code==='invalid_oauth_ticket'
+        ?'Ссылка входа недействительна или уже истекла. Повторите вход.'
+        :friendlyError(error),'error',message);
+    });
+  }else if(oauthError){
+    setMode('login');
+    showGate(true);
+    const cleanUrl=new URL(location.href);
+    cleanUrl.searchParams.delete('oauth_error');
+    cleanUrl.searchParams.delete('oauth_provider');
+    history.replaceState(null,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
+    const providerName=oauthProvider==='google'?'Google':(oauthProvider==='yandex'?'Яндекс':'OAuth');
+    const errorText=oauthError==='oauth_cancelled'
+      ?'Вход через '+providerName+' отменён.'
+      :(oauthError==='oauth_not_configured'
+        ?'Вход через '+providerName+' пока не настроен.'
+        :'Не удалось войти через '+providerName+'. Попробуйте ещё раз.');
+    setMessage(errorText,'error',message);
   }else{
     api.restoreSession().then(user=>sync(user?{user:apiUser(user)}:null)).catch(error=>{
       showGate(true);
