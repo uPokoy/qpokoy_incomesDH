@@ -14,6 +14,7 @@ async function handler(event = {}) {
     const queryString = event.rawQueryString || new URLSearchParams(event.queryStringParameters || {}).toString();
     const path = queryString && !String(pathOnly).includes('?') ? String(pathOnly) + '?' + queryString : pathOnly;
     const headers = event.headers || {};
+    const requestContext = { sourceIp: event.requestContext?.identity?.sourceIp || event.requestContext?.http?.sourceIp || '' };
     const origin = headers.origin || headers.Origin;
     const allowed = String(process.env.ALLOWED_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean);
     const cors = origin && allowed.includes(origin) ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
@@ -44,7 +45,7 @@ async function handler(event = {}) {
         from: process.env.POSTBOX_FROM || 'qPokoy <noreply@qpokoy.ru>'
       })
     });
-    const result = await app.handle(method, path, body, headers);
+    const result = await app.handle(method, path, body, headers, requestContext);
     if (result.status >= 300 && result.status < 400 && result.headers?.Location) {
       return {
         statusCode: result.status,
