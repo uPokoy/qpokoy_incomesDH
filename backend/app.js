@@ -7,6 +7,21 @@ const MAX_REPLACE_INCOMES = 500;
 const OAUTH_TICKET_SETTING = 'auth.oauth_ticket';
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 const OAUTH_TICKET_TTL_MS = 2 * 60 * 1000;
+const RATE_LIMITS = Object.freeze({
+  loginIp: { limit: 30, windowMs: 15 * 60 * 1000 },
+  loginEmail: { limit: 10, windowMs: 15 * 60 * 1000 },
+  registerIp: { limit: 10, windowMs: 60 * 60 * 1000 },
+  registerEmail: { limit: 5, windowMs: 60 * 60 * 1000 },
+  passwordResetIp: { limit: 10, windowMs: 60 * 60 * 1000 },
+  passwordResetEmail: { limit: 3, windowMs: 60 * 60 * 1000 },
+  verificationResendIp: { limit: 10, windowMs: 60 * 60 * 1000 },
+  verificationResendEmail: { limit: 3, windowMs: 60 * 60 * 1000 },
+  passwordResetConfirmIp: { limit: 15, windowMs: 15 * 60 * 1000 },
+  verificationConfirmIp: { limit: 20, windowMs: 15 * 60 * 1000 },
+  oauthStartIp: { limit: 20, windowMs: 10 * 60 * 1000 },
+  oauthCallbackIp: { limit: 30, windowMs: 10 * 60 * 1000 },
+  oauthExchangeIp: { limit: 30, windowMs: 10 * 60 * 1000 }
+});
 
 function signPayload(secret, payload) {
   const encoded = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
@@ -31,7 +46,7 @@ function verifyPayload(secret, token) {
 function sha256(value) { return createHash('sha256').update(String(value)).digest('base64url'); }
 
 class HttpError extends Error {
-  constructor(status, code, message) { super(message); this.status = status; this.code = code; }
+  constructor(status, code, message, headers = {}) { super(message); this.status = status; this.code = code; this.headers = headers; }
 }
 const bad = (message) => { throw new HttpError(400, 'bad_request', message); };
 const requiredString = (value, field, max) => {
@@ -82,6 +97,25 @@ function createApp(store, options = {}) {
   const oauth = options.oauth || null;
   const appBaseUrl = options.appBaseUrl || 'https://qpokoy.ru/';
   const oauthCallbackBaseUrl = String(options.oauthCallbackBaseUrl || '').replace(/\/$/, '');
+  const rateLimits = { ...RATE_LIMITS, ...(options.rateLimits || {}) };
+
+  function clientIp(headers, requestContext) {
+    const forwarded = headers['x-forwarded-for'] || headers['X-Forwarded-For'] || headers['x-real-ip'] || headers['X-Real-IP'] || '';
+    const raw = requestContext?.sourceIp || String(forwarded).split(',')[0] || 'unknown';
+    return String(raw).trim().slice(0, 128) || 'unknown';
+  }
+  async function enforceRateLimit(name, subject) {
+    const rule = rateLimits[name];
+    if (!rule || !store.consumeRateLimit) return;
+    const limit = Number(rule.limit);
+    const windowMs = Number(rule.windowMs);
+    if (!Number.isInteger(limit) || limit < 1 || !Number.isFinite(windowMs) || windowMs < 1000) return;
+    const normalized = String(subject || 'unknown').trim().toLowerCase().slice(0, 512) || 'unknown';
+    const result = await store.consumeRateLimit(sha256('v1:' + name + ':' + normalized), limit, windowMs, now());
+    if (result?.allowed) return;
+    const retryAfter = Math.max(1, Number(result?.retry_after_seconds) || Math.ceil(windowMs / 1000));
+    throw new HttpError(429, 'rate_limited', 'Слишком много попыток. Попробуйте позже.', { 'Retry-After': String(retryAfter) });
+  }
 
   function oauthCallbackUrl(provider) {
     if (!oauthCallbackBaseUrl) throw new HttpError(503, 'oauth_not_configured', 'OAuth callback URL is not configured');
@@ -143,10 +177,11 @@ function createApp(store, options = {}) {
     }
   }
 
-  async function handle(method, path, body = {}, headers = {}) {
+  async function handle(method, path, body = {}, headers = {}, requestContext = {}) {
     try {
       const url = new URL(path, 'https://local.invalid');
       const pathname = url.pathname.replace(/\/$/, '') || '/';
+      const sourceIp = clientIp(headers, requestContext);
       if (['POST', 'PUT', 'PATCH'].includes(method) && (!body || typeof body !== 'object' || Array.isArray(body))) bad('Expected JSON object');
       if (method === 'GET' && pathname === '/health') {
         await store.health();
@@ -155,6 +190,7 @@ function createApp(store, options = {}) {
 
       const oauthStartMatch = /^\/auth\/oauth\/(google|yandex)\/start$/.exec(pathname);
       if (method === 'GET' && oauthStartMatch) {
+        await enforceRateLimit('oauthStartIp', sourceIp);
         const provider = oauthStartMatch[1];
         if (!oauth || !oauth.isConfigured(provider)) throw new HttpError(503, 'oauth_not_configured', 'OAuth provider is not configured');
         const issued = now();
@@ -169,6 +205,7 @@ function createApp(store, options = {}) {
       if (method === 'GET' && oauthCallbackMatch) {
         const provider = oauthCallbackMatch[1];
         try {
+          await enforceRateLimit('oauthCallbackIp', sourceIp);
           if (!oauth || !oauth.isConfigured(provider)) return oauthErrorRedirect(provider, 'oauth_not_configured');
           if (url.searchParams.get('error')) return oauthErrorRedirect(provider, 'oauth_cancelled');
           const rawState = url.searchParams.get('state') || '';
@@ -231,12 +268,13 @@ function createApp(store, options = {}) {
           });
           return appRedirect({ oauth_ticket: ticket });
         } catch (error) {
-          if (options.onError) options.onError(error);
+          if (options.onError && !(error instanceof HttpError)) options.onError(error);
           return oauthErrorRedirect(provider, error?.code || 'oauth_failed');
         }
       }
 
       if (method === 'POST' && pathname === '/auth/oauth/exchange') {
+        await enforceRateLimit('oauthExchangeIp', sourceIp);
         if (!oauth) throw new HttpError(503, 'oauth_not_configured', 'OAuth is not configured');
         const ticket = requiredString(body.ticket, 'ticket', 4096);
         const peek = decodePayload(ticket);
@@ -263,7 +301,9 @@ function createApp(store, options = {}) {
       }
 
       if (method === 'POST' && pathname === '/auth/register') {
+        await enforceRateLimit('registerIp', sourceIp);
         const email = emailValue(body.email);
+        await enforceRateLimit('registerEmail', email);
         const password = passwordValue(body.password);
         const createdAt = now();
         const user = { user_id: randomUUID(), email, status: requireEmailVerification ? 'pending_email' : 'active', created_at: createdAt,
@@ -278,7 +318,9 @@ function createApp(store, options = {}) {
         return response(201, { ok: true, verification_required: true, user: publicUser(user) });
       }
       if (method === 'POST' && pathname === '/auth/login') {
+        await enforceRateLimit('loginIp', sourceIp);
         const email = emailValue(body.email);
+        await enforceRateLimit('loginEmail', email);
         const password = passwordValue(body.password);
         const identity = await store.getIdentity('email', email);
         if (!identity || !identity.password_hash || !await verifyPassword(password, identity.password_hash)) {
@@ -291,7 +333,9 @@ function createApp(store, options = {}) {
         return response(200, await createSession(user));
       }
       if (method === 'POST' && pathname === '/auth/email-verification/resend') {
+        await enforceRateLimit('verificationResendIp', sourceIp);
         const email = emailValue(body.email);
+        await enforceRateLimit('verificationResendEmail', email);
         const identity = await store.getIdentity('email', email);
         if (identity) {
           const user = await store.getUser(identity.user_id);
@@ -300,6 +344,7 @@ function createApp(store, options = {}) {
         return response(202, { ok: true });
       }
       if (method === 'POST' && pathname === '/auth/email-verification/confirm') {
+        await enforceRateLimit('verificationConfirmIp', sourceIp);
         const token = requiredString(body.token, 'token', 300);
         const parsed = parseEmailVerificationToken(token);
         if (!parsed) throw new HttpError(400, 'invalid_verification_token', 'Verification link is invalid or expired');
@@ -314,7 +359,9 @@ function createApp(store, options = {}) {
         return response(204, null);
       }
       if (method === 'POST' && pathname === '/auth/password-reset/request') {
+        await enforceRateLimit('passwordResetIp', sourceIp);
         const email = emailValue(body.email);
+        await enforceRateLimit('passwordResetEmail', email);
         const identity = await store.getIdentity('email', email);
         if (identity) {
           const user = await store.getUser(identity.user_id);
@@ -343,6 +390,7 @@ function createApp(store, options = {}) {
         return response(202, { ok: true });
       }
       if (method === 'POST' && pathname === '/auth/password-reset/confirm') {
+        await enforceRateLimit('passwordResetConfirmIp', sourceIp);
         const token = requiredString(body.token, 'token', 200);
         const tokenHash = hashPasswordResetToken(token);
         if (!tokenHash) bad('Invalid reset token');
@@ -431,7 +479,7 @@ function createApp(store, options = {}) {
       }
       throw new HttpError(404, 'not_found', 'Route not found');
     } catch (error) {
-      if (error instanceof HttpError) return response(error.status, { error: { code: error.code, message: error.message } });
+      if (error instanceof HttpError) return response(error.status, { error: { code: error.code, message: error.message } }, error.headers);
       if (options.onError) options.onError(error);
       return response(500, { error: { code: 'internal_error', message: 'Internal server error' } });
     }
