@@ -10,7 +10,9 @@ const MAX_BODY_BYTES = 2 * 1024 * 1024;
 async function handler(event = {}) {
   try {
     const method = String(event.httpMethod || event.requestContext?.http?.method || 'GET').toUpperCase();
-    const path = event.path || event.rawPath || '/';
+    const pathOnly = event.path || event.rawPath || '/';
+    const queryString = event.rawQueryString || new URLSearchParams(event.queryStringParameters || {}).toString();
+    const path = queryString && !String(pathOnly).includes('?') ? String(pathOnly) + '?' + queryString : pathOnly;
     const headers = event.headers || {};
     const origin = headers.origin || headers.Origin;
     const allowed = String(process.env.ALLOWED_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean);
