@@ -2,6 +2,11 @@
 body.qp-auth-locked{background:#070b12!important;}
 body.qp-auth-locked .app{visibility:hidden!important;}
 body.qp-auth-checking #qpAuthGate .qp-auth-card{visibility:hidden!important;}
+#qpAuthGate .qp-auth-loading{display:none;position:fixed;inset:0;z-index:200001;align-items:center;justify-content:center;pointer-events:none;}
+body.qp-auth-checking #qpAuthGate .qp-auth-loading{display:flex!important;}
+#qpAuthGate .qp-auth-loading-box{display:flex;align-items:center;gap:12px;padding:14px 18px;border:1px solid var(--border,#dfe4ea);border-radius:14px;background:var(--panel,#fff);color:var(--text,#1f2937);box-shadow:0 12px 30px rgba(15,23,42,.12);font-weight:600;}
+#qpAuthGate .qp-auth-loading-spinner{width:20px;height:20px;border:3px solid color-mix(in srgb,var(--text-muted,#64748b) 24%,transparent);border-top-color:var(--primary,#2563eb);border-radius:50%;animation:qpAuthLoadingSpin .8s linear infinite;}
+@keyframes qpAuthLoadingSpin{to{transform:rotate(360deg);}}
 
 /* qPokoy — consolidated interface styles */
 

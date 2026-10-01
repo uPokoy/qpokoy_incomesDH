@@ -78,6 +78,7 @@
   }
   function friendlyError(error){
     if(error&&error.code==='rate_limited')return 'Слишком много попыток. Попробуйте позже.';
+    if(error&&error.code==='internal_error')return 'Сервер временно недоступен. Попробуйте обновить страницу через несколько секунд.';
     const msg=(error&&error.message)||'Не удалось выполнить действие.';
     const map={
       'Invalid email or password':'Неверный email или пароль.',
@@ -653,8 +654,9 @@
       }
       if(runId!==authSyncRun)return;
       cloudSettings=startup.settings.map(row=>({...row}));
-      await flushPendingCloudRecords();
+      const pendingFlush=flushPendingCloudRecords();
       if(runId===authSyncRun&&cloudUser&&String(cloudUser.id||'')===nextUserId&&cloudReady) showGate(false);
+      await pendingFlush;
     }else{
       cloudUser=null; cloudReady=false;
       cloudSettings=[];
