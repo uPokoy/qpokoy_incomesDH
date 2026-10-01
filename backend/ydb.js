@@ -17,16 +17,34 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
       if (!await readyPromise) throw new Error('YDB driver is not ready');
     } catch (error) { readyPromise = null; throw error; }
   }
+  const RESOURCE_RETRY_DELAYS_MS = [300, 800, 1600];
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const isResourceExhausted = (error) =>
+    Number(error?.code) === 8 || /RESOURCE_EXHAUSTED|ResourceExhausted/i.test(String(error?.message || error || ''));
+
+  async function withResourceRetry(operation) {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        if (!isResourceExhausted(error) || attempt >= RESOURCE_RETRY_DELAYS_MS.length) throw error;
+        const delay = RESOURCE_RETRY_DELAYS_MS[attempt] + Math.floor(Math.random() * 150);
+        console.warn(`YDB RESOURCE_EXHAUSTED: retry ${attempt + 1}/${RESOURCE_RETRY_DELAYS_MS.length} in ${delay}ms`);
+        await sleep(delay);
+      }
+    }
+  }
+
   async function query(text, params = {}) {
     await ready();
-    return driver.tableClient.withSession(async (session) => {
+    return withResourceRetry(() => driver.tableClient.withSession(async (session) => {
       const result = await session.executeQuery(text, params);
       return result.resultSets?.[0] ? TypedData.createNativeObjects(result.resultSets[0]) : [];
-    });
+    }));
   }
   async function transaction(steps) {
     await ready();
-    return driver.tableClient.withSession(async (session) => {
+    return withResourceRetry(() => driver.tableClient.withSession(async (session) => {
       const meta = await session.beginTransaction({ serializableReadWrite: {} });
       const control = { txId: meta.id };
       try {
@@ -36,7 +54,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
         try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
         throw error;
       }
-    });
+    }));
   }
   const first = async (text, params) => (await query(text, params))[0] || null;
   const conflict = (error) => /already exists|duplicate|precondition.failed|constraint/i.test(String(error?.message || ''));
@@ -84,6 +102,13 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
             }
           });
         } catch (error) {
+          if (isResourceExhausted(error)) {
+            if (attempt >= 2) throw error;
+            const delay = RESOURCE_RETRY_DELAYS_MS[Math.min(attempt, RESOURCE_RETRY_DELAYS_MS.length - 1)] + Math.floor(Math.random() * 150);
+            console.warn(`YDB rate-limit store RESOURCE_EXHAUSTED: retry ${attempt + 1}/2 in ${delay}ms`);
+            await sleep(delay);
+            continue;
+          }
           if (attempt >= 2 || !/aborted|serialization|conflict|transaction.*lock/i.test(String(error?.message || ''))) throw error;
         }
       }
