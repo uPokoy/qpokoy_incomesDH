@@ -58,6 +58,15 @@
         return payload?.token&&payload?.user ? saveSession(payload) : payload;
       },
       async login(email,password){return saveSession(await request('POST','/auth/login',{email,password},false));},
+      async startOAuth(provider){
+        if(!['google','yandex'].includes(provider))throw new ApiError(0,'invalid_provider','Неизвестный OAuth-провайдер.');
+        const payload=await request('GET',`/auth/oauth/${provider}/start`,undefined,false);
+        if(!payload?.url)throw new ApiError(0,'invalid_response','Сервер не вернул адрес OAuth-авторизации.');
+        return payload.url;
+      },
+      async exchangeOAuthTicket(ticket){
+        return saveSession(await request('POST','/auth/oauth/exchange',{ticket},false));
+      },
       async resendEmailVerification(email){return request('POST','/auth/email-verification/resend',{email},false);},
       async confirmEmailVerification(token){return request('POST','/auth/email-verification/confirm',{token},false);},
       async requestPasswordReset(email){return request('POST','/auth/password-reset/request',{email},false);},
