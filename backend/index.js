@@ -3,6 +3,7 @@
 const { createApp } = require('./app');
 const { createYdbStore } = require('./ydb');
 const { sendPasswordResetEmail, sendEmailVerificationEmail } = require('./mail');
+const { createOAuthService } = require('./oauth');
 let app;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 
@@ -26,6 +27,9 @@ async function handler(event = {}) {
       onError: (error) => console.error('API error', error),
       passwordResetBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
       emailVerificationBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
+      appBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
+      oauthCallbackBaseUrl: process.env.PUBLIC_API_BASE_URL || 'https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net',
+      oauth: createOAuthService(process.env),
       requireEmailVerification: String(process.env.REQUIRE_EMAIL_VERIFICATION || '').toLowerCase() === 'true',
       sendPasswordResetEmail: ({ to, resetUrl }) => sendPasswordResetEmail({
         to,
@@ -39,7 +43,14 @@ async function handler(event = {}) {
       })
     });
     const result = await app.handle(method, path, body, headers);
-    return json(result.status, result.body, cors);
+    if (result.status >= 300 && result.status < 400 && result.headers?.Location) {
+      return {
+        statusCode: result.status,
+        headers: { 'Cache-Control': 'no-store', ...cors, ...result.headers },
+        body: ''
+      };
+    }
+    return json(result.status, result.body, { ...cors, ...(result.headers || {}) });
   } catch (error) {
     console.error('API bootstrap error', error);
     return json(500, { error: { code: 'internal_error', message: 'Internal server error' } });
