@@ -12,11 +12,21 @@ function memoryStore() {
   const categories = new Map();
   const settings = new Map();
   const resetTokens = new Map();
+  const rateLimits = new Map();
   const owned = (map, uid) => [...map.values()].filter((row) => row.user_id === uid);
   const key = (uid, id) => `${uid}:${id}`;
   const identityKey = (provider, providerUserId) => `${provider}:${providerUserId}`;
   return {
     health: async () => {},
+    consumeRateLimit: async (bucketKey, limit, windowMs, when) => {
+      const nowMs = when.getTime();
+      let state = rateLimits.get(bucketKey);
+      if (!state || state.resetAt <= nowMs) state = { count: 0, resetAt: nowMs + windowMs };
+      const allowed = state.count < limit;
+      if (allowed) state.count += 1;
+      rateLimits.set(bucketKey, state);
+      return { allowed, retry_after_seconds: allowed ? 0 : Math.max(1, Math.ceil((state.resetAt - nowMs) / 1000)) };
+    },
     register: async (user, hash, defaults) => {
       const emailKey = identityKey('email', user.email);
       if (identities.has(emailKey)) return false;
@@ -223,6 +233,64 @@ test('OAuth login creates, links and exchanges a single-use qPokoy session ticke
   const badState = await app.handle('GET', '/auth/oauth/google/callback?code=good-code&state=bad');
   assert.equal(badState.status, 302);
   assert.equal(new URL(badState.headers.Location).searchParams.get('oauth_error'), 'oauth_invalid_state');
+});
+
+test('rate limits registration, password guessing, password reset and OAuth starts', async () => {
+  const store = memoryStore();
+  let current = new Date('2026-10-01T06:00:00.000Z');
+  const oauth = {
+    isConfigured: () => true,
+    signingSecret: (provider) => 'rate-test-' + provider,
+    authorizationUrl: (provider, state, redirectUri) => {
+      const url = new URL('https://provider.test/authorize');
+      url.searchParams.set('provider', provider);
+      url.searchParams.set('state', state);
+      url.searchParams.set('redirect_uri', redirectUri);
+      return url.toString();
+    },
+    exchange: async () => { throw new Error('not used'); }
+  };
+  const short = { limit: 2, windowMs: 60 * 1000 };
+  const app = createApp(store, {
+    requireEmailVerification: false,
+    now: () => current,
+    oauth,
+    oauthCallbackBaseUrl: 'https://api.example.test',
+    rateLimits: {
+      registerIp: short, registerEmail: short,
+      loginIp: short, loginEmail: short,
+      passwordResetIp: short, passwordResetEmail: short,
+      oauthStartIp: short
+    }
+  });
+  const ctx1 = { sourceIp: '203.0.113.10' };
+  const ctx2 = { sourceIp: '203.0.113.11' };
+  const ctx3 = { sourceIp: '203.0.113.12' };
+
+  assert.equal((await app.handle('POST', '/auth/register', { email: 'rate@example.com', password: 'very-secret-password' }, {}, ctx1)).status, 201);
+  assert.equal((await app.handle('POST', '/auth/register', { email: 'rate2@example.com', password: 'very-secret-password' }, {}, ctx1)).status, 201);
+  const blockedRegister = await app.handle('POST', '/auth/register', { email: 'rate3@example.com', password: 'very-secret-password' }, {}, ctx1);
+  assert.equal(blockedRegister.status, 429);
+  assert.equal(blockedRegister.body.error.code, 'rate_limited');
+  assert.equal(blockedRegister.headers['Retry-After'], '60');
+
+  current = new Date(current.getTime() + 61 * 1000);
+  assert.equal((await app.handle('POST', '/auth/login', { email: 'rate@example.com', password: 'wrong-password' }, {}, ctx1)).status, 401);
+  assert.equal((await app.handle('POST', '/auth/login', { email: 'rate@example.com', password: 'wrong-password' }, {}, ctx2)).status, 401);
+  const blockedLogin = await app.handle('POST', '/auth/login', { email: 'rate@example.com', password: 'wrong-password' }, {}, ctx3);
+  assert.equal(blockedLogin.status, 429);
+  assert.equal(blockedLogin.body.error.code, 'rate_limited');
+
+  current = new Date(current.getTime() + 61 * 1000);
+  assert.equal((await app.handle('POST', '/auth/login', { email: 'rate@example.com', password: 'very-secret-password' }, {}, ctx3)).status, 200);
+
+  assert.equal((await app.handle('POST', '/auth/password-reset/request', { email: 'rate@example.com' }, {}, ctx1)).status, 202);
+  assert.equal((await app.handle('POST', '/auth/password-reset/request', { email: 'rate@example.com' }, {}, ctx2)).status, 202);
+  assert.equal((await app.handle('POST', '/auth/password-reset/request', { email: 'rate@example.com' }, {}, ctx3)).status, 429);
+
+  assert.equal((await app.handle('GET', '/auth/oauth/google/start', {}, {}, ctx1)).status, 200);
+  assert.equal((await app.handle('GET', '/auth/oauth/google/start', {}, {}, ctx1)).status, 200);
+  assert.equal((await app.handle('GET', '/auth/oauth/google/start', {}, {}, ctx1)).status, 429);
 });
 
 test('email verification gates registration, expires, is single-use and starts the trial on confirmation', async () => {
