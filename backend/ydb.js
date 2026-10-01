@@ -71,42 +71,38 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
   const mutate = (sql, params) => query(revisionDeclarations + '\n' + sql + '\n' + revisionWrite, () => ({ ...params, ...revisionParams() }));
 
   return {
-    // One consistent transaction binds the revision to the returned data snapshot.
-    // A cache hit reads only session/user/revision; bearer validation is never cached.
+    // Each request authenticates in a single AUTO_TX, with point predicates and
+    // no JOIN. Unchanged cache hits never open an explicit transaction.
     async loadBootstrap(sessionId, validate, knownRevision = '') {
       await ready();
       return withResourceRetry(() => driver.tableClient.withSession(async (session) => {
+        const rows = (result, index) => result.resultSets?.[index] ? TypedData.createNativeObjects(result.resultSets[index]) : [];
+        const readAuth = async (control) => {
+          const result = await session.executeQuery(`DECLARE $id AS Utf8; DECLARE $revisionKey AS Utf8;
+            $session = SELECT session_id,user_id,secret_hash,created_at,expires_at,last_seen_at,revoked_at
+              FROM \`sessions\` WHERE session_id=$id;
+            $uid = (SELECT user_id FROM $session);
+            SELECT session_id,user_id,secret_hash,created_at,expires_at,last_seen_at,revoked_at FROM $session;
+            SELECT user_id,email,status,created_at,updated_at,trial_ends_at FROM \`users\` WHERE user_id=$uid;
+            SELECT setting_value FROM \`settings\` WHERE user_id=$uid AND setting_key=$revisionKey;`,
+          { $id: U(sessionId), $revisionKey: U(REVISION_KEY) }, control);
+          const auth = { session: rows(result, 0)[0] || null, user: rows(result, 1)[0] || null };
+          validate(auth); // Never read the full bundle before bearer/user validation.
+          return { ...auth, revision: rows(result, 2)[0]?.setting_value || '' };
+        };
+        const checked = await readAuth();
+        if (checked.revision && knownRevision === checked.revision) {
+          return { user: checked.user, revision: checked.revision, not_modified: true };
+        }
+
+        // A miss re-reads auth/revision inside the bundle's snapshot. Using the
+        // preflight revision here would race a mutation between the two queries.
         const meta = await session.beginTransaction({ serializableReadWrite: {} });
         const control = { txId: meta.id };
         try {
-          const authResult = await session.executeQuery(`DECLARE $id AS Utf8; DECLARE $revisionKey AS Utf8;
-            SELECT s.session_id AS session_id,s.user_id AS user_id,s.secret_hash AS secret_hash,
-              s.created_at AS session_created_at,s.expires_at AS expires_at,
-              s.last_seen_at AS last_seen_at,s.revoked_at AS revoked_at,
-              u.email AS email,u.status AS status,u.created_at AS created_at,
-              u.updated_at AS updated_at,u.trial_ends_at AS trial_ends_at,r.setting_value AS data_revision
-            FROM (SELECT session_id,user_id,secret_hash,created_at,expires_at,last_seen_at,revoked_at,$revisionKey AS revision_key
-              FROM \`sessions\` WHERE session_id=$id) AS s
-            INNER JOIN \`users\` AS u ON s.user_id=u.user_id
-            LEFT JOIN \`settings\` AS r ON r.user_id=u.user_id AND r.setting_key=s.revision_key;`,
-          { $id: U(sessionId), $revisionKey: U(REVISION_KEY) }, control);
-          const row = authResult.resultSets?.[0] ? TypedData.createNativeObjects(authResult.resultSets[0])[0] : null;
-          const auth = {
-            session: row ? { session_id: row.session_id, user_id: row.user_id, secret_hash: row.secret_hash,
-              created_at: row.session_created_at, expires_at: row.expires_at,
-              last_seen_at: row.last_seen_at, revoked_at: row.revoked_at } : null,
-            user: row ? { user_id: row.user_id, email: row.email, status: row.status,
-              created_at: row.created_at, updated_at: row.updated_at, trial_ends_at: row.trial_ends_at } : null
-          };
-          validate(auth);
-          const revision = row.data_revision || randomUUID();
-          if (row.data_revision && knownRevision === revision) {
-            await session.commitTransaction(control);
-            return { user: auth.user, revision, not_modified: true };
-          }
-          // Initialize legacy accounts in the same serializable transaction that read
-          // the missing key: a concurrent mutation cannot be overwritten silently.
-          const initialize = !row.data_revision;
+          const auth = await readAuth(control);
+          const initialize = !auth.revision;
+          const revision = auth.revision || randomUUID();
           const result = await session.executeQuery(`DECLARE $uid AS Utf8;
             ${initialize ? revisionDeclarations : ''}
             SELECT user_id,id,income_date,category,description,amount,created_at,updated_at
@@ -117,9 +113,8 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
           { $uid: U(auth.user.user_id), ...(initialize ? {
             $revisionKey: U(REVISION_KEY), $revision: U(revision), $revisionTime: T(new Date())
           } : {}) }, control);
-          const rows = (index) => result.resultSets?.[index] ? TypedData.createNativeObjects(result.resultSets[index]) : [];
           await session.commitTransaction(control);
-          return { user: auth.user, revision, not_modified: false, incomes: rows(0), categories: rows(1), settings: rows(2) };
+          return { user: auth.user, revision, not_modified: false, incomes: rows(result, 0), categories: rows(result, 1), settings: rows(result, 2) };
         } catch (error) {
           try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
           throw error;
