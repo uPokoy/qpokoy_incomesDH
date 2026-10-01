@@ -33,6 +33,10 @@
     overlay.querySelector('#qpConfirmMessage').textContent=message||'';
     cancel.textContent=options.cancelLabel||'Нет';
     ok.textContent=options.confirmLabel||'Да';
+    if(options.danger){
+      ok.classList.remove('qp-confirm-btn-primary');
+      ok.classList.add('qp-confirm-btn-danger');
+    }
     cancel.addEventListener('click',close);
     ok.addEventListener('click',function(){
       const fn=onConfirm;
