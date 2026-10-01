@@ -41,9 +41,10 @@ function setup(overrides={},options={}){
     async replaceIncomes(rows){calls.push({replace:rows});return rows.map((row,i)=>({...row,id:row.id||`33333333-3333-4333-8333-33333333333${i}`,user_id:user.user_id}));},
     async deleteAllIncomes(){calls.push('deleteAll');},
     async deleteAccount(){calls.push('deleteAccount');},
+    async logout(){calls.push('logout');},
     ...overrides
   };
-  const win={qPokoyApi:api,qPokoyLoadCategories:async(user,rows)=>{categoryLoads++;calls.push({categories:rows});},qPokoyNotice:(...args)=>notices.push(args),qPokoyConfirm:(title,message,callback)=>{confirmation=callback;},qPokoyConfirmPhrase:(title,message,phrase,callback)=>{confirmation=callback;},addEventListener(){}};
+  const win={qPokoyApi:api,qPokoyLoadCategories:async(user,rows)=>{categoryLoads++;calls.push({categories:rows});},renderIncomes:()=>calls.push('renderIncomes'),qPokoyNotice:(...args)=>notices.push(args),qPokoyConfirm:(title,message,callback)=>{confirmation=callback;},qPokoyConfirmPhrase:(title,message,phrase,callback)=>{confirmation=callback;},addEventListener(){}};
   const store={load:()=>records,save(next){records=next;saves.push(next);}};
   vm.runInNewContext(source,{window:win,document,localStorage:storage,IncomeStore:store,console:{error(){}},Date,Promise,
     URLSearchParams,URL,location:{search:options.search||'',href:'https://qpokoy.ru/'+(options.search||'')},history:{replaceState(){}}});
@@ -193,6 +194,21 @@ test('successful replace and delete drain only the current user journal',async()
   assert.equal(await h.win.qPokoyCloudDeleteAll(),true);
   assert.deepEqual(JSON.parse(h.values.get(journalKey)),[otherEntry]);
   assert.equal(h.records.length,0);
+});
+
+test('logout clears local income state and refreshes the income DOM immediately',async()=>{
+  const h=setup();
+  await ready(h);
+  assert.equal(h.records.length,1);
+  const beforeRenders=h.calls.filter(x=>x==='renderIncomes').length;
+  h.nodes.get('qpAuthLogoutBtn').listeners.click();
+  await h.confirm();
+  assert.equal(h.calls.includes('logout'),true);
+  assert.equal(h.records.length,0);
+  assert.equal(h.values.has('incomes'),true);
+  assert.equal(h.values.get('incomes'),'[]');
+  assert.ok(h.calls.filter(x=>x==='renderIncomes').length>beforeRenders);
+  assert.equal(h.nodes.get('qpAuthGate').hidden,false);
 });
 
 test('account deletion leaves UI on failure and clears own journal on success',async()=>{

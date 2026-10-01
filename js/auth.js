@@ -274,7 +274,12 @@
   const CLOUD_WRITE_JOURNAL_KEY='qPokoyIncomeWriteJournalV1';
 
   function clearLocalIncomeCache(){
-    try{ localStorage.removeItem('incomes'); }catch(e){}
+    try{
+      if(typeof IncomeStore!=='undefined'&&IncomeStore&&typeof IncomeStore.save==='function')IncomeStore.save([]);
+      else localStorage.removeItem('incomes');
+    }catch(e){
+      try{ localStorage.removeItem('incomes'); }catch(_){}
+    }
     try{ if(Array.isArray(window.incomes)) window.incomes.splice(0,window.incomes.length); }catch(e){}
   }
   function readPendingCloudWrites(){
@@ -665,6 +670,7 @@
       showGate(true);
       if(accountEmail) accountEmail.textContent='—';
       if(typeof window.qPokoyLoadCategories==='function')window.qPokoyLoadCategories(null);
+      refreshIncomeViews();
     }
   }
   api.setUnauthorizedHandler(()=>sync(null));
