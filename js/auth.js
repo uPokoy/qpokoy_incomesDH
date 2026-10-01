@@ -235,17 +235,28 @@
   const accountEmail=document.getElementById('qpAccountEmail');
 
   if(logout){
-    logout.addEventListener('click',async function(){
-      logout.disabled=true;
-      try{
-        await api.logout();
-        await sync(null);
-      }catch(error){
-        cloudError('Не удалось выйти из аккаунта.',error);
-        await sync(null);
-      }finally{
-        logout.disabled=false;
-      }
+    logout.addEventListener('click',function(){
+      if(typeof window.qPokoyConfirm!=='function')return;
+      window.qPokoyConfirm(
+        'Выйти из аккаунта?',
+        'Вы уверены, что хотите выйти из аккаунта?',
+        async function(){
+          logout.disabled=true;
+          try{
+            await api.logout();
+            await sync(null);
+          }catch(error){
+            cloudError('Не удалось выйти из аккаунта.',error);
+            await sync(null);
+          }finally{
+            logout.disabled=false;
+          }
+        },
+        {
+          cancelLabel:'Отмена',
+          confirmLabel:'Выйти'
+        }
+      );
     });
   }
 
