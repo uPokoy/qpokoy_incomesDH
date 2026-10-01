@@ -14,17 +14,45 @@ function memoryStore() {
   const resetTokens = new Map();
   const owned = (map, uid) => [...map.values()].filter((row) => row.user_id === uid);
   const key = (uid, id) => `${uid}:${id}`;
+  const identityKey = (provider, providerUserId) => `${provider}:${providerUserId}`;
   return {
     health: async () => {},
     register: async (user, hash, defaults) => {
-      if (identities.has(user.email)) return false;
+      const emailKey = identityKey('email', user.email);
+      if (identities.has(emailKey)) return false;
       users.set(user.user_id, user);
-      identities.set(user.email, { user_id: user.user_id, password_hash: hash });
+      identities.set(emailKey, { provider: 'email', provider_user_id: user.email, user_id: user.user_id, password_hash: hash });
       defaults.forEach((row) => categories.set(key(row.user_id, row.id), row));
       return true;
     },
-    getIdentity: async (_provider, email) => identities.get(email),
+    registerOAuth: async (user, provider, providerUserId, defaults) => {
+      const providerKey = identityKey(provider, providerUserId);
+      const emailKey = identityKey('email', user.email);
+      if (identities.has(providerKey) || identities.has(emailKey)) return false;
+      users.set(user.user_id, user);
+      identities.set(emailKey, { provider: 'email', provider_user_id: user.email, user_id: user.user_id, password_hash: '' });
+      identities.set(providerKey, { provider, provider_user_id: providerUserId, user_id: user.user_id, password_hash: '' });
+      defaults.forEach((row) => categories.set(key(row.user_id, row.id), row));
+      return true;
+    },
+    getIdentity: async (provider, providerUserId) => identities.get(identityKey(provider, providerUserId)),
+    linkIdentity: async (provider, providerUserId, uid, createdAt) => {
+      const k = identityKey(provider, providerUserId);
+      const existing = identities.get(k);
+      if (existing) return existing.user_id === uid;
+      identities.set(k, { provider, provider_user_id: providerUserId, user_id: uid, password_hash: '', created_at: createdAt });
+      return true;
+    },
     getUser: async (id) => users.get(id),
+    activateUser: async (uid, when, trialEndsAt) => {
+      const user = users.get(uid);
+      if (!user) return null;
+      user.status = 'active';
+      user.updated_at = when;
+      user.trial_ends_at = trialEndsAt;
+      settings.delete(key(uid, 'auth.email_verification'));
+      return user;
+    },
     addSession: async (row) => { sessions.set(row.session_id, row); },
     getSession: async (id) => sessions.get(id),
     revokeSession: async (id, when) => { sessions.get(id).revoked_at = when; },
@@ -36,7 +64,7 @@ function memoryStore() {
     resetPassword: async (hash, passwordHash, when) => {
       const token = resetTokens.get(hash);
       if (!token || token.used_at || new Date(token.expires_at) <= when) return false;
-      const identity = [...identities.values()].find((row) => row.user_id === token.user_id);
+      const identity = identities.get(identityKey('email', users.get(token.user_id)?.email || ''));
       if (!identity) return false;
       identity.password_hash = passwordHash;
       token.used_at = when;
@@ -74,7 +102,9 @@ function memoryStore() {
     },
     deleteCategory: async (uid, id) => categories.delete(key(uid, id)),
     listSettings: async (uid) => owned(settings, uid),
+    getSetting: async (uid, settingKey) => settings.get(key(uid, settingKey)),
     putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); },
+    deleteSetting: async (uid, settingKey) => { settings.delete(key(uid, settingKey)); },
     getEmailVerification: async (uid) => {
       const row = settings.get(key(uid, 'auth.email_verification'));
       if (!row) return null;
@@ -137,6 +167,63 @@ test('health, register, login, me, logout and old-token rejection', async () => 
   assert.equal((await app.handle('GET', '/auth/me', {}, auth(login.body.token))).status, 401);
 });
 
+
+test('OAuth login creates, links and exchanges a single-use qPokoy session ticket', async () => {
+  const store = memoryStore();
+  const oauth = {
+    isConfigured: (provider) => ['google', 'yandex'].includes(provider),
+    signingSecret: (provider) => 'test-secret-for-' + provider,
+    authorizationUrl: (provider, state, redirectUri) => {
+      const url = new URL('https://provider.test/authorize');
+      url.searchParams.set('provider', provider);
+      url.searchParams.set('state', state);
+      url.searchParams.set('redirect_uri', redirectUri);
+      return url.toString();
+    },
+    exchange: async (provider, code) => {
+      assert.equal(code, 'good-code');
+      return { provider, providerUserId: provider + '-user-123', email: 'oauth@example.com' };
+    }
+  };
+  const app = createApp(store, {
+    requireEmailVerification: false,
+    oauth,
+    appBaseUrl: 'https://qpokoy.ru/',
+    oauthCallbackBaseUrl: 'https://api.example.test'
+  });
+
+  async function oauthLogin(provider) {
+    const start = await app.handle('GET', `/auth/oauth/${provider}/start`);
+    assert.equal(start.status, 200);
+    const authUrl = new URL(start.body.url);
+    assert.equal(authUrl.searchParams.get('provider'), provider);
+    assert.equal(authUrl.searchParams.get('redirect_uri'), `https://api.example.test/auth/oauth/${provider}/callback`);
+    const state = authUrl.searchParams.get('state');
+    const callback = await app.handle('GET', `/auth/oauth/${provider}/callback?code=good-code&state=${encodeURIComponent(state)}`);
+    assert.equal(callback.status, 302);
+    const returnUrl = new URL(callback.headers.Location);
+    assert.equal(returnUrl.origin, 'https://qpokoy.ru');
+    const ticket = returnUrl.searchParams.get('oauth_ticket');
+    assert.ok(ticket);
+    const exchange = await app.handle('POST', '/auth/oauth/exchange', { ticket });
+    assert.equal(exchange.status, 200);
+    assert.ok(exchange.body.token);
+    assert.equal(exchange.body.user.email, 'oauth@example.com');
+    assert.equal((await app.handle('POST', '/auth/oauth/exchange', { ticket })).status, 400);
+    return exchange.body;
+  }
+
+  const google = await oauthLogin('google');
+  assert.deepEqual((await app.handle('GET', '/categories', {}, auth(google.token))).body.data.map((x) => x.name),
+    ['Зарплата', 'Подработка', 'Прочее']);
+
+  const yandex = await oauthLogin('yandex');
+  assert.equal(yandex.user.user_id, google.user.user_id);
+
+  const badState = await app.handle('GET', '/auth/oauth/google/callback?code=good-code&state=bad');
+  assert.equal(badState.status, 302);
+  assert.equal(new URL(badState.headers.Location).searchParams.get('oauth_error'), 'oauth_invalid_state');
+});
 
 test('email verification gates registration, expires, is single-use and starts the trial on confirmation', async () => {
   const store = memoryStore();
