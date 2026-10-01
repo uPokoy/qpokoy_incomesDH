@@ -1,9 +1,34 @@
 'use strict';
 
-const { randomUUID } = require('node:crypto');
+const { randomUUID, randomBytes, createHmac, createHash, timingSafeEqual } = require('node:crypto');
 const { hashPassword, verifyPassword, newSession, parseToken, verifySecret, newPasswordResetToken, hashPasswordResetToken, newEmailVerificationToken, parseEmailVerificationToken } = require('./security');
 const DEFAULT_CATEGORIES = ['Зарплата', 'Подработка', 'Прочее'];
 const MAX_REPLACE_INCOMES = 500;
+const OAUTH_TICKET_SETTING = 'auth.oauth_ticket';
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+const OAUTH_TICKET_TTL_MS = 2 * 60 * 1000;
+
+function signPayload(secret, payload) {
+  const encoded = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  const signature = createHmac('sha256', secret).update(encoded).digest('base64url');
+  return encoded + '.' + signature;
+}
+function decodePayload(token) {
+  const encoded = String(token || '').split('.')[0];
+  if (!encoded) return null;
+  try { return JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')); }
+  catch (_) { return null; }
+}
+function verifyPayload(secret, token) {
+  const parts = String(token || '').split('.');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+  const expected = createHmac('sha256', secret).update(parts[0]).digest();
+  let actual;
+  try { actual = Buffer.from(parts[1], 'base64url'); } catch (_) { return null; }
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
+  return decodePayload(token);
+}
+function sha256(value) { return createHash('sha256').update(String(value)).digest('base64url'); }
 
 class HttpError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
@@ -54,6 +79,24 @@ function createApp(store, options = {}) {
   const sendEmailVerificationEmail = options.sendEmailVerificationEmail || (async () => {});
   const requireEmailVerification = options.requireEmailVerification !== false;
   const verificationHours = 24;
+  const oauth = options.oauth || null;
+  const appBaseUrl = options.appBaseUrl || 'https://qpokoy.ru/';
+  const oauthCallbackBaseUrl = String(options.oauthCallbackBaseUrl || '').replace(/\/$/, '');
+
+  function oauthCallbackUrl(provider) {
+    if (!oauthCallbackBaseUrl) throw new HttpError(503, 'oauth_not_configured', 'OAuth callback URL is not configured');
+    return oauthCallbackBaseUrl + '/auth/oauth/' + provider + '/callback';
+  }
+  function appRedirect(params) {
+    const target = new URL(appBaseUrl);
+    for (const [key, value] of Object.entries(params || {})) {
+      if (value !== undefined && value !== null && value !== '') target.searchParams.set(key, String(value));
+    }
+    return response(302, null, { Location: target.toString() });
+  }
+  function oauthErrorRedirect(provider, code) {
+    return appRedirect({ oauth_error: code || 'oauth_failed', oauth_provider: provider });
+  }
 
   async function authenticate(headers) {
     const token = parseToken(headers.authorization || headers.Authorization);
@@ -109,6 +152,116 @@ function createApp(store, options = {}) {
         await store.health();
         return response(200, { status: 'ok' });
       }
+
+      const oauthStartMatch = /^\/auth\/oauth\/(google|yandex)\/start$/.exec(pathname);
+      if (method === 'GET' && oauthStartMatch) {
+        const provider = oauthStartMatch[1];
+        if (!oauth || !oauth.isConfigured(provider)) throw new HttpError(503, 'oauth_not_configured', 'OAuth provider is not configured');
+        const issued = now();
+        const state = signPayload(oauth.signingSecret(provider), {
+          k: 'state', p: provider, n: randomBytes(18).toString('base64url'),
+          exp: issued.getTime() + OAUTH_STATE_TTL_MS
+        });
+        return response(200, { url: oauth.authorizationUrl(provider, state, oauthCallbackUrl(provider)) });
+      }
+
+      const oauthCallbackMatch = /^\/auth\/oauth\/(google|yandex)\/callback$/.exec(pathname);
+      if (method === 'GET' && oauthCallbackMatch) {
+        const provider = oauthCallbackMatch[1];
+        try {
+          if (!oauth || !oauth.isConfigured(provider)) return oauthErrorRedirect(provider, 'oauth_not_configured');
+          if (url.searchParams.get('error')) return oauthErrorRedirect(provider, 'oauth_cancelled');
+          const rawState = url.searchParams.get('state') || '';
+          const state = verifyPayload(oauth.signingSecret(provider), rawState);
+          if (!state || state.k !== 'state' || state.p !== provider || !Number.isFinite(state.exp) || state.exp < now().getTime()) {
+            return oauthErrorRedirect(provider, 'oauth_invalid_state');
+          }
+          const code = url.searchParams.get('code') || '';
+          const profile = await oauth.exchange(provider, code, oauthCallbackUrl(provider));
+
+          let identity = await store.getIdentity(provider, profile.providerUserId);
+          let user = identity ? await store.getUser(identity.user_id) : null;
+          if (!user) {
+            const emailIdentity = await store.getIdentity('email', profile.email);
+            if (emailIdentity) {
+              user = await store.getUser(emailIdentity.user_id);
+              if (!user) return oauthErrorRedirect(provider, 'oauth_account_unavailable');
+              if (!await store.linkIdentity(provider, profile.providerUserId, user.user_id, now())) {
+                return oauthErrorRedirect(provider, 'oauth_identity_conflict');
+              }
+              if (user.status === 'pending_email') {
+                const verifiedAt = now();
+                user = await store.activateUser(user.user_id, verifiedAt, new Date(verifiedAt.getTime() + 14 * 86400000));
+              }
+            } else {
+              const createdAt = now();
+              const candidate = {
+                user_id: randomUUID(), email: profile.email, status: 'active',
+                created_at: createdAt, updated_at: createdAt,
+                trial_ends_at: new Date(createdAt.getTime() + 14 * 86400000)
+              };
+              const categories = DEFAULT_CATEGORIES.map((name) => ({
+                user_id: candidate.user_id, id: randomUUID(), name, created_at: createdAt
+              }));
+              const created = await store.registerOAuth(candidate, provider, profile.providerUserId, categories);
+              if (created) {
+                user = candidate;
+              } else {
+                identity = await store.getIdentity(provider, profile.providerUserId);
+                const fallback = identity || await store.getIdentity('email', profile.email);
+                user = fallback ? await store.getUser(fallback.user_id) : null;
+                if (user && !identity && !await store.linkIdentity(provider, profile.providerUserId, user.user_id, now())) {
+                  user = null;
+                }
+              }
+            }
+          }
+          if (!user || user.status !== 'active') return oauthErrorRedirect(provider, 'oauth_account_unavailable');
+
+          const nonce = randomBytes(24).toString('base64url');
+          const expiresAt = new Date(now().getTime() + OAUTH_TICKET_TTL_MS);
+          await store.putSetting({
+            user_id: user.user_id,
+            setting_key: OAUTH_TICKET_SETTING,
+            setting_value: JSON.stringify({ provider, nonce_hash: sha256(nonce), expires_at: expiresAt.toISOString() }),
+            updated_at: now()
+          });
+          const ticket = signPayload(oauth.signingSecret(provider), {
+            k: 'ticket', p: provider, u: user.user_id, n: nonce, exp: expiresAt.getTime()
+          });
+          return appRedirect({ oauth_ticket: ticket });
+        } catch (error) {
+          if (options.onError) options.onError(error);
+          return oauthErrorRedirect(provider, error?.code || 'oauth_failed');
+        }
+      }
+
+      if (method === 'POST' && pathname === '/auth/oauth/exchange') {
+        if (!oauth) throw new HttpError(503, 'oauth_not_configured', 'OAuth is not configured');
+        const ticket = requiredString(body.ticket, 'ticket', 4096);
+        const peek = decodePayload(ticket);
+        const provider = peek?.p;
+        if (!['google', 'yandex'].includes(provider) || !oauth.isConfigured(provider)) {
+          throw new HttpError(400, 'invalid_oauth_ticket', 'Invalid OAuth login ticket');
+        }
+        const payload = verifyPayload(oauth.signingSecret(provider), ticket);
+        if (!payload || payload.k !== 'ticket' || payload.p !== provider || !payload.u || !payload.n ||
+            !Number.isFinite(payload.exp) || payload.exp < now().getTime()) {
+          throw new HttpError(400, 'invalid_oauth_ticket', 'Invalid or expired OAuth login ticket');
+        }
+        const row = await store.getSetting(payload.u, OAUTH_TICKET_SETTING);
+        let saved = null;
+        try { saved = row?.setting_value ? JSON.parse(row.setting_value) : null; } catch (_) { saved = null; }
+        if (!saved || saved.provider !== provider || saved.nonce_hash !== sha256(payload.n) ||
+            !saved.expires_at || new Date(saved.expires_at) <= now()) {
+          throw new HttpError(400, 'invalid_oauth_ticket', 'Invalid or expired OAuth login ticket');
+        }
+        const user = await store.getUser(payload.u);
+        if (!user || user.status !== 'active') throw new HttpError(401, 'unauthorized', 'Account is unavailable');
+        await store.deleteSetting(payload.u, OAUTH_TICKET_SETTING);
+        return response(200, await createSession(user));
+      }
+
       if (method === 'POST' && pathname === '/auth/register') {
         const email = emailValue(body.email);
         const password = passwordValue(body.password);
@@ -290,5 +443,5 @@ function publicUser(user) {
   return { user_id: user.user_id, email: user.email, status: user.status,
     created_at: user.created_at, trial_ends_at: user.trial_ends_at };
 }
-function response(status, body) { return { status, body }; }
+function response(status, body, headers = {}) { return { status, body, headers }; }
 module.exports = { createApp };
