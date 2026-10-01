@@ -17,6 +17,13 @@ function memoryStore() {
   const key = (uid, id) => `${uid}:${id}`;
   const identityKey = (provider, providerUserId) => `${provider}:${providerUserId}`;
   return {
+    async loadBootstrap(id, validate) {
+      const session = await this.getSession(id);
+      const user = session ? await this.getUser(session.user_id) : null;
+      validate({ session, user });
+      return { user, incomes: await this.listIncomes(user.user_id),
+        categories: await this.listCategories(user.user_id), settings: await this.listSettings(user.user_id) };
+    },
     health: async () => {},
     consumeRateLimit: async (bucketKey, limit, windowMs, when) => {
       const nowMs = when.getTime();
@@ -157,6 +164,68 @@ function memoryStore() {
 const make = () => createApp(memoryStore(), { requireEmailVerification: false });
 const register = (app, email) => app.handle('POST', '/auth/register', { email, password: 'very-secret-password' });
 const auth = (token) => ({ authorization: `Bearer ${token}` });
+
+test('bootstrap authenticates once, isolates user data, and reduces startup reads', async () => {
+  const store = memoryStore();
+  const app = createApp(store, { requireEmailVerification: false });
+  const alice = (await register(app, 'bootstrap-alice@example.com')).body;
+  const bob = (await register(app, 'bootstrap-bob@example.com')).body;
+  const row = { income_date: '2026-09-15', category: 'Зарплата', description: 'Проверка', amount: 123 };
+  await app.handle('POST', '/incomes', row, auth(alice.token));
+  await app.handle('POST', '/incomes', { ...row, amount: 456 }, auth(bob.token));
+  await app.handle('PUT', '/settings/theme', { setting_value: 'dark' }, auth(alice.token));
+  await store.putSetting({ user_id: alice.user.user_id, setting_key: 'auth.oauth_ticket', setting_value: 'private' });
+  const calls = [];
+  for (const name of ['getSession', 'getUser', 'listIncomes', 'listCategories', 'listSettings']) {
+    const original = store[name];
+    store[name] = async (...args) => { calls.push(name); return original(...args); };
+  }
+  assert.equal((await app.handle('GET', '/bootstrap')).status, 401);
+  assert.equal(calls.length, 0);
+  for (const route of ['/auth/me', '/incomes', '/categories']) {
+    assert.equal((await app.handle('GET', route, {}, auth(alice.token))).status, 200);
+  }
+  assert.equal(calls.length, 8);
+  calls.length = 0;
+  const result = await app.handle('GET', '/bootstrap', {}, auth(alice.token));
+  assert.equal(result.status, 200);
+  assert.deepEqual(calls, ['getSession', 'getUser', 'listIncomes', 'listCategories', 'listSettings']);
+  assert.equal(result.body.user.user_id, alice.user.user_id);
+  assert.equal(result.body.incomes[0].amount, 123);
+  assert.equal(result.body.categories.length, 3);
+  assert.deepEqual(result.body.settings.map(x => x.setting_key), ['theme']);
+  for (const rows of [result.body.incomes, result.body.categories, result.body.settings]) {
+    assert.ok(rows.every(x => x.user_id === alice.user.user_id));
+  }
+  assert.equal(JSON.stringify(result.body).includes('secret_hash'), false);
+  const other = await app.handle('GET', '/bootstrap', {}, auth(bob.token));
+  assert.equal(other.body.incomes[0].amount, 456);
+  assert.deepEqual(other.body.settings, []);
+  const forged = alice.token.slice(0, -1) + (alice.token.endsWith('a') ? 'b' : 'a');
+  calls.length = 0;
+  assert.equal((await app.handle('GET', '/bootstrap', {}, auth(forged))).status, 401);
+  assert.ok(!calls.includes('listIncomes'));
+  await app.handle('POST', '/auth/logout', {}, auth(alice.token));
+  assert.equal((await app.handle('GET', '/bootstrap', {}, auth(alice.token))).status, 401);
+});
+
+test('bootstrap rejects expired sessions, inactive users and deleted accounts', async () => {
+  const store = memoryStore();
+  const current = new Date('2026-10-01T12:00:00Z');
+  const app = createApp(store, { requireEmailVerification: false, now: () => current });
+  const account = (await register(app, 'bootstrap-expiry@example.com')).body;
+  const session = await store.getSession(account.token.split('.')[0]);
+  const user = await store.getUser(account.user.user_id);
+  user.status = 'pending_email';
+  assert.equal((await app.handle('GET', '/bootstrap', {}, auth(account.token))).status, 401);
+  user.status = 'active';
+  session.expires_at = new Date(current.getTime() - 1);
+  assert.equal((await app.handle('GET', '/bootstrap', {}, auth(account.token))).status, 401);
+  session.expires_at = new Date(current.getTime() + 10000);
+  assert.equal((await app.handle('GET', '/bootstrap', {}, auth(account.token))).status, 200);
+  await store.deleteAccount(user.user_id);
+  assert.equal((await app.handle('GET', '/bootstrap', {}, auth(account.token))).status, 401);
+});
 
 test('health, register, login, me, logout and old-token rejection', async () => {
   const app = make();

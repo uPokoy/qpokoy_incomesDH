@@ -18,6 +18,29 @@ function harness(responses){
 const ok=(data,status=200)=>({status,body:data});
 const user={user_id:'user-1',email:'тест@example.com'};
 
+test('bootstrap loads all startup data in one bearer request and skips signed-out sessions',async()=>{
+  const startup={user,incomes:[],categories:[],settings:[]};
+  const h=harness([ok(startup)]);
+  assert.equal(await h.api.bootstrap(),null);
+  assert.equal(h.calls.length,0);
+  h.values.set(TOKEN_KEY,'secret');
+  assert.deepEqual(await h.api.bootstrap(),startup);
+  assert.equal(h.calls.length,1);
+  assert.equal(h.calls[0].url,API_BASE_URL+'/bootstrap');
+  assert.equal(h.calls[0].headers.Authorization,'Bearer secret');
+});
+
+test('bootstrap expiry signs out; server failure keeps token without legacy fallback',async()=>{
+  const h=harness([{status:500,body:{error:{code:'internal_error',message:'Unavailable'}}},
+    {status:401,body:{error:{code:'unauthorized',message:'Expired'}}}]);
+  h.values.set(TOKEN_KEY,'secret');
+  await assert.rejects(h.api.bootstrap(),error=>error.status===500);
+  assert.equal(h.values.get(TOKEN_KEY),'secret');
+  assert.equal(await h.api.bootstrap(),null);
+  assert.equal(h.values.has(TOKEN_KEY),false);
+  assert.ok(h.calls.every(call=>call.url.endsWith('/bootstrap')));
+});
+
 test('register and login store token; restore uses bearer; logout clears it',async()=>{
   const h=harness([
     ok({token:'register-secret',expires_at:'2026-10-30T00:00:00Z',user},201),

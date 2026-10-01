@@ -132,15 +132,21 @@ function createApp(store, options = {}) {
     return appRedirect({ oauth_error: code || 'oauth_failed', oauth_provider: provider });
   }
 
+  function validateSession(session, token) {
+    if (!session || session.revoked_at || new Date(session.expires_at) <= now() || !verifySecret(token.secret, session.secret_hash)) {
+      throw new HttpError(401, 'unauthorized', 'Invalid session');
+    }
+  }
+  function validateUser(user) {
+    if (!user || user.status !== 'active') throw new HttpError(401, 'unauthorized', 'Invalid session');
+  }
   async function authenticate(headers) {
     const token = parseToken(headers.authorization || headers.Authorization);
     if (!token) throw new HttpError(401, 'unauthorized', 'Authentication required');
     const session = await store.getSession(token.sessionId);
-    if (!session || session.revoked_at || new Date(session.expires_at) <= now() || !verifySecret(token.secret, session.secret_hash)) {
-      throw new HttpError(401, 'unauthorized', 'Invalid session');
-    }
+    validateSession(session, token);
     const user = await store.getUser(session.user_id);
-    if (!user || user.status !== 'active') throw new HttpError(401, 'unauthorized', 'Invalid session');
+    validateUser(user);
     return { user, session };
   }
 
@@ -399,6 +405,18 @@ function createApp(store, options = {}) {
         const changed = await store.resetPassword(tokenHash, passwordHash, now());
         if (!changed) throw new HttpError(400, 'invalid_reset_token', 'Reset link is invalid or expired');
         return response(204, null);
+      }
+      if (method === 'GET' && pathname === '/bootstrap') {
+        const token = parseToken(headers.authorization || headers.Authorization);
+        if (!token) throw new HttpError(401, 'unauthorized', 'Authentication required');
+        const startup = await store.loadBootstrap(token.sessionId, ({ session, user }) => {
+          validateSession(session, token);
+          validateUser(user);
+        });
+        return response(200, {
+          user: publicUser(startup.user), incomes: startup.incomes, categories: startup.categories,
+          settings: startup.settings.filter((row) => !String(row.setting_key).startsWith('auth.'))
+        });
       }
       const { user, session } = await authenticate(headers);
       const userId = user.user_id;

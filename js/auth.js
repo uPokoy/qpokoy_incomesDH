@@ -266,6 +266,7 @@
   let cloudBusy=false;
   let pendingWriteFlush=null;
   let authSyncRun=0;
+  let cloudSettings=[];
   const LOCAL_INCOME_OWNER_KEY='qPokoyIncomeOwnerId';
   // A durable per-user write journal survives immediate tab close and reload.
   // Never erase it when clearing the local cloud cache or changing accounts.
@@ -427,15 +428,12 @@
     return pendingWriteFlush;
   }
 
-  async function loadCloudIncome(session,runId){
+  async function loadCloudIncome(session,runId,data){
     if(!session||!session.user)return false;
     const requestedUserId=String(session.user.id||'');
     cloudUser=session.user;
     cloudReady=false;
     clearLocalIncomeCache();
-    let data;
-    try{data=await api.listIncomes();}
-    catch(error){if(runId===authSyncRun)cloudError('Не удалось загрузить доходы из облака.',error);return false;}
     if(runId!==authSyncRun||!cloudUser||String(cloudUser.id||'')!==requestedUserId)return false;
 
     const cloudRows=Array.isArray(data)?data:[];
@@ -464,7 +462,6 @@
     if(journalChanged)savePendingCloudWrites(journal);
     IncomeStore.save([...merged.values()]);
     cloudReady=true;
-    await flushPendingCloudRecords();
     if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
     else if(typeof window.renderIncomes==='function') window.renderIncomes();
     if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
@@ -621,9 +618,14 @@
     }catch(error){ cloudError('Не удалось импортировать доходы в облако.',error); }
   };
 
-  async function sync(session){
+  async function sync(session,startup=null){
     const runId=++authSyncRun;
     if(session&&session.user){
+      showGate(true,true);
+      startup=startup||await api.bootstrap();
+      if(runId!==authSyncRun)return;
+      if(!startup){await sync(null);return;}
+      session={user:apiUser(startup.user)};
       const nextUserId=String(session.user.id||'');
       let previousOwner='';
       try{ previousOwner=localStorage.getItem(LOCAL_INCOME_OWNER_KEY)||''; }catch(e){}
@@ -631,7 +633,7 @@
       try{ localStorage.setItem(LOCAL_INCOME_OWNER_KEY,nextUserId); }catch(e){}
       showGate(true,true);
       if(accountEmail) accountEmail.textContent=session.user.email||'';
-      const loaded=await loadCloudIncome(session,runId);
+      const loaded=await loadCloudIncome(session,runId,startup.incomes);
       if(runId!==authSyncRun)return;
       if(!loaded){
         if(cloudUser&&String(cloudUser.id||'')===nextUserId){
@@ -641,7 +643,7 @@
         return;
       }
       if(typeof window.qPokoyLoadCategories==='function'){
-        try{await window.qPokoyLoadCategories(session.user);}
+        try{await window.qPokoyLoadCategories(session.user,startup.categories);}
         catch(error){
           cloudError('Не удалось загрузить категории.',error);
           showGate(true);
@@ -649,10 +651,13 @@
           return;
         }
       }
+      if(runId!==authSyncRun)return;
+      cloudSettings=startup.settings.map(row=>({...row}));
       await flushPendingCloudRecords();
       if(runId===authSyncRun&&cloudUser&&String(cloudUser.id||'')===nextUserId&&cloudReady) showGate(false);
     }else{
       cloudUser=null; cloudReady=false;
+      cloudSettings=[];
       clearLocalIncomeCache();
       try{ localStorage.removeItem(LOCAL_INCOME_OWNER_KEY); }catch(e){}
       showGate(true);
@@ -714,11 +719,11 @@
           :'Не удалось войти через '+providerName+'. Попробуйте ещё раз.'));
     setMessage(errorText,'error',message);
   }else{
-    api.restoreSession().then(user=>sync(user?{user:apiUser(user)}:null)).catch(error=>{
+    api.bootstrap().then(startup=>sync(startup?{user:apiUser(startup.user)}:null,startup)).catch(error=>{
       showGate(true);
       setMessage(friendlyError(error),'error');
     });
   }
 
-  window.qPokoyAuth={client:api,showGate,setMode};
+  window.qPokoyAuth={client:api,showGate,setMode,getSettings:()=>cloudSettings.map(row=>({...row}))};
 })();

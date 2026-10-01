@@ -11,14 +11,16 @@ const oldRow={id:'11111111-1111-4111-8111-111111111111',user_id:user.user_id,inc
 const otherEntry={userId:'user-2',kind:'add',record:{id:'22222222-2222-4222-8222-222222222222',date:'02.09.26',category:'Зарплата',description:'Другой пользователь',amount:20}};
 const journalKey='qPokoyIncomeWriteJournalV1';
 
-function setup(overrides={}){
-  const values=new Map([[journalKey,JSON.stringify([otherEntry])]]);
+function setup(overrides={},options={}){
+  const values=new Map([[journalKey,JSON.stringify(options.journal||[otherEntry])]]);
   const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
   const nodes=new Map();
   function node(id){
     if(!nodes.has(id))nodes.set(id,{
       id,hidden:false,disabled:false,textContent:'',className:'',value:'',listeners:{},
       classList:{toggle(){}},
+      checkValidity(){return true;},
+      reset(){},
       addEventListener(name,handler){this.listeners[name]=handler;},
       querySelector(){return {textContent:''};}
     });
@@ -33,22 +35,59 @@ function setup(overrides={}){
   let confirmation=null;
   const api={
     setUnauthorizedHandler(){},
-    async restoreSession(){return user;},
+    async bootstrap(){calls.push('bootstrap');return {user,incomes:[oldRow],categories:[],settings:[]};},
     async listIncomes(){calls.push('list');return [oldRow];},
     async replaceIncomes(rows){calls.push({replace:rows});return rows.map((row,i)=>({...row,id:row.id||`33333333-3333-4333-8333-33333333333${i}`,user_id:user.user_id}));},
     async deleteAllIncomes(){calls.push('deleteAll');},
     async deleteAccount(){calls.push('deleteAccount');},
     ...overrides
   };
-  const win={qPokoyApi:api,qPokoyLoadCategories:async()=>{categoryLoads++;},qPokoyNotice:(...args)=>notices.push(args),qPokoyConfirm:(title,message,callback)=>{confirmation=callback;},addEventListener(){}};
+  const win={qPokoyApi:api,qPokoyLoadCategories:async(user,rows)=>{categoryLoads++;calls.push({categories:rows});},qPokoyNotice:(...args)=>notices.push(args),qPokoyConfirm:(title,message,callback)=>{confirmation=callback;},qPokoyConfirmPhrase:(title,message,phrase,callback)=>{confirmation=callback;},addEventListener(){}};
   const store={load:()=>records,save(next){records=next;saves.push(next);}};
-  vm.runInNewContext(source,{window:win,document,localStorage:storage,IncomeStore:store,console:{error(){}},Date,Promise});
+  vm.runInNewContext(source,{window:win,document,localStorage:storage,IncomeStore:store,console:{error(){}},Date,Promise,
+    URLSearchParams,URL,location:{search:options.search||'',href:'https://qpokoy.ru/'+(options.search||'')},history:{replaceState(){}}});
   return {win,api,values,nodes,notices,calls,saves,get records(){return records;},get categoryLoads(){return categoryLoads;},confirm:()=>confirmation()};
 }
 async function ready(h){
   for(let i=0;i<10&&!h.nodes.get('qpAuthGate').hidden;i++)await new Promise(resolve=>setImmediate(resolve));
   assert.equal(h.nodes.get('qpAuthGate').hidden,true);
 }
+
+test('startup consumes bootstrap data with no legacy GETs and exposes settings',async()=>{
+  const settings=[{setting_key:'theme',setting_value:'dark'}];
+  let requests=0;
+  const h=setup({async bootstrap(){requests++;return {user,incomes:[oldRow],categories:[{id:'c1',name:'Зарплата'}],settings};}});
+  await ready(h);
+  assert.equal(requests,1);
+  assert.equal(h.calls.includes('list'),false);
+  assert.equal(h.calls.find(x=>x.categories)?.categories[0].name,'Зарплата');
+  assert.equal(h.win.qPokoyAuth.getSettings()[0].setting_value,'dark');
+});
+
+test('email login and OAuth ticket both initialize through bootstrap',async()=>{
+  const h=setup({async login(){return user;}});
+  await ready(h);
+  h.nodes.get('qpAuthEmail').value=user.email;
+  h.nodes.get('qpAuthPassword').value='test-password';
+  const form=h.nodes.get('qpAuthForm');
+  await form.listeners.submit({preventDefault(){},currentTarget:form});
+  assert.equal(h.calls.filter(x=>x==='bootstrap').length,2);
+  assert.equal(h.calls.includes('list'),false);
+  const oauth=setup({async exchangeOAuthTicket(){return user;}},{search:'?oauth_ticket=test-ticket'});
+  await ready(oauth);
+  assert.equal(oauth.calls.filter(x=>x==='bootstrap').length,1);
+  assert.equal(oauth.calls.includes('list'),false);
+});
+
+test('startup attempts a failing pending write once and keeps its journal',async()=>{
+  const ownEntry={userId:user.user_id,kind:'add',record:{id:'44444444-4444-4444-8444-444444444444',date:'03.09.26',category:'Зарплата',description:'Ожидает',amount:30}};
+  let attempts=0;
+  const h=setup({async addIncome(){attempts++;throw new Error('offline');}},{journal:[otherEntry,ownEntry]});
+  await ready(h);
+  assert.equal(attempts,1);
+  assert.equal(h.records.length,2);
+  assert.deepEqual(JSON.parse(h.values.get(journalKey)),[otherEntry,ownEntry]);
+});
 
 test('backup import replaces in one call and preserves another user journal',async()=>{
   const h=setup();
@@ -126,11 +165,13 @@ test('account deletion leaves UI on failure and clears own journal on success',a
   h.values.set(journalKey,JSON.stringify([otherEntry,ownEntry]));
   h.nodes.get('qpAuthDeleteAccountBtn').listeners.click();
   await h.confirm();
+  await h.confirm();
   assert.equal(h.nodes.get('qpAuthGate').hidden,true);
   assert.equal(h.records.length,1);
   assert.equal(JSON.parse(h.values.get(journalKey)).length,2);
   fail=false;
   h.nodes.get('qpAuthDeleteAccountBtn').listeners.click();
+  await h.confirm();
   await h.confirm();
   assert.equal(h.nodes.get('qpAuthGate').hidden,false);
   assert.equal(h.records.length,0);

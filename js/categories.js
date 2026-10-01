@@ -167,9 +167,11 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
     }
   }
 
-  async function loadForUser(user){
+  async function loadForUser(user,bootstrapCategories){
     const generation=++loadGeneration;
-    const nextCategories=user?await fetchCategories(user.id):[];
+    const nextCategories=!user?[]:(Array.isArray(bootstrapCategories)
+      ?sortCategories(bootstrapCategories.map(x=>({id:String(x.id),name:normalizeName(x.name)})).filter(x=>x.name))
+      :await fetchCategories(user.id));
     if(generation!==loadGeneration)return;
     currentUser=user||null;
     categories=nextCategories;

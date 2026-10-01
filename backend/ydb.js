@@ -60,6 +60,39 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
   const conflict = (error) => /already exists|duplicate|precondition.failed|constraint/i.test(String(error?.message || ''));
 
   return {
+    // Two executeQuery calls in one borrowed session. Validate the bearer secret
+    // before reading any user-owned data; never cache authentication across requests.
+    async loadBootstrap(sessionId, validate) {
+      await ready();
+      return withResourceRetry(() => driver.tableClient.withSession(async (session) => {
+        const authResult = await session.executeQuery(`DECLARE $id AS Utf8;
+          SELECT s.session_id AS session_id,s.user_id AS user_id,s.secret_hash AS secret_hash,
+            s.created_at AS session_created_at,s.expires_at AS expires_at,
+            s.last_seen_at AS last_seen_at,s.revoked_at AS revoked_at,
+            u.email AS email,u.status AS status,u.created_at AS created_at,
+            u.updated_at AS updated_at,u.trial_ends_at AS trial_ends_at
+          FROM (SELECT session_id,user_id,secret_hash,created_at,expires_at,last_seen_at,revoked_at
+            FROM \`sessions\` WHERE session_id=$id) AS s
+          INNER JOIN \`users\` AS u ON s.user_id=u.user_id;`, { $id: U(sessionId) });
+        const row = authResult.resultSets?.[0] ? TypedData.createNativeObjects(authResult.resultSets[0])[0] : null;
+        const auth = {
+          session: row ? { session_id: row.session_id, user_id: row.user_id, secret_hash: row.secret_hash,
+            created_at: row.session_created_at, expires_at: row.expires_at,
+            last_seen_at: row.last_seen_at, revoked_at: row.revoked_at } : null,
+          user: row ? { user_id: row.user_id, email: row.email, status: row.status,
+            created_at: row.created_at, updated_at: row.updated_at, trial_ends_at: row.trial_ends_at } : null
+        };
+        validate(auth);
+        const result = await session.executeQuery(`DECLARE $uid AS Utf8;
+          SELECT user_id,id,income_date,category,description,amount,created_at,updated_at
+            FROM \`incomes\` WHERE user_id=$uid ORDER BY income_date DESC,created_at DESC;
+          SELECT user_id,id,name,created_at FROM \`categories\` WHERE user_id=$uid ORDER BY created_at ASC;
+          SELECT user_id,setting_key,setting_value,updated_at FROM \`settings\` WHERE user_id=$uid ORDER BY setting_key;`,
+        { $uid: U(auth.user.user_id) });
+        const rows = (index) => result.resultSets?.[index] ? TypedData.createNativeObjects(result.resultSets[index]) : [];
+        return { user: auth.user, incomes: rows(0), categories: rows(1), settings: rows(2) };
+      }));
+    },
     health: async () => { await query('SELECT 1 AS ok;'); },
     async consumeRateLimit(bucketKey, limit, windowMs, when) {
       const uid = '__rate_limit__';

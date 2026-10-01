@@ -76,6 +76,16 @@
         try{return (await request('GET','/auth/me')).user;}
         catch(error){if(error.status===401)return null;throw error;}
       },
+      async bootstrap(){
+        if(!getToken())return null;
+        try{
+          const payload=await request('GET','/bootstrap');
+          if(!payload?.user?.user_id||!Array.isArray(payload.incomes)||!Array.isArray(payload.categories)||!Array.isArray(payload.settings)){
+            throw new ApiError(0,'invalid_response','Сервер не вернул данные для запуска приложения.');
+          }
+          return payload;
+        }catch(error){if(error.status===401)return null;throw error;}
+      },
       async logout(){try{await request('POST','/auth/logout');}finally{clearToken();}},
       async deleteAccount(){await request('DELETE','/auth/me');clearToken();},
       async listIncomes(){return (await request('GET','/incomes')).data;},
