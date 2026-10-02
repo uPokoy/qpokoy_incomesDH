@@ -10,11 +10,6 @@ class OAuthProviderError extends Error {
 }
 
 const PROVIDERS = {
-  google: {
-    authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-    tokenUrl: 'https://oauth2.googleapis.com/token',
-    userInfoUrl: 'https://openidconnect.googleapis.com/v1/userinfo'
-  },
   yandex: {
     authorizationUrl: 'https://oauth.yandex.ru/authorize',
     tokenUrl: 'https://oauth.yandex.ru/token',
@@ -26,15 +21,7 @@ function createOAuthService(env = process.env, fetchImpl = globalThis.fetch) {
   if (typeof fetchImpl !== 'function') throw new Error('Fetch is required for OAuth');
 
   function config(provider) {
-    if (!PROVIDERS[provider]) return null;
-    if (provider === 'google') {
-      return {
-        provider,
-        clientId: String(env.GOOGLE_OAUTH_CLIENT_ID || '').trim(),
-        clientSecret: String(env.GOOGLE_OAUTH_CLIENT_SECRET || '').trim(),
-        ...PROVIDERS.google
-      };
-    }
+    if (provider !== 'yandex') return null;
     return {
       provider,
       clientId: String(env.YANDEX_OAUTH_CLIENT_ID || '').trim(),
@@ -62,10 +49,6 @@ function createOAuthService(env = process.env, fetchImpl = globalThis.fetch) {
     url.searchParams.set('client_id', cfg.clientId);
     url.searchParams.set('redirect_uri', redirectUri);
     url.searchParams.set('state', state);
-    if (provider === 'google') {
-      url.searchParams.set('scope', 'openid email profile');
-      url.searchParams.set('include_granted_scopes', 'true');
-    }
     return url.toString();
   }
 
@@ -75,14 +58,11 @@ function createOAuthService(env = process.env, fetchImpl = globalThis.fetch) {
     if (!code) throw new OAuthProviderError('oauth_invalid_code', 'OAuth authorization code is missing', 400);
 
     const form = new URLSearchParams({ grant_type: 'authorization_code', code });
-    const headers = { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' };
-    if (provider === 'google') {
-      form.set('client_id', cfg.clientId);
-      form.set('client_secret', cfg.clientSecret);
-      form.set('redirect_uri', redirectUri);
-    } else {
-      headers.Authorization = 'Basic ' + Buffer.from(cfg.clientId + ':' + cfg.clientSecret).toString('base64');
-    }
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+      Authorization: 'Basic ' + Buffer.from(cfg.clientId + ':' + cfg.clientSecret).toString('base64')
+    };
 
     const tokenResponse = await fetchImpl(cfg.tokenUrl, { method: 'POST', headers, body: form.toString() });
     const tokenPayload = await readJson(tokenResponse, 'oauth_token_error');
@@ -90,21 +70,11 @@ function createOAuthService(env = process.env, fetchImpl = globalThis.fetch) {
       throw new OAuthProviderError('oauth_token_error', 'OAuth provider rejected the authorization code', 502);
     }
 
-    const userHeaders = provider === 'google'
-      ? { Authorization: 'Bearer ' + tokenPayload.access_token, Accept: 'application/json' }
-      : { Authorization: 'OAuth ' + tokenPayload.access_token, Accept: 'application/json' };
-    const userResponse = await fetchImpl(cfg.userInfoUrl, { headers: userHeaders });
+    const userResponse = await fetchImpl(cfg.userInfoUrl, {
+      headers: { Authorization: 'OAuth ' + tokenPayload.access_token, Accept: 'application/json' }
+    });
     const profile = await readJson(userResponse, 'oauth_profile_error');
     if (!userResponse.ok) throw new OAuthProviderError('oauth_profile_error', 'Could not load OAuth user profile', 502);
-
-    if (provider === 'google') {
-      const providerUserId = String(profile.sub || '').trim();
-      const email = String(profile.email || '').trim().toLowerCase();
-      if (!providerUserId || !email || profile.email_verified !== true) {
-        throw new OAuthProviderError('oauth_email_unavailable', 'Google account must provide a verified email address', 400);
-      }
-      return { provider, providerUserId, email };
-    }
 
     const providerUserId = String(profile.id || '').trim();
     const email = String(profile.default_email || '').trim().toLowerCase();
