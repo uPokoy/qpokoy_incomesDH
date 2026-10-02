@@ -311,10 +311,10 @@ test('health, register, login, me, logout and old-token rejection', async () => 
 });
 
 
-test('OAuth login creates, links and exchanges a single-use qPokoy session ticket', async () => {
+test('Yandex OAuth login creates and exchanges a single-use qPokoy session ticket', async () => {
   const store = memoryStore();
   const oauth = {
-    isConfigured: (provider) => ['google', 'yandex'].includes(provider),
+    isConfigured: (provider) => provider === 'yandex',
     signingSecret: (provider) => 'test-secret-for-' + provider,
     authorizationUrl: (provider, state, redirectUri) => {
       const url = new URL('https://provider.test/authorize');
@@ -356,14 +356,11 @@ test('OAuth login creates, links and exchanges a single-use qPokoy session ticke
     return exchange.body;
   }
 
-  const google = await oauthLogin('google');
-  assert.deepEqual((await app.handle('GET', '/categories', {}, auth(google.token))).body.data.map((x) => x.name),
+  const yandex = await oauthLogin('yandex');
+  assert.deepEqual((await app.handle('GET', '/categories', {}, auth(yandex.token))).body.data.map((x) => x.name),
     ['Зарплата', 'Подработка', 'Прочее']);
 
-  const yandex = await oauthLogin('yandex');
-  assert.equal(yandex.user.user_id, google.user.user_id);
-
-  const badState = await app.handle('GET', '/auth/oauth/google/callback?code=good-code&state=bad');
+  const badState = await app.handle('GET', '/auth/oauth/yandex/callback?code=good-code&state=bad');
   assert.equal(badState.status, 302);
   assert.equal(new URL(badState.headers.Location).searchParams.get('oauth_error'), 'oauth_invalid_state');
 });
@@ -421,9 +418,9 @@ test('rate limits registration, password guessing, password reset and OAuth star
   assert.equal((await app.handle('POST', '/auth/password-reset/request', { email: 'rate@example.com' }, {}, ctx2)).status, 202);
   assert.equal((await app.handle('POST', '/auth/password-reset/request', { email: 'rate@example.com' }, {}, ctx3)).status, 429);
 
-  assert.equal((await app.handle('GET', '/auth/oauth/google/start', {}, {}, ctx1)).status, 200);
-  assert.equal((await app.handle('GET', '/auth/oauth/google/start', {}, {}, ctx1)).status, 200);
-  assert.equal((await app.handle('GET', '/auth/oauth/google/start', {}, {}, ctx1)).status, 429);
+  assert.equal((await app.handle('GET', '/auth/oauth/yandex/start', {}, {}, ctx1)).status, 200);
+  assert.equal((await app.handle('GET', '/auth/oauth/yandex/start', {}, {}, ctx1)).status, 200);
+  assert.equal((await app.handle('GET', '/auth/oauth/yandex/start', {}, {}, ctx1)).status, 429);
 });
 
 test('email verification gates registration, expires, is single-use and starts the trial on confirmation', async () => {
