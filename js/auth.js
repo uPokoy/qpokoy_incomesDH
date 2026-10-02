@@ -10,7 +10,6 @@
   const signupSubmit=document.getElementById('qpAuthSignupSubmit');
   const resetSubmit=document.getElementById('qpAuthResetSubmit');
   const yandexButton=document.getElementById('qpAuthYandex');
-  const googleButton=document.getElementById('qpAuthGoogle');
   const reset=document.getElementById('qpAuthReset');
   const resetMessage=document.getElementById('qpAuthResetMessage');
   const resetPassword=document.getElementById('qpAuthResetPassword');
@@ -36,8 +35,6 @@
   function oauthLabel(button){return button.querySelector('.qp-auth-oauth-label');}
   function setOAuthButtonText(button,text){oauthLabel(button).textContent=text;}
   function resetOAuthButtons(){
-    googleButton.disabled=false;
-    setOAuthButtonText(googleButton,'Вход через Google');
     yandexButton.disabled=false;
     setOAuthButtonText(yandexButton,'Вход через Яндекс');
   }
@@ -65,7 +62,6 @@
     reset.hidden=signup||resetting;
     oauthDivider.hidden=resetting;
     yandexButton.hidden=resetting;
-    googleButton.hidden=resetting;
     setMessage('',null,message);
     setMessage('',null,signupMessage);
     setMessage('',null,resetConfirmMessage);
@@ -112,7 +108,6 @@
   }
 
   yandexButton.addEventListener('click',()=>beginOAuth('yandex',yandexButton,'Вход через Яндекс'));
-  googleButton.addEventListener('click',()=>beginOAuth('google',googleButton,'Вход через Google'));
   async function handleAuthSubmit(e){
     e.preventDefault();
     const isSignup=e.currentTarget===signupForm;
@@ -717,7 +712,7 @@
     cleanUrl.searchParams.delete('oauth_error');
     cleanUrl.searchParams.delete('oauth_provider');
     history.replaceState(null,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
-    const providerName=oauthProvider==='google'?'Google':(oauthProvider==='yandex'?'Яндекс':'OAuth');
+    const providerName=oauthProvider==='yandex'?'Яндекс':'OAuth';
     const errorText=oauthError==='oauth_cancelled'
       ?'Вход через '+providerName+' отменён.'
       :(oauthError==='oauth_not_configured'
