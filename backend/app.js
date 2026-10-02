@@ -194,7 +194,7 @@ function createApp(store, options = {}) {
         return response(200, { status: 'ok' });
       }
 
-      const oauthStartMatch = /^\/auth\/oauth\/(google|yandex)\/start$/.exec(pathname);
+      const oauthStartMatch = /^\/auth\/oauth\/(yandex)\/start$/.exec(pathname);
       if (method === 'GET' && oauthStartMatch) {
         await enforceRateLimit('oauthStartIp', sourceIp);
         const provider = oauthStartMatch[1];
@@ -207,7 +207,7 @@ function createApp(store, options = {}) {
         return response(200, { url: oauth.authorizationUrl(provider, state, oauthCallbackUrl(provider)) });
       }
 
-      const oauthCallbackMatch = /^\/auth\/oauth\/(google|yandex)\/callback$/.exec(pathname);
+      const oauthCallbackMatch = /^\/auth\/oauth\/(yandex)\/callback$/.exec(pathname);
       if (method === 'GET' && oauthCallbackMatch) {
         const provider = oauthCallbackMatch[1];
         try {
@@ -285,7 +285,7 @@ function createApp(store, options = {}) {
         const ticket = requiredString(body.ticket, 'ticket', 4096);
         const peek = decodePayload(ticket);
         const provider = peek?.p;
-        if (!['google', 'yandex'].includes(provider) || !oauth.isConfigured(provider)) {
+        if (provider !== 'yandex' || !oauth.isConfigured(provider)) {
           throw new HttpError(400, 'invalid_oauth_ticket', 'Invalid OAuth login ticket');
         }
         const payload = verifyPayload(oauth.signingSecret(provider), ticket);
