@@ -18,6 +18,7 @@
   const resetConfirmMessage=document.getElementById('qpAuthResetConfirmMessage');
   const resetBack=document.getElementById('qpAuthResetBack');
   const oauthDivider=document.getElementById('qpAuthOAuthDivider');
+  const privacyNav=document.getElementById('qpAuthPrivacyNav');
   const email=document.getElementById('qpAuthEmail');
   const password=document.getElementById('qpAuthPassword');
   const signupEmail=document.getElementById('qpAuthSignupEmail');
@@ -63,6 +64,7 @@
     reset.hidden=signup||resetting;
     oauthDivider.hidden=signup||resetting;
     yandexButton.hidden=signup||resetting;
+    privacyNav.hidden=signup||resetting;
     setMessage('',null,message);
     setMessage('',null,signupMessage);
     setMessage('',null,resetConfirmMessage);
