@@ -1,0 +1,40 @@
+name: One-time bump DEV161
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bump-dev-161.yml
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Bump DEV to 161
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          old = 'dev-2026.10.02.160'
+          new = 'dev-2026.10.03.161'
+          for name in ('index.html', 'js/app.js'):
+              path = Path(name)
+              text = path.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'{old} not found in {name}')
+              path.write_text(text.replace(old, new), encoding='utf-8')
+          PY
+          git diff --check
+          git config user.name "qPokoy GitHub Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html js/app.js
+          git commit -m "Bump site version to DEV161"
+          git push origin HEAD:main
