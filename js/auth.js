@@ -8,6 +8,7 @@
   const resetForm=document.getElementById('qpAuthResetForm');
   const submit=document.getElementById('qpAuthSubmit');
   const signupSubmit=document.getElementById('qpAuthSignupSubmit');
+  const signupAgreement=document.getElementById('qpAuthAgreement');
   const resetSubmit=document.getElementById('qpAuthResetSubmit');
   const yandexButton=document.getElementById('qpAuthYandex');
   const reset=document.getElementById('qpAuthReset');
@@ -60,8 +61,8 @@
     signupForm.hidden=!signup;
     resetForm.hidden=!resetting;
     reset.hidden=signup||resetting;
-    oauthDivider.hidden=resetting;
-    yandexButton.hidden=resetting;
+    oauthDivider.hidden=signup||resetting;
+    yandexButton.hidden=signup||resetting;
     setMessage('',null,message);
     setMessage('',null,signupMessage);
     setMessage('',null,resetConfirmMessage);
@@ -87,6 +88,7 @@
   function apiUser(user){return user?{...user,id:String(user.user_id||user.id)}:null;}
 
   tabs.forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.authMode)));
+  signupAgreement.addEventListener('change',()=>{signupSubmit.disabled=!signupAgreement.checked;});
 
   async function beginOAuth(provider,button,label){
     setMessage('');
@@ -121,12 +123,14 @@
     if(!mail||!formEmail.checkValidity()){setMessage('Введите корректный email.','error',feedback);return;}
     if(pass.length<8){setMessage('Пароль должен содержать минимум 8 символов.','error',feedback);return;}
     if(isSignup && pass!==confirm.value){setMessage('Пароли не совпадают.','error',feedback);return;}
+    if(isSignup && !signupAgreement.checked){setMessage('Подтвердите принятие Оферты и ознакомление с Политикой конфиденциальности.','error',feedback);return;}
 
     formSubmit.disabled=true;
     try{
       if(isSignup){
         const result=await api.register(mail,pass);
         signupForm.reset();
+        signupSubmit.disabled=true;
         if(result&&result.verification_required){
           setMode('login');
           email.value=mail;
@@ -706,21 +710,24 @@
         :friendlyError(error),'error',message);
     });
   }else if(oauthError){
-    setMode('login');
+    const registrationRequired=oauthError==='oauth_registration_required';
+    setMode(registrationRequired?'signup':'login');
     showGate(true);
     const cleanUrl=new URL(location.href);
     cleanUrl.searchParams.delete('oauth_error');
     cleanUrl.searchParams.delete('oauth_provider');
     history.replaceState(null,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
     const providerName=oauthProvider==='yandex'?'Яндекс':'OAuth';
-    const errorText=oauthError==='oauth_cancelled'
-      ?'Вход через '+providerName+' отменён.'
-      :(oauthError==='oauth_not_configured'
-        ?'Вход через '+providerName+' пока не настроен.'
-        :(oauthError==='rate_limited'
-          ?'Слишком много попыток входа. Попробуйте позже.'
-          :'Не удалось войти через '+providerName+'. Попробуйте ещё раз.'));
-    setMessage(errorText,'error',message);
+    const errorText=registrationRequired
+      ?'Сначала зарегистрируйтесь, подтвердив Оферту и Политику конфиденциальности. После этого можно входить через Яндекс.'
+      :(oauthError==='oauth_cancelled'
+        ?'Вход через '+providerName+' отменён.'
+        :(oauthError==='oauth_not_configured'
+          ?'Вход через '+providerName+' пока не настроен.'
+          :(oauthError==='rate_limited'
+            ?'Слишком много попыток входа. Попробуйте позже.'
+            :'Не удалось войти через '+providerName+'. Попробуйте ещё раз.')));
+    setMessage(errorText,'error',registrationRequired?signupMessage:message);
   }else{
     api.bootstrap().then(startup=>sync(startup?{user:apiUser(startup.user)}:null,startup)).catch(error=>{
       showGate(true);
