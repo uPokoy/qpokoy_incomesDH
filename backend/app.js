@@ -237,7 +237,26 @@ function createApp(store, options = {}) {
                 user = await store.activateUser(user.user_id, verifiedAt, new Date(verifiedAt.getTime() + 14 * 86400000));
               }
             } else {
-              return oauthErrorRedirect(provider, 'oauth_registration_required');
+              const createdAt = now();
+              const candidate = {
+                user_id: randomUUID(), email: profile.email, status: 'active',
+                created_at: createdAt, updated_at: createdAt,
+                trial_ends_at: new Date(createdAt.getTime() + 14 * 86400000)
+              };
+              const categories = DEFAULT_CATEGORIES.map((name) => ({
+                user_id: candidate.user_id, id: randomUUID(), name, created_at: createdAt
+              }));
+              const created = await store.registerOAuth(candidate, provider, profile.providerUserId, categories);
+              if (created) {
+                user = candidate;
+              } else {
+                identity = await store.getIdentity(provider, profile.providerUserId);
+                const fallback = identity || await store.getIdentity('email', profile.email);
+                user = fallback ? await store.getUser(fallback.user_id) : null;
+                if (user && !identity && !await store.linkIdentity(provider, profile.providerUserId, user.user_id, now())) {
+                  user = null;
+                }
+              }
             }
           }
           if (!user || user.status !== 'active') return oauthErrorRedirect(provider, 'oauth_account_unavailable');

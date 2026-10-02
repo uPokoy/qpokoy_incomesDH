@@ -311,7 +311,7 @@ test('health, register, login, me, logout and old-token rejection', async () => 
 });
 
 
-test('Yandex OAuth login links a registered account and exchanges a single-use qPokoy session ticket', async () => {
+test('Yandex OAuth login creates and exchanges a single-use qPokoy session ticket', async () => {
   const store = memoryStore();
   const oauth = {
     isConfigured: (provider) => provider === 'yandex',
@@ -324,12 +324,8 @@ test('Yandex OAuth login links a registered account and exchanges a single-use q
       return url.toString();
     },
     exchange: async (provider, code) => {
-      const isNew = code === 'new-code';
-      return {
-        provider,
-        providerUserId: provider + '-' + (isNew ? 'new-user-456' : 'user-123'),
-        email: isNew ? 'new-oauth@example.com' : 'oauth@example.com'
-      };
+      assert.equal(code, 'good-code');
+      return { provider, providerUserId: provider + '-user-123', email: 'oauth@example.com' };
     }
   };
   const app = createApp(store, {
@@ -338,9 +334,6 @@ test('Yandex OAuth login links a registered account and exchanges a single-use q
     appBaseUrl: 'https://qpokoy.ru/',
     oauthCallbackBaseUrl: 'https://api.example.test'
   });
-
-  const registered = await register(app, 'oauth@example.com');
-  assert.equal(registered.status, 201);
 
   async function oauthLogin(provider) {
     const start = await app.handle('GET', `/auth/oauth/${provider}/start`);
@@ -364,17 +357,8 @@ test('Yandex OAuth login links a registered account and exchanges a single-use q
   }
 
   const yandex = await oauthLogin('yandex');
-  assert.equal(yandex.user.user_id, registered.body.user.user_id);
   assert.deepEqual((await app.handle('GET', '/categories', {}, auth(yandex.token))).body.data.map((x) => x.name),
     ['Зарплата', 'Подработка', 'Прочее']);
-
-  const newStart = await app.handle('GET', '/auth/oauth/yandex/start');
-  const newState = new URL(newStart.body.url).searchParams.get('state');
-  const newCallback = await app.handle('GET', `/auth/oauth/yandex/callback?code=new-code&state=${encodeURIComponent(newState)}`);
-  assert.equal(newCallback.status, 302);
-  const newReturnUrl = new URL(newCallback.headers.Location);
-  assert.equal(newReturnUrl.searchParams.get('oauth_error'), 'oauth_registration_required');
-  assert.equal(newReturnUrl.searchParams.get('oauth_ticket'), null);
 
   const badState = await app.handle('GET', '/auth/oauth/yandex/callback?code=good-code&state=bad');
   assert.equal(badState.status, 302);
