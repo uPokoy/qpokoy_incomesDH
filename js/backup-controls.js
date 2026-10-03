@@ -78,7 +78,6 @@
     block.id='qpBillingSettings';
     block.style.cssText='margin-top:20px;padding-top:18px;border-top:1px solid rgba(151,189,237,.16);';
     block.innerHTML=''
-      +'<div class="settings-title" style="font-size:16px;">Подписка и оплата</div>'
       +'<div id="qpBillingStatus" class="settings-card-subtitle" style="margin-top:7px;">Проверяем состояние подписки…</div>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
