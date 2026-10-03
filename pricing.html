@@ -13,7 +13,7 @@
 :root{color-scheme:dark;--bg:#08101c;--panel:#101f33;--line:rgba(151,189,237,.2);--text:#f2f7ff;--muted:#a9bdd6;--blue:#71afff}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;min-height:100vh;min-height:100dvh;font:15px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:radial-gradient(80% 60% at 10% -10%,rgba(52,94,151,.25),transparent 68%),radial-gradient(65% 55% at 105% 25%,rgba(35,79,137,.19),transparent 70%),linear-gradient(145deg,#060a12,#0c1829 52%,#070d16)}
-a{color:inherit}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+a{color:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
 .wrap{width:min(1120px,calc(100% - 36px));margin:auto}
 .head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:23px 0}
 .logo{font-weight:800;font-size:26px;letter-spacing:-.055em;text-decoration:none}.logo span{color:var(--blue)}
@@ -36,7 +36,7 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 .plan ul{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:12px;flex:1}
 .plan li{display:flex;align-items:flex-start;gap:9px;color:#dfebfa;font-size:13px}
 .plan li:before{content:"✓";color:#82bfff;font-weight:800}
-.renew-option{display:flex;align-items:flex-start;gap:8px;min-height:42px;margin:0 0 12px;color:#c9daef;font-size:12px;line-height:1.35}.renew-option input{margin:2px 0 0;accent-color:#71afff}
+.renew-option{min-height:42px;margin:0 0 12px;color:#c9daef;font-size:12px;line-height:1.35}
 .payment-action,.subscription-action{width:100%;border:1px solid rgba(116,177,255,.48);border-radius:11px;background:rgba(67,126,204,.28);color:#eef6ff;padding:11px 12px;font:inherit;font-weight:750;cursor:pointer}.payment-action:hover,.subscription-action:hover{background:rgba(79,143,226,.38)}.payment-action:disabled,.subscription-action:disabled{opacity:.55;cursor:not-allowed}
 .payment-message{min-height:22px;text-align:center;color:#bcd0e8;font-size:13px;margin:15px 0 0}.payment-message[data-error="true"]{color:#ffb8b8}
 .caption{text-align:center;color:var(--muted);font-size:12px;margin:10px 0 0}
@@ -70,15 +70,15 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <article class="plan">
 <div class="plan-head"><h2>Месяц</h2></div>
 <div class="price">149 <small>₽</small></div><div class="cycle">за 1 месяц</div><div class="line"></div>
-<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Автопродление только с отдельного согласия</li></ul>
-<label class="renew-option"><input type="checkbox" data-renew="monthly"> Согласен на автопродление: 149 ₽ каждый месяц до отключения</label>
+<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li></ul>
+<div class="renew-option">Автопродление. Отменить можно в любой момент.</div>
 <button type="button" class="payment-action" data-plan="monthly">Оплатить 149 ₽</button>
 </article>
 <article class="plan">
 <div class="plan-head"><h2>Год</h2><span class="pill">12 месяцев</span></div>
 <div class="price">1 190 <small>₽</small></div><div class="cycle">за 12 месяцев</div><div class="line"></div>
-<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Автопродление только с отдельного согласия</li></ul>
-<label class="renew-option"><input type="checkbox" data-renew="yearly"> Согласен на автопродление: 1 190 ₽ каждый год до отключения</label>
+<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li></ul>
+<div class="renew-option">Автопродление. Отменить можно в любой момент.</div>
 <button type="button" class="payment-action" data-plan="yearly">Оплатить 1 190 ₽</button>
 </article>
 <article class="plan forever">
@@ -106,7 +106,7 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <h2 id="how-title">Как это работает</h2>
 <div class="cards">
 <article class="card"><h3>14 дней на знакомство</h3><p>Новые пользователи получают 14 дней полного доступа без привязки карты после запуска платного режима.</p></article>
-<article class="card"><h3>Прозрачная подписка</h3><p>Месячный и годовой тарифы продлеваются автоматически только после первой оплаты и отдельного согласия на последующие списания. Не менее чем за три календарных дня до очередного списания пользователь получает уведомление с суммой платежа, сроком списания и порядком отказа от автопродления и дальнейших списаний.</p></article>
+<article class="card"><h3>Прозрачная подписка</h3><p>Месячный и годовой тарифы продлеваются автоматически после оформления подписки. Не менее чем за три календарных дня до очередного списания пользователь получает уведомление с суммой платежа, сроком списания и порядком отказа от автопродления и дальнейших списаний.</p></article>
 <article class="card"><h3>Данные остаются вашими</h3><p>После окончания периода сохраняются просмотр, экспорт PDF и возможность полностью удалить свои данные или аккаунт. JSON-экспорт и импорт, добавление, редактирование и удаление отдельных записей требуют действующего доступа.</p></article>
 </div>
 </section>
@@ -149,8 +149,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       return;
     }
     const plan=button.dataset.plan;
-    const renewControl=plan==='lifetime'?null:document.querySelector('[data-renew="'+plan+'"]');
-    const autoRenew=!!renewControl?.checked;
+    const autoRenew=plan!=='lifetime';
     const key='qPokoyPaymentRequestV1:'+plan+':'+(autoRenew?'renew':'once');
     let requestId='';
     try{requestId=sessionStorage.getItem(key)||'';}catch(_){}
