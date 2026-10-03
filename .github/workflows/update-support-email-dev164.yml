@@ -1,0 +1,62 @@
+name: One-time support email update DEV164
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/update-support-email-dev164.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Replace public contact email and bump DEV164
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          old_email = 'qqpokoy@gmail.com'
+          new_email = 'support@qpokoy.ru'
+          expected = {
+              'offer.html': 3,
+              'privacy.html': 3,
+              'about.html': 1,
+          }
+          for name, count in expected.items():
+              path = Path(name)
+              text = path.read_text(encoding='utf-8')
+              actual = text.count(old_email)
+              if actual != count:
+                  raise SystemExit(f'{name}: expected {count} old email occurrences, found {actual}')
+              path.write_text(text.replace(old_email, new_email), encoding='utf-8')
+
+          old_dev = 'dev-2026.10.03.163'
+          new_dev = 'dev-2026.10.03.164'
+
+          app = Path('js/app.js')
+          app_text = app.read_text(encoding='utf-8')
+          if app_text.count(old_dev) != 1:
+              raise SystemExit(f'Expected exactly one DEV163 marker in js/app.js, found {app_text.count(old_dev)}')
+          app.write_text(app_text.replace(old_dev, new_dev), encoding='utf-8')
+
+          index = Path('index.html')
+          index_text = index.read_text(encoding='utf-8')
+          if old_dev not in index_text:
+              raise SystemExit('DEV163 marker not found in index.html')
+          index.write_text(index_text.replace(old_dev, new_dev), encoding='utf-8')
+          PY
+          git diff --check
+          git config user.name "qPokoy GitHub Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add offer.html privacy.html about.html js/app.js index.html
+          git commit -m "Use support@qpokoy.ru in public documents for DEV164"
+          git push origin HEAD:main
