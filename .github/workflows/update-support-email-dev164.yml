@@ -27,9 +27,9 @@ jobs:
           old_email = 'qqpokoy@gmail.com'
           new_email = 'support@qpokoy.ru'
           expected = {
-              'offer.html': 3,
-              'privacy.html': 3,
-              'about.html': 1,
+              'offer.html': 6,
+              'privacy.html': 6,
+              'about.html': 2,
           }
           for name, count in expected.items():
               path = Path(name)
