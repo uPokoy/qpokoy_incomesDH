@@ -1,7 +1,22 @@
 (function(root,factory){
   const api=factory();
   if(typeof module==='object'&&module.exports)module.exports=api;
-  if(root)root.qPokoyApi=api.createApiClient();
+  if(root){
+    root.qPokoyApi=api.createApiClient();
+    const hidePricingSubscription=()=>{
+      const heading=root.document?.getElementById('subscription-title');
+      const section=heading?.closest('section');
+      if(section)section.hidden=true;
+      const question=[...root.document?.querySelectorAll?.('.question h3')||[]]
+        .find(item=>item.textContent.trim()==='Можно ли отключить автопродление?');
+      const answer=question?.nextElementSibling;
+      if(answer)answer.textContent='Да. Откройте qPokoy → Настройки → Данные → Подписка и оплата. Там можно отключить автопродление или отвязать карту.';
+    };
+    if(root.document){
+      if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',hidePricingSubscription,{once:true});
+      else hidePricingSubscription();
+    }
+  }
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
   const API_BASE_URL='https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net';

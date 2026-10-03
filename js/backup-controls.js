@@ -63,6 +63,110 @@
     throw new Error('Модуль импорта недоступен.');
   }
 
+  function formatBillingDate(value){
+    if(!value)return '';
+    const date=new Date(value);
+    if(!Number.isFinite(date.getTime()))return '';
+    return date.toLocaleDateString('ru-RU');
+  }
+
+  function mountBillingSettings(){
+    const card=document.getElementById('qpDataCard');
+    if(!card || document.getElementById('qpBillingSettings'))return;
+
+    const block=document.createElement('div');
+    block.id='qpBillingSettings';
+    block.style.cssText='margin-top:20px;padding-top:18px;border-top:1px solid rgba(151,189,237,.16);';
+    block.innerHTML=''
+      +'<div class="settings-title" style="font-size:16px;">Подписка и оплата</div>'
+      +'<div id="qpBillingStatus" class="settings-card-subtitle" style="margin-top:7px;">Проверяем состояние подписки…</div>'
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">'
+      +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
+      +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
+      +'</div>'
+      +'<div class="settings-card-subtitle" style="margin-top:10px;">Отвязка карты отключает автопродление. Уже оплаченный период сохраняется.</div>';
+    card.appendChild(block);
+
+    const api=window.qPokoyApi;
+    const status=document.getElementById('qpBillingStatus');
+    const disable=document.getElementById('qpBillingDisableRenew');
+    const unlink=document.getElementById('qpBillingUnlinkCard');
+    const planNames={monthly:'Месяц',yearly:'Год',lifetime:'Бессрочный доступ',trial:'Пробный период'};
+
+    async function refresh(){
+      if(!api?.getToken?.()){
+        status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
+        disable.disabled=true;
+        unlink.disabled=true;
+        return;
+      }
+      disable.disabled=true;
+      unlink.disabled=false;
+      try{
+        const access=await api.billingStatus();
+        if(access?.mode==='prelaunch'){
+          status.textContent='Платный режим пока не запущен.';
+          return;
+        }
+        if(access?.plan==='lifetime'){
+          status.textContent='Тариф: бессрочный доступ.';
+          return;
+        }
+        if(access?.plan==='trial'){
+          const until=formatBillingDate(access.trial_ends_at);
+          status.textContent='Пробный период'+(until?' до '+until:'.');
+          return;
+        }
+        if(access?.plan==='monthly'||access?.plan==='yearly'){
+          const until=formatBillingDate(access.paid_until);
+          status.textContent='Тариф: '+planNames[access.plan]+(until?' · до '+until:'')+' · автопродление '+(access.auto_renew?'включено':'выключено')+'.';
+          disable.disabled=!access.auto_renew;
+          return;
+        }
+        status.textContent='Активной подписки нет.';
+      }catch(error){
+        if(error?.status===401){
+          status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
+          disable.disabled=true;
+          unlink.disabled=true;
+        }else{
+          status.textContent='Не удалось проверить состояние подписки.';
+        }
+      }
+    }
+
+    disable.addEventListener('click',async()=>{
+      if(!api?.getToken?.())return;
+      disable.disabled=true;
+      status.textContent='Отключаем автопродление…';
+      try{
+        await api.setBillingAutoRenew(false);
+        status.textContent='Автопродление отключено. Оплаченный период сохранён.';
+      }catch(error){
+        status.textContent=error?.message||'Не удалось отключить автопродление.';
+        disable.disabled=false;
+      }
+    });
+
+    unlink.addEventListener('click',async()=>{
+      if(!api?.getToken?.())return;
+      unlink.disabled=true;
+      status.textContent='Отвязываем карту…';
+      try{
+        const result=await api.request('DELETE','/billing/payment-method');
+        disable.disabled=true;
+        status.textContent=result?.data?.unlinked
+          ? 'Карта отвязана. Автопродление отключено. Оплаченный период сохранён.'
+          : 'Сохранённая карта не была привязана.';
+      }catch(error){
+        status.textContent=error?.message||'Не удалось отвязать карту.';
+        unlink.disabled=false;
+      }
+    });
+
+    refresh();
+  }
+
   function bind(){
     const exp=document.getElementById('exportDataBtn');
     const imp=document.getElementById('importDataBtn');
@@ -89,6 +193,8 @@
         input.value='';
       });
     }
+
+    mountBillingSettings();
   }
 
   if(document.readyState==='loading'){
