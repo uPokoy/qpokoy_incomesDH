@@ -5,14 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1018">
 <meta name="robots" content="noindex,follow">
-<meta name="description" content="Планируемые тарифы qPokoy — Учёт доходов: 149 ₽ в месяц, 1 190 ₽ в год, бессрочный доступ 1 790 ₽. Пробный период 14 дней после запуска монетизации.">
+<meta name="description" content="Тарифы qPokoy — Учёт доходов: 149 ₽ в месяц, 1 190 ₽ в год, бессрочный доступ 1 790 ₽. Пробный период 14 дней.">
 <title>Тарифы — qPokoy — Учёт доходов</title>
 <link rel="icon" type="image/png" href="./icons/pwa-192.png">
+<script defer src="./js/api-client.js?v=dev-2026.10.03.187"></script>
 <style>
 :root{color-scheme:dark;--bg:#08101c;--panel:#101f33;--line:rgba(151,189,237,.2);--text:#f2f7ff;--muted:#a9bdd6;--blue:#71afff}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;min-height:100vh;min-height:100dvh;font:15px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:radial-gradient(80% 60% at 10% -10%,rgba(52,94,151,.25),transparent 68%),radial-gradient(65% 55% at 105% 25%,rgba(35,79,137,.19),transparent 70%),linear-gradient(145deg,#060a12,#0c1829 52%,#070d16)}
-a{color:inherit}a:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+a{color:inherit}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
 .wrap{width:min(1120px,calc(100% - 36px));margin:auto}
 .head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:23px 0}
 .logo{font-weight:800;font-size:26px;letter-spacing:-.055em;text-decoration:none}.logo span{color:var(--blue)}
@@ -35,17 +36,20 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 .plan ul{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:12px;flex:1}
 .plan li{display:flex;align-items:flex-start;gap:9px;color:#dfebfa;font-size:13px}
 .plan li:before{content:"✓";color:#82bfff;font-weight:800}
-.unavailable{padding:10px 9px;border-radius:11px;background:rgba(97,131,178,.10);border:1px solid var(--line);text-align:center;color:#b7cbe3;font-weight:650;font-size:13px}
-.caption{text-align:center;color:var(--muted);font-size:12px;margin:17px 0 0}
+.renew-option{display:flex;align-items:flex-start;gap:8px;min-height:42px;margin:0 0 12px;color:#c9daef;font-size:12px;line-height:1.35}.renew-option input{margin:2px 0 0;accent-color:#71afff}
+.payment-action,.subscription-action{width:100%;border:1px solid rgba(116,177,255,.48);border-radius:11px;background:rgba(67,126,204,.28);color:#eef6ff;padding:11px 12px;font:inherit;font-weight:750;cursor:pointer}.payment-action:hover,.subscription-action:hover{background:rgba(79,143,226,.38)}.payment-action:disabled,.subscription-action:disabled{opacity:.55;cursor:not-allowed}
+.payment-message{min-height:22px;text-align:center;color:#bcd0e8;font-size:13px;margin:15px 0 0}.payment-message[data-error="true"]{color:#ffb8b8}
+.caption{text-align:center;color:var(--muted);font-size:12px;margin:10px 0 0}
 .section{margin-top:53px}.section h2{margin:0 0 17px;font-size:26px;line-height:1.25;letter-spacing:-.035em}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
-.card,.question{border:1px solid var(--line);border-radius:15px;background:rgba(17,32,53,.72);padding:19px 21px}
-.card h3,.question h3{margin:0 0 7px;font-size:15px}.card p,.question p{margin:0;color:var(--muted);font-size:13px}
-.faq{display:grid;gap:11px}.question{padding:16px 20px}
+.card,.question,.subscription-box{border:1px solid var(--line);border-radius:15px;background:rgba(17,32,53,.72);padding:19px 21px}
+.card h3,.question h3{margin:0 0 7px;font-size:15px}.card p,.question p,.subscription-box p{margin:0;color:var(--muted);font-size:13px}
+.subscription-box{display:grid;gap:14px;max-width:660px}.subscription-actions{display:flex;gap:10px;flex-wrap:wrap}.subscription-action{width:auto;min-width:210px}.subscription-login{display:inline-flex;align-items:center;justify-content:center;min-width:160px;text-decoration:none;border:1px solid var(--line);border-radius:11px;background:rgba(27,48,75,.55);padding:10px 14px;font-weight:700;font-size:13px}.subscription-login[hidden],.subscription-action[hidden]{display:none}
+.subscription-note{font-size:12px!important}.faq{display:grid;gap:11px}.question{padding:16px 20px}
 .notice{margin-top:42px;padding:19px 21px;border:1px solid rgba(109,160,226,.27);border-radius:15px;background:rgba(52,95,151,.10);color:#c1d1e4;font-size:13px}.notice strong{color:#f2f7ff}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:23px 0 34px;border-top:1px solid var(--line);font-size:12px;color:#9aafc9}.foot a{text-decoration:none;color:#bedbff}
 @media(max-width:900px){.plans{grid-template-columns:1fr;max-width:520px;margin:auto}.cards{grid-template-columns:1fr}.plan{padding:23px}.price{margin-top:17px}.line{margin:16px 0}}
-@media(max-width:460px){.wrap{width:calc(100% - 28px)}.head{padding:18px 0}.logo{font-size:24px}.back{padding:8px 10px;font-size:12px}main{padding:25px 0 48px}h1{font-size:35px}.intro{margin-bottom:27px}.section{margin-top:42px}}
+@media(max-width:460px){.wrap{width:calc(100% - 28px)}.head{padding:18px 0}.logo{font-size:24px}.back{padding:8px 10px;font-size:12px}main{padding:25px 0 48px}h1{font-size:35px}.intro{margin-bottom:27px}.section{margin-top:42px}.subscription-actions{display:grid}.subscription-action,.subscription-login{width:100%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
@@ -57,36 +61,51 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 </header>
 <main>
 <section class="intro" aria-labelledby="intro-title">
-<span class="tag">Подготовка платной версии</span>
+<span class="tag">Тарифы qPokoy</span>
 <h1 id="intro-title">Учёт доходов.<br>Без лишнего.</h1>
 <p>Записывайте поступления, управляйте категориями, изучайте статистику и храните историю доходов в одном месте.</p>
 <div class="trial">✓ 14 дней бесплатно для новых пользователей · без карты</div>
 </section>
-<section class="plans" aria-label="Планируемые тарифы">
+<section class="plans" aria-label="Тарифы">
 <article class="plan">
 <div class="plan-head"><h2>Месяц</h2></div>
-<div class="price">149 <small>₽</small></div><div class="cycle">каждый месяц</div><div class="line"></div>
-<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Автопродление после согласия</li></ul>
-<div class="unavailable">Оплата пока не подключена</div>
+<div class="price">149 <small>₽</small></div><div class="cycle">за 1 месяц</div><div class="line"></div>
+<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Автопродление только с отдельного согласия</li></ul>
+<label class="renew-option"><input type="checkbox" data-renew="monthly"> Согласен на автопродление: 149 ₽ каждый месяц до отключения</label>
+<button type="button" class="payment-action" data-plan="monthly">Оплатить 149 ₽</button>
 </article>
 <article class="plan">
 <div class="plan-head"><h2>Год</h2><span class="pill">12 месяцев</span></div>
-<div class="price">1 190 <small>₽</small></div><div class="cycle">каждый год</div><div class="line"></div>
-<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Автопродление после согласия</li></ul>
-<div class="unavailable">Оплата пока не подключена</div>
+<div class="price">1 190 <small>₽</small></div><div class="cycle">за 12 месяцев</div><div class="line"></div>
+<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Автопродление только с отдельного согласия</li></ul>
+<label class="renew-option"><input type="checkbox" data-renew="yearly"> Согласен на автопродление: 1 190 ₽ каждый год до отключения</label>
+<button type="button" class="payment-action" data-plan="yearly">Оплатить 1 190 ₽</button>
 </article>
 <article class="plan forever">
 <div class="plan-head"><h2>Бессрочный доступ</h2><span class="pill">Один платёж</span></div>
 <div class="price">1 790 <small>₽</small></div><div class="cycle">без повторных списаний</div><div class="line"></div>
 <ul><li>Все текущие функции qPokoy</li><li>Все будущие функции и обновления</li><li>Доступ с разных устройств</li><li>Без автоматического продления</li><li>На весь срок существования сервиса</li></ul>
-<div class="unavailable">Оплата пока не подключена</div>
+<div class="renew-option" aria-hidden="true"></div>
+<button type="button" class="payment-action" data-plan="lifetime">Оплатить 1 790 ₽</button>
 </article>
 </section>
-<p class="caption">Все варианты включают полный функционал. Цены указаны в российских рублях.</p>
+<p id="paymentMessage" class="payment-message" role="status" aria-live="polite"></p>
+<p class="caption">Все варианты включают полный функционал. Цены указаны в российских рублях. Для оплаты нужен вход в аккаунт qPokoy.</p>
+<section class="section" aria-labelledby="subscription-title">
+<h2 id="subscription-title">Управление подпиской</h2>
+<div class="subscription-box">
+<p id="subscriptionStatus">Проверяем состояние подписки…</p>
+<div class="subscription-actions">
+<button type="button" id="disableAutoRenew" class="subscription-action">Отключить автопродление</button>
+<a id="subscriptionLogin" class="subscription-login" href="./" hidden>Войти в qPokoy</a>
+</div>
+<p class="subscription-note">После отключения автопродления уже оплаченный период сохраняется до своей даты окончания.</p>
+</div>
+</section>
 <section class="section" aria-labelledby="how-title">
-<h2 id="how-title">Как это будет работать</h2>
+<h2 id="how-title">Как это работает</h2>
 <div class="cards">
-<article class="card"><h3>14 дней на знакомство</h3><p>После запуска платной версии новые пользователи получат 14 дней полного доступа без привязки карты.</p></article>
+<article class="card"><h3>14 дней на знакомство</h3><p>Новые пользователи получают 14 дней полного доступа без привязки карты после запуска платного режима.</p></article>
 <article class="card"><h3>Прозрачная подписка</h3><p>Месячный и годовой тарифы продлеваются автоматически только после первой оплаты и отдельного согласия на последующие списания. Не менее чем за три календарных дня до очередного списания пользователь получает уведомление с суммой платежа, сроком списания и порядком отказа от автопродления и дальнейших списаний.</p></article>
 <article class="card"><h3>Данные остаются вашими</h3><p>После окончания периода сохраняются просмотр, экспорт PDF и возможность полностью удалить свои данные или аккаунт. JSON-экспорт и импорт, добавление, редактирование и удаление отдельных записей требуют действующего доступа.</p></article>
 </div>
@@ -95,13 +114,108 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <h2 id="faq-title">Условия доступа</h2>
 <div class="faq">
 <article class="question"><h3>Что будет с уже зарегистрированными пользователями?</h3><p>Все, кто зарегистрировался до запуска монетизации, сохранят бесплатный пожизненный доступ ко всем текущим и будущим функциям. Оформлять подписку не потребуется.</p></article>
-<article class="question"><h3>Можно ли отключить автопродление?</h3><p>Да. При подключении платежей в настройках появится управление подпиской. После отключения оплаченный доступ сохранится до завершения оплаченного периода.</p></article>
+<article class="question"><h3>Можно ли отключить автопродление?</h3><p>Да. Автопродление можно отключить выше в разделе «Управление подпиской». После отключения оплаченный доступ сохранится до завершения оплаченного периода.</p></article>
 <article class="question"><h3>Что, если очередной платёж не прошёл?</h3><p>Предусмотрены ещё 3 календарных дня полного доступа. Затем можно просматривать историю, экспортировать PDF и полностью удалить свои данные или аккаунт. JSON и действия с отдельными записями становятся недоступны.</p></article>
 <article class="question"><h3>Что означает бессрочный доступ?</h3><p>Один платёж за все текущие и будущие функции на весь период существования сервиса. Автосписаний по этому тарифу нет.</p></article>
 </div>
 </section>
-<aside class="notice"><strong>Приём платежей сейчас не подключён.</strong> Ознакомьтесь с <a href="./offer.html">офертой</a>, <a href="./privacy.html">политикой конфиденциальности</a> и <a href="./about.html">сведениями об исполнителе</a>.</aside>
+<aside class="notice"><strong>Оплата проводится через ЮKassa.</strong> Перед оплатой ознакомьтесь с <a href="./offer.html">офертой</a>, <a href="./privacy.html">политикой конфиденциальности</a> и <a href="./about.html">сведениями об исполнителе</a>.</aside>
 </main>
 <footer class="foot"><span>© qPokoy — Учёт доходов</span><span><a href="./offer.html">Оферта</a> · <a href="./privacy.html">Конфиденциальность</a> · <a href="./about.html">О сервисе</a> · <a href="./">В приложение</a></span></footer>
 </div>
+<script>
+window.addEventListener('DOMContentLoaded',()=>{
+  const api=window.qPokoyApi;
+  const paymentMessage=document.getElementById('paymentMessage');
+  const paymentButtons=[...document.querySelectorAll('.payment-action[data-plan]')];
+  const subscriptionStatus=document.getElementById('subscriptionStatus');
+  const disableAutoRenew=document.getElementById('disableAutoRenew');
+  const subscriptionLogin=document.getElementById('subscriptionLogin');
+  const planNames={monthly:'Месячный тариф',yearly:'Годовой тариф'};
+  const signedIn=()=>!!api?.getToken?.();
+  const setPaymentMessage=(text,error=false)=>{paymentMessage.textContent=text||'';paymentMessage.dataset.error=String(error);};
+  const setPaymentsBusy=value=>paymentButtons.forEach(button=>button.disabled=value);
+  const trustedPaymentUrl=value=>{
+    try{
+      const url=new URL(value||'');
+      const trusted=['yoomoney.ru','yookassa.ru'].some(host=>url.hostname===host||url.hostname.endsWith('.'+host));
+      return url.protocol==='https:'&&trusted&&!url.username&&!url.password?url:null;
+    }catch(_){return null;}
+  };
+  async function startPayment(button){
+    if(!signedIn()){
+      setPaymentMessage('Для оплаты сначала войдите в аккаунт qPokoy.',true);
+      subscriptionLogin.hidden=false;
+      return;
+    }
+    const plan=button.dataset.plan;
+    const renewControl=plan==='lifetime'?null:document.querySelector('[data-renew="'+plan+'"]');
+    const autoRenew=!!renewControl?.checked;
+    const key='qPokoyPaymentRequestV1:'+plan+':'+(autoRenew?'renew':'once');
+    let requestId='';
+    try{requestId=sessionStorage.getItem(key)||'';}catch(_){}
+    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)){
+      requestId=crypto.randomUUID();
+      try{sessionStorage.setItem(key,requestId);}catch(_){}
+    }
+    setPaymentsBusy(true);
+    setPaymentMessage('Создаём платёж…');
+    try{
+      const payment=await api.createPayment(plan,autoRenew,requestId);
+      const confirmation=trustedPaymentUrl(payment?.confirmation_url);
+      if(!confirmation)throw new Error('ЮKassa не вернула корректную ссылку на оплату.');
+      try{sessionStorage.removeItem(key);}catch(_){}
+      location.assign(confirmation.toString());
+    }catch(error){
+      if(error?.status===401){setPaymentMessage('Сессия закончилась. Войдите в qPokoy снова.',true);subscriptionLogin.hidden=false;}
+      else setPaymentMessage(error?.message||'Не удалось создать платёж.',true);
+      setPaymentsBusy(false);
+    }
+  }
+  paymentButtons.forEach(button=>button.addEventListener('click',()=>startPayment(button)));
+  async function refreshSubscription(){
+    if(!signedIn()){
+      subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять автопродлением.';
+      disableAutoRenew.hidden=true;
+      subscriptionLogin.hidden=false;
+      return;
+    }
+    subscriptionLogin.hidden=true;
+    disableAutoRenew.hidden=false;
+    disableAutoRenew.disabled=false;
+    try{
+      const access=await api.billingStatus();
+      if(access?.plan==='lifetime'){
+        subscriptionStatus.textContent='Бессрочный доступ. Автопродление не используется.';
+        disableAutoRenew.hidden=true;
+      }else if(access?.plan==='monthly'||access?.plan==='yearly'){
+        subscriptionStatus.textContent=planNames[access.plan]+'. Автопродление: '+(access.auto_renew?'включено.':'выключено.');
+        disableAutoRenew.disabled=!access.auto_renew;
+      }else{
+        subscriptionStatus.textContent='Если автопродление было подключено при оплате, его можно отключить здесь.';
+      }
+    }catch(error){
+      if(error?.status===401){
+        subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять автопродлением.';
+        disableAutoRenew.hidden=true;
+        subscriptionLogin.hidden=false;
+      }else subscriptionStatus.textContent='Не удалось проверить состояние подписки.';
+    }
+  }
+  disableAutoRenew.addEventListener('click',async()=>{
+    if(!signedIn()){location.assign('./');return;}
+    disableAutoRenew.disabled=true;
+    subscriptionStatus.textContent='Отключаем автопродление…';
+    try{
+      await api.setBillingAutoRenew(false);
+      subscriptionStatus.textContent='Автопродление выключено. Оплаченный период сохранится до даты окончания.';
+    }catch(error){
+      if(error?.code==='auto_renew_unavailable')subscriptionStatus.textContent='Автопродление для этого аккаунта не подключено.';
+      else if(error?.status===401){subscriptionStatus.textContent='Сессия закончилась. Войдите в qPokoy снова.';subscriptionLogin.hidden=false;disableAutoRenew.hidden=true;}
+      else{subscriptionStatus.textContent=error?.message||'Не удалось отключить автопродление.';disableAutoRenew.disabled=false;}
+    }
+  });
+  refreshSubscription();
+});
+</script>
 </body></html>
