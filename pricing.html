@@ -144,10 +144,10 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
   async function startPayment(button){
     if(!signedIn()){
-      setPaymentMessage('Для оплаты сначала войдите в аккаунт qPokoy.',true);
-      subscriptionLogin.hidden=false;
+      location.assign('./');
       return;
     }
+    const originalText=button.textContent;
     const plan=button.dataset.plan;
     const autoRenew=plan!=='lifetime';
     const key='qPokoyPaymentRequestV1:'+plan+':'+(autoRenew?'renew':'once');
@@ -158,6 +158,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       try{sessionStorage.setItem(key,requestId);}catch(_){}
     }
     setPaymentsBusy(true);
+    button.textContent='Переходим к оплате…';
     setPaymentMessage('Создаём платёж…');
     try{
       const payment=await api.createPayment(plan,autoRenew,requestId);
@@ -166,8 +167,9 @@ window.addEventListener('DOMContentLoaded',()=>{
       try{sessionStorage.removeItem(key);}catch(_){}
       location.assign(confirmation.toString());
     }catch(error){
-      if(error?.status===401){setPaymentMessage('Сессия закончилась. Войдите в qPokoy снова.',true);subscriptionLogin.hidden=false;}
-      else setPaymentMessage(error?.message||'Не удалось создать платёж.',true);
+      button.textContent=originalText;
+      if(error?.status===401){location.assign('./');return;}
+      setPaymentMessage(error?.message||'Не удалось создать платёж.',true);
       setPaymentsBusy(false);
     }
   }
