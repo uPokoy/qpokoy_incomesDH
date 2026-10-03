@@ -29,6 +29,31 @@ jobs:
           cp index.html admin.html about.html offer.html pricing.html privacy.html manifest.json site/
           cp -R css js icons site/
 
+          commit_subject="$(git log -1 --pretty=%s)"
+          commit_date="$(git show -s --format=%cs HEAD | tr '-' '.')"
+          if [[ "$commit_subject" =~ ^DEV([0-9]+): ]]; then
+            dev_number="${BASH_REMATCH[1]}"
+            dev_label="dev-${commit_date}.${dev_number}"
+            python - "$dev_label" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          label = sys.argv[1]
+          path = Path('site/index.html')
+          text = path.read_text(encoding='utf-8')
+          text, count = re.subn(
+              r'(<strong id="qPokoyDevVersion">)dev-\d{4}\.\d{2}\.\d{2}\.\d+(</strong>)',
+              rf'\g<1>{label}\g<2>',
+              text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('qPokoyDevVersion marker not found')
+          path.write_text(text, encoding='utf-8')
+          PY
+          fi
+
       - name: Install AWS CLI
         run: |
           python -m pip install --upgrade pip
