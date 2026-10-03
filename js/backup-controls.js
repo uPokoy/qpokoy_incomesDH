@@ -78,7 +78,7 @@
     block.id='qpBillingSettings';
     block.style.cssText='margin-top:10px;padding-top:0;border-top:0;';
     block.innerHTML=''
-      +'<div id="qpBillingTerm" class="settings-card-subtitle" style="margin-top:14px;font-size:14px;line-height:1.35;">Подписка: проверяем…</div>'
+      +'<div id="qpBillingTerm" style="display:block;margin-top:14px;color:var(--text);font-size:14px;line-height:1.35;font-weight:400;opacity:.72;">Подписка: проверяем…</div>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
       +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
@@ -133,7 +133,7 @@
           return;
         }
       }
-      term.textContent=access?.mode==='prelaunch'?'Подписка: платный режим ещё не запущен':'Подписка: нет';
+      term.textContent=access?.mode==='prelaunch'?'Подписка: платный режим не запущен':'Подписка: нет';
     }
 
     function billingErrorMessage(error,fallback){
