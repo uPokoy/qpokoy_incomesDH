@@ -1,0 +1,44 @@
+name: Temporary DEV168 admin panel v2
+
+on:
+  push:
+    branches:
+      - tmp-dev168-admin
+    paths:
+      - .github/workflows/tmp-dev168-admin-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: tmp-dev168-admin
+
+      - name: Apply patch
+        run: python .github/dev168_patch.py
+
+      - name: Test
+        run: |
+          set -euo pipefail
+          (cd backend && npm ci --no-audit --no-fund && npm test)
+          node --test tests/api-client.test.js
+          node --check backend/app.js
+          node --check backend/index.js
+          node --check backend/ydb.js
+          node --check js/api-client.js
+          node --check js/admin.js
+          git diff --check
+
+      - name: Commit
+        run: |
+          set -euo pipefail
+          git config user.name "qPokoy GitHub Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add backend/app.js backend/index.js backend/test/routes.test.js js/api-client.js tests/api-client.test.js admin.html js/admin.js .github/workflows/frontend-deploy.yml js/app.js index.html
+          git commit -m "Add secure admin access panel for DEV168"
+          git push origin HEAD:tmp-dev168-admin
