@@ -78,7 +78,7 @@
     block.id='qpBillingSettings';
     block.style.cssText='margin-top:10px;padding-top:0;border-top:0;';
     block.innerHTML=''
-      +'<div id="qpBillingTerm" style="display:block;margin-top:14px;color:var(--text);font-size:14px;line-height:1.35;font-weight:400;opacity:.72;">Подписка: проверяем…</div>'
+      +'<div id="qpBillingTerm" style="display:block;width:100%;margin:0;padding:0 4px;color:var(--text-muted);font-size:13px;line-height:1.35;font-weight:400;">Подписка: проверяем…</div>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
       +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
@@ -89,6 +89,8 @@
 
     const api=window.qPokoyApi;
     const term=document.getElementById('qpBillingTerm');
+    const accountEmail=document.getElementById('qpAccountEmail');
+    if(accountEmail&&term)accountEmail.insertAdjacentElement('afterend',term);
     const status=document.getElementById('qpBillingStatus');
     const disable=document.getElementById('qpBillingDisableRenew');
     const unlink=document.getElementById('qpBillingUnlinkCard');
@@ -118,7 +120,7 @@
 
     function syncBillingTerm(access){
       if(access?.plan==='lifetime'||access?.mode==='lifetime'){
-        term.textContent='Подписка: бессрочно';
+        term.textContent='Подписка: бессрочный доступ';
         return;
       }
       if(access?.plan==='trial'||access?.mode==='trial'){
@@ -133,7 +135,7 @@
           return;
         }
       }
-      term.textContent=access?.mode==='prelaunch'?'Подписка: платный режим не запущен':'Подписка: нет';
+      term.textContent=access?.mode==='prelaunch'?'Подписка: бессрочный доступ':'Подписка: нет';
     }
 
     function billingErrorMessage(error,fallback){
@@ -177,7 +179,7 @@
         syncBillingButtons();
         syncBillingTerm(access);
         if(access?.mode==='prelaunch'){
-          status.textContent='Платный режим пока не запущен.';
+          status.textContent='';
           return;
         }
         if(access?.plan==='lifetime'){
