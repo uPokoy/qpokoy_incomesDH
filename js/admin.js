@@ -14,11 +14,14 @@
   function show(user){
     target=user;details.replaceChildren();const a=user.assignment||user.billing;
     const fields=[['Email',user.email],['user_id',user.user_id],['Статус аккаунта',user.status],['Создан',date(user.created_at)],['Пробный период до',date(user.trial_ends_at)],['Статус доступа',user.billing.status],['Режим',user.billing.mode],['План назначения',a.plan||'—'],['Оплачено до',date(a.paid_until)],['Льготный период до',date(a.grace_until)],['Автопродление',a.auto_renew?'Включено':'Выключено'],['Источник',a.source||'—']];
-    for(const [label,value] of fields){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;details.append(dt,dd);}
-    renew.checked=!!a.auto_renew;document.getElementById('adminPrelaunch').hidden=user.billing.mode!=='prelaunch';card.hidden=false;renewDisabled();
+    for(const [label,value] of fields){
+      const group=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');
+      group.className='admin-detail-card';dt.textContent=label;dd.textContent=value;group.append(dt,dd);details.append(group);
+    }
+    renew.checked=!!a.auto_renew;card.hidden=false;renewDisabled();
   }
   document.getElementById('adminSearch').addEventListener('submit',async e=>{e.preventDefault();if(busy)return;clearTarget();lock(true);try{show(await api.adminFindUser(document.getElementById('adminEmail').value.trim()));say('Пользователь найден.');}catch(e){error(e);}finally{lock(false);}});
-  const labels={month:'выдать доступ на месяц',year:'выдать доступ на год',lifetime:'выдать бессрочный доступ',until:'установить доступ по выбранную дату',reset:'сбросить ручное назначение и вернуть обычный billing-расчёт',auto_renew:'изменить автопродление'};
+  const labels={month:'выдать доступ на месяц',year:'выдать доступ на год',lifetime:'выдать бессрочный доступ',until:'установить доступ по выбранную дату',reset:'сбросить ручное назначение и вернуть обычный расчёт доступа',auto_renew:'изменить автопродление'};
   async function change(action){
     if(busy||!target)return;
     const body={action};if(action==='until'){const input=document.getElementById('adminUntil');if(!input.value||!input.checkValidity()){say('Укажите корректную дату.',true);return;}body.date=input.value;}
@@ -29,5 +32,5 @@
   controls.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>change(b.dataset.action)));
   saveRenew.addEventListener('click',()=>change('auto_renew'));
   clearTarget();
-  (async()=>{if(!api?.getToken()){say('Ошибка доступа',true);return;}try{await api.adminSession();controls.hidden=false;say('Доступ подтверждён сервером.');}catch(e){error(e);}})();
+  (async()=>{if(!api?.getToken()){say('Ошибка доступа',true);return;}try{await api.adminSession();controls.hidden=false;say('Доступ подтверждён');}catch(e){error(e);}})();
 })();
