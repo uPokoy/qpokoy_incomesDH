@@ -91,11 +91,33 @@
     const disable=document.getElementById('qpBillingDisableRenew');
     const unlink=document.getElementById('qpBillingUnlinkCard');
     const planNames={monthly:'Месяц',yearly:'Год',lifetime:'Бессрочный доступ',trial:'Пробный период'};
-    let autoRenewEnabled=true;
-    let paymentMethodUnlinked=false;
+    let autoRenewEnabled=false;
+    let paymentMethodSaved=null;
 
-    function syncAutoRenewButton(){
+    function inferPaymentMethodSaved(access){
+      if(typeof access?.payment_method_saved==='boolean')return access.payment_method_saved;
+      if(access?.auto_renew===true)return true;
+      if(!['monthly','yearly'].includes(access?.plan))return false;
+      return null;
+    }
+
+    function syncBillingButtons(){
       disable.textContent=autoRenewEnabled?'Отключить автопродление':'Подключить автопродление';
+      if(paymentMethodSaved===false){
+        unlink.textContent='Карта не привязана';
+        unlink.disabled=true;
+        disable.disabled=true;
+      }else{
+        unlink.textContent='Отвязать карту';
+        unlink.disabled=false;
+        disable.disabled=false;
+      }
+    }
+
+    function billingErrorMessage(error,fallback){
+      const message=String(error?.message||'');
+      if(/failed to fetch|networkerror|load failed/i.test(message))return 'Не удалось связаться с сервером. Попробуйте ещё раз.';
+      return message||fallback;
     }
 
     function showBillingNotice(title,message,type='success'){
@@ -123,13 +145,15 @@
         unlink.disabled=true;
         return;
       }
-      disable.disabled=paymentMethodUnlinked;
-      unlink.disabled=paymentMethodUnlinked;
+      disable.disabled=true;
+      unlink.disabled=true;
       try{
         const access=await api.billingStatus();
+        autoRenewEnabled=access?.auto_renew===true;
+        paymentMethodSaved=inferPaymentMethodSaved(access);
+        syncBillingButtons();
         if(access?.mode==='prelaunch'){
           status.textContent='Платный режим пока не запущен.';
-          syncAutoRenewButton();
           return;
         }
         if(access?.plan==='lifetime'){
@@ -146,28 +170,26 @@
           return;
         }
         if(access?.plan==='monthly'||access?.plan==='yearly'){
-          autoRenewEnabled=access.auto_renew===true;
-          syncAutoRenewButton();
           const until=formatBillingDate(access.paid_until);
           status.textContent='Тариф: '+planNames[access.plan]+(until?' · до '+until:'')+' · автопродление '+(autoRenewEnabled?'включено':'выключено')+'.';
           return;
         }
         status.textContent='Активной подписки нет.';
+        disable.disabled=true;
+        if(paymentMethodSaved!==true)unlink.disabled=true;
       }catch(error){
         if(error?.status===401){
           status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
-          disable.disabled=true;
-          unlink.disabled=true;
         }else{
-          status.textContent='Не удалось проверить состояние подписки.';
-          disable.disabled=paymentMethodUnlinked;
-          unlink.disabled=paymentMethodUnlinked;
+          status.textContent=billingErrorMessage(error,'Не удалось проверить состояние подписки.');
         }
+        disable.disabled=true;
+        unlink.disabled=true;
       }
     }
 
     disable.addEventListener('click',()=>{
-      if(!api?.getToken?.()||paymentMethodUnlinked)return;
+      if(!api?.getToken?.()||paymentMethodSaved===false)return;
       const enable=!autoRenewEnabled;
       confirmBillingAction(
         enable?'Подключить автопродление?':'Отключить автопродление?',
@@ -181,25 +203,29 @@
           try{
             const updated=await api.setBillingAutoRenew(enable);
             autoRenewEnabled=typeof updated?.auto_renew==='boolean'?updated.auto_renew:enable;
-            if(autoRenewEnabled)paymentMethodUnlinked=false;
-            syncAutoRenewButton();
+            if(autoRenewEnabled)paymentMethodSaved=true;
+            syncBillingButtons();
             showBillingNotice(
               autoRenewEnabled?'Автопродление подключено':'Автопродление отключено',
               autoRenewEnabled?'Следующее продление будет выполнено автоматически.':'Оплаченный период сохранён.'
             );
           }catch(error){
-            if(error?.code==='payment_method_required')paymentMethodUnlinked=true;
-            const message=error?.message||'Не удалось изменить автопродление.';
+            if(error?.code==='payment_method_required'){
+              paymentMethodSaved=false;
+              autoRenewEnabled=false;
+              syncBillingButtons();
+            }
+            const message=billingErrorMessage(error,'Не удалось изменить автопродление.');
             showBillingNotice('Ошибка',message,'error');
           }finally{
-            disable.disabled=paymentMethodUnlinked;
+            if(paymentMethodSaved!==false)disable.disabled=false;
           }
         }
       );
     });
 
     unlink.addEventListener('click',()=>{
-      if(!api?.getToken?.()||paymentMethodUnlinked)return;
+      if(!api?.getToken?.()||paymentMethodSaved===false)return;
       confirmBillingAction(
         'Отвязать карту?',
         'Сохранённый способ оплаты будет удалён, автопродление отключится. Оплаченный период сохранится.',
@@ -210,22 +236,19 @@
           try{
             const result=await api.request('DELETE','/billing/payment-method');
             const unlinked=result?.data?.unlinked??result?.unlinked;
-            paymentMethodUnlinked=true;
+            paymentMethodSaved=false;
             autoRenewEnabled=false;
-            syncAutoRenewButton();
-            disable.disabled=true;
-            unlink.textContent='Карта отвязана';
-            unlink.disabled=true;
+            syncBillingButtons();
             if(unlinked){
               showBillingNotice('Карта отвязана','Автопродление отключено. Оплаченный период сохранён.');
             }else{
               showBillingNotice('Карта не привязана','Сохранённая карта не была привязана.');
             }
           }catch(error){
-            const message=error?.message||'Не удалось отвязать карту.';
+            const message=billingErrorMessage(error,'Не удалось отвязать карту.');
             showBillingNotice('Ошибка',message,'error');
           }finally{
-            if(!paymentMethodUnlinked){
+            if(paymentMethodSaved!==false){
               unlink.disabled=false;
               disable.disabled=false;
             }
@@ -234,7 +257,7 @@
       );
     });
 
-    syncAutoRenewButton();
+    syncBillingButtons();
     refresh();
   }
 
