@@ -6,14 +6,18 @@
   const renew=document.getElementById('adminAutoRenew'),saveAccess=document.getElementById('adminSaveAccess');
   const resetAccess=document.getElementById('adminResetAccess');
   const choiceButtons=[...document.querySelectorAll('[data-choice]')];
+  const adminEmail=document.getElementById('adminEmail');
   const adminUntil=document.getElementById('adminUntil'),dateClear=document.getElementById('adminDateClear');
   const calendarPopup=document.getElementById('adminCalendarPopup');
   const calendarDays=document.getElementById('adminCalendarDays');
+  const calendarYears=document.getElementById('adminCalendarYears');
+  const calendarWeekdays=document.getElementById('adminCalendarWeekdays');
   const calendarMonth=document.getElementById('adminCalendarMonth');
+  const calendarYearButton=document.getElementById('adminCalendarYearButton');
   const calendarPrev=document.getElementById('adminCalendarPrev');
   const calendarNext=document.getElementById('adminCalendarNext');
   const datePicker=document.querySelector('.admin-date-picker');
-  let target=null,busy=false,calendarView=new Date(),pendingAction=null,originalRenew=false;
+  let target=null,busy=false,calendarView=new Date(),calendarMode='days',yearPageStart=0,pendingAction=null,originalRenew=false;
 
   function say(text,error=false){message.textContent=text;message.dataset.error=String(error);}
   function assignment(){return target&&(target.assignment||target.billing)||null;}
@@ -84,9 +88,16 @@
       calendarPopup.classList.add('open-up');
     }
   }
-  function renderCalendar(){
+  function renderCalendarDays(){
     const y=calendarView.getFullYear(),m=calendarView.getMonth();
-    calendarMonth.textContent=new Intl.DateTimeFormat('ru-RU',{month:'long',year:'numeric'}).format(calendarView);
+    calendarMode='days';
+    calendarMonth.hidden=false;
+    calendarMonth.textContent=new Intl.DateTimeFormat('ru-RU',{month:'long'}).format(calendarView);
+    calendarYearButton.textContent=String(y)+' г.';
+    calendarYearButton.setAttribute('aria-label','Выбрать год');
+    calendarWeekdays.hidden=false;
+    calendarDays.hidden=false;
+    calendarYears.hidden=true;
     calendarDays.replaceChildren();
     const first=new Date(y,m,1);
     const offset=(first.getDay()+6)%7;
@@ -118,12 +129,40 @@
     }
     requestAnimationFrame(positionCalendar);
   }
+  function renderYearPicker(){
+    calendarMode='years';
+    calendarMonth.hidden=true;
+    calendarWeekdays.hidden=true;
+    calendarDays.hidden=true;
+    calendarYears.hidden=false;
+    calendarYearButton.textContent=yearPageStart+'–'+(yearPageStart+11);
+    calendarYearButton.setAttribute('aria-label','Вернуться к выбору даты');
+    calendarYears.replaceChildren();
+    const selectedYear=selectedDate()?.getFullYear();
+    const viewYear=calendarView.getFullYear();
+    for(let year=yearPageStart;year<yearPageStart+12;year++){
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='admin-calendar-year';
+      if(year===viewYear)button.classList.add('current');
+      if(year===selectedYear)button.classList.add('selected');
+      button.textContent=String(year);
+      button.setAttribute('aria-label','Выбрать '+year+' год');
+      button.addEventListener('click',()=>{
+        calendarView.setFullYear(year);
+        renderCalendarDays();
+      });
+      calendarYears.append(button);
+    }
+    requestAnimationFrame(positionCalendar);
+  }
   function openCalendar(){
     if(busy||!target)return;
     const selected=selectedDate();
     const now=new Date();
     calendarView=selected?new Date(selected.getFullYear(),selected.getMonth(),1):new Date(now.getFullYear(),now.getMonth(),1);
-    renderCalendar();
+    calendarMode='days';
+    renderCalendarDays();
     calendarPopup.classList.add('open','open-down');
     adminUntil.setAttribute('aria-expanded','true');
     requestAnimationFrame(positionCalendar);
@@ -151,8 +190,34 @@
     closeCalendar();
     refreshControls();
   });
-  calendarPrev.addEventListener('click',e=>{e.stopPropagation();calendarView.setMonth(calendarView.getMonth()-1);renderCalendar();});
-  calendarNext.addEventListener('click',e=>{e.stopPropagation();calendarView.setMonth(calendarView.getMonth()+1);renderCalendar();});
+  calendarYearButton.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(calendarMode==='years')renderCalendarDays();
+    else{
+      yearPageStart=calendarView.getFullYear()-5;
+      renderYearPicker();
+    }
+  });
+  calendarPrev.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(calendarMode==='years'){
+      yearPageStart-=12;
+      renderYearPicker();
+    }else{
+      calendarView.setMonth(calendarView.getMonth()-1);
+      renderCalendarDays();
+    }
+  });
+  calendarNext.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(calendarMode==='years'){
+      yearPageStart+=12;
+      renderYearPicker();
+    }else{
+      calendarView.setMonth(calendarView.getMonth()+1);
+      renderCalendarDays();
+    }
+  });
   calendarPopup.addEventListener('click',e=>e.stopPropagation());
   document.addEventListener('click',e=>{if(!datePicker.contains(e.target))closeCalendar();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCalendar();});
@@ -226,8 +291,12 @@
   });
 
   document.getElementById('adminSearch').addEventListener('submit',async e=>{
-    e.preventDefault();if(busy)return;clearTarget();lock(true);
-    try{show(await api.adminFindUser(document.getElementById('adminEmail').value.trim()));say('Пользователь найден.');}
+    e.preventDefault();
+    adminEmail.blur();
+    window.getSelection()?.removeAllRanges();
+    if(busy)return;
+    clearTarget();lock(true);
+    try{show(await api.adminFindUser(adminEmail.value.trim()));say('Пользователь найден.');}
     catch(e){error(e);}finally{lock(false);}
   });
 
