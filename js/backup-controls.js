@@ -97,6 +97,19 @@
       if(typeof window.qPokoyNotice==='function')window.qPokoyNotice(title,message,type);
     }
 
+    function confirmBillingAction(title,message,confirmLabel,onConfirm){
+      if(typeof window.qPokoyConfirm==='function'){
+        window.qPokoyConfirm(title,message,onConfirm,{cancelLabel:'Отмена',confirmLabel});
+        return;
+      }
+      if(window.confirm(title+'\n\n'+message))onConfirm();
+    }
+
+    function showBillingProgress(title,message){
+      status.textContent=message;
+      if(typeof window.qPokoyNotice==='function')window.qPokoyNotice(title,'Пожалуйста, подождите…');
+    }
+
     async function refresh(){
       if(!api?.getToken?.()){
         status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
@@ -140,40 +153,54 @@
       }
     }
 
-    disable.addEventListener('click',async()=>{
+    disable.addEventListener('click',()=>{
       if(!api?.getToken?.())return;
-      disable.disabled=true;
-      status.textContent='Отключаем автопродление…';
-      try{
-        await api.setBillingAutoRenew(false);
-        showBillingNotice('Автопродление отключено','Оплаченный период сохранён.');
-      }catch(error){
-        const message=error?.message||'Не удалось отключить автопродление.';
-        showBillingNotice('Ошибка',message,'error');
-      }finally{
-        disable.disabled=false;
-      }
+      confirmBillingAction(
+        'Отключить автопродление?',
+        'Следующее автоматическое списание будет отключено. Оплаченный период сохранится.',
+        'Отключить',
+        async()=>{
+          disable.disabled=true;
+          showBillingProgress('Отключаем автопродление','Отключаем автопродление…');
+          try{
+            await api.setBillingAutoRenew(false);
+            showBillingNotice('Автопродление отключено','Оплаченный период сохранён.');
+          }catch(error){
+            const message=error?.message||'Не удалось отключить автопродление.';
+            showBillingNotice('Ошибка',message,'error');
+          }finally{
+            disable.disabled=false;
+          }
+        }
+      );
     });
 
-    unlink.addEventListener('click',async()=>{
+    unlink.addEventListener('click',()=>{
       if(!api?.getToken?.())return;
-      unlink.disabled=true;
-      status.textContent='Отвязываем карту…';
-      try{
-        const result=await api.request('DELETE','/billing/payment-method');
-        const unlinked=result?.data?.unlinked??result?.unlinked;
-        if(unlinked){
-          showBillingNotice('Карта отвязана','Автопродление отключено. Оплаченный период сохранён.');
-        }else{
-          showBillingNotice('Карта не привязана','Сохранённая карта не была привязана.');
+      confirmBillingAction(
+        'Отвязать карту?',
+        'Сохранённый способ оплаты будет удалён, автопродление отключится. Оплаченный период сохранится.',
+        'Отвязать',
+        async()=>{
+          unlink.disabled=true;
+          showBillingProgress('Отвязываем карту','Отвязываем карту…');
+          try{
+            const result=await api.request('DELETE','/billing/payment-method');
+            const unlinked=result?.data?.unlinked??result?.unlinked;
+            if(unlinked){
+              showBillingNotice('Карта отвязана','Автопродление отключено. Оплаченный период сохранён.');
+            }else{
+              showBillingNotice('Карта не привязана','Сохранённая карта не была привязана.');
+            }
+          }catch(error){
+            const message=error?.message||'Не удалось отвязать карту.';
+            showBillingNotice('Ошибка',message,'error');
+          }finally{
+            unlink.disabled=false;
+            disable.disabled=false;
+          }
         }
-      }catch(error){
-        const message=error?.message||'Не удалось отвязать карту.';
-        showBillingNotice('Ошибка',message,'error');
-      }finally{
-        unlink.disabled=false;
-        disable.disabled=false;
-      }
+      );
     });
 
     refresh();
