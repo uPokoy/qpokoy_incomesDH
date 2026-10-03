@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="css/appearance.css?v=dev-2026.10.03.181">
 <link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.178">
 <link rel="stylesheet" href="css/admin-platform.css?v=dev-2026.10.03.181">
-<script defer src="js/api-client.js?v=dev-2026.10.03.168"></script>
+<script defer src="js/api-client.js?v=dev-2026.10.03.184"></script>
 <script defer src="js/admin.js?v=dev-2026.10.03.177"></script>
 </head>
 <body class="qp-admin qp-bg-standard">
@@ -19,6 +19,13 @@
 <p id="adminMessage" role="status" aria-live="polite">Проверяем доступ…</p>
 </section>
 <section id="adminControls" hidden>
+<section class="access-panel" aria-labelledby="testPaymentTitle">
+<h2 id="testPaymentTitle">Тест ЮKassa</h2>
+<div class="final-actions">
+<button type="button" id="adminTestPayment" class="save-access">Тестовая оплата 149 ₽</button>
+</div>
+<p id="adminTestPaymentMessage" class="admin-save-message" role="status" aria-live="polite" hidden></p>
+</section>
 <form id="adminSearch">
 <div class="search-line">
 <input id="adminEmail" type="email" maxlength="254" required autocomplete="off" aria-label="Email пользователя">
@@ -61,5 +68,38 @@
 </article>
 </section>
 </main>
+<script>
+window.addEventListener('DOMContentLoaded',()=>{
+  const button=document.getElementById('adminTestPayment');
+  const status=document.getElementById('adminTestPaymentMessage');
+  if(!button||!status)return;
+  button.addEventListener('click',async()=>{
+    if(button.disabled)return;
+    button.disabled=true;
+    status.hidden=true;
+    status.textContent='';
+    try{
+      const key='qPokoyAdminTestPaymentRequestIdV1';
+      let requestId='';
+      try{requestId=sessionStorage.getItem(key)||'';}catch(_){}
+      if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)){
+        requestId=crypto.randomUUID();
+        try{sessionStorage.setItem(key,requestId);}catch(_){}
+      }
+      const payment=await window.qPokoyApi.createPayment('monthly',false,requestId);
+      const confirmation=new URL(payment?.confirmation_url||'');
+      const trusted=['yoomoney.ru','yookassa.ru'].some(host=>confirmation.hostname===host||confirmation.hostname.endsWith('.'+host));
+      if(confirmation.protocol!=='https:'||!trusted)throw new Error('ЮKassa не вернула корректную ссылку на оплату.');
+      try{sessionStorage.removeItem(key);}catch(_){}
+      location.assign(confirmation.toString());
+    }catch(error){
+      status.textContent=error?.message||'Не удалось создать тестовый платёж.';
+      status.dataset.error='true';
+      status.hidden=false;
+      button.disabled=false;
+    }
+  });
+});
+</script>
 </body>
 </html>
