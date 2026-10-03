@@ -19,14 +19,6 @@
 <p id="adminMessage" role="status" aria-live="polite">Проверяем доступ…</p>
 </section>
 <section id="adminControls" hidden>
-<section class="access-panel" aria-labelledby="testPaymentTitle">
-<h2 id="testPaymentTitle">Тест ЮKassa</h2>
-<div class="final-actions">
-<button type="button" id="adminTestPayment" class="save-access">Тестовая оплата 149 ₽</button>
-<button type="button" id="adminTestPaymentAutoRenew" class="save-access">149 ₽ + автопродление</button>
-</div>
-<p id="adminTestPaymentMessage" class="admin-save-message" role="status" aria-live="polite" hidden></p>
-</section>
 <form id="adminSearch">
 <div class="search-line">
 <input id="adminEmail" type="email" maxlength="254" required autocomplete="off" aria-label="Email пользователя">
@@ -69,43 +61,5 @@
 </article>
 </section>
 </main>
-<script>
-window.addEventListener('DOMContentLoaded',()=>{
-  const plainButton=document.getElementById('adminTestPayment');
-  const autoButton=document.getElementById('adminTestPaymentAutoRenew');
-  const status=document.getElementById('adminTestPaymentMessage');
-  if(!plainButton||!autoButton||!status)return;
-  const startPayment=async(button,autoRenew)=>{
-    if(button.disabled)return;
-    plainButton.disabled=true;
-    autoButton.disabled=true;
-    status.hidden=true;
-    status.textContent='';
-    try{
-      const key=autoRenew?'qPokoyAdminTestPaymentAutoRenewRequestIdV1':'qPokoyAdminTestPaymentRequestIdV1';
-      let requestId='';
-      try{requestId=sessionStorage.getItem(key)||'';}catch(_){}
-      if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)){
-        requestId=crypto.randomUUID();
-        try{sessionStorage.setItem(key,requestId);}catch(_){}
-      }
-      const payment=await window.qPokoyApi.createPayment('monthly',autoRenew,requestId);
-      const confirmation=new URL(payment?.confirmation_url||'');
-      const trusted=['yoomoney.ru','yookassa.ru'].some(host=>confirmation.hostname===host||confirmation.hostname.endsWith('.'+host));
-      if(confirmation.protocol!=='https:'||!trusted)throw new Error('ЮKassa не вернула корректную ссылку на оплату.');
-      try{sessionStorage.removeItem(key);}catch(_){}
-      location.assign(confirmation.toString());
-    }catch(error){
-      status.textContent=error?.message||'Не удалось создать тестовый платёж.';
-      status.dataset.error='true';
-      status.hidden=false;
-      plainButton.disabled=false;
-      autoButton.disabled=false;
-    }
-  };
-  plainButton.addEventListener('click',()=>startPayment(plainButton,false));
-  autoButton.addEventListener('click',()=>startPayment(autoButton,true));
-});
-</script>
 </body>
 </html>
