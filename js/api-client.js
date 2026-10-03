@@ -148,6 +148,13 @@
       async adminFindUser(email){return (await request('GET','/admin/users?email='+encodeURIComponent(email))).data;},
       async adminSetAccess(id,change){return (await request('POST','/admin/users/'+encodeURIComponent(id)+'/access',change)).data;},
       async billingStatus(){return (await request('GET','/billing/status')).data;},
+      async createPayment(plan,autoRenew=false,requestId){
+        const body={plan,auto_renew:!!autoRenew};
+        if(requestId!==undefined)body.request_id=requestId;
+        return (await request('POST','/billing/payments',body)).data;
+      },
+      async paymentStatus(id){return (await request('GET','/billing/payments/'+encodeURIComponent(id))).data;},
+      async setBillingAutoRenew(enabled){return (await request('POST','/billing/auto-renew',{enabled:!!enabled})).data;},
       async listIncomes(){return (await request('GET','/incomes')).data;},
       async replaceIncomes(incomes){return (await request('POST','/incomes/replace',{incomes})).data;},
       async deleteAllIncomes(){return request('DELETE','/incomes');},
