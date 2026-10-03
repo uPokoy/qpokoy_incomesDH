@@ -16,15 +16,18 @@
 .qp-admin .search-line,.qp-admin .actions,.qp-admin .renew,.qp-admin .date-line{display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
 .qp-admin .search-line{margin-top:0;margin-bottom:0}
 .qp-admin .search-line input{flex:1 1 220px}
-.qp-admin .search-button,.qp-admin .date-confirm-button{width:46px;min-width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center}
-.qp-admin .search-button svg,.qp-admin .date-confirm-button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.qp-admin .date-line{justify-content:flex-start;flex-wrap:nowrap;max-width:400px;margin-top:0}
-.qp-admin .admin-date-picker{position:relative;flex:1 1 340px;min-width:0}
-.qp-admin #adminUntil{width:100%;cursor:pointer;padding-right:38px}
+.qp-admin .search-button{width:46px;min-width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.qp-admin .search-button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.qp-admin .date-line{justify-content:flex-start;max-width:360px;margin-top:0}
+.qp-admin .admin-date-picker{position:relative;flex:1 1 300px;min-width:0}
+.qp-admin #adminUntil{width:100%;cursor:pointer;padding-right:42px}
 .qp-admin #adminUntil::placeholder{color:#a9b4c5;opacity:.75}
-.qp-admin .date-line .date-confirm-button{flex:0 0 46px}
-.qp-admin .admin-calendar-popup{position:absolute;z-index:1400;top:calc(100% + 8px);left:0;display:none;width:min(320px,calc(100vw - 56px));padding:12px;box-sizing:border-box;background:#151e2b;border:1px solid #344257;border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.32)}
+.qp-admin .admin-date-clear{position:absolute;z-index:2;top:50%;right:7px;transform:translateY(-50%);width:30px;height:30px;min-height:30px;padding:0;border:0;border-radius:8px;background:transparent;color:#a9b4c5;font-size:22px;line-height:1;display:grid;place-items:center}
+.qp-admin .admin-date-clear:hover{background:#293950;color:#fff}
+.qp-admin .admin-calendar-popup{position:absolute;z-index:1400;left:0;display:none;width:min(320px,calc(100vw - 56px));padding:12px;box-sizing:border-box;background:#151e2b;border:1px solid #344257;border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.32)}
 .qp-admin .admin-calendar-popup.open{display:block}
+.qp-admin .admin-calendar-popup.open-down{top:calc(100% + 8px);bottom:auto}
+.qp-admin .admin-calendar-popup.open-up{top:auto;bottom:calc(100% + 8px)}
 .qp-admin .admin-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
 .qp-admin .admin-calendar-head>div{font-size:14px;font-weight:600;text-transform:capitalize}
 .qp-admin .admin-calendar-nav{width:30px;height:30px;min-height:30px;padding:0;border:0;border-radius:8px;background:#202d43;color:#e7edf7;font-size:22px;line-height:1;display:grid;place-items:center}
@@ -36,13 +39,18 @@
 .qp-admin .admin-calendar-day.other{opacity:.36}
 .qp-admin .admin-calendar-day.today{outline:1px solid #9bbdf8}
 .qp-admin .admin-calendar-day.selected{background:#465775;color:#fff}
-.qp-admin .actions{margin:14px 0 20px}
-.qp-admin .actions button{min-width:150px}
-.qp-admin .renew{margin-top:16px}
+.qp-admin .actions{margin:14px 0 20px;align-items:center}
+.qp-admin .actions button{min-width:0;width:auto;flex:0 0 auto;padding:10px 18px}
+.qp-admin .actions button.selected{background:#344a69;border-color:#6f8fbd;box-shadow:0 0 0 1px #6f8fbd inset}
+.qp-admin .renew{margin-top:10px;margin-bottom:14px}
+.qp-admin .renew label{margin:0}
 .qp-admin .danger{border-color:#9e5d68;color:#ffc2c9;margin-top:4px}
+.qp-admin .danger.selected{background:#4a2730;border-color:#c0717f;box-shadow:0 0 0 1px #c0717f inset}
+.qp-admin .save-access{display:block;margin-top:16px;min-width:132px;background:#2a3d59;border-color:#5a7398}
+.qp-admin .save-access:not(:disabled):hover{background:#344c70}
 .qp-admin .admin-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0}
 .qp-admin .admin-detail-card{min-width:0;background:#101824;border:1px solid #344257;border-radius:12px;padding:14px 16px;box-sizing:border-box}
 .qp-admin .admin-detail-card dt{margin:0 0 4px;color:#a9b4c5;font-size:14px}
 .qp-admin .admin-detail-card dd{margin:0;color:#f2f6fc;font-size:16px;overflow-wrap:anywhere}
 .qp-admin p{color:#b9c7dc;overflow-wrap:anywhere}.qp-admin #adminMessage[data-error=true]{color:#ffc2c9}
-@media(max-width:560px){.qp-admin main{margin:16px auto;padding:0 12px}.qp-admin .admin-access-shell{padding:22px 16px}.qp-admin form,.qp-admin .access-panel{padding:14px}.qp-admin .admin-details{grid-template-columns:1fr;gap:10px}.qp-admin .actions button{flex:1 1 130px;min-width:0}.qp-admin .date-line{max-width:100%}.qp-admin .admin-calendar-popup{width:min(300px,calc(100vw - 52px))}.qp-admin .renew{align-items:flex-start}.qp-admin .renew button{width:100%}}
+@media(max-width:560px){.qp-admin main{margin:16px auto;padding:0 12px}.qp-admin .admin-access-shell{padding:22px 16px}.qp-admin form,.qp-admin .access-panel{padding:14px}.qp-admin .admin-details{grid-template-columns:1fr;gap:10px}.qp-admin .date-line{max-width:100%}.qp-admin .admin-calendar-popup{width:min(300px,calc(100vw - 52px))}.qp-admin .actions{gap:8px}.qp-admin .actions button{padding:10px 14px}.qp-admin .renew{align-items:flex-start}.qp-admin .save-access{width:100%}}
