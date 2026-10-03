@@ -8,7 +8,7 @@ const U = TypedValues.utf8;
 const T = TypedValues.timestamp;
 const D = TypedValues.double;
 const REVISION_KEY = 'system.data_revision';
-const internalSetting = (key) => /^(auth|system|rate)\./.test(key);
+const internalSetting = (key) => /^(auth|system|rate|billing)\./.test(key);
 
 function createYdbStore(env = process.env, DriverClass = Driver) {
   if (!env.ENDPOINT || !env.DATABASE) throw new Error('ENDPOINT and DATABASE are required');

@@ -7,6 +7,12 @@ const MAX_REPLACE_INCOMES = 500;
 const OAUTH_TICKET_SETTING = 'auth.oauth_ticket';
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 const OAUTH_TICKET_TTL_MS = 2 * 60 * 1000;
+const BILLING_ACCESS_SETTING = 'billing.access';
+const BILLING_PLANS = Object.freeze({
+  monthly: { code: 'monthly', price_rub: 149, period: 'month' },
+  yearly: { code: 'yearly', price_rub: 1190, period: 'year' },
+  lifetime: { code: 'lifetime', price_rub: 1790, period: 'lifetime' }
+});
 const RATE_LIMITS = Object.freeze({
   loginIp: { limit: 30, windowMs: 15 * 60 * 1000 },
   loginEmail: { limit: 10, windowMs: 15 * 60 * 1000 },
@@ -98,6 +104,62 @@ function createApp(store, options = {}) {
   const appBaseUrl = options.appBaseUrl || 'https://qpokoy.ru/';
   const oauthCallbackBaseUrl = String(options.oauthCallbackBaseUrl || '').replace(/\/$/, '');
   const rateLimits = { ...RATE_LIMITS, ...(options.rateLimits || {}) };
+  const billingEnforcementStartedAt = (() => {
+    const value = options.billingEnforcementStartedAt;
+    if (!value) return null;
+    const parsed = value instanceof Date ? new Date(value) : new Date(String(value));
+    return Number.isFinite(parsed.getTime()) ? parsed : null;
+  })();
+
+  const isoDate = (value) => {
+    if (!value) return null;
+    const parsed = value instanceof Date ? new Date(value) : new Date(String(value));
+    return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : null;
+  };
+  async function billingAccess(user) {
+    const current = now();
+    const currentMs = current.getTime();
+    const trialEndsAt = isoDate(user?.trial_ends_at);
+    const base = {
+      can_read: true, can_export_pdf: true, can_delete_account: true,
+      can_write: true, auto_renew: false, paid_until: null, grace_until: null,
+      trial_ends_at: trialEndsAt
+    };
+    if (!billingEnforcementStartedAt || currentMs < billingEnforcementStartedAt.getTime()) {
+      return { ...base, mode: 'prelaunch', status: 'active', plan: null };
+    }
+    const createdAt = user?.created_at ? new Date(user.created_at) : null;
+    if (createdAt && Number.isFinite(createdAt.getTime()) && createdAt < billingEnforcementStartedAt) {
+      return { ...base, mode: 'lifetime', status: 'active', plan: 'lifetime', source: 'legacy' };
+    }
+    let saved = null;
+    try {
+      const row = await store.getSetting(user.user_id, BILLING_ACCESS_SETTING);
+      saved = row?.setting_value ? JSON.parse(row.setting_value) : null;
+    } catch (_) { saved = null; }
+    const plan = ['monthly', 'yearly', 'lifetime'].includes(saved?.plan) ? saved.plan : null;
+    const paidUntil = isoDate(saved?.paid_until);
+    const graceUntil = isoDate(saved?.grace_until);
+    const autoRenew = Boolean(saved?.auto_renew && (plan === 'monthly' || plan === 'yearly'));
+    if (plan === 'lifetime') return { ...base, mode: 'lifetime', status: 'active', plan, source: 'payment' };
+    if ((plan === 'monthly' || plan === 'yearly') && paidUntil && new Date(paidUntil).getTime() > currentMs) {
+      return { ...base, mode: 'paid', status: 'active', plan, auto_renew: autoRenew, paid_until: paidUntil, grace_until: graceUntil };
+    }
+    if ((plan === 'monthly' || plan === 'yearly') && graceUntil && new Date(graceUntil).getTime() > currentMs) {
+      return { ...base, mode: 'grace', status: 'grace', plan, auto_renew: autoRenew, paid_until: paidUntil, grace_until: graceUntil };
+    }
+    if (trialEndsAt && new Date(trialEndsAt).getTime() > currentMs) return { ...base, mode: 'trial', status: 'active', plan: 'trial' };
+    return { ...base, can_write: false, mode: 'expired', status: 'expired', plan: plan || null,
+      auto_renew: autoRenew, paid_until: paidUntil, grace_until: graceUntil };
+  }
+  async function requireWriteAccess(user) {
+    const access = await billingAccess(user);
+    if (!access.can_write) {
+      throw new HttpError(402, 'subscription_required',
+        'Пробный период или подписка закончились. Доступны просмотр данных, экспорт PDF и удаление аккаунта.');
+    }
+    return access;
+  }
 
   function clientIp(headers, requestContext) {
     const forwarded = headers['x-forwarded-for'] || headers['X-Forwarded-For'] || headers['x-real-ip'] || headers['X-Real-IP'] || '';
@@ -416,17 +478,22 @@ function createApp(store, options = {}) {
           validateUser(user);
         }, revision);
         if (startup.not_modified) return response(200, {
-          user: publicUser(startup.user), revision: startup.revision, not_modified: true
+          user: publicUser(startup.user), revision: startup.revision, not_modified: true,
+          billing: await billingAccess(startup.user)
         });
         return response(200, {
           revision: startup.revision, not_modified: false,
           user: publicUser(startup.user), incomes: startup.incomes, categories: startup.categories,
-          settings: startup.settings.filter((row) => !/^(auth|system|rate)\./.test(String(row.setting_key)))
+          settings: startup.settings.filter((row) => !/^(auth|system|rate|billing)\./.test(String(row.setting_key))),
+          billing: await billingAccess(startup.user)
         });
       }
       const { user, session } = await authenticate(headers);
       const userId = user.user_id;
       if (method === 'GET' && pathname === '/auth/me') return response(200, { user: publicUser(user) });
+      if (method === 'GET' && pathname === '/billing/status') return response(200, {
+        data: await billingAccess(user), plans: BILLING_PLANS
+      });
       if (method === 'DELETE' && pathname === '/auth/me') {
         await store.deleteAccount(userId);
         return response(204, null);
@@ -437,10 +504,12 @@ function createApp(store, options = {}) {
       }
       if (pathname === '/incomes' && method === 'GET') return response(200, { data: await store.listIncomes(userId) });
       if (pathname === '/incomes' && method === 'DELETE') {
+        await requireWriteAccess(user);
         await store.deleteAllIncomes(userId);
         return response(204, null);
       }
       if (pathname === '/incomes' && method === 'POST') {
+        await requireWriteAccess(user);
         const value = incomeValue(body);
         const id = body.id === undefined ? randomUUID() : uuidValue(body.id);
         const created = await store.addIncome({ user_id: userId, id, ...value, created_at: now(), updated_at: now() });
@@ -448,6 +517,7 @@ function createApp(store, options = {}) {
         return response(201, { data: await store.getIncome(userId, id) });
       }
       if (pathname === '/incomes/replace' && method === 'POST') {
+        await requireWriteAccess(user);
         if (!Array.isArray(body.incomes)) bad('incomes must be an array');
         if (body.incomes.length > MAX_REPLACE_INCOMES) throw new HttpError(413, 'too_many_incomes', `Maximum ${MAX_REPLACE_INCOMES} incomes per request`);
         const seen = new Set();
@@ -463,6 +533,7 @@ function createApp(store, options = {}) {
       }
       const incomeMatch = /^\/incomes\/([^/]+)$/.exec(pathname);
       if (incomeMatch && (method === 'PUT' || method === 'PATCH')) {
+        await requireWriteAccess(user);
         const id = uuidValue(incomeMatch[1]);
         const value = incomeValue(body);
         const updated = await store.updateIncome(userId, id, value, now());
@@ -470,12 +541,14 @@ function createApp(store, options = {}) {
         return response(200, { data: await store.getIncome(userId, id) });
       }
       if (incomeMatch && method === 'DELETE') {
+        await requireWriteAccess(user);
         const id = uuidValue(incomeMatch[1]);
         if (!await store.deleteIncome(userId, id)) throw new HttpError(404, 'not_found', 'Income not found');
         return response(204, null);
       }
       if (pathname === '/categories' && method === 'GET') return response(200, { data: await store.listCategories(userId) });
       if (pathname === '/categories' && method === 'POST') {
+        await requireWriteAccess(user);
         const name = requiredString(body.name, 'name', 80).replace(/\s+/g, ' ');
         const id = randomUUID();
         const created = await store.addCategory({ user_id: userId, id, name, created_at: now() });
@@ -484,6 +557,7 @@ function createApp(store, options = {}) {
       }
       const categoryMatch = /^\/categories\/([^/]+)$/.exec(pathname);
       if (categoryMatch && method === 'DELETE') {
+        await requireWriteAccess(user);
         const id = uuidValue(categoryMatch[1]);
         const category = await store.getCategory(userId, id);
         if (!category) throw new HttpError(404, 'not_found', 'Category not found');
@@ -492,13 +566,14 @@ function createApp(store, options = {}) {
         return response(204, null);
       }
       if (pathname === '/settings' && method === 'GET') return response(200, {
-        data: (await store.listSettings(userId)).filter(row => row.setting_key !== 'system.data_revision')
+        data: (await store.listSettings(userId)).filter(row => !/^(auth|system|rate|billing)\./.test(String(row.setting_key)))
       });
       const settingMatch = /^\/settings\/([^/]+)$/.exec(pathname);
       if (settingMatch && method === 'PUT') {
+        await requireWriteAccess(user);
         const key = requiredString(decodeURIComponent(settingMatch[1]), 'setting_key', 80);
         if (!/^[A-Za-z0-9_.-]+$/.test(key)) bad('Invalid setting_key');
-        if (key === 'system.data_revision') throw new HttpError(403, 'reserved_setting', 'Data revision is server-managed');
+        if (/^(auth|system|rate|billing)\./.test(key)) throw new HttpError(403, 'reserved_setting', 'This setting is server-managed');
         if (typeof body.setting_value !== 'string' || body.setting_value.length > 65536) bad('Invalid setting_value');
         const row = { user_id: userId, setting_key: key, setting_value: body.setting_value, updated_at: now() };
         await store.putSetting(row);

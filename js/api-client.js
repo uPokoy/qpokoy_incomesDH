@@ -144,6 +144,7 @@
       },
       async logout(){try{await request('POST','/auth/logout');}finally{clearToken();}},
       async deleteAccount(){await request('DELETE','/auth/me');clearToken();},
+      async billingStatus(){return (await request('GET','/billing/status')).data;},
       async listIncomes(){return (await request('GET','/incomes')).data;},
       async replaceIncomes(incomes){return (await request('POST','/incomes/replace',{incomes})).data;},
       async deleteAllIncomes(){return request('DELETE','/incomes');},

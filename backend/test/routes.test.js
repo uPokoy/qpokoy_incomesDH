@@ -127,7 +127,7 @@ function memoryStore() {
     deleteCategory: async (uid, id) => { const removed = categories.delete(key(uid, id)); if (removed) bump(uid); return removed; },
     listSettings: async (uid) => owned(settings, uid),
     getSetting: async (uid, settingKey) => settings.get(key(uid, settingKey)),
-    putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); if (!/^(auth|system|rate)\./.test(row.setting_key)) bump(row.user_id); },
+    putSetting: async (row) => { settings.set(key(row.user_id, row.setting_key), row); if (!/^(auth|system|rate|billing)\./.test(row.setting_key)) bump(row.user_id); },
     deleteSetting: async (uid, settingKey) => { settings.delete(key(uid, settingKey)); },
     getEmailVerification: async (uid) => {
       const row = settings.get(key(uid, 'auth.email_verification'));
@@ -655,4 +655,82 @@ test('DELETE /auth/me removes all own data and sessions, not another account', a
   assert.equal((await app.handle('POST', '/auth/login', { email: 'alice@example.com', password: 'very-secret-password' })).status, 401);
   assert.equal((await app.handle('GET', '/auth/me', {}, auth(bob.token))).status, 200);
   assert.equal((await app.handle('GET', '/incomes', {}, auth(bob.token))).body.data.length, 1);
+});
+test('billing access preserves legacy users and makes expired accounts read-only', async () => {
+  const store = memoryStore();
+  let clock = new Date('2026-09-30T12:00:00.000Z');
+  const app = createApp(store, {
+    requireEmailVerification: false,
+    billingEnforcementStartedAt: '2026-10-01T00:00:00.000Z',
+    now: () => new Date(clock)
+  });
+  const legacy = (await register(app, 'legacy-billing@example.com')).body;
+  const legacyHeaders = auth(legacy.token);
+  clock = new Date('2026-10-20T12:00:00.000Z');
+  let status = await app.handle('GET', '/billing/status', {}, legacyHeaders);
+  assert.equal(status.status, 200);
+  assert.equal(status.body.data.mode, 'lifetime');
+  assert.equal(status.body.data.source, 'legacy');
+  assert.equal(status.body.data.can_write, true);
+  assert.equal((await app.handle('POST', '/incomes', {
+    income_date: '2026-10-20', category: 'Зарплата', description: 'Legacy', amount: 100
+  }, legacyHeaders)).status, 201);
+
+  clock = new Date('2026-10-02T12:00:00.000Z');
+  const fresh = (await register(app, 'trial-billing@example.com')).body;
+  const freshHeaders = auth(fresh.token);
+  status = await app.handle('GET', '/billing/status', {}, freshHeaders);
+  assert.equal(status.body.data.mode, 'trial');
+  assert.equal(status.body.data.can_write, true);
+  assert.equal((await app.handle('GET', '/bootstrap', {}, freshHeaders)).body.billing.mode, 'trial');
+
+  clock = new Date('2026-10-17T12:00:00.000Z');
+  status = await app.handle('GET', '/billing/status', {}, freshHeaders);
+  assert.equal(status.body.data.mode, 'expired');
+  assert.equal(status.body.data.can_write, false);
+  assert.equal((await app.handle('POST', '/incomes', {
+    income_date: '2026-10-17', category: 'Зарплата', description: 'Blocked', amount: 100
+  }, freshHeaders)).status, 402);
+  assert.equal((await app.handle('GET', '/incomes', {}, freshHeaders)).status, 200);
+  assert.equal((await app.handle('DELETE', '/auth/me', {}, freshHeaders)).status, 204);
+});
+
+test('billing payment and grace state are server-managed and keep writes enabled only while entitled', async () => {
+  const store = memoryStore();
+  let clock = new Date('2026-10-02T12:00:00.000Z');
+  const app = createApp(store, {
+    requireEmailVerification: false,
+    billingEnforcementStartedAt: '2026-10-01T00:00:00.000Z',
+    now: () => new Date(clock)
+  });
+  const account = (await register(app, 'paid-billing@example.com')).body;
+  const headers = auth(account.token);
+  const uid = account.user.user_id;
+  const initial = (await app.handle('GET', '/bootstrap', {}, headers)).body;
+  await store.putSetting({
+    user_id: uid,
+    setting_key: 'billing.access',
+    setting_value: JSON.stringify({
+      plan: 'monthly',
+      paid_until: '2026-10-25T00:00:00.000Z',
+      grace_until: '2026-10-28T00:00:00.000Z',
+      auto_renew: true
+    }),
+    updated_at: clock
+  });
+  const cached = (await app.handle('GET', '/bootstrap?revision=' + encodeURIComponent(initial.revision), {}, headers)).body;
+  assert.equal(cached.not_modified, true);
+  assert.equal(cached.billing.mode, 'paid');
+  assert.equal(cached.billing.auto_renew, true);
+  assert.equal(cached.settings, undefined);
+  assert.equal((await app.handle('GET', '/settings', {}, headers)).body.data.some(row => row.setting_key === 'billing.access'), false);
+  assert.equal((await app.handle('PUT', '/settings/billing.access', { setting_value: '{}' }, headers)).status, 403);
+
+  clock = new Date('2026-10-26T12:00:00.000Z');
+  assert.equal((await app.handle('GET', '/billing/status', {}, headers)).body.data.mode, 'grace');
+  assert.equal((await app.handle('POST', '/categories', { name: 'Grace category' }, headers)).status, 201);
+
+  clock = new Date('2026-10-29T12:00:00.000Z');
+  assert.equal((await app.handle('GET', '/billing/status', {}, headers)).body.data.mode, 'expired');
+  assert.equal((await app.handle('POST', '/categories', { name: 'Blocked category' }, headers)).status, 402);
 });
