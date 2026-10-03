@@ -76,14 +76,14 @@
 
     const block=document.createElement('div');
     block.id='qpBillingSettings';
-    block.style.cssText='margin-top:20px;padding-top:18px;border-top:1px solid rgba(151,189,237,.16);';
+    block.style.cssText='margin-top:10px;padding-top:0;border-top:0;';
     block.innerHTML=''
-      +'<div id="qpBillingStatus" class="settings-card-subtitle" style="margin-top:7px;">Проверяем состояние подписки…</div>'
-      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">'
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
       +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
       +'</div>'
-      +'<div class="settings-card-subtitle" style="margin-top:10px;">Отвязка карты отключает автопродление. Уже оплаченный период сохраняется.</div>';
+      +'<div id="qpBillingStatus" class="settings-card-subtitle" style="margin-top:10px;">Проверяем состояние подписки…</div>'
+      +'<div class="settings-card-subtitle" style="margin-top:8px;">Отвязка карты отключает автопродление. Уже оплаченный период сохраняется.</div>';
     card.appendChild(block);
 
     const api=window.qPokoyApi;
@@ -92,6 +92,11 @@
     const unlink=document.getElementById('qpBillingUnlinkCard');
     const planNames={monthly:'Месяц',yearly:'Год',lifetime:'Бессрочный доступ',trial:'Пробный период'};
 
+    function showBillingNotice(title,message,type='success'){
+      status.textContent=message;
+      if(typeof window.qPokoyNotice==='function')window.qPokoyNotice(title,message,type);
+    }
+
     async function refresh(){
       if(!api?.getToken?.()){
         status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
@@ -99,7 +104,7 @@
         unlink.disabled=true;
         return;
       }
-      disable.disabled=true;
+      disable.disabled=false;
       unlink.disabled=false;
       try{
         const access=await api.billingStatus();
@@ -119,7 +124,6 @@
         if(access?.plan==='monthly'||access?.plan==='yearly'){
           const until=formatBillingDate(access.paid_until);
           status.textContent='Тариф: '+planNames[access.plan]+(until?' · до '+until:'')+' · автопродление '+(access.auto_renew?'включено':'выключено')+'.';
-          disable.disabled=!access.auto_renew;
           return;
         }
         status.textContent='Активной подписки нет.';
@@ -130,6 +134,8 @@
           unlink.disabled=true;
         }else{
           status.textContent='Не удалось проверить состояние подписки.';
+          disable.disabled=false;
+          unlink.disabled=false;
         }
       }
     }
@@ -140,9 +146,11 @@
       status.textContent='Отключаем автопродление…';
       try{
         await api.setBillingAutoRenew(false);
-        status.textContent='Автопродление отключено. Оплаченный период сохранён.';
+        showBillingNotice('Автопродление отключено','Оплаченный период сохранён.');
       }catch(error){
-        status.textContent=error?.message||'Не удалось отключить автопродление.';
+        const message=error?.message||'Не удалось отключить автопродление.';
+        showBillingNotice('Ошибка',message,'error');
+      }finally{
         disable.disabled=false;
       }
     });
@@ -153,13 +161,18 @@
       status.textContent='Отвязываем карту…';
       try{
         const result=await api.request('DELETE','/billing/payment-method');
-        disable.disabled=true;
-        status.textContent=result?.data?.unlinked
-          ? 'Карта отвязана. Автопродление отключено. Оплаченный период сохранён.'
-          : 'Сохранённая карта не была привязана.';
+        const unlinked=result?.data?.unlinked??result?.unlinked;
+        if(unlinked){
+          showBillingNotice('Карта отвязана','Автопродление отключено. Оплаченный период сохранён.');
+        }else{
+          showBillingNotice('Карта не привязана','Сохранённая карта не была привязана.');
+        }
       }catch(error){
-        status.textContent=error?.message||'Не удалось отвязать карту.';
+        const message=error?.message||'Не удалось отвязать карту.';
+        showBillingNotice('Ошибка',message,'error');
+      }finally{
         unlink.disabled=false;
+        disable.disabled=false;
       }
     });
 
