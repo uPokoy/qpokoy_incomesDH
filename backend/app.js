@@ -125,7 +125,12 @@ function createApp(store, options = {}) {
   async function billingAccess(user) {
     const current = now();
     const currentMs = current.getTime();
-    const trialEndsAt = isoDate(user?.trial_ends_at);
+    let trialEndsAt = isoDate(user?.trial_ends_at);
+    const createdAtMs = Date.parse(user?.created_at);
+    if (billingEnforcementStartedAt && Number.isFinite(createdAtMs) && createdAtMs < billingEnforcementStartedAt.getTime()) {
+      const launchTrialEndsAt = new Date(billingEnforcementStartedAt.getTime() + 14 * 86400000).toISOString();
+      if (!trialEndsAt || Date.parse(trialEndsAt) < Date.parse(launchTrialEndsAt)) trialEndsAt = launchTrialEndsAt;
+    }
     const base = {
       can_read: true, can_export_pdf: true, can_delete_account: true,
       can_write: true, auto_renew: false, paid_until: null, grace_until: null,
@@ -143,10 +148,6 @@ function createApp(store, options = {}) {
       if (paid && new Date(paid).getTime() > currentMs) return { ...common, mode: 'paid', status: 'active' };
       if (grace && new Date(grace).getTime() > currentMs) return { ...common, mode: 'grace', status: 'grace' };
       return { ...common, mode: 'expired', status: 'expired', can_write: false };
-    }
-    const createdAt = user?.created_at ? new Date(user.created_at) : null;
-    if (createdAt && Number.isFinite(createdAt.getTime()) && createdAt < billingEnforcementStartedAt) {
-      return { ...base, mode: 'lifetime', status: 'active', plan: 'lifetime', source: 'legacy' };
     }
     let saved = null;
     try {

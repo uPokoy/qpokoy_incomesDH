@@ -119,6 +119,11 @@
     }
 
     function syncBillingTerm(access){
+      if(access?.mode==='prelaunch'){
+        const until=formatBillingDate(access?.trial_ends_at);
+        term.textContent=until?'Пробный период: до '+until:'Пробный период: 14 дней после запуска';
+        return;
+      }
       if(access?.plan==='lifetime'||access?.mode==='lifetime'){
         term.textContent='Подписка: бессрочный доступ';
         return;
@@ -135,7 +140,7 @@
           return;
         }
       }
-      term.textContent=access?.mode==='prelaunch'?'Подписка: бессрочный доступ':'Подписка: нет';
+      term.textContent='Подписка: нет';
     }
 
     function billingErrorMessage(error,fallback){

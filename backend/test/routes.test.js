@@ -112,7 +112,7 @@ function memoryStore() {
     replaceIncomes: async (uid, rows) => {
       const next = new Map(incomes);
       for (const row of owned(next, uid)) next.delete(key(uid, row.id));
-      for (const row of rows) next.set(key(uid, row.id), row);
+      for (const row of rows) next.set(key(row.user_id, row.id), row);
       incomes.clear();
       for (const [id, row] of next) incomes.set(id, row);
       bump(uid);
@@ -222,7 +222,6 @@ test('revision cache detects every bootstrap mutation and isolates devices/users
   assert.equal((await bootstrap(full.revision)).body.not_modified, true);
   assert.equal((await app.handle('PUT', '/settings/system.data_revision', { setting_value: full.revision }, headers)).status, 403);
   assert.ok((await bootstrap()).body.settings.every(row => !/^(auth|system|rate)\./.test(row.setting_key)));
-  // Another session of the same user sees the same version, not a per-device token.
   const second = (await app.handle('POST', '/auth/login', { email: account.user.email, password: 'very-secret-password' })).body;
   assert.equal((await app.handle('GET', '/bootstrap?revision=' + full.revision, {}, auth(second.token))).body.not_modified, true);
   await app.handle('POST', '/incomes', row, auth(second.token));
@@ -309,7 +308,6 @@ test('health, register, login, me, logout and old-token rejection', async () => 
   assert.equal((await app.handle('POST', '/auth/logout', {}, auth(login.body.token))).status, 204);
   assert.equal((await app.handle('GET', '/auth/me', {}, auth(login.body.token))).status, 401);
 });
-
 
 test('Yandex OAuth login creates and exchanges a single-use qPokoy session ticket', async () => {
   const store = memoryStore();
@@ -656,7 +654,8 @@ test('DELETE /auth/me removes all own data and sessions, not another account', a
   assert.equal((await app.handle('GET', '/auth/me', {}, auth(bob.token))).status, 200);
   assert.equal((await app.handle('GET', '/incomes', {}, auth(bob.token))).body.data.length, 1);
 });
-test('billing access preserves legacy users and makes expired accounts read-only', async () => {
+
+test('billing access gives prelaunch accounts a 14-day launch trial and makes expired accounts read-only', async () => {
   const store = memoryStore();
   let clock = new Date('2026-09-30T12:00:00.000Z');
   const app = createApp(store, {
@@ -664,17 +663,27 @@ test('billing access preserves legacy users and makes expired accounts read-only
     billingEnforcementStartedAt: '2026-10-01T00:00:00.000Z',
     now: () => new Date(clock)
   });
-  const legacy = (await register(app, 'legacy-billing@example.com')).body;
-  const legacyHeaders = auth(legacy.token);
-  clock = new Date('2026-10-20T12:00:00.000Z');
-  let status = await app.handle('GET', '/billing/status', {}, legacyHeaders);
+  const existing = (await register(app, 'existing-billing@example.com')).body;
+  const existingHeaders = auth(existing.token);
+
+  clock = new Date('2026-10-02T12:00:00.000Z');
+  let status = await app.handle('GET', '/billing/status', {}, existingHeaders);
   assert.equal(status.status, 200);
-  assert.equal(status.body.data.mode, 'lifetime');
-  assert.equal(status.body.data.source, 'legacy');
+  assert.equal(status.body.data.mode, 'trial');
+  assert.equal(status.body.data.plan, 'trial');
+  assert.equal(status.body.data.trial_ends_at, '2026-10-15T00:00:00.000Z');
   assert.equal(status.body.data.can_write, true);
   assert.equal((await app.handle('POST', '/incomes', {
-    income_date: '2026-10-20', category: 'Зарплата', description: 'Legacy', amount: 100
-  }, legacyHeaders)).status, 201);
+    income_date: '2026-10-02', category: 'Зарплата', description: 'Trial', amount: 100
+  }, existingHeaders)).status, 201);
+
+  clock = new Date('2026-10-20T12:00:00.000Z');
+  status = await app.handle('GET', '/billing/status', {}, existingHeaders);
+  assert.equal(status.body.data.mode, 'expired');
+  assert.equal(status.body.data.can_write, false);
+  assert.equal((await app.handle('POST', '/incomes', {
+    income_date: '2026-10-20', category: 'Зарплата', description: 'Blocked', amount: 100
+  }, existingHeaders)).status, 402);
 
   clock = new Date('2026-10-02T12:00:00.000Z');
   const fresh = (await register(app, 'trial-billing@example.com')).body;
