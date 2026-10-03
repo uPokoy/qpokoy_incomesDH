@@ -71,7 +71,7 @@
   }
 
   function mountBillingSettings(){
-    const card=document.getElementById('qpDataCard');
+    const card=document.getElementById('qpAccountCard');
     if(!card || document.getElementById('qpBillingSettings'))return;
 
     const block=document.createElement('div');
