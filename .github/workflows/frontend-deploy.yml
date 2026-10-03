@@ -53,6 +53,18 @@ jobs:
               raise SystemExit('qPokoyDevVersion marker not found')
           index.write_text(text, encoding='utf-8')
 
+          app = Path('site/js/app.js')
+          app_text = app.read_text(encoding='utf-8')
+          app_text, count = re.subn(
+              r"const qPokoyDevVersion='dev-\d{4}\.\d{2}\.\d{2}\.\d+';",
+              f"const qPokoyDevVersion='{label}';",
+              app_text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('qPokoyDevVersion runtime constant not found')
+          app.write_text(app_text, encoding='utf-8')
+
           asset_pattern = re.compile(
               r'((?:src|href)="(?:js|css)/[^"?]+\.(?:js|css))(?:\?v=[^"]*)?"'
           )
