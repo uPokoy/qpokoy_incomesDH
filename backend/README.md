@@ -110,3 +110,44 @@ first. No Cloud Function/Gateway deployment is performed by this patch.
 Passwords use Node's scrypt (N=16384, r=8, p=1) with a unique 16-byte salt. Session secrets are 32 cryptographically random bytes and stored only as SHA-256 hashes; sessions expire after 30 days and can be revoked. All SQL uses typed parameters. Input lengths, dates, amounts, IDs and JSON size are validated. API errors do not include stack traces or database details. The gateway should retain its restricted invoker configuration, enforce HTTPS, and add rate limits for register/login before public exposure. Email verification, abuse protection, password reset, session cleanup, and production YDB integration tests are still required before replacing Supabase.
 
 Run `npm ci` then `npm test` inside `backend/`. The tests use an in-memory store to exercise routes and ownership checks and do not contact the configured YDB database. A real Cloud Function → YDB smoke test has **not** been run by this change. Verify that separately in a staging gateway before any production switch.
+
+## DEV168: private subscription administration (issue #5)
+
+`admin.html` is a separate frontend, using the existing ordinary account/session.
+Its visibility is not authorization: every `/admin/*` request authenticates the
+bearer session and checks the server-side UUID allowlist `ADMIN_USER_IDS`.
+An unset/invalid allowlist denies all access (403). Configure comma-separated
+administrator UUIDs manually in the Cloud Function environment; do not put them
+in frontend code or this repository. Existing OAuth and billing enforcement
+environment variables are unchanged by this patch.
+
+Deploy the updated backend first, then configure the API Gateway to forward
+`GET /admin/session`, `GET /admin/users?email=...` and
+`POST /admin/users/{user_id}/access`, including Authorization/query parameters.
+The Gateway specification is not in this repository. The frontend deployment
+includes `admin.html`, `css/admin.css` and `js/admin.js`. No production deployment,
+allowlist configuration or billing enforcement activation is performed here.
+
+Search is exact normalized email, without incomes/categories. Writes support
+`month`, `year`, `lifetime`, `until` (inclusive date in Europe/Moscow), `reset` and
+`auto_renew` (boolean, monthly/yearly only). Calendar month/year grants start now;
+dated grants retain the existing three-day grace period. Grants are private
+`billing.admin_override` settings; reset removes only that override, preserving
+underlying payment settings, legacy lifetime and trial calculation. Prelaunch
+remains unrestricted until BILLING_ENFORCEMENT_STARTED_AT is actually reached.
+Toggling auto-renew changes a flag only; it does not initiate a payment.
+
+Grant/reset/auto-renew and an audit record commit atomically in the existing
+settings table. Audit rows belong to synthetic owner `system.admin_audit` (not
+a real user), so account deletion does not erase the audit. Each record contains
+only actor UUID, target UUID, action and UTC time; no email or financial data.
+There is no public audit endpoint; public settings/bootstrap cannot read or write
+reserved billing rows. No new table/DDL is required. Operators must arrange
+private audit inspection/retention through their existing backend/DB procedures.
+Search allows 60/minute and writes 20/minute, independently per authenticated
+admin and source IP; exhausted requests return 429 with Retry-After.
+
+Unit tests exercise authorization, exact search, overrides/reset, prelaunch,
+legacy/trial/grace, auto-renew, validation, rate limits and atomic audit rollback.
+They use synthetic accounts and mocked YDB; real staging Function/Gateway/YDB
+verification is still required before release.

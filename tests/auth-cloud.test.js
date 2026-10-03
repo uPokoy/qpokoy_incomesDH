@@ -45,7 +45,7 @@ function setup(overrides={},options={}){
     ...overrides
   };
   const win={qPokoyApi:api,qPokoyLoadCategories:async(user,rows)=>{categoryLoads++;calls.push({categories:rows});},renderIncomes:()=>calls.push('renderIncomes'),qPokoyNotice:(...args)=>notices.push(args),qPokoyConfirm:(title,message,callback)=>{confirmation=callback;},qPokoyConfirmPhrase:(title,message,phrase,callback)=>{confirmation=callback;},addEventListener(){}};
-  const store={load:()=>records,save(next){records=next;saves.push(next);}};
+  const store={load:()=>records,save(next){records=next;saves.push(next);storage.setItem('incomes',JSON.stringify(next));}};
   vm.runInNewContext(source,{window:win,document,localStorage:storage,IncomeStore:store,console:{error(){}},Date,Promise,
     URLSearchParams,URL,location:{search:options.search||'',href:'https://qpokoy.ru/'+(options.search||'')},history:{replaceState(){}}});
   return {win,api,values,nodes,notices,calls,saves,get records(){return records;},get categoryLoads(){return categoryLoads;},confirm:()=>confirmation()};

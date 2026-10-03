@@ -2,6 +2,7 @@
 
 const { randomUUID, randomBytes, createHmac, createHash, timingSafeEqual } = require('node:crypto');
 const { hashPassword, verifyPassword, newSession, parseToken, verifySecret, newPasswordResetToken, hashPasswordResetToken, newEmailVerificationToken, parseEmailVerificationToken } = require('./security');
+const { OVERRIDE_KEY, AUDIT_OWNER, adminIds, readGrant, grantFor } = require('./admin-billing');
 const DEFAULT_CATEGORIES = ['Зарплата', 'Подработка', 'Прочее'];
 const MAX_REPLACE_INCOMES = 500;
 const OAUTH_TICKET_SETTING = 'auth.oauth_ticket';
@@ -14,6 +15,10 @@ const BILLING_PLANS = Object.freeze({
   lifetime: { code: 'lifetime', price_rub: 1790, period: 'lifetime' }
 });
 const RATE_LIMITS = Object.freeze({
+  adminSearchUser: { limit: 60, windowMs: 60 * 1000 },
+  adminSearchIp: { limit: 60, windowMs: 60 * 1000 },
+  adminWriteUser: { limit: 20, windowMs: 60 * 1000 },
+  adminWriteIp: { limit: 20, windowMs: 60 * 1000 },
   loginIp: { limit: 30, windowMs: 15 * 60 * 1000 },
   loginEmail: { limit: 10, windowMs: 15 * 60 * 1000 },
   registerIp: { limit: 10, windowMs: 60 * 60 * 1000 },
@@ -103,6 +108,7 @@ function createApp(store, options = {}) {
   const oauth = options.oauth || null;
   const appBaseUrl = options.appBaseUrl || 'https://qpokoy.ru/';
   const oauthCallbackBaseUrl = String(options.oauthCallbackBaseUrl || '').replace(/\/$/, '');
+  const allowedAdmins = adminIds(options.adminUserIds);
   const rateLimits = { ...RATE_LIMITS, ...(options.rateLimits || {}) };
   const billingEnforcementStartedAt = (() => {
     const value = options.billingEnforcementStartedAt;
@@ -127,6 +133,16 @@ function createApp(store, options = {}) {
     };
     if (!billingEnforcementStartedAt || currentMs < billingEnforcementStartedAt.getTime()) {
       return { ...base, mode: 'prelaunch', status: 'active', plan: null };
+    }
+    const manual = readGrant(await store.getSetting(user.user_id, OVERRIDE_KEY));
+    if (manual) {
+      const paid = isoDate(manual.paid_until), grace = isoDate(manual.grace_until);
+      const common = { ...base, plan: manual.plan, source: 'admin', auto_renew: manual.auto_renew,
+        paid_until: paid, grace_until: grace };
+      if (manual.plan === 'lifetime') return { ...common, mode: 'lifetime', status: 'active' };
+      if (paid && new Date(paid).getTime() > currentMs) return { ...common, mode: 'paid', status: 'active' };
+      if (grace && new Date(grace).getTime() > currentMs) return { ...common, mode: 'grace', status: 'grace' };
+      return { ...common, mode: 'expired', status: 'expired', can_write: false };
     }
     const createdAt = user?.created_at ? new Date(user.created_at) : null;
     if (createdAt && Number.isFinite(createdAt.getTime()) && createdAt < billingEnforcementStartedAt) {
@@ -490,6 +506,55 @@ function createApp(store, options = {}) {
       }
       const { user, session } = await authenticate(headers);
       const userId = user.user_id;
+      if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+        // Check the authenticated server identity on every admin request, before any lookup.
+        if (!allowedAdmins.has(String(userId).toLowerCase())) throw new HttpError(403,
+          allowedAdmins.size ? 'admin_forbidden' : 'admin_not_configured', 'Нет доступа к админ-панели.');
+        if (method === 'GET' && pathname === '/admin/session') return response(200, { data: { admin: true } });
+        const summary = async (target) => {
+          const manual = readGrant(await store.getSetting(target.user_id, OVERRIDE_KEY));
+          const normal = readGrant(await store.getSetting(target.user_id, BILLING_ACCESS_SETTING));
+          return { ...publicUser(target), billing: await billingAccess(target),
+            assignment: manual ? { ...manual, source: 'admin' } : normal ? { ...normal, source: 'payment' } : null };
+        };
+        if (method === 'GET' && pathname === '/admin/users') {
+          await enforceRateLimit('adminSearchUser', userId);
+          await enforceRateLimit('adminSearchIp', sourceIp);
+          const email = emailValue(url.searchParams.get('email'));
+          const identity = await store.getIdentity('email', email);
+          const target = identity && await store.getUser(identity.user_id);
+          if (!target) throw new HttpError(404, 'not_found', 'Пользователь не найден.');
+          return response(200, { data: await summary(target) });
+        }
+        const match = /^\/admin\/users\/([^/]+)\/access$/.exec(pathname);
+        if (method === 'POST' && match) {
+          await enforceRateLimit('adminWriteUser', userId);
+          await enforceRateLimit('adminWriteIp', sourceIp);
+          const targetId = uuidValue(match[1]);
+          const target = await store.getUser(targetId);
+          if (!target) throw new HttpError(404, 'not_found', 'Пользователь не найден.');
+          if (!body || typeof body !== 'object' || Array.isArray(body)) bad('Expected JSON object');
+          const action = body.action;
+          let settingKey = OVERRIDE_KEY, value = null;
+          if (['month', 'year', 'lifetime', 'until'].includes(action)) {
+            try { value = grantFor(action, body.date, now()); } catch (_) { bad('Некорректное действие или дата.'); }
+          } else if (action === 'auto_renew') {
+            if (typeof body.auto_renew !== 'boolean') bad('auto_renew must be boolean');
+            let row = await store.getSetting(targetId, OVERRIDE_KEY);
+            value = readGrant(row);
+            if (!value) { settingKey = BILLING_ACCESS_SETTING; row = await store.getSetting(targetId, settingKey); value = readGrant(row); }
+            if (!value || !['monthly', 'yearly'].includes(value.plan)) bad('Автопродление доступно только для monthly/yearly.');
+            value = { ...JSON.parse(row.setting_value), auto_renew: body.auto_renew };
+          } else if (action !== 'reset') bad('Unknown admin action');
+          const timestamp = now();
+          const audit = { actor_user_id: userId, target_user_id: targetId, action, at: timestamp.toISOString() };
+          await store.applyAdminBillingChange({ targetId, settingKey, value,
+            audit: { user_id: AUDIT_OWNER, setting_key: 'billing.admin_audit.' + randomUUID(),
+              setting_value: JSON.stringify(audit), updated_at: timestamp }, timestamp });
+          return response(200, { data: await summary(target) });
+        }
+        throw new HttpError(404, 'not_found', 'Admin route not found');
+      }
       if (method === 'GET' && pathname === '/auth/me') return response(200, { user: publicUser(user) });
       if (method === 'GET' && pathname === '/billing/status') return response(200, {
         data: await billingAccess(user), plans: BILLING_PLANS

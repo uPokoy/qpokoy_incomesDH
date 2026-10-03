@@ -176,6 +176,18 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
     },
     getUser: (id) => first('DECLARE $id AS Utf8; SELECT user_id,email,status,created_at,updated_at,trial_ends_at FROM `users` WHERE user_id=$id;', { $id: U(id) }),
     getIdentity: (provider, providerUserId) => first('DECLARE $p AS Utf8; DECLARE $id AS Utf8; SELECT provider,provider_user_id,user_id,password_hash FROM `auth_identities` WHERE provider=$p AND provider_user_id=$id;', { $p: U(provider), $id: U(providerUserId) }),
+    async applyAdminBillingChange({ targetId, settingKey, value, audit, timestamp }) {
+      const sql = value === null
+        ? 'DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DELETE FROM `settings` WHERE user_id=$uid AND setting_key=$key;'
+        : 'DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DECLARE $value AS Utf8; DECLARE $updated AS Timestamp; UPSERT INTO `settings` (user_id,setting_key,setting_value,updated_at) VALUES ($uid,$key,$value,$updated);';
+      const params = { $uid: U(targetId), $key: U(settingKey) };
+      if (value !== null) { params.$value = U(JSON.stringify(value)); params.$updated = T(timestamp); }
+      await transaction([
+        { sql, params },
+        { sql: 'DECLARE $actor AS Utf8; DECLARE $key AS Utf8; DECLARE $value AS Utf8; DECLARE $updated AS Timestamp; INSERT INTO `settings` (user_id,setting_key,setting_value,updated_at) VALUES ($actor,$key,$value,$updated);',
+          params: { $actor: U(audit.user_id), $key: U(audit.setting_key), $value: U(audit.setting_value), $updated: T(audit.updated_at) } }
+      ]);
+    },
     getSetting: (uid, key) => first('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT user_id,setting_key,setting_value,updated_at FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(uid), $key: U(key) }),
     deleteSetting: (uid, key) => (internalSetting(key) ? query : mutate)('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DELETE FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(uid), $key: U(key) }),
     async linkIdentity(provider, providerUserId, uid, createdAt) {

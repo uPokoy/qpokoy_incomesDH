@@ -11,6 +11,16 @@ on:
       - 'tests/api-client.test.js'
       - '.github/workflows/backend-build.yml'
 
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'js/**'
+      - 'tests/**'
+      - 'admin.html'
+      - 'css/admin.css'
+      - '.github/workflows/backend-build.yml'
+
 permissions:
   contents: read
 
@@ -37,12 +47,13 @@ jobs:
         run: |
           node --check index.js
           node --check app.js
+          node --check admin-billing.js
           node --check ydb.js
           node --check security.js
           node --check mail.js
           node --check oauth.js
       - name: Package Cloud Function
-        run: zip -j ../qpokoy-backend.zip index.js app.js ydb.js security.js mail.js oauth.js package.json package-lock.json
+        run: zip -j ../qpokoy-backend.zip index.js app.js admin-billing.js ydb.js security.js mail.js oauth.js package.json package-lock.json
       - name: Upload package
         uses: actions/upload-artifact@v4
         with:
@@ -60,8 +71,9 @@ jobs:
         with:
           node-version: '22'
       - name: API client tests
-        run: node --test tests/api-client.test.js
+        run: node --test tests/*.test.js
       - name: Syntax check
         run: |
+          node --check js/admin.js
           node --check js/api-client.js
           node --check js/auth.js

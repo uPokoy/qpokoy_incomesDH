@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>qPokoy — Управление доступом</title>
+<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.168">
+<script defer src="js/api-client.js?v=dev-2026.10.03.168"></script>
+<script defer src="js/admin.js?v=dev-2026.10.03.168"></script>
+</head>
+<body class="qp-admin">
+<main>
+<header><h1>Управление доступом</h1><a href="index.html">Главная / вход</a></header>
+<p id="adminMessage" role="status" aria-live="polite">Проверяем доступ…</p>
+<section id="adminControls" hidden>
+<form id="adminSearch"><label for="adminEmail">Точный email пользователя</label><div class="search-line"><input id="adminEmail" type="email" maxlength="254" required autocomplete="off"><button>Найти</button></div></form>
+<article id="adminUser" hidden>
+<h2>Пользователь</h2><dl id="adminDetails"></dl>
+<p id="adminPrelaunch" hidden>Сайт работает без платных ограничений. Назначение будет учитываться после включения платного режима.</p>
+<p>Сроки на месяц и год отсчитываются от текущего момента. После окончания срока действует льготный период 3 дня.</p>
+<div class="actions"><button type="button" data-action="month">Доступ на месяц</button><button type="button" data-action="year">Доступ на год</button><button type="button" data-action="lifetime">Бессрочный доступ</button></div>
+<label for="adminUntil">Доступ включительно по дату (МСК), затем 3 дня льготного периода</label>
+<div class="search-line"><input id="adminUntil" type="date"><button type="button" data-action="until">Установить дату</button></div>
+<div class="renew"><label><input id="adminAutoRenew" type="checkbox"> Автопродление monthly/yearly</label><button type="button" id="adminSaveRenew">Сохранить</button></div>
+<button type="button" data-action="reset" class="danger">Сбросить ручное назначение</button>
+</article>
+</section>
+</main>
+</body>
+</html>

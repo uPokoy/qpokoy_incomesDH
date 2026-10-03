@@ -84,3 +84,13 @@ test('replace revision failure rolls back the entire income replacement', async 
   assert.equal(failed.calls.at(-1).action, 'rollback');
   assert.ok(!failed.calls.some(call => call.action === 'commit'));
 });
+
+test('admin billing change and audit commit together with bound parameters, reset rolls back on audit failure',async()=>{
+  const when=new Date('2026-10-03T12:00:00Z');
+  const change={targetId:'target',settingKey:'billing.admin_override',value:{plan:'lifetime'},timestamp:when,
+    audit:{user_id:'system.admin_audit',setting_key:'billing.admin_audit.test',setting_value:'{"action":"lifetime"}',updated_at:when}};
+  const h=fakeStore();await h.store.applyAdminBillingChange(change);
+  assert.deepEqual(h.calls.map(x=>x.action),['begin','query','query','commit']);assert.ok(h.calls.filter(x=>x.action==='query').every(x=>x.control.txId==='tx-1'));
+  assert.equal(h.calls[1].params.$uid.value.textValue,'target');assert.equal(h.calls[2].params.$actor.value.textValue,'system.admin_audit');assert.doesNotMatch(h.calls[1].sql,/lifetime|target/);
+  const failed=fakeStore('INSERT INTO');await assert.rejects(failed.store.applyAdminBillingChange({...change,value:null}));assert.equal(failed.calls.at(-1).action,'rollback');assert.ok(!failed.calls.some(x=>x.action==='commit'));
+});
