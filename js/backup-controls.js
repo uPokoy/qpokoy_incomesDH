@@ -80,6 +80,9 @@
     block.innerHTML=''
       +'<div id="qpBillingTerm" style="display:block;width:100%;margin:0;padding:0 4px;color:var(--text-muted);font-size:13px;line-height:1.35;font-weight:400;">Подписка: проверяем…</div>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
+      +'<button type="button" id="qpBillingPurchase" style="background:var(--primary);color:#fff;border-color:transparent;">Оформить подписку</button>'
+      +'</div>'
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
       +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
       +'</div>'
@@ -91,6 +94,7 @@
     const term=document.getElementById('qpBillingTerm');
     const accountEmail=document.getElementById('qpAccountEmail');
     if(accountEmail&&term)accountEmail.insertAdjacentElement('afterend',term);
+    const purchase=document.getElementById('qpBillingPurchase');
     const status=document.getElementById('qpBillingStatus');
     const disable=document.getElementById('qpBillingDisableRenew');
     const unlink=document.getElementById('qpBillingUnlinkCard');
@@ -116,6 +120,14 @@
         unlink.disabled=false;
         disable.disabled=false;
       }
+    }
+
+    function syncPurchaseButton(access){
+      const lifetime=access?.plan==='lifetime'||access?.mode==='lifetime';
+      purchase.hidden=lifetime;
+      if(lifetime)return;
+      const activePaid=['paid','grace'].includes(access?.mode)&&['monthly','yearly'].includes(access?.plan);
+      purchase.textContent=activePaid?'Продлить подписку':'Оформить подписку';
     }
 
     function syncBillingTerm(access){
@@ -170,6 +182,8 @@
     async function refresh(){
       if(!api?.getToken?.()){
         term.textContent='Подписка: войдите в аккаунт';
+        purchase.hidden=false;
+        purchase.textContent='Оформить подписку';
         status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
         disable.disabled=true;
         unlink.disabled=true;
@@ -182,6 +196,7 @@
         autoRenewEnabled=access?.auto_renew===true;
         paymentMethodSaved=inferPaymentMethodSaved(access);
         syncBillingButtons();
+        syncPurchaseButton(access);
         syncBillingTerm(access);
         if(access?.mode==='prelaunch'){
           status.textContent='';
@@ -210,6 +225,8 @@
         if(paymentMethodSaved!==true)unlink.disabled=true;
       }catch(error){
         term.textContent='Подписка: не удалось проверить';
+        purchase.hidden=false;
+        purchase.textContent='Оформить подписку';
         if(error?.status===401){
           status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
         }else{
@@ -219,6 +236,10 @@
         unlink.disabled=true;
       }
     }
+
+    purchase.addEventListener('click',()=>{
+      window.location.href='./pricing.html';
+    });
 
     disable.addEventListener('click',()=>{
       if(!api?.getToken?.()||paymentMethodSaved===false)return;
