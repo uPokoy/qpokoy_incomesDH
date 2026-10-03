@@ -78,6 +78,7 @@
     block.id='qpBillingSettings';
     block.style.cssText='margin-top:10px;padding-top:0;border-top:0;';
     block.innerHTML=''
+      +'<div id="qpBillingTerm" class="settings-card-subtitle" style="margin-top:10px;">Срок подписки: проверяем…</div>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
       +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
@@ -87,6 +88,7 @@
     card.appendChild(block);
 
     const api=window.qPokoyApi;
+    const term=document.getElementById('qpBillingTerm');
     const status=document.getElementById('qpBillingStatus');
     const disable=document.getElementById('qpBillingDisableRenew');
     const unlink=document.getElementById('qpBillingUnlinkCard');
@@ -112,6 +114,26 @@
         unlink.disabled=false;
         disable.disabled=false;
       }
+    }
+
+    function syncBillingTerm(access){
+      if(access?.plan==='lifetime'||access?.mode==='lifetime'){
+        term.textContent='Срок подписки: бессрочно.';
+        return;
+      }
+      if(access?.plan==='trial'||access?.mode==='trial'){
+        const until=formatBillingDate(access?.trial_ends_at);
+        term.textContent=until?'Пробный период до '+until+'.':'Пробный период активен.';
+        return;
+      }
+      if(access?.plan==='monthly'||access?.plan==='yearly'){
+        const until=formatBillingDate(access?.paid_until);
+        if(until){
+          term.textContent=(access?.mode==='expired'?'Подписка закончилась ':'Подписка оплачена до ')+until+'.';
+          return;
+        }
+      }
+      term.textContent=access?.mode==='prelaunch'?'Срок подписки: будет доступен после запуска платного режима.':'Срок подписки: активной подписки нет.';
     }
 
     function billingErrorMessage(error,fallback){
@@ -140,6 +162,7 @@
 
     async function refresh(){
       if(!api?.getToken?.()){
+        term.textContent='Срок подписки: войдите в аккаунт.';
         status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
         disable.disabled=true;
         unlink.disabled=true;
@@ -152,6 +175,7 @@
         autoRenewEnabled=access?.auto_renew===true;
         paymentMethodSaved=inferPaymentMethodSaved(access);
         syncBillingButtons();
+        syncBillingTerm(access);
         if(access?.mode==='prelaunch'){
           status.textContent='Платный режим пока не запущен.';
           return;
@@ -178,6 +202,7 @@
         disable.disabled=true;
         if(paymentMethodSaved!==true)unlink.disabled=true;
       }catch(error){
+        term.textContent='Срок подписки: не удалось проверить.';
         if(error?.status===401){
           status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
         }else{
