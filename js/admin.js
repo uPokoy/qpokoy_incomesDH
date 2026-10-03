@@ -3,6 +3,7 @@
   const api=window.qPokoyApi;
   const controls=document.getElementById('adminControls'),card=document.getElementById('adminUser');
   const message=document.getElementById('adminMessage'),details=document.getElementById('adminDetails');
+  const saveMessage=document.getElementById('adminSaveMessage');
   const renew=document.getElementById('adminAutoRenew'),saveAccess=document.getElementById('adminSaveAccess');
   const resetAccess=document.getElementById('adminResetAccess');
   const choiceButtons=[...document.querySelectorAll('[data-choice]')];
@@ -17,9 +18,13 @@
   const calendarPrev=document.getElementById('adminCalendarPrev');
   const calendarNext=document.getElementById('adminCalendarNext');
   const datePicker=document.querySelector('.admin-date-picker');
+  const isAndroid=/Android/i.test(navigator.userAgent||'');
   let target=null,busy=false,calendarView=new Date(),calendarMode='days',yearPageStart=0,pendingAction=null,originalRenew=false;
+  let touchStartX=0,touchStartY=0,touchActive=false,swipeSuppressUntil=0;
 
   function say(text,error=false){message.textContent=text;message.dataset.error=String(error);}
+  function clearSaveMessage(){saveMessage.hidden=true;saveMessage.textContent='';saveMessage.dataset.error='false';}
+  function showSaveMessage(text,error=false){saveMessage.textContent=text;saveMessage.dataset.error=String(error);saveMessage.hidden=false;}
   function assignment(){return target&&(target.assignment||target.billing)||null;}
   function renewAllowed(){
     if(!target)return false;
@@ -50,7 +55,7 @@
     dateClear.hidden=true;
   }
   function clearTarget(){
-    target=null;pendingAction=null;originalRenew=false;card.hidden=true;details.replaceChildren();renew.checked=false;clearDate();closeCalendar();refreshControls();
+    target=null;pendingAction=null;originalRenew=false;card.hidden=true;details.replaceChildren();renew.checked=false;clearDate();clearSaveMessage();closeCalendar();refreshControls();
   }
   function error(e){
     if(e.status===401||e.status===403){clearTarget();controls.hidden=true;}
@@ -122,6 +127,7 @@
         dateClear.hidden=false;
         pendingAction='until';
         if(previous==='lifetime'||previous==='reset')renew.checked=originalRenew;
+        clearSaveMessage();
         closeCalendar();
         refreshControls();
       });
@@ -156,6 +162,15 @@
     }
     requestAnimationFrame(positionCalendar);
   }
+  function changeCalendarPage(delta){
+    if(calendarMode==='years'){
+      yearPageStart+=delta*12;
+      renderYearPicker();
+    }else{
+      calendarView.setMonth(calendarView.getMonth()+delta);
+      renderCalendarDays();
+    }
+  }
   function openCalendar(){
     if(busy||!target)return;
     const selected=selectedDate();
@@ -187,6 +202,7 @@
       pendingAction=null;
       renew.checked=originalRenew;
     }
+    clearSaveMessage();
     closeCalendar();
     refreshControls();
   });
@@ -198,27 +214,30 @@
       renderYearPicker();
     }
   });
-  calendarPrev.addEventListener('click',e=>{
-    e.stopPropagation();
-    if(calendarMode==='years'){
-      yearPageStart-=12;
-      renderYearPicker();
-    }else{
-      calendarView.setMonth(calendarView.getMonth()-1);
-      renderCalendarDays();
-    }
-  });
-  calendarNext.addEventListener('click',e=>{
-    e.stopPropagation();
-    if(calendarMode==='years'){
-      yearPageStart+=12;
-      renderYearPicker();
-    }else{
-      calendarView.setMonth(calendarView.getMonth()+1);
-      renderCalendarDays();
-    }
-  });
+  calendarPrev.addEventListener('click',e=>{e.stopPropagation();changeCalendarPage(-1);});
+  calendarNext.addEventListener('click',e=>{e.stopPropagation();changeCalendarPage(1);});
+  calendarPopup.addEventListener('click',e=>{
+    if(isAndroid&&Date.now()<swipeSuppressUntil){e.preventDefault();e.stopPropagation();}
+  },true);
   calendarPopup.addEventListener('click',e=>e.stopPropagation());
+  if(isAndroid){
+    calendarPopup.addEventListener('touchstart',e=>{
+      if(e.touches.length!==1){touchActive=false;return;}
+      touchStartX=e.touches[0].clientX;
+      touchStartY=e.touches[0].clientY;
+      touchActive=true;
+    },{passive:true});
+    calendarPopup.addEventListener('touchend',e=>{
+      if(!touchActive||!e.changedTouches.length)return;
+      touchActive=false;
+      const dx=e.changedTouches[0].clientX-touchStartX;
+      const dy=e.changedTouches[0].clientY-touchStartY;
+      if(Math.abs(dx)<48||Math.abs(dx)<=Math.abs(dy)*1.15)return;
+      swipeSuppressUntil=Date.now()+450;
+      changeCalendarPage(dx<0?1:-1);
+    },{passive:true});
+    calendarPopup.addEventListener('touchcancel',()=>{touchActive=false;},{passive:true});
+  }
   document.addEventListener('click',e=>{if(!datePicker.contains(e.target))closeCalendar();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCalendar();});
   window.addEventListener('resize',()=>requestAnimationFrame(positionCalendar),{passive:true});
@@ -245,6 +264,7 @@
     const previous=pendingAction;
     pendingAction=button.dataset.choice;
     clearDate();
+    clearSaveMessage();
     closeCalendar();
     if(pendingAction==='lifetime')renew.checked=false;
     else if(previous==='lifetime'||previous==='reset')renew.checked=originalRenew;
@@ -255,12 +275,13 @@
     if(busy||!target)return;
     pendingAction='reset';
     clearDate();
+    clearSaveMessage();
     closeCalendar();
     renew.checked=false;
     refreshControls();
   });
 
-  renew.addEventListener('change',()=>refreshControls());
+  renew.addEventListener('change',()=>{clearSaveMessage();refreshControls();});
 
   saveAccess.addEventListener('click',async()=>{
     if(busy||!target||!isDirty())return;
@@ -272,10 +293,11 @@
       body={action};
       if(action==='until'){
         const iso=adminUntil.dataset.iso||'';
-        if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)){say('Выберите дату.',true);return;}
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)){showSaveMessage('Выберите дату.',true);return;}
         body.date=iso;
       }
     }
+    clearSaveMessage();
     lock(true);
     try{
       let updated=target;
@@ -286,8 +308,11 @@
         updated=await api.adminSetAccess(id,{action:'auto_renew',auto_renew:desiredRenew});
       }
       show(updated);
-      say('Изменения сохранены.');
-    }catch(e){error(e);}finally{lock(false);}
+      showSaveMessage('Изменения сохранены.');
+    }catch(e){
+      if(e.status===401||e.status===403)error(e);
+      else showSaveMessage(e.status===429?'Слишком много запросов. Повторите позже.':e.message||'Не удалось сохранить изменения.',true);
+    }finally{lock(false);}
   });
 
   document.getElementById('adminSearch').addEventListener('submit',async e=>{
