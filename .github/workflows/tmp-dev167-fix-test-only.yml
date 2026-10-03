@@ -1,0 +1,41 @@
+name: Temporary DEV167 fix stale OAuth test only
+
+on:
+  push:
+    branches:
+      - tmp-dev167-subscription
+    paths:
+      - .github/workflows/tmp-dev167-fix-test-only.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout temp branch
+        uses: actions/checkout@v4
+        with:
+          ref: tmp-dev167-subscription
+      - name: Fix stale OAuth test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tests/api-client.test.js')
+          text = p.read_text(encoding='utf-8')
+          old = "  assert.equal(await h.api.startOAuth('google'),'https://accounts.example.test/authorize');\n  assert.equal(h.calls[0].url,API_BASE_URL+'/auth/oauth/google/start');"
+          new = "  assert.equal(await h.api.startOAuth('yandex'),'https://accounts.example.test/authorize');\n  assert.equal(h.calls[0].url,API_BASE_URL+'/auth/oauth/yandex/start');"
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected one stale Google OAuth test block, found {text.count(old)}')
+          p.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          node --test tests/api-client.test.js
+          git diff --check
+          git config user.name "qPokoy GitHub Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add tests/api-client.test.js
+          git commit -m "Fix stale Yandex OAuth client test for DEV167"
+          git push origin HEAD:tmp-dev167-subscription
