@@ -71,6 +71,51 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
   const mutate = (sql, params) => query(revisionDeclarations + '\n' + sql + '\n' + revisionWrite, () => ({ ...params, ...revisionParams() }));
 
   return {
+    // Payment state transitions never call the provider inside this transaction.
+    // Point reads + writes use one serializable snapshot; concurrent webhook/worker
+    // attempts retry ABORTED and re-evaluate the durable state, not the charge.
+    listPaymentRenewalUsers: (after = '') => query('DECLARE $after AS Utf8; SELECT user_id FROM `settings` WHERE setting_key="billing.access" AND user_id>$after ORDER BY user_id LIMIT 100;', { $after: U(after) }),
+    async withPaymentTransaction(userId, operation) {
+      await ready();
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await driver.tableClient.withSession(async (session) => {
+            const meta = await session.beginTransaction({ serializableReadWrite: {} });
+            const control = { txId: meta.id };
+            const execute = (sql, params) => session.executeQuery(sql, params, control);
+            try {
+              const result = await execute('DECLARE $uid AS Utf8; SELECT user_id,status FROM `users` WHERE user_id=$uid;', { $uid: U(userId) });
+              const user = result.resultSets?.[0] ? TypedData.createNativeObjects(result.resultSets[0])[0] : null;
+              if (!user || user.status !== 'active') { await session.commitTransaction(control); return null; }
+              const context = {
+                async get(key) {
+                  const r = await execute('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT setting_value FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(userId), $key: U(key) });
+                  const row = r.resultSets?.[0] ? TypedData.createNativeObjects(r.resultSets[0])[0] : null;
+                  if (!row) return null;
+                  const value = JSON.parse(row.setting_value);
+                  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid payment state');
+                  return value;
+                },
+                async put(key, value, timestamp) {
+                  if (!String(key).startsWith('billing.')) throw new Error('Invalid payment setting');
+                  await execute('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DECLARE $value AS Utf8; DECLARE $updated AS Timestamp; UPSERT INTO `settings` (user_id,setting_key,setting_value,updated_at) VALUES ($uid,$key,$value,$updated);',
+                    { $uid: U(userId), $key: U(key), $value: U(JSON.stringify(value)), $updated: T(timestamp) });
+                }
+              };
+              const value = await operation(context);
+              await session.commitTransaction(control);
+              return value;
+            } catch (error) {
+              try { await session.rollbackTransaction(control); } catch (_) { /* Keep original error. */ }
+              throw error;
+            }
+          });
+        } catch (error) {
+          if (attempt >= 2 || !(/ABORTED|RESOURCE_EXHAUSTED/i.test(String(error?.message || '')) || [8,10,400040].includes(Number(error?.code)))) throw error;
+          await sleep(50 + Math.floor(Math.random() * 100));
+        }
+      }
+    },
     // Each request authenticates in a single AUTO_TX, with point predicates and
     // no JOIN. Unchanged cache hits never open an explicit transaction.
     async loadBootstrap(sessionId, validate, knownRevision = '') {

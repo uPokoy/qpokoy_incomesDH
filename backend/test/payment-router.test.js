@@ -30,6 +30,12 @@ function fixture() {
     async getUser(id) { return id === user.user_id ? user : null; },
     async getSetting(uid, settingKey) { return settings.get(key(uid, settingKey)) || null; },
     async putSetting(row) { settings.set(key(row.user_id, row.setting_key), row); },
+    async withPaymentTransaction(uid,operation) {
+      const snapshot=new Map(settings);
+      try { return await operation({get:async k=>parseSetting(settings.get(key(uid,k))),
+        put:async(k,v,time)=>settings.set(key(uid,k),{user_id:uid,setting_key:k,setting_value:JSON.stringify(v),updated_at:time})}); }
+      catch(e){settings.clear();for(const [k,v] of snapshot)settings.set(k,v);throw e;}
+    },
     async consumeRateLimit() { return { allowed: true, retry_after_seconds: 0 }; }
   };
   let createdArgs = null;
@@ -83,10 +89,9 @@ test('authenticated user creates payment and successful verified webhook grants 
   assert.equal(created.body.data.confirmation_url, 'https://yoomoney.ru/checkout/test');
   const args = f.getCreatedArgs();
   assert.equal(args.savePaymentMethod, true);
-  assert.equal(args.idempotenceKey, requestId);
+  assert.match(args.idempotenceKey,/^[0-9a-f]{64}$/);
   assert.equal(args.metadata.user_id, f.user.user_id);
-  assert.equal(args.metadata.paid_until, '2026-11-03T12:00:00.000Z');
-  assert.equal(args.metadata.grace_until, '2026-11-06T12:00:00.000Z');
+  assert.equal(args.metadata.order_id,args.idempotenceKey);
 
   const paymentId = created.body.data.payment_id;
   assert.equal(parseSetting(f.settings.get(f.key(f.user.user_id, paymentSettingKey(paymentId)))).status, 'pending');
@@ -111,10 +116,11 @@ test('authenticated user creates payment and successful verified webhook grants 
   const access = parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_ACCESS_SETTING)));
   assert.deepEqual(access, {
     plan: 'monthly',
-    paid_until: '2026-11-03T12:00:00.000Z',
-    grace_until: '2026-11-06T12:00:00.000Z',
+    paid_until: '2026-11-03T12:01:00.000Z',
+    grace_until: '2026-11-06T12:01:00.000Z',
     auto_renew: true,
-    last_payment_id: paymentId
+    last_payment_id: paymentId,
+    last_paid_at: '2026-10-03T12:01:00.000Z'
   });
   const method = parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_PAYMENT_METHOD_SETTING)));
   assert.equal(method.payment_method_id, '2e000000-000f-5000-9000-1a2b3c4d5e6f');
@@ -123,7 +129,7 @@ test('authenticated user creates payment and successful verified webhook grants 
     type: 'notification', event: 'payment.succeeded', object: { id: paymentId }
   });
   assert.equal(second.status, 200);
-  assert.equal(parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_ACCESS_SETTING))).paid_until, '2026-11-03T12:00:00.000Z');
+  assert.equal(parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_ACCESS_SETTING))).paid_until, '2026-11-03T12:01:00.000Z');
 });
 
 test('webhook is ignored when verified provider state does not match notification', async () => {
@@ -132,7 +138,7 @@ test('webhook is ignored when verified provider state does not match notificatio
     id: '2d9f4f11-1111-2222-8333-abcdefabcdef',
     status: 'pending',
     amount: { value: '149.00', currency: 'RUB' },
-    metadata: { app: 'qpokoy-v1', user_id: f.user.user_id, plan: 'monthly', auto_renew: '0', paid_until: '2026-11-03T12:00:00.000Z', grace_until: '2026-11-06T12:00:00.000Z' }
+    metadata: { app: 'qpokoy-v1', user_id: f.user.user_id, plan: 'monthly', auto_renew: '0', paid_until: '2026-11-03T12:01:00.000Z', grace_until: '2026-11-06T12:01:00.000Z' }
   });
   const result = await f.router.handle('POST', '/billing/yookassa/webhook', {
     type: 'notification', event: 'payment.succeeded', object: { id: '2d9f4f11-1111-2222-8333-abcdefabcdef' }

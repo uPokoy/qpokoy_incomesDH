@@ -40,7 +40,7 @@ async function handler(event = {}) {
       }),
       appBaseUrl,
       returnUrl: process.env.YOOKASSA_RETURN_URL || '',
-      onError: (error) => console.error('Payment API error', error)
+      onError: () => console.error('Payment API error: internal_error')
     });
     app ||= createApp(store, {
       onError: (error) => console.error('API error', error),
