@@ -24,7 +24,7 @@
 .qp-admin #adminUntil::placeholder{color:#a9b4c5;opacity:.75}
 .qp-admin .admin-date-clear{position:absolute;z-index:2;top:50%;right:7px;transform:translateY(-50%);width:30px;height:30px;min-height:30px;padding:0;border:0;border-radius:8px;background:transparent;color:#a9b4c5;font-size:22px;line-height:1;display:grid;place-items:center}
 .qp-admin .admin-date-clear:hover{background:#293950;color:#fff}
-.qp-admin .admin-calendar-popup{position:absolute;z-index:1400;left:0;display:none;width:min(320px,calc(100vw - 56px));padding:12px;box-sizing:border-box;background:#151e2b;border:1px solid #344257;border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.32)}
+.qp-admin .admin-calendar-popup{position:absolute;z-index:1400;left:0;display:none;width:min(320px,calc(100vw - 56px));padding:12px;box-sizing:border-box;background:#151e2b;border:1px solid #344257;border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.32);touch-action:pan-y}
 .qp-admin .admin-calendar-popup.open{display:block}
 .qp-admin .admin-calendar-popup.open-down{top:calc(100% + 8px);bottom:auto}
 .qp-admin .admin-calendar-popup.open-up{top:auto;bottom:calc(100% + 8px)}
@@ -57,6 +57,8 @@
 .qp-admin .save-access:not(:disabled):hover{background:#344c70}
 .qp-admin .danger{border-color:#9e5d68;color:#ffc2c9}
 .qp-admin .danger.selected{background:#4a2730;border-color:#c0717f;box-shadow:0 0 0 1px #c0717f inset}
+.qp-admin .admin-save-message{width:max-content;max-width:100%;margin:10px 0 0;padding:8px 12px;border:1px solid #2c7b60;border-radius:9px;background:#123528;color:#8de0bb;box-sizing:border-box;font-size:14px}
+.qp-admin .admin-save-message[data-error=true]{border-color:#9e5d68;background:#351d24;color:#ffc2c9}
 .qp-admin .admin-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0}
 .qp-admin .admin-detail-card{min-width:0;background:#101824;border:1px solid #344257;border-radius:12px;padding:14px 16px;box-sizing:border-box}
 .qp-admin .admin-detail-card dt{margin:0 0 4px;color:#a9b4c5;font-size:14px}
