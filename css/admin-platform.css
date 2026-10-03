@@ -3,29 +3,6 @@ html{
   background:#070c14;
 }
 
-/* Exact qPokoy "standard" background copied from css/appearance.css. */
-body.qp-admin{
-  position:relative;
-  min-height:100vh;
-  background:#070c14 !important;
-}
-body.qp-admin::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-  background:
-    radial-gradient(78% 58% at -8% 76%,rgba(47,70,99,.30) 0 24%,transparent 55%),
-    radial-gradient(84% 60% at 108% 24%,rgba(46,69,98,.28) 0 22%,transparent 54%),
-    radial-gradient(118% 84% at 50% -22%,rgba(72,99,135,.30) 0 18%,rgba(32,48,70,.14) 35%,transparent 54%),
-    linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%) fixed;
-}
-body.qp-admin > main{
-  position:relative;
-  z-index:1;
-}
-
 /* Android/coarse pointer: prevent the browser tap overlay from stacking with
    qPokoy's own selected-button highlight. */
 @media (pointer:coarse){
