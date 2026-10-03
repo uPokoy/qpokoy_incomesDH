@@ -1,0 +1,57 @@
+test('admin billing panel is server-authorized, user-scoped and audited', async () => {
+  const store = memoryStore();
+  let clock = new Date('2026-10-05T12:00:00.000Z');
+  const seed = createApp(store, { requireEmailVerification: false, now: () => new Date(clock) });
+  const admin = (await register(seed, 'owner-admin@example.com')).body;
+  const target = (await register(seed, 'target-admin@example.com')).body;
+  const targetHeaders = auth(target.token);
+  const adminHeaders = auth(admin.token);
+  const app = createApp(store, {
+    requireEmailVerification: false,
+    now: () => new Date(clock),
+    billingEnforcementStartedAt: '2026-10-01T00:00:00.000Z',
+    adminUserIds: admin.user.user_id
+  });
+
+  let response = await app.handle('GET', '/admin/status', {}, targetHeaders);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.is_admin, false);
+  assert.equal(response.body.data.user_id, target.user.user_id);
+
+  response = await app.handle('GET', '/admin/users?email=' + encodeURIComponent(target.user.email), {}, targetHeaders);
+  assert.equal(response.status, 403);
+
+  response = await app.handle('GET', '/admin/status', {}, adminHeaders);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.is_admin, true);
+
+  response = await app.handle('GET', '/admin/users?email=' + encodeURIComponent(target.user.email), {}, adminHeaders);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.user.user_id, target.user.user_id);
+
+  response = await app.handle('PUT', '/admin/users/' + target.user.user_id + '/billing', { action: 'grant_month' }, adminHeaders);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.manual.plan, 'monthly');
+  assert.equal(response.body.data.manual.source, 'admin');
+  assert.equal(response.body.data.manual.auto_renew, false);
+  assert.equal(response.body.data.billing.can_write, true);
+
+  const targetSettings = await store.listSettings(target.user.user_id);
+  assert.equal(targetSettings.some(row => row.setting_key === 'billing.access'), true);
+  assert.equal(targetSettings.some(row => row.setting_key.startsWith('billing.audit.')), true);
+
+  response = await app.handle('GET', '/settings', {}, targetHeaders);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.some(row => row.setting_key.startsWith('billing.')), false);
+
+  response = await app.handle('PUT', '/admin/users/' + target.user.user_id + '/billing', {
+    action: 'set_until', until: '2026-12-31'
+  }, adminHeaders);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.manual.plan, 'manual');
+  assert.match(response.body.data.manual.paid_until, /^2026-12-31T23:59:59\.999Z$/);
+
+  response = await app.handle('PUT', '/admin/users/' + target.user.user_id + '/billing', { action: 'clear_manual' }, adminHeaders);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.manual, null);
+});
