@@ -30,39 +30,39 @@ function createYooKassaClient(options = {}) {
     if (idempotenceKey) headers['Idempotence-Key'] = String(idempotenceKey);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    let response;
     try {
-      response = await fetchImpl(apiBaseUrl + path, {
+      const response = await fetchImpl(apiBaseUrl + path, {
         method,
+        redirect: 'error',
         headers,
         signal: controller.signal,
         ...(body === undefined ? {} : { body: JSON.stringify(body) })
       });
-    } catch (error) {
-      if (error?.name === 'AbortError') throw new YooKassaError('yookassa_timeout', 'ЮKassa не ответила вовремя.', 504);
-      throw new YooKassaError('yookassa_unavailable', 'Не удалось связаться с ЮKassa.', 502);
-    } finally {
-      clearTimeout(timer);
-    }
 
-    let payload = null;
-    const text = await response.text();
-    if (text) {
-      try { payload = JSON.parse(text); }
-      catch (_) { throw new YooKassaError('yookassa_invalid_response', 'ЮKassa вернула некорректный ответ.', 502); }
-    }
-    if (!response.ok) {
-      const providerCode = String(payload?.code || payload?.type || 'api_error').slice(0, 80);
-      throw new YooKassaError('yookassa_' + providerCode, 'ЮKassa отклонила запрос.', 502);
-    }
-    return payload;
+      let payload = null;
+      const text = await response.text();
+      if (text) {
+        try { payload = JSON.parse(text); }
+        catch (_) { throw new YooKassaError('yookassa_invalid_response', 'ЮKassa вернула некорректный ответ.', 502); }
+      }
+      if (!response.ok) {
+        const providerCode = ['invalid_request','invalid_credentials','forbidden','not_found','too_many_requests','internal_server_error'].includes(payload?.code) ? payload.code : 'api_error';
+        throw new YooKassaError('yookassa_' + providerCode, 'ЮKassa отклонила запрос.', 502);
+      }
+      return payload;
+    } catch (error) {
+      if (error instanceof YooKassaError) throw error;
+      if (controller.signal.aborted || error?.name === 'AbortError') throw new YooKassaError('yookassa_timeout', 'ЮKassa не ответила вовремя.', 504);
+      throw new YooKassaError('yookassa_unavailable', 'Не удалось связаться с ЮKassa.', 502);
+    } finally { clearTimeout(timer); }
   }
 
-  async function createPayment({ amountRub, returnUrl, description, savePaymentMethod = false, metadata = {}, idempotenceKey }) {
+  async function createPayment({ amountRub, returnUrl, description, savePaymentMethod = false, paymentMethodId, metadata = {}, idempotenceKey }) {
     const amount = Number(amountRub);
     if (!Number.isFinite(amount) || amount <= 0) throw new TypeError('Invalid amountRub');
     if (!/^https:\/\//i.test(String(returnUrl || ''))) throw new TypeError('Invalid returnUrl');
-    if (!idempotenceKey) throw new TypeError('Idempotence key is required');
+    if (!idempotenceKey || String(idempotenceKey).length > 64) throw new TypeError('Invalid idempotence key');
+    if (paymentMethodId && !/^[A-Za-z0-9-]{10,120}$/.test(paymentMethodId)) throw new TypeError('Invalid payment method');
     const body = {
       amount: { value: amount.toFixed(2), currency: 'RUB' },
       capture: true,
@@ -70,7 +70,8 @@ function createYooKassaClient(options = {}) {
       description: String(description || '').slice(0, 128),
       metadata
     };
-    if (savePaymentMethod) body.save_payment_method = true;
+    if (paymentMethodId) { delete body.confirmation;body.payment_method_id = paymentMethodId; }
+    else body.save_payment_method = savePaymentMethod === true;
     return request('POST', '/payments', body, idempotenceKey);
   }
 

@@ -46,3 +46,16 @@ test('payment client methods call billing endpoints with bearer session', async 
   assert.equal(calls[2].options.method, 'POST');
   assert.deepEqual(JSON.parse(calls[2].options.body), { enabled: false });
 });
+
+test('retry preserves caller request identity and payment errors do not erase session', async () => {
+  const calls=[],storage=storageWithToken();
+  const api=createApiClient({baseUrl:'https://api.example',storage,fetchImpl:async(url,options)=>{
+    calls.push(JSON.parse(options.body));return calls.length===1
+      ?jsonResponse({error:{code:'yookassa_timeout',message:'Timeout'}},504)
+      :jsonResponse({data:{payment_id:'pay-1234567890',status:'pending'}},201);
+  }});
+  const id='b9119fc2-c825-44b7-ba49-7da50db62b4c';
+  await assert.rejects(api.createPayment('monthly',true,id),e=>e.status===504);
+  assert.ok(storage.getItem('qPokoyYdbSessionTokenV1'));
+  await api.createPayment('monthly',true,id);assert.deepEqual(calls[0],calls[1]);
+});
