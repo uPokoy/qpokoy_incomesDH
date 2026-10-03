@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>qPokoy — Управление</title>
-<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.175">
+<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.176">
 <script defer src="js/api-client.js?v=dev-2026.10.03.168"></script>
-<script defer src="js/admin.js?v=dev-2026.10.03.175"></script>
+<script defer src="js/admin.js?v=dev-2026.10.03.176"></script>
 </head>
 <body class="qp-admin">
 <main>
@@ -36,18 +36,24 @@
 <div class="admin-calendar-popup" id="adminCalendarPopup" role="dialog" aria-label="Выбор даты">
 <div class="admin-calendar-head">
 <button type="button" class="admin-calendar-nav" id="adminCalendarPrev" aria-label="Предыдущий месяц">‹</button>
-<div id="adminCalendarMonth"></div>
+<div class="admin-calendar-heading">
+<span id="adminCalendarMonth"></span>
+<button type="button" class="admin-calendar-year-button" id="adminCalendarYearButton" aria-label="Выбрать год"></button>
+</div>
 <button type="button" class="admin-calendar-nav" id="adminCalendarNext" aria-label="Следующий месяц">›</button>
 </div>
-<div class="admin-calendar-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+<div class="admin-calendar-weekdays" id="adminCalendarWeekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
 <div class="admin-calendar-days" id="adminCalendarDays"></div>
+<div class="admin-calendar-years" id="adminCalendarYears" hidden></div>
 </div>
 </div>
 </div>
 <div class="actions" aria-label="Срок доступа"><button type="button" data-choice="month">Месяц</button><button type="button" data-choice="year">Год</button><button type="button" data-choice="lifetime">Бессрочный</button></div>
 <div class="renew"><label><input id="adminAutoRenew" type="checkbox"> Автопродление на месяц / год</label></div>
-<button type="button" id="adminResetAccess" class="danger">Сбросить ручное назначение</button>
+<div class="final-actions">
 <button type="button" id="adminSaveAccess" class="save-access">Сохранить</button>
+<button type="button" id="adminResetAccess" class="danger">Сбросить</button>
+</div>
 </section>
 </article>
 </section>
