@@ -1,0 +1,63 @@
+name: One-time privacy infrastructure update DEV165
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/update-privacy-dev165.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update privacy policy and bump DEV165
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          privacy = Path('privacy.html')
+          text = privacy.read_text(encoding='utf-8')
+
+          old_date = '<p class="meta">Редакция от 2 октября 2026 г.</p>'
+          new_date = '<p class="meta">Редакция от 3 октября 2026 г.</p>'
+          if text.count(old_date) != 1:
+              raise SystemExit(f'Expected one old revision date, found {text.count(old_date)}')
+          text = text.replace(old_date, new_date)
+
+          old_infra = '<p>Для работы сервиса используется облачная инфраструктура Yandex Cloud, включая API Gateway, Cloud Functions и YDB. Ресурсы проекта, обрабатывающие данные приложения, настроены в регионе ru-central1. Для входа могут использоваться внешние провайдеры авторизации. Данные пользователей не продаются.</p>'
+          new_infra = '<p>Для работы сервиса используется облачная инфраструктура Yandex Cloud, включая API Gateway, Cloud Functions, YDB и Yandex Cloud Postbox для отправки служебных писем (подтверждение электронной почты, восстановление пароля и иные технические уведомления). Ресурсы проекта, обрабатывающие данные приложения, настроены в регионе ru-central1. Для входа через внешний сервис используется Яндекс; qPokoy получает только сведения, которые Яндекс передаёт в рамках авторизации, и не получает пароль от аккаунта Яндекса. Данные пользователей не продаются.</p>'
+          if text.count(old_infra) != 1:
+              raise SystemExit(f'Expected one old infrastructure paragraph, found {text.count(old_infra)}')
+          text = text.replace(old_infra, new_infra)
+          privacy.write_text(text, encoding='utf-8')
+
+          old_dev = 'dev-2026.10.03.164'
+          new_dev = 'dev-2026.10.03.165'
+
+          app = Path('js/app.js')
+          app_text = app.read_text(encoding='utf-8')
+          if app_text.count(old_dev) != 1:
+              raise SystemExit(f'Expected exactly one DEV164 marker in js/app.js, found {app_text.count(old_dev)}')
+          app.write_text(app_text.replace(old_dev, new_dev), encoding='utf-8')
+
+          index = Path('index.html')
+          index_text = index.read_text(encoding='utf-8')
+          if old_dev not in index_text:
+              raise SystemExit('DEV164 marker not found in index.html')
+          index.write_text(index_text.replace(old_dev, new_dev), encoding='utf-8')
+          PY
+          git diff --check
+          git config user.name "qPokoy GitHub Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add privacy.html js/app.js index.html
+          git commit -m "Update privacy infrastructure details for DEV165"
+          git push origin HEAD:main
