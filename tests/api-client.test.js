@@ -286,3 +286,11 @@ test('password reset endpoints are public and do not require a session',async()=
   assert.equal(h.calls[1].headers.Authorization,undefined);
   assert.deepEqual(h.calls[1].body,{token:'reset-token',password:'новый-пароль123'});
 });
+
+test('admin API uses bearer, encoded exact email and server writes; 403 is propagated without exposing credentials',async()=>{
+  const h=harness([ok({data:{admin:true}}),ok({data:{user_id:'target'}}),ok({data:{user_id:'target',assignment:{plan:'lifetime'}}}),{status:403,body:{error:{code:'admin_forbidden',message:'Нет доступа'}}}]);
+  h.values.set(TOKEN_KEY,'synthetic-session.synthetic-secret');
+  assert.equal((await h.api.adminSession()).admin,true);await h.api.adminFindUser('user+test@example.invalid');await h.api.adminSetAccess('target',{action:'lifetime'});
+  assert.ok(h.calls[1].url.endsWith('/admin/users?email=user%2Btest%40example.invalid'));assert.equal(h.calls[2].method,'POST');assert.deepEqual(h.calls[2].body,{action:'lifetime'});assert.equal(h.calls[2].headers.Authorization,'Bearer synthetic-session.synthetic-secret');
+  await assert.rejects(h.api.adminSession(),e=>e.status===403&&e.code==='admin_forbidden');
+});

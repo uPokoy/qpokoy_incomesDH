@@ -1,0 +1,16 @@
+.qp-admin{margin:0;background:#0b1018;color:#e7edf7;font:16px/1.5 system-ui,sans-serif;color-scheme:dark}
+.qp-admin [hidden]{display:none!important}
+.qp-admin main{max-width:900px;margin:32px auto;padding:0 20px;box-sizing:border-box}
+.qp-admin header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.qp-admin h1{font-size:24px}.qp-admin h2{font-size:20px}.qp-admin a{color:#aabfe9}
+.qp-admin article,.qp-admin form{background:#151e2b;border:1px solid #344257;border-radius:14px;padding:20px;margin:20px 0}
+.qp-admin label{display:block;margin:12px 0 6px}
+.qp-admin input,.qp-admin button{font:inherit;border:1px solid #465775;border-radius:9px;background:#202d43;color:inherit;padding:10px 12px;min-height:44px;box-sizing:border-box}
+.qp-admin input:not([type=checkbox]){width:100%;min-width:0}.qp-admin input[type=checkbox]{min-height:0;width:18px;height:18px;vertical-align:middle}
+.qp-admin button{cursor:pointer}.qp-admin button:disabled{opacity:.5;cursor:default}.qp-admin :focus-visible{outline:2px solid #9bbdf8;outline-offset:3px}
+.qp-admin .search-line,.qp-admin .actions,.qp-admin .renew{display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
+.qp-admin .search-line input{flex:1 1 220px}.qp-admin .danger{border-color:#9e5d68;color:#ffc2c9}
+.qp-admin dl{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,2fr);gap:8px 16px}
+.qp-admin dt{color:#a9b4c5}.qp-admin dd{margin:0;overflow-wrap:anywhere}
+.qp-admin p{color:#b9c7dc;overflow-wrap:anywhere}.qp-admin #adminMessage[data-error=true]{color:#ffc2c9}
+@media(max-width:560px){.qp-admin main{margin:16px auto;padding:0 12px}.qp-admin article,.qp-admin form{padding:14px}.qp-admin dl{grid-template-columns:1fr;gap:4px}.qp-admin dd{margin-bottom:10px}.qp-admin .actions button{flex:1 1 170px}}
