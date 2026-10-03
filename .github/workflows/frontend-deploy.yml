@@ -40,8 +40,9 @@ jobs:
           from pathlib import Path
 
           label = sys.argv[1]
-          path = Path('site/index.html')
-          text = path.read_text(encoding='utf-8')
+
+          index = Path('site/index.html')
+          text = index.read_text(encoding='utf-8')
           text, count = re.subn(
               r'(<strong id="qPokoyDevVersion">)dev-\d{4}\.\d{2}\.\d{2}\.\d+(</strong>)',
               rf'\g<1>{label}\g<2>',
@@ -50,7 +51,15 @@ jobs:
           )
           if count != 1:
               raise SystemExit('qPokoyDevVersion marker not found')
-          path.write_text(text, encoding='utf-8')
+          index.write_text(text, encoding='utf-8')
+
+          asset_pattern = re.compile(
+              r'((?:src|href)="(?:js|css)/[^"?]+\.(?:js|css))(?:\?v=[^"]*)?"'
+          )
+          for path in Path('site').glob('*.html'):
+              html = path.read_text(encoding='utf-8')
+              html = asset_pattern.sub(rf'\1?v={label}"', html)
+              path.write_text(html, encoding='utf-8')
           PY
           fi
 
@@ -68,4 +77,17 @@ jobs:
           aws s3 sync site/ s3://qpokoy.ru \
             --endpoint-url=https://storage.yandexcloud.net \
             --delete \
+            --only-show-errors
+
+          aws s3 cp site/ s3://qpokoy.ru/ \
+            --endpoint-url=https://storage.yandexcloud.net \
+            --recursive \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --only-show-errors
+
+          aws s3 cp site/manifest.json s3://qpokoy.ru/manifest.json \
+            --endpoint-url=https://storage.yandexcloud.net \
+            --cache-control "no-cache, no-store, must-revalidate" \
             --only-show-errors
