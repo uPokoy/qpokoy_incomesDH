@@ -161,8 +161,8 @@ test('OAuth start is public and ticket exchange stores the qPokoy session',async
     ok({url:'https://accounts.example.test/authorize'}),
     ok({token:'oauth-session-secret',expires_at:'2026-10-30T00:00:00Z',user})
   ]);
-  assert.equal(await h.api.startOAuth('google'),'https://accounts.example.test/authorize');
-  assert.equal(h.calls[0].url,API_BASE_URL+'/auth/oauth/google/start');
+  assert.equal(await h.api.startOAuth('yandex'),'https://accounts.example.test/authorize');
+  assert.equal(h.calls[0].url,API_BASE_URL+'/auth/oauth/yandex/start');
   assert.equal(h.calls[0].method,'GET');
   assert.equal(h.calls[0].headers.Authorization,undefined);
   assert.deepEqual(await h.api.exchangeOAuthTicket('signed-ticket'),user);
