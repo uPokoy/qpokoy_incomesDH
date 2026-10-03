@@ -97,9 +97,10 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <p id="subscriptionStatus">Проверяем состояние подписки…</p>
 <div class="subscription-actions">
 <button type="button" id="disableAutoRenew" class="subscription-action">Отключить автопродление</button>
+<button type="button" id="unlinkPaymentMethod" class="subscription-action">Отвязать карту</button>
 <a id="subscriptionLogin" class="subscription-login" href="./" hidden>Войти в qPokoy</a>
 </div>
-<p class="subscription-note">После отключения автопродления уже оплаченный период сохраняется до своей даты окончания.</p>
+<p class="subscription-note">Отключение автопродления или отвязка карты не меняют уже оплаченный период.</p>
 </div>
 </section>
 <section class="section" aria-labelledby="how-title">
@@ -130,6 +131,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const paymentButtons=[...document.querySelectorAll('.payment-action[data-plan]')];
   const subscriptionStatus=document.getElementById('subscriptionStatus');
   const disableAutoRenew=document.getElementById('disableAutoRenew');
+  const unlinkPaymentMethod=document.getElementById('unlinkPaymentMethod');
   const subscriptionLogin=document.getElementById('subscriptionLogin');
   const planNames={monthly:'Месячный тариф',yearly:'Годовой тариф'};
   const signedIn=()=>!!api?.getToken?.();
@@ -176,14 +178,17 @@ window.addEventListener('DOMContentLoaded',()=>{
   paymentButtons.forEach(button=>button.addEventListener('click',()=>startPayment(button)));
   async function refreshSubscription(){
     if(!signedIn()){
-      subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять автопродлением.';
+      subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять подпиской.';
       disableAutoRenew.hidden=true;
+      unlinkPaymentMethod.hidden=true;
       subscriptionLogin.hidden=false;
       return;
     }
     subscriptionLogin.hidden=true;
     disableAutoRenew.hidden=false;
     disableAutoRenew.disabled=false;
+    unlinkPaymentMethod.hidden=false;
+    unlinkPaymentMethod.disabled=false;
     try{
       const access=await api.billingStatus();
       if(access?.plan==='lifetime'){
@@ -193,12 +198,13 @@ window.addEventListener('DOMContentLoaded',()=>{
         subscriptionStatus.textContent=planNames[access.plan]+'. Автопродление: '+(access.auto_renew?'включено.':'выключено.');
         disableAutoRenew.disabled=!access.auto_renew;
       }else{
-        subscriptionStatus.textContent='Если автопродление было подключено при оплате, его можно отключить здесь.';
+        subscriptionStatus.textContent='Здесь можно отключить автопродление или отвязать сохранённую карту.';
       }
     }catch(error){
       if(error?.status===401){
-        subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять автопродлением.';
+        subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять подпиской.';
         disableAutoRenew.hidden=true;
+        unlinkPaymentMethod.hidden=true;
         subscriptionLogin.hidden=false;
       }else subscriptionStatus.textContent='Не удалось проверить состояние подписки.';
     }
@@ -212,8 +218,24 @@ window.addEventListener('DOMContentLoaded',()=>{
       subscriptionStatus.textContent='Автопродление выключено. Оплаченный период сохранится до даты окончания.';
     }catch(error){
       if(error?.code==='auto_renew_unavailable')subscriptionStatus.textContent='Автопродление для этого аккаунта не подключено.';
-      else if(error?.status===401){subscriptionStatus.textContent='Сессия закончилась. Войдите в qPokoy снова.';subscriptionLogin.hidden=false;disableAutoRenew.hidden=true;}
+      else if(error?.status===401){subscriptionStatus.textContent='Сессия закончилась. Войдите в qPokoy снова.';subscriptionLogin.hidden=false;disableAutoRenew.hidden=true;unlinkPaymentMethod.hidden=true;}
       else{subscriptionStatus.textContent=error?.message||'Не удалось отключить автопродление.';disableAutoRenew.disabled=false;}
+    }
+  });
+  unlinkPaymentMethod.addEventListener('click',async()=>{
+    if(!signedIn()){location.assign('./');return;}
+    unlinkPaymentMethod.disabled=true;
+    subscriptionStatus.textContent='Отвязываем карту…';
+    try{
+      const result=await api.request('DELETE','/billing/payment-method');
+      disableAutoRenew.disabled=true;
+      subscriptionStatus.textContent=result?.data?.unlinked
+        ? 'Карта отвязана. Автопродление отключено. Оплаченный период сохранён.'
+        : 'Сохранённая карта не была привязана.';
+    }catch(error){
+      if(error?.status===401){location.assign('./');return;}
+      subscriptionStatus.textContent=error?.message||'Не удалось отвязать карту.';
+      unlinkPaymentMethod.disabled=false;
     }
   });
   refreshSubscription();

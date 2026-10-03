@@ -159,3 +159,30 @@ test('auto-renew can be disabled after a paid subscription exists', async () => 
   assert.equal(result.status, 200);
   assert.equal(result.body.data.auto_renew, false);
 });
+
+test('saved payment method can be unlinked without shortening paid access', async () => {
+  const f = fixture();
+  const paidUntil = '2026-11-03T12:00:00.000Z';
+  f.settings.set(f.key(f.user.user_id, BILLING_ACCESS_SETTING), {
+    user_id: f.user.user_id,
+    setting_key: BILLING_ACCESS_SETTING,
+    setting_value: JSON.stringify({ plan: 'monthly', paid_until: paidUntil, grace_until: '2026-11-06T12:00:00.000Z', auto_renew: true })
+  });
+  f.settings.set(f.key(f.user.user_id, BILLING_PAYMENT_METHOD_SETTING), {
+    user_id: f.user.user_id,
+    setting_key: BILLING_PAYMENT_METHOD_SETTING,
+    setting_value: JSON.stringify({ payment_method_id: '2e000000-000f-5000-9000-1a2b3c4d5e6f', saved: true, source_payment_id: '2d9f4f11-1111-2222-8333-abcdefabcdef' })
+  });
+
+  const result = await f.router.handle('DELETE', '/billing/payment-method', {}, { Authorization: 'Bearer ' + f.token });
+  assert.equal(result.status, 200);
+  assert.equal(result.body.data.unlinked, true);
+
+  const access = parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_ACCESS_SETTING)));
+  assert.equal(access.auto_renew, false);
+  assert.equal(access.paid_until, paidUntil);
+  const method = parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_PAYMENT_METHOD_SETTING)));
+  assert.equal(method.saved, false);
+  assert.equal(method.payment_method_id, null);
+  assert.equal(method.source_payment_id, null);
+});

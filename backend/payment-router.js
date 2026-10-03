@@ -174,6 +174,21 @@ function createPaymentRouter(store, options = {}) {
     });
     if(!access)throw new PaymentHttpError(401,'unauthorized','Invalid account');return response(200,{data:access});
   }
+  async function unlinkPaymentMethod(user,ip){
+    await rateLimit('renewUser',user.user_id);await rateLimit('renewIp',ip);
+    const result=await tx(user.user_id,async t=>{
+      const access=await t.get(BILLING_ACCESS_SETTING),method=await t.get(BILLING_PAYMENT_METHOD_SETTING),timestamp=now();
+      if(access&&['monthly','yearly'].includes(access.plan)&&access.auto_renew===true){
+        await t.put(BILLING_ACCESS_SETTING,{...access,auto_renew:false},timestamp);
+      }
+      await t.put(CONSENT_KEY,{enabled:false,plan:['monthly','yearly'].includes(access?.plan)?access.plan:null,
+        version:randomUUID(),at:timestamp.toISOString()},timestamp);
+      await t.put(BILLING_PAYMENT_METHOD_SETTING,{saved:false,payment_method_id:null,source_payment_id:null,
+        unlinked_at:timestamp.toISOString()},timestamp);
+      return {unlinked:Boolean(method?.saved||method?.payment_method_id),auto_renew:false};
+    });
+    if(!result)throw new PaymentHttpError(401,'unauthorized','Invalid account');return response(200,{data:result});
+  }
   async function webhook(body,ip){
     configured();if(body?.type!=='notification'||!['payment.succeeded','payment.canceled'].includes(body.event)||!paymentIdValid(body.object?.id))return response(200,{ok:true,ignored:true});
     await rateLimit('webhookIp',ip);
@@ -199,7 +214,7 @@ function createPaymentRouter(store, options = {}) {
   }
   async function handle(method,path,body={},headers={},context={}){
     const pathname=new URL(path,'https://local.invalid').pathname.replace(/\/$/,'')||'/';
-    if(!(['/billing/payments','/billing/auto-renew','/billing/yookassa/webhook'].includes(pathname)||/^\/billing\/payments\/[A-Za-z0-9-]{10,80}$/.test(pathname)))return null;
+    if(!(['/billing/payments','/billing/auto-renew','/billing/payment-method','/billing/yookassa/webhook'].includes(pathname)||/^\/billing\/payments\/[A-Za-z0-9-]{10,80}$/.test(pathname)))return null;
     try{
       const ip=sourceIp(headers,context);
       if(method==='POST'&&pathname==='/billing/yookassa/webhook')return await webhook(body,ip);
@@ -208,6 +223,7 @@ function createPaymentRouter(store, options = {}) {
       const match=/^\/billing\/payments\/([A-Za-z0-9-]{10,80})$/.exec(pathname);
       if(method==='GET'&&match)return await paymentStatus(user,match[1]);
       if(method==='POST'&&pathname==='/billing/auto-renew')return await setAutoRenew(user,body,ip);
+      if(method==='DELETE'&&pathname==='/billing/payment-method')return await unlinkPaymentMethod(user,ip);
       throw new PaymentHttpError(404,'not_found','Payment route not found');
     }catch(e){
       if(e instanceof PaymentHttpError||e instanceof YooKassaError)return response(e.status||502,{error:{code:e.code,message:e.message}},e.headers||{});
