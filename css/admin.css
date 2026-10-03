@@ -15,13 +15,13 @@
 .qp-admin button{cursor:pointer}.qp-admin button:disabled{opacity:.5;cursor:default}.qp-admin :focus-visible{outline:2px solid #9bbdf8;outline-offset:3px}
 .qp-admin .search-line,.qp-admin .actions,.qp-admin .renew,.qp-admin .date-line{display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
 .qp-admin .search-line input{flex:1 1 220px}
-.qp-admin .search-button{width:46px;min-width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center}
-.qp-admin .search-button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
-.qp-admin .actions{margin:0 0 20px}
+.qp-admin .search-button,.qp-admin .date-confirm-button{width:46px;min-width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.qp-admin .search-button svg,.qp-admin .date-confirm-button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.qp-admin .date-line{justify-content:flex-start;flex-wrap:nowrap;max-width:400px}
+.qp-admin .date-line input[type=date]{flex:1 1 340px;width:auto;min-width:0}
+.qp-admin .date-line .date-confirm-button{flex:0 0 46px}
+.qp-admin .actions{margin:14px 0 20px}
 .qp-admin .actions button{min-width:150px}
-.qp-admin .date-line{justify-content:flex-start}
-.qp-admin .date-line input[type=date]{flex:0 1 340px;width:340px;max-width:100%}
-.qp-admin .date-line button{flex:0 0 auto}
 .qp-admin .renew{margin-top:16px}
 .qp-admin .danger{border-color:#9e5d68;color:#ffc2c9;margin-top:4px}
 .qp-admin .admin-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0}
@@ -29,4 +29,4 @@
 .qp-admin .admin-detail-card dt{margin:0 0 4px;color:#a9b4c5;font-size:14px}
 .qp-admin .admin-detail-card dd{margin:0;color:#f2f6fc;font-size:16px;overflow-wrap:anywhere}
 .qp-admin p{color:#b9c7dc;overflow-wrap:anywhere}.qp-admin #adminMessage[data-error=true]{color:#ffc2c9}
-@media(max-width:560px){.qp-admin main{margin:16px auto;padding:0 12px}.qp-admin .admin-access-shell{padding:22px 16px}.qp-admin form,.qp-admin .access-panel{padding:14px}.qp-admin .admin-details{grid-template-columns:1fr;gap:10px}.qp-admin .actions button{flex:1 1 130px;min-width:0}.qp-admin .date-line input[type=date]{flex:1 1 100%;width:100%}.qp-admin .date-line button{flex:1 1 100%}.qp-admin .renew{align-items:flex-start}.qp-admin .renew button{width:100%}}
+@media(max-width:560px){.qp-admin main{margin:16px auto;padding:0 12px}.qp-admin .admin-access-shell{padding:22px 16px}.qp-admin form,.qp-admin .access-panel{padding:14px}.qp-admin .admin-details{grid-template-columns:1fr;gap:10px}.qp-admin .actions button{flex:1 1 130px;min-width:0}.qp-admin .date-line{max-width:100%}.qp-admin .renew{align-items:flex-start}.qp-admin .renew button{width:100%}}
