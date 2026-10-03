@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>qPokoy — Управление</title>
-<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.173">
+<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.174">
 <script defer src="js/api-client.js?v=dev-2026.10.03.168"></script>
-<script defer src="js/admin.js?v=dev-2026.10.03.172"></script>
+<script defer src="js/admin.js?v=dev-2026.10.03.174"></script>
 </head>
 <body class="qp-admin">
 <main>
@@ -18,9 +18,8 @@
 </section>
 <section id="adminControls" hidden>
 <form id="adminSearch">
-<label for="adminEmail">Email пользователя</label>
 <div class="search-line">
-<input id="adminEmail" type="email" maxlength="254" required autocomplete="off">
+<input id="adminEmail" type="email" maxlength="254" required autocomplete="off" aria-label="Email пользователя">
 <button class="search-button" type="submit" aria-label="Найти пользователя" title="Найти пользователя">
 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg>
 </button>
@@ -29,11 +28,24 @@
 <article id="adminUser" hidden>
 <dl id="adminDetails" class="admin-details"></dl>
 <section class="access-panel" aria-labelledby="grantAccessTitle">
-<h2 id="grantAccessTitle">Выдать доступ</h2>
-<label for="adminUntil">Доступ до указанной даты, +3 дня на продление подписки</label>
-<div class="date-line"><input id="adminUntil" type="date"><button class="date-confirm-button" type="button" data-action="until" aria-label="Установить дату" title="Установить дату"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></button></div>
+<h2 id="grantAccessTitle">Доступ</h2>
+<div class="date-line">
+<div class="admin-date-picker">
+<input id="adminUntil" type="text" readonly inputmode="none" placeholder="дд.мм.гггг" aria-label="Дата окончания доступа" aria-haspopup="dialog" aria-expanded="false">
+<div class="admin-calendar-popup" id="adminCalendarPopup" role="dialog" aria-label="Выбор даты">
+<div class="admin-calendar-head">
+<button type="button" class="admin-calendar-nav" id="adminCalendarPrev" aria-label="Предыдущий месяц">‹</button>
+<div id="adminCalendarMonth"></div>
+<button type="button" class="admin-calendar-nav" id="adminCalendarNext" aria-label="Следующий месяц">›</button>
+</div>
+<div class="admin-calendar-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+<div class="admin-calendar-days" id="adminCalendarDays"></div>
+</div>
+</div>
+<button class="date-confirm-button" type="button" data-action="until" aria-label="Установить дату" title="Установить дату"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></button>
+</div>
 <div class="actions"><button type="button" data-action="month">Месяц</button><button type="button" data-action="year">Год</button><button type="button" data-action="lifetime">Бессрочный</button></div>
-<div class="renew"><label><input id="adminAutoRenew" type="checkbox"> Автопродление подписки на месяц / год</label><button type="button" id="adminSaveRenew">Сохранить</button></div>
+<div class="renew"><label><input id="adminAutoRenew" type="checkbox"> Автопродление на месяц / год</label><button type="button" id="adminSaveRenew">Сохранить</button></div>
 <button type="button" data-action="reset" class="danger">Сбросить ручное назначение</button>
 </section>
 </article>
