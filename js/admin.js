@@ -9,7 +9,7 @@
   function lock(value){busy=value;controls.querySelectorAll('button,input').forEach(e=>{e.disabled=value;});if(!value)renewDisabled();}
   function renewDisabled(){const allowed=target&&['monthly','yearly'].includes(target.assignment?.plan);renew.disabled=!allowed;saveRenew.disabled=!allowed;}
   function clearTarget(){target=null;card.hidden=true;details.replaceChildren();renew.checked=false;renewDisabled();}
-  function error(e){if(e.status===401||e.status===403){clearTarget();controls.hidden=true;}say(e.status===401?'Войдите в обычный аккаунт на главной странице.':e.status===403?'Нет доступа. Администратор должен быть разрешён на сервере.':e.code==='not_found'?'Пользователь не найден.':e.status===429?'Слишком много запросов. Повторите позже.':e.message||'Не удалось выполнить запрос.',true);}
+  function error(e){if(e.status===401||e.status===403){clearTarget();controls.hidden=true;}say(e.status===401?'Ошибка доступа':e.status===403?'Нет доступа. Администратор должен быть разрешён на сервере.':e.code==='not_found'?'Пользователь не найден.':e.status===429?'Слишком много запросов. Повторите позже.':e.message||'Не удалось выполнить запрос.',true);}
   function date(v){if(!v)return '—';const d=new Date(v);return Number.isFinite(d.getTime())?d.toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}):'—';}
   function show(user){
     target=user;details.replaceChildren();const a=user.assignment||user.billing;
@@ -29,5 +29,5 @@
   controls.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>change(b.dataset.action)));
   saveRenew.addEventListener('click',()=>change('auto_renew'));
   clearTarget();
-  (async()=>{if(!api?.getToken()){say('Войдите в обычный аккаунт на главной странице.',true);return;}try{await api.adminSession();controls.hidden=false;say('Доступ подтверждён сервером.');}catch(e){error(e);}})();
+  (async()=>{if(!api?.getToken()){say('Ошибка доступа',true);return;}try{await api.adminSession();controls.hidden=false;say('Доступ подтверждён сервером.');}catch(e){error(e);}})();
 })();
