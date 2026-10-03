@@ -5,14 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>qPokoy — Управление</title>
-<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.168">
+<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.170">
 <script defer src="js/api-client.js?v=dev-2026.10.03.168"></script>
-<script defer src="js/admin.js?v=dev-2026.10.03.169"></script>
+<script defer src="js/admin.js?v=dev-2026.10.03.170"></script>
 </head>
 <body class="qp-admin">
 <main>
-<header><h1>Управление</h1><a href="index.html">Главная / вход</a></header>
+<section class="admin-access-shell" aria-labelledby="adminTitle">
+<h1 id="adminTitle">Управление</h1>
+<a href="index.html">Главная / вход</a>
 <p id="adminMessage" role="status" aria-live="polite">Проверяем доступ…</p>
+</section>
 <section id="adminControls" hidden>
 <form id="adminSearch"><label for="adminEmail">Точный email пользователя</label><div class="search-line"><input id="adminEmail" type="email" maxlength="254" required autocomplete="off"><button>Найти</button></div></form>
 <article id="adminUser" hidden>
