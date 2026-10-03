@@ -11,9 +11,14 @@
   function clearTarget(){target=null;card.hidden=true;details.replaceChildren();renew.checked=false;renewDisabled();}
   function error(e){if(e.status===401||e.status===403){clearTarget();controls.hidden=true;}say(e.status===401?'Ошибка доступа':e.status===403?'Нет доступа. Администратор должен быть разрешён на сервере.':e.code==='not_found'?'Пользователь не найден.':e.status===429?'Слишком много запросов. Повторите позже.':e.message||'Не удалось выполнить запрос.',true);}
   function date(v){if(!v)return '—';const d=new Date(v);return Number.isFinite(d.getTime())?d.toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}):'—';}
+  function accountStatus(v){return ({active:'Активен',disabled:'Отключён',blocked:'Заблокирован'})[v]||v||'—';}
+  function accessStatus(v){return ({active:'Активен',grace:'Период продления',expired:'Доступ истёк'})[v]||v||'—';}
+  function accessMode(v){return ({prelaunch:'До запуска оплаты',paid:'Оплачено',grace:'Период продления',trial:'Пробный период',lifetime:'Бессрочный',expired:'Доступ истёк'})[v]||v||'—';}
+  function plan(v){return ({monthly:'Месяц',yearly:'Год',lifetime:'Бессрочный',trial:'Пробный период'})[v]||v||'—';}
+  function source(v){return ({admin:'admin',legacy:'Ранее зарегистрирован',payment:'Оплата'})[v]||v||'—';}
   function show(user){
     target=user;details.replaceChildren();const a=user.assignment||user.billing;
-    const fields=[['Email',user.email],['user_id',user.user_id],['Статус аккаунта',user.status],['Создан',date(user.created_at)],['Пробный период до',date(user.trial_ends_at)],['Статус доступа',user.billing.status],['Режим',user.billing.mode],['План назначения',a.plan||'—'],['Оплачено до',date(a.paid_until)],['Льготный период до',date(a.grace_until)],['Автопродление',a.auto_renew?'Включено':'Выключено'],['Источник',a.source||'—']];
+    const fields=[['Email',user.email],['user_id',user.user_id],['Статус аккаунта',accountStatus(user.status)],['Создан',date(user.created_at)],['Пробный период до',date(user.trial_ends_at)],['Статус доступа',accessStatus(user.billing.status)],['Режим',accessMode(user.billing.mode)],['План назначения',plan(a.plan)],['Оплачено до',date(a.paid_until)],['Льготный период до',date(a.grace_until)],['Автопродление',a.auto_renew?'Включено':'Выключено'],['Источник',source(a.source)]];
     for(const [label,value] of fields){
       const group=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');
       group.className='admin-detail-card';dt.textContent=label;dd.textContent=value;group.append(dt,dd);details.append(group);
