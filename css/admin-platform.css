@@ -1,13 +1,13 @@
 html{
   min-height:100%;
-  background:#0d111c;
+  background:#070c14;
 }
 
-/* Use the same original page background as the main qPokoy interface,
-   but keep it fixed to the viewport so it remains visible on long admin pages. */
+/* Exact qPokoy "standard" background copied from css/appearance.css. */
 body.qp-admin{
   position:relative;
-  background:#0d111c !important;
+  min-height:100vh;
+  background:#070c14 !important;
 }
 body.qp-admin::before{
   content:"";
@@ -16,9 +16,10 @@ body.qp-admin::before{
   z-index:0;
   pointer-events:none;
   background:
-    radial-gradient(circle at 12% 0%,rgba(99,102,241,.10),transparent 30%),
-    radial-gradient(circle at 88% 8%,rgba(124,58,237,.08),transparent 26%),
-    #0d111c;
+    radial-gradient(78% 58% at -8% 76%,rgba(47,70,99,.30) 0 24%,transparent 55%),
+    radial-gradient(84% 60% at 108% 24%,rgba(46,69,98,.28) 0 22%,transparent 54%),
+    radial-gradient(118% 84% at 50% -22%,rgba(72,99,135,.30) 0 18%,rgba(32,48,70,.14) 35%,transparent 54%),
+    linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%) fixed;
 }
 body.qp-admin > main{
   position:relative;
