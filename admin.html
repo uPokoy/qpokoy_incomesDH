@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="css/appearance.css?v=dev-2026.10.03.181">
 <link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.178">
 <link rel="stylesheet" href="css/admin-platform.css?v=dev-2026.10.03.181">
-<script defer src="js/api-client.js?v=dev-2026.10.03.184"></script>
+<script defer src="js/api-client.js?v=dev-2026.10.03.185"></script>
 <script defer src="js/admin.js?v=dev-2026.10.03.177"></script>
 </head>
 <body class="qp-admin qp-bg-standard">
@@ -23,6 +23,7 @@
 <h2 id="testPaymentTitle">Тест ЮKassa</h2>
 <div class="final-actions">
 <button type="button" id="adminTestPayment" class="save-access">Тестовая оплата 149 ₽</button>
+<button type="button" id="adminTestPaymentAutoRenew" class="save-access">149 ₽ + автопродление</button>
 </div>
 <p id="adminTestPaymentMessage" class="admin-save-message" role="status" aria-live="polite" hidden></p>
 </section>
@@ -70,23 +71,25 @@
 </main>
 <script>
 window.addEventListener('DOMContentLoaded',()=>{
-  const button=document.getElementById('adminTestPayment');
+  const plainButton=document.getElementById('adminTestPayment');
+  const autoButton=document.getElementById('adminTestPaymentAutoRenew');
   const status=document.getElementById('adminTestPaymentMessage');
-  if(!button||!status)return;
-  button.addEventListener('click',async()=>{
+  if(!plainButton||!autoButton||!status)return;
+  const startPayment=async(button,autoRenew)=>{
     if(button.disabled)return;
-    button.disabled=true;
+    plainButton.disabled=true;
+    autoButton.disabled=true;
     status.hidden=true;
     status.textContent='';
     try{
-      const key='qPokoyAdminTestPaymentRequestIdV1';
+      const key=autoRenew?'qPokoyAdminTestPaymentAutoRenewRequestIdV1':'qPokoyAdminTestPaymentRequestIdV1';
       let requestId='';
       try{requestId=sessionStorage.getItem(key)||'';}catch(_){}
       if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)){
         requestId=crypto.randomUUID();
         try{sessionStorage.setItem(key,requestId);}catch(_){}
       }
-      const payment=await window.qPokoyApi.createPayment('monthly',false,requestId);
+      const payment=await window.qPokoyApi.createPayment('monthly',autoRenew,requestId);
       const confirmation=new URL(payment?.confirmation_url||'');
       const trusted=['yoomoney.ru','yookassa.ru'].some(host=>confirmation.hostname===host||confirmation.hostname.endsWith('.'+host));
       if(confirmation.protocol!=='https:'||!trusted)throw new Error('ЮKassa не вернула корректную ссылку на оплату.');
@@ -96,9 +99,12 @@ window.addEventListener('DOMContentLoaded',()=>{
       status.textContent=error?.message||'Не удалось создать тестовый платёж.';
       status.dataset.error='true';
       status.hidden=false;
-      button.disabled=false;
+      plainButton.disabled=false;
+      autoButton.disabled=false;
     }
-  });
+  };
+  plainButton.addEventListener('click',()=>startPayment(plainButton,false));
+  autoButton.addEventListener('click',()=>startPayment(autoButton,true));
 });
 </script>
 </body>
