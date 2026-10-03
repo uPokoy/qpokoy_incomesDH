@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>qPokoy — Управление</title>
-<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.174">
+<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.175">
 <script defer src="js/api-client.js?v=dev-2026.10.03.168"></script>
-<script defer src="js/admin.js?v=dev-2026.10.03.174"></script>
+<script defer src="js/admin.js?v=dev-2026.10.03.175"></script>
 </head>
 <body class="qp-admin">
 <main>
@@ -32,6 +32,7 @@
 <div class="date-line">
 <div class="admin-date-picker">
 <input id="adminUntil" type="text" readonly inputmode="none" placeholder="дд.мм.гггг" aria-label="Дата окончания доступа" aria-haspopup="dialog" aria-expanded="false">
+<button type="button" class="admin-date-clear" id="adminDateClear" aria-label="Очистить дату" title="Очистить дату" hidden>×</button>
 <div class="admin-calendar-popup" id="adminCalendarPopup" role="dialog" aria-label="Выбор даты">
 <div class="admin-calendar-head">
 <button type="button" class="admin-calendar-nav" id="adminCalendarPrev" aria-label="Предыдущий месяц">‹</button>
@@ -42,11 +43,11 @@
 <div class="admin-calendar-days" id="adminCalendarDays"></div>
 </div>
 </div>
-<button class="date-confirm-button" type="button" data-action="until" aria-label="Установить дату" title="Установить дату"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></button>
 </div>
-<div class="actions"><button type="button" data-action="month">Месяц</button><button type="button" data-action="year">Год</button><button type="button" data-action="lifetime">Бессрочный</button></div>
-<div class="renew"><label><input id="adminAutoRenew" type="checkbox"> Автопродление на месяц / год</label><button type="button" id="adminSaveRenew">Сохранить</button></div>
-<button type="button" data-action="reset" class="danger">Сбросить ручное назначение</button>
+<div class="actions" aria-label="Срок доступа"><button type="button" data-choice="month">Месяц</button><button type="button" data-choice="year">Год</button><button type="button" data-choice="lifetime">Бессрочный</button></div>
+<div class="renew"><label><input id="adminAutoRenew" type="checkbox"> Автопродление на месяц / год</label></div>
+<button type="button" id="adminResetAccess" class="danger">Сбросить ручное назначение</button>
+<button type="button" id="adminSaveAccess" class="save-access">Сохранить</button>
 </section>
 </article>
 </section>
