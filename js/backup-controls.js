@@ -79,13 +79,12 @@
     block.style.cssText='margin-top:10px;padding-top:0;border-top:0;';
     block.innerHTML=''
       +'<div id="qpBillingTerm" style="display:block;width:100%;margin:0;padding:0 4px;color:var(--text-muted);font-size:13px;line-height:1.35;font-weight:400;">Подписка: проверяем…</div>'
-      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" id="qpBillingPurchase" style="background:var(--primary);color:#fff;border-color:transparent;">Оформить подписку</button>'
-      +'</div>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
       +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
       +'</div>'
+      +'<div id="qpBillingDeleteWrap" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>'
       +'<div id="qpBillingStatus" class="settings-card-subtitle" style="margin-top:10px;">Проверяем состояние подписки…</div>'
       +'<div class="settings-card-subtitle" style="margin-top:8px;">Отвязка карты отключает автопродление. Уже оплаченный период сохраняется.</div>';
     card.appendChild(block);
@@ -95,9 +94,14 @@
     const accountEmail=document.getElementById('qpAccountEmail');
     if(accountEmail&&term)accountEmail.insertAdjacentElement('afterend',term);
     const purchase=document.getElementById('qpBillingPurchase');
+    const logout=document.getElementById('qpAuthLogoutBtn');
+    if(logout&&purchase)logout.insertAdjacentElement('beforebegin',purchase);
     const status=document.getElementById('qpBillingStatus');
     const disable=document.getElementById('qpBillingDisableRenew');
     const unlink=document.getElementById('qpBillingUnlinkCard');
+    const deleteAccount=document.getElementById('qpAuthDeleteAccountBtn');
+    const deleteWrap=document.getElementById('qpBillingDeleteWrap');
+    if(deleteAccount&&deleteWrap)deleteWrap.appendChild(deleteAccount);
     const planNames={monthly:'Месяц',yearly:'Год',lifetime:'Бессрочный доступ',trial:'Пробный период'};
     let autoRenewEnabled=false;
     let paymentMethodSaved=null;
