@@ -1,0 +1,18 @@
+test('admin client uses authenticated status, lookup and billing routes',async()=>{
+  const uid='11111111-1111-4111-8111-111111111111';
+  const h=harness([
+    ok({data:{is_admin:true,user_id:uid,email:'owner@example.com'}}),
+    ok({data:{user:{user_id:uid,email:'target@example.com'},billing:{mode:'trial'},manual:null}}),
+    ok({data:{user:{user_id:uid,email:'target@example.com'},billing:{mode:'paid'},manual:{plan:'monthly'}}})
+  ]);
+  h.values.set(TOKEN_KEY,'admin-token');
+  assert.equal((await h.api.adminStatus()).is_admin,true);
+  assert.equal(h.calls[0].url,API_BASE_URL+'/admin/status');
+  assert.equal(h.calls[0].headers.Authorization,'Bearer admin-token');
+  assert.equal((await h.api.adminFindUser('Target@Example.com')).user.email,'target@example.com');
+  assert.equal(h.calls[1].url,API_BASE_URL+'/admin/users?email=Target%40Example.com');
+  assert.equal((await h.api.adminSetBilling(uid,{action:'grant_month'})).manual.plan,'monthly');
+  assert.equal(h.calls[2].url,API_BASE_URL+'/admin/users/'+uid+'/billing');
+  assert.equal(h.calls[2].method,'PUT');
+  assert.deepEqual(h.calls[2].body,{action:'grant_month'});
+});
