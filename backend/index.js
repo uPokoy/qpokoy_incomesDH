@@ -4,7 +4,11 @@ const { createApp } = require('./app');
 const { createYdbStore } = require('./ydb');
 const { sendPasswordResetEmail, sendEmailVerificationEmail } = require('./mail');
 const { createOAuthService } = require('./oauth');
+const { createYooKassaClient } = require('./yookassa');
+const { createPaymentRouter } = require('./payment-router');
 let app;
+let store;
+let paymentRouter;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 
 async function handler(event = {}) {
@@ -26,11 +30,23 @@ async function handler(event = {}) {
     if (Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) return json(413, { error: { code: 'payload_too_large', message: 'Request body too large' } }, cors);
     let body = {};
     try { if (raw) body = JSON.parse(raw); } catch { return json(400, { error: { code: 'bad_json', message: 'Invalid JSON' } }, cors); }
-    app ||= createApp(createYdbStore(), {
+
+    store ||= createYdbStore();
+    const appBaseUrl = process.env.APP_BASE_URL || 'https://qpokoy.ru/';
+    paymentRouter ||= createPaymentRouter(store, {
+      client: createYooKassaClient({
+        shopId: process.env.YOOKASSA_SHOP_ID || '',
+        secretKey: process.env.YOOKASSA_SECRET_KEY || ''
+      }),
+      appBaseUrl,
+      returnUrl: process.env.YOOKASSA_RETURN_URL || '',
+      onError: (error) => console.error('Payment API error', error)
+    });
+    app ||= createApp(store, {
       onError: (error) => console.error('API error', error),
-      passwordResetBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
-      emailVerificationBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
-      appBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/',
+      passwordResetBaseUrl: appBaseUrl,
+      emailVerificationBaseUrl: appBaseUrl,
+      appBaseUrl,
       oauthCallbackBaseUrl: process.env.PUBLIC_API_BASE_URL || 'https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net',
       oauth: createOAuthService(process.env),
       requireEmailVerification: String(process.env.REQUIRE_EMAIL_VERIFICATION || '').toLowerCase() === 'true',
@@ -47,7 +63,9 @@ async function handler(event = {}) {
         from: process.env.POSTBOX_FROM || 'qPokoy <noreply@qpokoy.ru>'
       })
     });
-    const result = await app.handle(method, path, body, headers, requestContext);
+
+    const paymentResult = await paymentRouter.handle(method, path, body, headers, requestContext);
+    const result = paymentResult || await app.handle(method, path, body, headers, requestContext);
     if (result.status >= 300 && result.status < 400 && result.headers?.Location) {
       return {
         statusCode: result.status,
