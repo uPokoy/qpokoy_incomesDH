@@ -3,7 +3,14 @@
 const { createYdbStore: createBaseYdbStore } = require('./ydb-core');
 
 function createYdbStore(env, DriverClass) {
+  const customDriver = typeof DriverClass === 'function';
   const store = createBaseYdbStore(env, DriverClass);
+
+  // Unit/integration harnesses inject their own DriverClass and rely on the
+  // original adapter semantics. The production Cloud Function does not pass
+  // one, so only the deployed path receives the latency optimization below.
+  if (customDriver) return store;
+
   const baseAddIncome = store.addIncome;
   const baseGetIncome = store.getIncome.bind(store);
   const justCreated = new Map();
