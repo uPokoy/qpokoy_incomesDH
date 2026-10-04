@@ -26,11 +26,11 @@ test('month/year/lifetime/until affect access and produce private minimal audit'
   const full=await h.app.handle('GET','/bootstrap',{},h.target.headers);assert.equal(full.body.settings.length,0);
   assert.equal((await h.app.handle('GET','/bootstrap?revision=same',{},h.target.headers)).body.billing.source,'admin');
 });
-test('reset preserves underlying billing; launch trial, trial, prelaunch and grace remain correct',async()=>{
+test('reset preserves underlying billing; admin expiry overrides prelaunch while trial and grace remain correct',async()=>{
   const h=harness();await h.store.putSetting({user_id:h.target.id,setting_key:'billing.access',setting_value:JSON.stringify({plan:'yearly',paid_until:'2027-01-01',auto_renew:true})});
   await h.write({action:'lifetime'});await h.write({action:'reset'});assert.equal((await h.status()).plan,'yearly');assert.equal((await h.app.handle('GET','/admin/users?email=target@example.invalid',{},h.admin.headers)).body.data.assignment.source,'payment');
-  const pre=harness({billingEnforcementStartedAt:''});await pre.write({action:'until',date:'2020-01-01'});assert.equal((await pre.status()).mode,'prelaunch');assert.equal((await pre.status()).can_write,true);
-  const future=harness({billingEnforcementStartedAt:'2030-01-01'});await future.write({action:'until',date:'2020-01-01'});assert.equal((await future.status()).mode,'prelaunch');
+  const pre=harness({billingEnforcementStartedAt:''});await pre.write({action:'until',date:'2020-01-01'});assert.equal((await pre.status()).mode,'expired');assert.equal((await pre.status()).can_write,false);
+  const future=harness({billingEnforcementStartedAt:'2030-01-01'});await future.write({action:'until',date:'2020-01-01'});assert.equal((await future.status()).mode,'expired');assert.equal((await future.status()).can_write,false);
   const existing=harness();existing.users.get(existing.target.id).created_at='2026-09-01';await existing.write({action:'month'});await existing.write({action:'reset'});assert.equal((await existing.status()).mode,'trial');
   const trial=harness();await trial.write({action:'year'});await trial.write({action:'reset'});assert.equal((await trial.status()).mode,'trial');
   await trial.write({action:'month'});trial.time=new Date('2026-11-04T12:00:00Z');assert.equal((await trial.status()).mode,'grace');trial.time=new Date('2026-11-07T12:00:00Z');assert.equal((await trial.status()).can_write,false);
