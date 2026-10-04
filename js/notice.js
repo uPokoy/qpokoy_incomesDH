@@ -135,6 +135,7 @@
       style.id='qpIncomeCalendarNavigationStyle';
       style.textContent=
         '#calendarPopup{touch-action:pan-y}'+
+        '#calendarDays .calendar-day.other{visibility:hidden!important;pointer-events:none!important}'+
         '#calendarMonth.qp-calendar-heading{display:flex;align-items:center;justify-content:center;gap:4px;min-width:160px}'+
         '#calendarMonth .qp-calendar-month-label{font-size:14px;font-weight:600;text-transform:capitalize}'+
         '#calendarMonth .qp-calendar-year-button{width:auto;min-width:0;min-height:28px;padding:2px 5px;border:0;border-radius:6px;background:transparent;color:var(--text);font-size:14px;font-weight:600;cursor:pointer}'+
