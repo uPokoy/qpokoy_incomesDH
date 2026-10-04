@@ -88,3 +88,33 @@
   window.addEventListener('qpokoy:income-period-change',schedule);
   schedule();
 })();
+
+/* Keep the running income odometer visible while cloud sync redraws the total.
+   Data synchronization continues normally; only the temporary odometer DOM is protected. */
+(function(){
+  "use strict";
+  const total=document.getElementById('incomeTotal');
+  if(!total||typeof MutationObserver!=='function')return;
+
+  let odometer=null;
+  let restoring=false;
+  const observer=new MutationObserver(function(){
+    if(restoring)return;
+    const active=total.classList.contains('qp-odometer-active');
+    const current=total.querySelector(':scope > .qp-odometer');
+
+    if(active&&current){
+      odometer=current;
+      return;
+    }
+    if(active&&odometer&&!total.contains(odometer)){
+      restoring=true;
+      total.replaceChildren(odometer);
+      restoring=false;
+      return;
+    }
+    if(!active)odometer=null;
+  });
+
+  observer.observe(total,{childList:true,attributes:true,attributeFilter:['class']});
+})();
