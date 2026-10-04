@@ -28,7 +28,7 @@ const RATE_LIMITS = Object.freeze({
   verificationResendIp: { limit: 10, windowMs: 60 * 60 * 1000 },
   verificationResendEmail: { limit: 3, windowMs: 60 * 60 * 1000 },
   passwordResetConfirmIp: { limit: 15, windowMs: 15 * 60 * 1000 },
-  verificationConfirmIp: { limit: 20, windowMs: 10 * 60 * 1000 },
+  verificationConfirmIp: { limit: 20, windowMs: 15 * 60 * 1000 },
   oauthStartIp: { limit: 20, windowMs: 10 * 60 * 1000 },
   oauthCallbackIp: { limit: 30, windowMs: 10 * 60 * 1000 },
   oauthExchangeIp: { limit: 30, windowMs: 10 * 60 * 1000 }
@@ -471,6 +471,7 @@ function createApp(store, options = {}) {
             }
           }
         }
+        // Always return the same response so the endpoint does not reveal whether an email is registered.
         return response(202, { ok: true });
       }
       if (method === 'POST' && pathname === '/auth/password-reset/confirm') {
@@ -507,6 +508,7 @@ function createApp(store, options = {}) {
       const { user, session } = await authenticate(headers);
       const userId = user.user_id;
       if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+        // Check the authenticated server identity on every admin request, before any lookup.
         if (!allowedAdmins.has(String(userId).toLowerCase())) throw new HttpError(403,
           allowedAdmins.size ? 'admin_forbidden' : 'admin_not_configured', 'Нет доступа к админ-панели.');
         if (method === 'GET' && pathname === '/admin/session') return response(200, { data: { admin: true } });
