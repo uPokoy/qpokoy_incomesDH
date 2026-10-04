@@ -155,6 +155,7 @@
     let touchStartX=0;
     let touchStartY=0;
     let touchActive=false;
+    let touchHandled=false;
     let swipeSuppressUntil=0;
     let wasOpen=popup.classList.contains('open');
 
@@ -279,12 +280,25 @@
     },true);
 
     popup.addEventListener('touchstart',function(event){
-      if(!mobile.matches||event.touches.length!==1){touchActive=false;return;}
+      if(!mobile.matches||event.touches.length!==1){touchActive=false;touchHandled=false;return;}
       touchStartX=event.touches[0].clientX;
       touchStartY=event.touches[0].clientY;
       touchActive=true;
+      touchHandled=false;
     },{passive:true});
+    popup.addEventListener('touchmove',function(event){
+      if(!touchActive||touchHandled||mode!=='days'||!mobile.matches||event.touches.length!==1)return;
+      const dx=event.touches[0].clientX-touchStartX;
+      const dy=event.touches[0].clientY-touchStartY;
+      if(Math.abs(dx)<28||Math.abs(dx)<=Math.abs(dy)*1.1)return;
+      event.preventDefault();
+      touchHandled=true;
+      touchActive=false;
+      (dx<0?next:prev).click();
+      swipeSuppressUntil=Date.now()+450;
+    },{passive:false});
     popup.addEventListener('touchend',function(event){
+      if(touchHandled){touchHandled=false;touchActive=false;return;}
       if(!touchActive||!mobile.matches||!event.changedTouches.length)return;
       touchActive=false;
       const dx=event.changedTouches[0].clientX-touchStartX;
@@ -298,7 +312,7 @@
         swipeSuppressUntil=Date.now()+450;
       }
     },{passive:true});
-    popup.addEventListener('touchcancel',function(){touchActive=false;},{passive:true});
+    popup.addEventListener('touchcancel',function(){touchActive=false;touchHandled=false;},{passive:true});
 
     const headingObserver=new MutationObserver(function(){
       if(mode==='days')requestAnimationFrame(decorateHeading);
