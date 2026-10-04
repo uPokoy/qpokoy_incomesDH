@@ -138,3 +138,14 @@
     max-height:472px !important;
   }
 }
+
+/* Mobile category picker: keep the first/last selectable row away from the popup edge. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html body #incomeForm #categoryPopup .category-option:first-of-type{
+    margin-top:4px !important;
+  }
+
+  html body #incomeForm #categoryPopup .category-option:last-of-type{
+    margin-bottom:4px !important;
+  }
+}
