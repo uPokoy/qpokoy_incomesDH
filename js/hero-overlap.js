@@ -355,3 +355,76 @@
   });
   observer.observe(total,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
+
+/* Keep mobile history swipe gestures alive while async income redraws arrive. */
+(function(){
+  "use strict";
+  const list=document.getElementById('incomeList');
+  const media=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+  const original=window.renderIncomes;
+  if(!list||typeof original!=='function'||original.__qPokoySwipeStable)return;
+
+  let touching=false;
+  let settling=false;
+  let pendingArgs=null;
+  let flushTimer=0;
+
+  function isSwipeRow(target){
+    return !!(target&&target.closest&&target.closest('#history #incomeList > .history-swipe-row'));
+  }
+
+  function flush(){
+    clearTimeout(flushTimer);
+    flushTimer=0;
+    if(touching)return;
+    settling=false;
+    if(!pendingArgs)return;
+    const args=pendingArgs;
+    pendingArgs=null;
+    original.apply(window,args);
+  }
+
+  function scheduleFlush(delay){
+    clearTimeout(flushTimer);
+    settling=true;
+    flushTimer=setTimeout(flush,delay||180);
+  }
+
+  function wrappedRender(){
+    if(media.matches&&(touching||settling)){
+      pendingArgs=Array.from(arguments);
+      return;
+    }
+    return original.apply(this,arguments);
+  }
+  wrappedRender.__qPokoySwipeStable=true;
+  window.renderIncomes=wrappedRender;
+
+  list.addEventListener('touchstart',function(event){
+    if(!media.matches||event.touches.length!==1||!isSwipeRow(event.target))return;
+    touching=true;
+    settling=false;
+    clearTimeout(flushTimer);
+    flushTimer=0;
+  },{capture:true,passive:true});
+
+  list.addEventListener('scroll',function(event){
+    if(!media.matches||!isSwipeRow(event.target))return;
+    if(touching||settling||pendingArgs)scheduleFlush(180);
+  },true);
+
+  function finishTouch(){
+    if(!touching)return;
+    touching=false;
+    scheduleFlush(180);
+  }
+  list.addEventListener('touchend',finishTouch,{capture:true,passive:true});
+  list.addEventListener('touchcancel',finishTouch,{capture:true,passive:true});
+
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden)return;
+    touching=false;
+    settling=false;
+    flush();
+  });
+})();
