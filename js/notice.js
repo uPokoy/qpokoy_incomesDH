@@ -133,7 +133,7 @@
         '#incomeTotal.qp-odometer-active{display:flex!important;align-items:center;justify-content:center;white-space:nowrap;font-variant-numeric:tabular-nums;overflow:visible}'+
         '#incomeTotal .qp-odometer{display:inline-flex;align-items:baseline;white-space:nowrap;line-height:1}'+
         '#incomeTotal .qp-odometer-digit{display:inline-block;height:1em;overflow:hidden;line-height:1em;vertical-align:bottom}'+
-        '#incomeTotal .qp-odometer-track{display:flex;flex-direction:column;line-height:1em;will-change:transform}'+
+        '#incomeTotal .qp-odometer-track{display:flex;flex-direction:column;line-height:1em;will-change:transform;transform:translate3d(0,0,0);backface-visibility:hidden}'+
         '#incomeTotal .qp-odometer-track>span{display:block;height:1em;line-height:1em;text-align:center}'+
         '#incomeTotal .qp-odometer-fixed{display:inline-block;white-space:pre;line-height:1em}';
       document.head.appendChild(style);
@@ -181,7 +181,7 @@
 
         const start=Number(oldDigits[digitIndex]||0);
         const end=Number(newDigits[digitIndex]||char);
-        const steps=20+((end-start+10)%10);
+        const steps=10+((end-start+10)%10);
         const box=document.createElement('span');
         box.className='qp-odometer-digit';
         const track=document.createElement('span');
@@ -194,19 +194,19 @@
         box.appendChild(track);
         wrapper.appendChild(box);
 
-        const delay=Math.max(0,(newDigits.length-1-digitIndex)*55);
-        const duration=1750+digitIndex*45;
+        const delay=0;
+        const duration=2800+digitIndex*20;
         maxDuration=Math.max(maxDuration,delay+duration);
         requestAnimationFrame(function(){
           if(token!==animationToken)return;
           if(typeof track.animate==='function'){
             track.animate(
-              [{transform:'translateY(0)'},{transform:'translateY(-'+steps+'em)'}],
-              {duration:duration,delay:delay,easing:'cubic-bezier(.12,.72,.18,1)',fill:'forwards'}
+              [{transform:'translate3d(0,0,0)'},{transform:'translate3d(0,-'+steps+'em,0)'}],
+              {duration:duration,delay:delay,easing:'cubic-bezier(.42,0,.58,1)',fill:'forwards'}
             );
           }else{
-            track.style.transition='transform '+duration+'ms cubic-bezier(.12,.72,.18,1) '+delay+'ms';
-            requestAnimationFrame(function(){track.style.transform='translateY(-'+steps+'em)';});
+            track.style.transition='transform '+duration+'ms cubic-bezier(.42,0,.58,1) '+delay+'ms';
+            requestAnimationFrame(function(){track.style.transform='translate3d(0,-'+steps+'em,0)';});
           }
         });
         digitIndex++;
