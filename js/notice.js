@@ -246,6 +246,15 @@
       renderYears();
     }
 
+    function changeMonthBySwipe(delta){
+      internalNav=true;
+      try{
+        (delta>0?next:prev).click();
+      }finally{
+        internalNav=false;
+      }
+    }
+
     monthHost.addEventListener('click',function(event){
       const button=event.target.closest('.qp-calendar-year-button');
       if(!button)return;
@@ -273,7 +282,7 @@
     },true);
 
     popup.addEventListener('click',function(event){
-      if(Date.now()<swipeSuppressUntil){
+      if(Date.now()<swipeSuppressUntil&&!internalNav){
         event.preventDefault();
         event.stopPropagation();
       }
@@ -294,7 +303,7 @@
       event.preventDefault();
       touchHandled=true;
       touchActive=false;
-      (dx<0?next:prev).click();
+      changeMonthBySwipe(dx<0?1:-1);
       swipeSuppressUntil=Date.now()+450;
     },{passive:false});
     popup.addEventListener('touchend',function(event){
@@ -308,7 +317,7 @@
         changeYearPage(dx<0?1:-1);
         swipeSuppressUntil=Date.now()+450;
       }else{
-        (dx<0?next:prev).click();
+        changeMonthBySwipe(dx<0?1:-1);
         swipeSuppressUntil=Date.now()+450;
       }
     },{passive:true});
