@@ -288,9 +288,13 @@
       const dx=event.changedTouches[0].clientX-touchStartX;
       const dy=event.changedTouches[0].clientY-touchStartY;
       if(Math.abs(dx)<48||Math.abs(dx)<=Math.abs(dy)*1.15)return;
-      swipeSuppressUntil=Date.now()+450;
-      if(mode==='years')changeYearPage(dx<0?1:-1);
-      else (dx<0?next:prev).click();
+      if(mode==='years'){
+        changeYearPage(dx<0?1:-1);
+        swipeSuppressUntil=Date.now()+450;
+      }else{
+        (dx<0?next:prev).click();
+        swipeSuppressUntil=Date.now()+450;
+      }
     },{passive:true});
     popup.addEventListener('touchcancel',function(){touchActive=false;},{passive:true});
 
