@@ -195,7 +195,7 @@
         wrapper.appendChild(box);
 
         const delay=0;
-        const duration=2800+digitIndex*20;
+        const duration=1850+digitIndex*15;
         maxDuration=Math.max(maxDuration,delay+duration);
         requestAnimationFrame(function(){
           if(token!==animationToken)return;
@@ -347,180 +347,115 @@
       days.hidden=true;
       years.hidden=false;
       monthHost.classList.add('qp-calendar-heading');
-      monthHost.innerHTML='<button type="button" class="qp-calendar-year-button" aria-label="Вернуться к выбору даты"></button>';
-      monthHost.querySelector('.qp-calendar-year-button').textContent=yearPageStart+'–'+(yearPageStart+11);
-      years.replaceChildren();
-      const chosenYear=selectedYear();
-      for(let year=yearPageStart;year<yearPageStart+12;year++){
-        const button=document.createElement('button');
-        button.type='button';
-        button.className='qp-calendar-year';
-        if(year===parts.year)button.classList.add('current');
-        if(year===chosenYear)button.classList.add('selected');
-        button.textContent=String(year);
-        button.setAttribute('aria-label','Выбрать '+year+' год');
-        button.addEventListener('click',function(event){
-          event.preventDefault();
-          event.stopPropagation();
-          const current=currentParts();
-          const delta=year-current.year;
-          internalNav=true;
-          try{
-            const buttonToClick=delta>0?next:prev;
-            for(let i=0;i<Math.abs(delta)*12;i++)buttonToClick.click();
-          }finally{
-            internalNav=false;
-          }
-          showDays();
-        });
-        years.appendChild(button);
-      }
-    }
-
-    function changeYearPage(delta){
-      yearPageStart+=delta*12;
-      renderYears();
-    }
-
-    function changeMonthBySwipe(delta){
-      internalNav=true;
-      try{
-        (delta>0?next:prev).click();
-      }finally{
-        internalNav=false;
-      }
-      decorateHeading();
-    }
-
-    function toggleCalendarMode(){
-      if(mode==='years'){
-        showDays();
-        return;
-      }
-      yearPageStart=currentParts().year-5;
-      renderYears();
+      monthHost.innerHTML='<button type="button" class="qp-calendar-year-button" aria-label="Вернуться к месяцу"></button>';
+      monthHost.querySelector('.qp-calendar-year-button').textContent=parts.year+' г.';
+      const activeYear=selectedYear();
+      const currentYear=new Date().getFullYear();
+      const start=Math.floor(parts.year/12)*12;
+      yearPageStart=start;
+      years.innerHTML=Array.from({length:12},(_,index)=>{
+        const year=start+index;
+        return '<button type="button" class="qp-calendar-year'+(year===currentYear?' current':'')+(year===activeYear?' selected':'')+'" data-year="'+year+'">'+year+'</button>';
+      }).join('');
     }
 
     monthHost.addEventListener('click',function(event){
-      const button=event.target.closest?.('.qp-calendar-year-button');
-      if(!button&&event.target!==monthHost)return;
-      event.preventDefault();
-      event.stopPropagation();
-      toggleCalendarMode();
+      const button=event.target.closest('.qp-calendar-year-button');
+      if(!button)return;
+      if(mode==='days')renderYears();
+      else showDays();
     });
 
-    prev.addEventListener('click',function(event){
-      if(mode!=='years'||internalNav)return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      changeYearPage(-1);
-    },true);
-    next.addEventListener('click',function(event){
-      if(mode!=='years'||internalNav)return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      changeYearPage(1);
-    },true);
+    years.addEventListener('click',function(event){
+      const button=event.target.closest('.qp-calendar-year[data-year]');
+      if(!button)return;
+      const parts=currentParts();
+      const year=Number(button.dataset.year);
+      internalNav=true;
+      monthHost.dataset.qpYear=String(year);
+      monthHost.dataset.qpMonth=String(parts.month);
+      prev.click();
+      next.click();
+      internalNav=false;
+      showDays();
+    });
 
-    popup.addEventListener('touchstart',function(event){
-      if(!mobile.matches||event.touches.length!==1){
-        touchActive=false;
-        touchMoved=false;
-        touchTarget=null;
+    function navigate(direction){
+      if(mode==='years'){
+        yearPageStart+=direction*12;
+        years.innerHTML=Array.from({length:12},(_,index)=>{
+          const year=yearPageStart+index;
+          const activeYear=selectedYear();
+          const currentYear=new Date().getFullYear();
+          return '<button type="button" class="qp-calendar-year'+(year===currentYear?' current':'')+(year===activeYear?' selected':'')+'" data-year="'+year+'">'+year+'</button>';
+        }).join('');
         return;
       }
+      internalNav=true;
+      (direction<0?prev:next).click();
+      internalNav=false;
+      requestAnimationFrame(decorateHeading);
+    }
+
+    popup.addEventListener('touchstart',function(event){
+      if(!mobile.matches||event.touches.length!==1)return;
       const touch=event.touches[0];
-      touchStartX=touch.clientX;
-      touchStartY=touch.clientY;
-      touchLastX=touch.clientX;
-      touchLastY=touch.clientY;
+      touchStartX=touchLastX=touch.clientX;
+      touchStartY=touchLastY=touch.clientY;
       touchActive=true;
       touchMoved=false;
       touchTarget=event.target;
     },{passive:true});
 
     popup.addEventListener('touchmove',function(event){
-      if(!touchActive||!mobile.matches||event.touches.length!==1)return;
+      if(!touchActive||!mobile.matches||!event.touches.length)return;
       const touch=event.touches[0];
       touchLastX=touch.clientX;
       touchLastY=touch.clientY;
-      const dx=touchLastX-touchStartX;
-      const dy=touchLastY-touchStartY;
-      if(Math.abs(dx)>10||Math.abs(dy)>10)touchMoved=true;
+      if(Math.hypot(touchLastX-touchStartX,touchLastY-touchStartY)>28)touchMoved=true;
     },{passive:true});
 
     popup.addEventListener('touchend',function(event){
-      if(!touchActive||!mobile.matches||!event.changedTouches.length){
-        touchActive=false;
-        touchMoved=false;
+      if(!touchActive||!mobile.matches||event.changedTouches.length!==1){touchActive=false;return;}
+      const touch=event.changedTouches[0];
+      const dx=touch.clientX-touchStartX;
+      const dy=touch.clientY-touchStartY;
+      touchActive=false;
+      if(touchMoved&&Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.2){
+        navigate(dx<0?1:-1);
         touchTarget=null;
         return;
       }
-      const end=event.changedTouches[0];
-      let dx=end.clientX-touchStartX;
-      let dy=end.clientY-touchStartY;
-      const lastDx=touchLastX-touchStartX;
-      const lastDy=touchLastY-touchStartY;
-      if(Math.abs(lastDx)>Math.abs(dx)){
-        dx=lastDx;
-        dy=lastDy;
-      }
       const target=touchTarget;
-      touchActive=false;
       touchTarget=null;
-
-      if(Math.abs(dx)>=28&&Math.abs(dx)>Math.abs(dy)*1.1){
-        event.preventDefault();
-        event.stopPropagation();
-        touchMoved=false;
-        if(mode==='years')changeYearPage(dx<0?1:-1);
-        else changeMonthBySwipe(dx<0?1:-1);
-        return;
+      if(target&&target.closest('.calendar-day[data-date]:not(.other)')){
+        target.closest('.calendar-day[data-date]:not(.other)').click();
       }
-
-      if(touchMoved){
-        touchMoved=false;
-        return;
-      }
-      touchMoved=false;
-
-      const tapTarget=target?.closest?.('.qp-calendar-year-button,.qp-calendar-year,.calendar-day,#calendarPrev,#calendarNext');
-      if(!tapTarget)return;
-      event.preventDefault();
-      event.stopPropagation();
-      tapTarget.click();
-    },{passive:false});
-
-    popup.addEventListener('touchcancel',function(){
-      touchActive=false;
-      touchMoved=false;
-      touchTarget=null;
     },{passive:true});
 
-    const headingObserver=new MutationObserver(function(){
-      if(mode==='days')decorateHeading();
-    });
-    headingObserver.observe(monthHost,{childList:true,characterData:true,subtree:true});
+    popup.addEventListener('touchcancel',function(){touchActive=false;touchTarget=null;},{passive:true});
 
-    const popupObserver=new MutationObserver(function(){
+    const observer=new MutationObserver(function(){
       const open=popup.classList.contains('open');
-      if(open&&!wasOpen)showDays();
+      if(open&&!wasOpen){mode='days';years.hidden=true;weekdays.hidden=false;days.hidden=false;requestAnimationFrame(decorateHeading);}
       wasOpen=open;
+      if(internalNav||mode!=='days')return;
+      requestAnimationFrame(decorateHeading);
     });
-    popupObserver.observe(popup,{attributes:true,attributeFilter:['class']});
+    observer.observe(popup,{attributes:true,attributeFilter:['class']});
+    observer.observe(days,{childList:true,subtree:true});
 
-    if(wasOpen)showDays();
-    else decorateHeading();
+    requestAnimationFrame(decorateHeading);
     popup.__qPokoyCalendarNavigation=true;
   }
 
-  function bindEnhancements(){
+  function init(){
     bindStatisticsSwipe();
     bindIncomeDateSelectionDismiss();
     bindIncomeOdometerAnimation();
     bindIncomeCalendarNavigation();
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindEnhancements);
-  else bindEnhancements();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
 })();
