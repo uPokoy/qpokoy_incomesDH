@@ -107,3 +107,11 @@
     color:inherit;
   }
 }
+
+/* Mobile full history: when the inner list reaches its top or bottom,
+   continue the same vertical gesture on the page instead of trapping it. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html body #income .income-recent-history-panel > #history.income-recent-inline-history #incomeList{
+    overscroll-behavior-y:auto !important;
+  }
+}
