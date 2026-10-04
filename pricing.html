@@ -13,7 +13,7 @@
 :root{color-scheme:dark;--bg:#08101c;--panel:#101f33;--line:rgba(151,189,237,.2);--text:#f2f7ff;--muted:#a9bdd6;--blue:#71afff}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;min-height:100vh;min-height:100dvh;font:15px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:radial-gradient(80% 60% at 10% -10%,rgba(52,94,151,.25),transparent 68%),radial-gradient(65% 55% at 105% 25%,rgba(35,79,137,.19),transparent 70%),linear-gradient(145deg,#060a12,#0c1829 52%,#070d16)}
-a{color:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+a{color:inherit}a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
 .wrap{width:min(1120px,calc(100% - 36px));margin:auto}
 .head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:23px 0}
 .logo{font-weight:800;font-size:26px;letter-spacing:-.055em;text-decoration:none}.logo span{color:var(--blue)}
@@ -41,6 +41,7 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 .payment-message{min-height:22px;text-align:center;color:#bcd0e8;font-size:13px;margin:15px 0 0}.payment-message[data-error="true"]{color:#ffb8b8}
 .caption{text-align:center;color:var(--muted);font-size:12px;margin:10px 0 0}
 .section{margin-top:53px}.section h2{margin:0 0 17px;font-size:26px;line-height:1.25;letter-spacing:-.035em}
+.disclosure>summary{list-style:none;cursor:pointer;margin:0;font-size:26px;line-height:1.25;letter-spacing:-.035em;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px}.disclosure>summary::-webkit-details-marker{display:none}.disclosure>summary:after{content:"⌄";flex:0 0 auto;color:#bedbff;font-size:26px;line-height:1;transition:transform .18s ease}.disclosure[open]>summary:after{transform:rotate(180deg)}.disclosure-content{margin-top:17px}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
 .card,.question,.subscription-box{border:1px solid var(--line);border-radius:15px;background:rgba(17,32,53,.72);padding:19px 21px}
 .card h3,.question h3{margin:0 0 7px;font-size:15px}.card p,.question p,.subscription-box p{margin:0;color:var(--muted);font-size:13px}
@@ -49,8 +50,8 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 .notice{margin-top:42px;padding:19px 21px;border:1px solid rgba(109,160,226,.27);border-radius:15px;background:rgba(52,95,151,.10);color:#c1d1e4;font-size:13px}.notice strong{color:#f2f7ff}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:23px 0 34px;border-top:1px solid var(--line);font-size:12px;color:#9aafc9}.foot a{text-decoration:none;color:#bedbff}
 @media(max-width:900px){.plans{grid-template-columns:1fr;max-width:520px;margin:auto}.cards{grid-template-columns:1fr}.plan{padding:23px}.price{margin-top:17px}.line{margin:16px 0}}
-@media(max-width:460px){.wrap{width:calc(100% - 28px)}.head{padding:18px 0}.logo{font-size:24px}.back{padding:8px 10px;font-size:12px}main{padding:25px 0 48px}h1{font-size:35px}.intro{margin-bottom:27px}.section{margin-top:42px}.subscription-actions{display:grid}.subscription-action,.subscription-login{width:100%}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media(max-width:460px){.wrap{width:calc(100% - 28px)}.head{padding:18px 0}.logo{font-size:24px}.back{padding:8px 10px;font-size:12px}main{padding:25px 0 48px}h1{font-size:35px}.intro{margin-bottom:27px}.section{margin-top:42px}.subscription-actions{display:grid}.subscription-action,.subscription-login{width:100%}.disclosure>summary{font-size:26px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.disclosure>summary:after{transition:none}}
 </style>
 </head>
 <body>
@@ -70,21 +71,21 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <article class="plan">
 <div class="plan-head"><h2>Месяц</h2></div>
 <div class="price">149 <small>₽</small></div><div class="cycle">за 1 месяц</div><div class="line"></div>
-<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li></ul>
+<ul><li>Все функции</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Доступ с разных устройств</li></ul>
 <div class="renew-option">Автопродление. Отменить можно в любой момент.</div>
 <button type="button" class="payment-action" data-plan="monthly">Оплатить 149 ₽</button>
 </article>
 <article class="plan">
 <div class="plan-head"><h2>Год</h2><span class="pill">12 месяцев</span></div>
 <div class="price">1 190 <small>₽</small></div><div class="cycle">за 12 месяцев</div><div class="line"></div>
-<ul><li>Все функции qPokoy</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li></ul>
+<ul><li>Все функции</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Доступ с разных устройств</li></ul>
 <div class="renew-option">Автопродление. Отменить можно в любой момент.</div>
 <button type="button" class="payment-action" data-plan="yearly">Оплатить 1 190 ₽</button>
 </article>
 <article class="plan forever">
 <div class="plan-head"><h2>Бессрочный</h2><span class="pill">Один платёж</span></div>
 <div class="price">1 790 <small>₽</small></div><div class="cycle">без повторных списаний</div><div class="line"></div>
-<ul><li>Все текущие функции qPokoy</li><li>Все будущие функции и обновления</li><li>Доступ с разных устройств</li><li>Без автоматического продления</li><li>На весь срок существования сервиса</li></ul>
+<ul><li>Все функции</li><li>Облачная синхронизация</li><li>Категории, история и аналитика</li><li>Отчёты и экспорт данных</li><li>Доступ с разных устройств</li></ul>
 <div class="renew-option" aria-hidden="true"></div>
 <button type="button" class="payment-action" data-plan="lifetime">Оплатить 1 790 ₽</button>
 </article>
@@ -103,22 +104,26 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <p class="subscription-note">Отключение автопродления или отвязка карты не меняют уже оплаченный период.</p>
 </div>
 </section>
-<section class="section" aria-labelledby="how-title">
-<h2 id="how-title">Как это работает</h2>
+<details class="section disclosure">
+<summary id="how-title">Как это работает?</summary>
+<div class="disclosure-content">
 <div class="cards">
 <article class="card"><h3>Free</h3><p>14 дней полного доступа бесплатно, без привязки карты.</p></article>
 <article class="card"><h3>Прозрачное продление</h3><p>Доступ на месяц и год продлевается автоматически после оплаты. Не менее чем за три календарных дня до очередного списания пользователь получает уведомление с суммой платежа, сроком списания и порядком отказа от автопродления и дальнейших списаний.</p></article>
 <article class="card"><h3>Данные остаются вашими</h3><p>После окончания периода сохраняются просмотр, экспорт PDF и возможность полностью удалить свои данные или аккаунт. JSON-экспорт и импорт, добавление, редактирование и удаление отдельных записей требуют действующего доступа.</p></article>
 </div>
-</section>
-<section class="section" aria-labelledby="faq-title">
-<h2 id="faq-title">Условия доступа</h2>
+</div>
+</details>
+<details class="section disclosure">
+<summary id="faq-title">Условия доступа</summary>
+<div class="disclosure-content">
 <div class="faq">
 <article class="question"><h3>Можно ли отключить автопродление?</h3><p>Да. Автопродление можно отключить выше в разделе «Управление доступом». После отключения оплаченный доступ сохранится до завершения оплаченного периода.</p></article>
 <article class="question"><h3>Что, если очередной платёж не прошёл?</h3><p>Предусмотрены ещё 3 календарных дня полного доступа. Затем можно просматривать историю, экспортировать PDF и полностью удалить свои данные или аккаунт. JSON и действия с отдельными записями становятся недоступны.</p></article>
 <article class="question"><h3>Что означает бессрочный доступ?</h3><p>Один платёж за все текущие и будущие функции на весь период существования сервиса. Автосписаний по этому тарифу нет.</p></article>
 </div>
-</section>
+</div>
+</details>
 <aside class="notice"><strong>Оплата проводится через ЮKassa.</strong> Перед оплатой ознакомьтесь с <a href="./offer.html">офертой</a>, <a href="./privacy.html">политикой конфиденциальности</a> и <a href="./about.html">сведениями об исполнителе</a>.</aside>
 </main>
 <footer class="foot"><span>© qPokoy — Учёт доходов</span><span><a href="./offer.html">Оферта</a> · <a href="./privacy.html">Конфиденциальность</a> · <a href="./about.html">О сервисе</a> · <a href="./">В приложение</a></span></footer>
