@@ -119,25 +119,33 @@
   observer.observe(total,{childList:true,attributes:true,attributeFilter:['class']});
 })();
 
-/* A real odometer keeps unchanged positions still. Only digit positions whose
-   value actually changes are allowed to roll. */
+/* Keep the unchanged prefix still, but once the first changed digit is reached
+   let that digit and every lower position to its right roll as one odometer block. */
 (function(){
   "use strict";
   const total=document.getElementById('incomeTotal');
   if(!total||typeof MutationObserver!=='function')return;
 
-  function freezeUnchangedDigits(){
+  function freezeUnchangedPrefix(){
     if(!total.classList.contains('qp-odometer-active'))return;
     const wrapper=total.querySelector(':scope > .qp-odometer');
     if(!wrapper)return;
 
-    wrapper.querySelectorAll('.qp-odometer-digit').forEach(function(box){
-      const track=box.querySelector(':scope > .qp-odometer-track');
-      if(!track||track.children.length<2)return;
+    const boxes=[...wrapper.querySelectorAll('.qp-odometer-digit')];
+    let firstChanged=-1;
+    for(let i=0;i<boxes.length;i++){
+      const track=boxes[i].querySelector(':scope > .qp-odometer-track');
+      if(!track||track.children.length<2)continue;
       const start=track.firstElementChild?.textContent||'';
       const end=track.lastElementChild?.textContent||'';
-      if(start!==end)return;
+      if(start!==end){firstChanged=i;break;}
+    }
+    if(firstChanged<0)return;
 
+    boxes.slice(0,firstChanged).forEach(function(box){
+      const track=box.querySelector(':scope > .qp-odometer-track');
+      if(!track||track.children.length<2)return;
+      const end=track.lastElementChild?.textContent||'';
       const fixed=document.createElement('span');
       fixed.className='qp-odometer-fixed';
       fixed.textContent=end;
@@ -145,6 +153,6 @@
     });
   }
 
-  const observer=new MutationObserver(freezeUnchangedDigits);
+  const observer=new MutationObserver(freezeUnchangedPrefix);
   observer.observe(total,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
