@@ -79,7 +79,7 @@
     block.style.cssText='margin-top:10px;padding-top:0;border-top:0;';
     block.innerHTML=''
       +'<div id="qpBillingTerm" style="display:block;width:100%;margin:0;padding:0 4px;color:var(--text-muted);font-size:13px;line-height:1.35;font-weight:400;">Подписка: проверяем…</div>'
-      +'<button type="button" id="qpBillingPurchase" style="background:var(--primary);color:#fff;border-color:transparent;">Оформить подписку</button>'
+      +'<button type="button" id="qpBillingPurchase" style="background:var(--primary);color:#fff;border-color:transparent;">Оформить доступ</button>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
       +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
@@ -131,7 +131,7 @@
       purchase.hidden=lifetime;
       if(lifetime)return;
       const activePaid=['paid','grace'].includes(access?.mode)&&['monthly','yearly'].includes(access?.plan);
-      purchase.textContent=activePaid?'Продлить подписку':'Оформить подписку';
+      purchase.textContent=activePaid?'Продлить подписку':'Оформить доступ';
     }
 
     function syncBillingTerm(access){
@@ -187,7 +187,7 @@
       if(!api?.getToken?.()){
         term.textContent='Подписка: войдите в аккаунт';
         purchase.hidden=false;
-        purchase.textContent='Оформить подписку';
+        purchase.textContent='Оформить доступ';
         status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
         disable.disabled=true;
         unlink.disabled=true;
@@ -230,7 +230,7 @@
       }catch(error){
         term.textContent='Подписка: не удалось проверить';
         purchase.hidden=false;
-        purchase.textContent='Оформить подписку';
+        purchase.textContent='Оформить доступ';
         if(error?.status===401){
           status.textContent='Войдите в аккаунт, чтобы управлять подпиской.';
         }else{
