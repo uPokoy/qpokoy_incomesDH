@@ -108,6 +108,8 @@
       return;
     }
     if(active&&odometer&&!total.contains(odometer)){
+      const pendingText=String(total.textContent||'').trim();
+      if(pendingText)total.__qPokoyPendingTotalText=pendingText;
       restoring=true;
       total.replaceChildren(odometer);
       restoring=false;
@@ -171,6 +173,7 @@
   let armTimer=0;
   let animating=false;
   let animationToken=0;
+  let queued=null;
 
   function parseMoney(text){
     const normalized=String(text||'').replace(/₽/g,'').replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
@@ -185,9 +188,19 @@
   }
 
   function arm(kind,ttl){
-    if(animating||total.classList.contains('qp-odometer-active'))return;
-    const before=parseMoney(total.textContent);
+    const active=animating||total.classList.contains('qp-odometer-active');
+    const snapshot=active?(total.getAttribute('aria-label')||total.textContent):total.textContent;
+    const before=parseMoney(snapshot);
     if(before===null)return;
+
+    if(active){
+      if(kind==='delete'){
+        delete total.__qPokoyPendingTotalText;
+        queued={kind:kind,value:before,text:snapshot,expires:Date.now()+ttl};
+      }
+      return;
+    }
+
     clearArm();
     armed={kind:kind,value:before,text:total.textContent,expires:Date.now()+ttl};
     armTimer=setTimeout(clearArm,ttl+100);
@@ -301,9 +314,34 @@
     if(button&&(!armed||Date.now()>armed.expires))arm('delete',20000);
   },true);
 
-  window.addEventListener('qpokoy:income-period-change',clearArm);
+  window.addEventListener('qpokoy:income-period-change',function(){
+    clearArm();
+    queued=null;
+    delete total.__qPokoyPendingTotalText;
+  });
 
   const observer=new MutationObserver(function(){
+    if(queued){
+      if(Date.now()>queued.expires){
+        queued=null;
+        delete total.__qPokoyPendingTotalText;
+      }else{
+        const active=total.classList.contains('qp-odometer-active');
+        const pendingText=total.__qPokoyPendingTotalText||(!active?total.textContent:'');
+        const nextQueued=parseMoney(pendingText);
+        if(nextQueued!==null&&nextQueued<queued.value){
+          if(animating||active)return;
+          const before=queued;
+          queued=null;
+          delete total.__qPokoyPendingTotalText;
+          animating=true;
+          runOdometer(before.value,nextQueued,before.text,pendingText);
+          return;
+        }
+        if(animating||active)return;
+      }
+    }
+
     if(animating||!armed||Date.now()>armed.expires||total.classList.contains('qp-odometer-active'))return;
     const next=parseMoney(total.textContent);
     if(next===null||next===armed.value)return;
@@ -315,5 +353,5 @@
     animating=true;
     runOdometer(before.value,next,before.text,finalText);
   });
-  observer.observe(total,{childList:true,characterData:true,subtree:true});
+  observer.observe(total,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
