@@ -136,9 +136,6 @@ function createApp(store, options = {}) {
       can_write: true, auto_renew: false, paid_until: null, grace_until: null,
       trial_ends_at: trialEndsAt
     };
-    if (!billingEnforcementStartedAt || currentMs < billingEnforcementStartedAt.getTime()) {
-      return { ...base, mode: 'prelaunch', status: 'active', plan: null };
-    }
     const manual = readGrant(await store.getSetting(user.user_id, OVERRIDE_KEY));
     if (manual) {
       const paid = isoDate(manual.paid_until), grace = isoDate(manual.grace_until);
@@ -148,6 +145,9 @@ function createApp(store, options = {}) {
       if (paid && new Date(paid).getTime() > currentMs) return { ...common, mode: 'paid', status: 'active' };
       if (grace && new Date(grace).getTime() > currentMs) return { ...common, mode: 'grace', status: 'grace' };
       return { ...common, mode: 'expired', status: 'expired', can_write: false };
+    }
+    if (!billingEnforcementStartedAt || currentMs < billingEnforcementStartedAt.getTime()) {
+      return { ...base, mode: 'prelaunch', status: 'active', plan: null };
     }
     let saved = null;
     try {
