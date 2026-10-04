@@ -143,6 +143,38 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
     createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Новая категория" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';
     const input=createRow.querySelector('.category-popup-create-input');
     const button=createRow.querySelector('.category-popup-create-btn');
+    const mobilePopup=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
+    if(mobilePopup){
+      createRow.style.setProperty('position','static','important');
+      createRow.style.setProperty('top','auto','important');
+      createRow.style.setProperty('bottom','auto','important');
+      createRow.style.setProperty('grid-template-columns','minmax(0,1fr) 46px','important');
+      createRow.style.setProperty('gap','8px','important');
+      createRow.style.setProperty('margin','0 0 10px','important');
+      createRow.style.setProperty('padding','0 0 10px','important');
+      createRow.style.setProperty('border-top','0','important');
+      createRow.style.setProperty('border-bottom','1px solid var(--border)','important');
+      createRow.style.setProperty('background','transparent','important');
+      input.style.setProperty('height','46px','important');
+      input.style.setProperty('min-height','46px','important');
+      input.style.setProperty('padding','0 14px','important');
+      input.style.setProperty('border-radius','13px','important');
+      input.style.setProperty('border','1px solid var(--border)','important');
+      input.style.setProperty('box-shadow','none','important');
+      input.style.setProperty('font-size','16px','important');
+      button.style.setProperty('width','46px','important');
+      button.style.setProperty('min-width','46px','important');
+      button.style.setProperty('height','46px','important');
+      button.style.setProperty('min-height','46px','important');
+      button.style.setProperty('padding','0','important');
+      button.style.setProperty('border-radius','13px','important');
+      button.style.setProperty('display','grid','important');
+      button.style.setProperty('place-items','center','important');
+      button.style.setProperty('font-size','27px','important');
+      button.style.setProperty('font-weight','500','important');
+      button.style.setProperty('line-height','1','important');
+      button.style.setProperty('box-shadow','none','important');
+    }
     const submit=async function(e){
       e?.preventDefault();
       e?.stopPropagation();
@@ -162,7 +194,8 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
       e.stopPropagation();
       if(e.key==='Enter')submit(e);
     });
-    popup.appendChild(createRow);
+    if(mobilePopup)popup.insertBefore(createRow,popup.firstChild);
+    else popup.appendChild(createRow);
   }
 
   async function loadForUser(user,bootstrapCategories){
