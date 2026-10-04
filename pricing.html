@@ -82,7 +82,7 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <button type="button" class="payment-action" data-plan="yearly">Оплатить 1 190 ₽</button>
 </article>
 <article class="plan forever">
-<div class="plan-head"><h2>Бессрочный доступ</h2><span class="pill">Один платёж</span></div>
+<div class="plan-head"><h2>Бессрочный</h2><span class="pill">Один платёж</span></div>
 <div class="price">1 790 <small>₽</small></div><div class="cycle">без повторных списаний</div><div class="line"></div>
 <ul><li>Все текущие функции qPokoy</li><li>Все будущие функции и обновления</li><li>Доступ с разных устройств</li><li>Без автоматического продления</li><li>На весь срок существования сервиса</li></ul>
 <div class="renew-option" aria-hidden="true"></div>
@@ -92,9 +92,9 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <p id="paymentMessage" class="payment-message" role="status" aria-live="polite"></p>
 <p class="caption">Все варианты включают полный функционал. Цены указаны в российских рублях. Для оплаты нужен вход в аккаунт qPokoy.</p>
 <section class="section" aria-labelledby="subscription-title">
-<h2 id="subscription-title">Управление подпиской</h2>
+<h2 id="subscription-title">Управление доступом</h2>
 <div class="subscription-box">
-<p id="subscriptionStatus">Проверяем состояние подписки…</p>
+<p id="subscriptionStatus">Проверяем состояние доступа…</p>
 <div class="subscription-actions">
 <button type="button" id="disableAutoRenew" class="subscription-action">Отключить автопродление</button>
 <button type="button" id="unlinkPaymentMethod" class="subscription-action">Отвязать карту</button>
@@ -106,15 +106,15 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 <section class="section" aria-labelledby="how-title">
 <h2 id="how-title">Как это работает</h2>
 <div class="cards">
-<article class="card"><h3>14 дней на знакомство</h3><p>14 дней полного доступа бесплатно, без привязки карты.</p></article>
-<article class="card"><h3>Прозрачная подписка</h3><p>Месячный и годовой тарифы продлеваются автоматически после оформления подписки. Не менее чем за три календарных дня до очередного списания пользователь получает уведомление с суммой платежа, сроком списания и порядком отказа от автопродления и дальнейших списаний.</p></article>
+<article class="card"><h3>Free</h3><p>14 дней полного доступа бесплатно, без привязки карты.</p></article>
+<article class="card"><h3>Прозрачное продление</h3><p>Доступ на месяц и год продлевается автоматически после оплаты. Не менее чем за три календарных дня до очередного списания пользователь получает уведомление с суммой платежа, сроком списания и порядком отказа от автопродления и дальнейших списаний.</p></article>
 <article class="card"><h3>Данные остаются вашими</h3><p>После окончания периода сохраняются просмотр, экспорт PDF и возможность полностью удалить свои данные или аккаунт. JSON-экспорт и импорт, добавление, редактирование и удаление отдельных записей требуют действующего доступа.</p></article>
 </div>
 </section>
 <section class="section" aria-labelledby="faq-title">
 <h2 id="faq-title">Условия доступа</h2>
 <div class="faq">
-<article class="question"><h3>Можно ли отключить автопродление?</h3><p>Да. Автопродление можно отключить выше в разделе «Управление подпиской». После отключения оплаченный доступ сохранится до завершения оплаченного периода.</p></article>
+<article class="question"><h3>Можно ли отключить автопродление?</h3><p>Да. Автопродление можно отключить выше в разделе «Управление доступом». После отключения оплаченный доступ сохранится до завершения оплаченного периода.</p></article>
 <article class="question"><h3>Что, если очередной платёж не прошёл?</h3><p>Предусмотрены ещё 3 календарных дня полного доступа. Затем можно просматривать историю, экспортировать PDF и полностью удалить свои данные или аккаунт. JSON и действия с отдельными записями становятся недоступны.</p></article>
 <article class="question"><h3>Что означает бессрочный доступ?</h3><p>Один платёж за все текущие и будущие функции на весь период существования сервиса. Автосписаний по этому тарифу нет.</p></article>
 </div>
@@ -132,7 +132,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const disableAutoRenew=document.getElementById('disableAutoRenew');
   const unlinkPaymentMethod=document.getElementById('unlinkPaymentMethod');
   const subscriptionLogin=document.getElementById('subscriptionLogin');
-  const planNames={monthly:'Месячный тариф',yearly:'Годовой тариф'};
+  const planNames={monthly:'Доступ на месяц',yearly:'Доступ на год'};
   const signedIn=()=>!!api?.getToken?.();
   const setPaymentMessage=(text,error=false)=>{paymentMessage.textContent=text||'';paymentMessage.dataset.error=String(error);};
   const setPaymentsBusy=value=>paymentButtons.forEach(button=>button.disabled=value);
@@ -177,7 +177,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   paymentButtons.forEach(button=>button.addEventListener('click',()=>startPayment(button)));
   async function refreshSubscription(){
     if(!signedIn()){
-      subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять подпиской.';
+      subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять доступом.';
       disableAutoRenew.hidden=true;
       unlinkPaymentMethod.hidden=true;
       subscriptionLogin.hidden=false;
@@ -201,11 +201,11 @@ window.addEventListener('DOMContentLoaded',()=>{
       }
     }catch(error){
       if(error?.status===401){
-        subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять подпиской.';
+        subscriptionStatus.textContent='Войдите в qPokoy, чтобы управлять доступом.';
         disableAutoRenew.hidden=true;
         unlinkPaymentMethod.hidden=true;
         subscriptionLogin.hidden=false;
-      }else subscriptionStatus.textContent='Не удалось проверить состояние подписки.';
+      }else subscriptionStatus.textContent='Не удалось проверить состояние доступа.';
     }
   }
   disableAutoRenew.addEventListener('click',async()=>{
