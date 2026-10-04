@@ -156,3 +156,164 @@
   const observer=new MutationObserver(freezeUnchangedPrefix);
   observer.observe(total,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
+
+/* Edit/delete odometer: editing follows the direction of the total change;
+   deleting rolls the affected odometer block backwards. */
+(function(){
+  "use strict";
+  const total=document.getElementById('incomeTotal');
+  const save=document.getElementById('saveIncome');
+  const form=document.getElementById('incomeForm');
+  const formTitle=document.querySelector('.form-title');
+  if(!total||!save||!form||!formTitle||typeof MutationObserver!=='function')return;
+
+  let armed=null;
+  let armTimer=0;
+  let animating=false;
+  let animationToken=0;
+
+  function parseMoney(text){
+    const normalized=String(text||'').replace(/₽/g,'').replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
+    const value=Number(normalized);
+    return Number.isFinite(value)?value:null;
+  }
+
+  function clearArm(){
+    clearTimeout(armTimer);
+    armTimer=0;
+    armed=null;
+  }
+
+  function arm(kind,ttl){
+    if(animating||total.classList.contains('qp-odometer-active'))return;
+    const before=parseMoney(total.textContent);
+    if(before===null)return;
+    clearArm();
+    armed={kind:kind,value:before,text:total.textContent,expires:Date.now()+ttl};
+    armTimer=setTimeout(clearArm,ttl+100);
+  }
+
+  function armEdit(){
+    if(form.hidden||save.disabled||formTitle.textContent.trim()!=='Редактировать доход')return;
+    arm('edit',7000);
+  }
+
+  function makeTrack(start,end,direction){
+    const box=document.createElement('span');
+    box.className='qp-odometer-digit';
+    const track=document.createElement('span');
+    track.className='qp-odometer-track';
+    let steps;
+
+    if(direction>0){
+      steps=10+((end-start+10)%10);
+      for(let step=0;step<=steps;step++){
+        const cell=document.createElement('span');
+        cell.textContent=String((start+step)%10);
+        track.appendChild(cell);
+      }
+      track.style.transform='translate3d(0,0,0)';
+    }else{
+      steps=10+((start-end+10)%10);
+      for(let index=0;index<=steps;index++){
+        const cell=document.createElement('span');
+        cell.textContent=String((start-steps+index+1000)%10);
+        track.appendChild(cell);
+      }
+      track.style.transform='translate3d(0,-'+steps+'em,0)';
+    }
+    box.appendChild(track);
+    return {box:box,track:track,steps:steps};
+  }
+
+  function runOdometer(from,to,startText,finalText){
+    const token=++animationToken;
+    const direction=to>=from?1:-1;
+    const rawOld=String(Math.abs(Math.round(from)));
+    const rawNew=String(Math.abs(Math.round(to)));
+    const width=Math.max(rawOld.length,rawNew.length);
+    const oldDigits=rawOld.padStart(width,'0');
+    const newDigits=rawNew.padStart(width,'0');
+    const template=(direction<0&&rawOld.length>=rawNew.length)?startText:finalText;
+    const chars=[...template];
+    const wrapper=document.createElement('span');
+    wrapper.className='qp-odometer';
+    let digitIndex=0;
+    let maxDuration=0;
+
+    total.classList.add('qp-odometer-active');
+    total.setAttribute('aria-label',finalText);
+    total.replaceChildren(wrapper);
+
+    chars.forEach(function(char){
+      if(!/\d/.test(char)){
+        const fixed=document.createElement('span');
+        fixed.className='qp-odometer-fixed';
+        fixed.textContent=char;
+        wrapper.appendChild(fixed);
+        return;
+      }
+
+      const start=Number(oldDigits[digitIndex]||0);
+      const end=Number(newDigits[digitIndex]||char);
+      const built=makeTrack(start,end,direction);
+      wrapper.appendChild(built.box);
+
+      const duration=2800+digitIndex*20;
+      maxDuration=Math.max(maxDuration,duration);
+      requestAnimationFrame(function(){
+        if(token!==animationToken)return;
+        const fromTransform=direction>0?'translate3d(0,0,0)':'translate3d(0,-'+built.steps+'em,0)';
+        const toTransform=direction>0?'translate3d(0,-'+built.steps+'em,0)':'translate3d(0,0,0)';
+        if(typeof built.track.animate==='function'){
+          built.track.animate(
+            [{transform:fromTransform},{transform:toTransform}],
+            {duration:duration,easing:'cubic-bezier(.42,0,.58,1)',fill:'forwards'}
+          );
+        }else{
+          built.track.style.transition='transform '+duration+'ms cubic-bezier(.42,0,.58,1)';
+          requestAnimationFrame(function(){built.track.style.transform=toTransform;});
+        }
+      });
+      digitIndex++;
+    });
+
+    setTimeout(function(){
+      if(token!==animationToken)return;
+      total.classList.remove('qp-odometer-active');
+      total.removeAttribute('aria-label');
+      total.textContent=finalText;
+      animating=false;
+    },maxDuration+120);
+  }
+
+  save.addEventListener('pointerdown',armEdit,true);
+  save.addEventListener('click',function(){
+    if(!armed||Date.now()>armed.expires)armEdit();
+  },true);
+
+  document.addEventListener('pointerdown',function(event){
+    const button=event.target.closest&&event.target.closest('.delete-income,.income-recent-mobile-delete');
+    if(button)arm('delete',20000);
+  },true);
+  document.addEventListener('click',function(event){
+    const button=event.target.closest&&event.target.closest('.delete-income,.income-recent-mobile-delete');
+    if(button&&(!armed||Date.now()>armed.expires))arm('delete',20000);
+  },true);
+
+  window.addEventListener('qpokoy:income-period-change',clearArm);
+
+  const observer=new MutationObserver(function(){
+    if(animating||!armed||Date.now()>armed.expires||total.classList.contains('qp-odometer-active'))return;
+    const next=parseMoney(total.textContent);
+    if(next===null||next===armed.value)return;
+    if(armed.kind==='delete'&&next>armed.value)return;
+
+    const before=armed;
+    const finalText=total.textContent;
+    clearArm();
+    animating=true;
+    runOdometer(before.value,next,before.text,finalText);
+  });
+  observer.observe(total,{childList:true,characterData:true,subtree:true});
+})();
