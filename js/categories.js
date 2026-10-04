@@ -114,6 +114,50 @@
 
 function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));}
 
+  const mobileCategoryPopupMedia=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+
+  function syncMobileCreateRowPlacement(popup){
+    if(!popup||!mobileCategoryPopupMedia.matches||!popup.classList.contains('open'))return;
+    const createRow=popup.querySelector('.category-popup-create');
+    if(!createRow)return;
+    const opensBelow=popup.style.top&&popup.style.top!=='auto';
+
+    createRow.style.setProperty('position','sticky','important');
+    createRow.style.setProperty('z-index','4','important');
+    createRow.style.setProperty('grid-template-columns','minmax(0,1fr) 46px','important');
+    createRow.style.setProperty('gap','8px','important');
+    createRow.style.setProperty('background','var(--panel)','important');
+
+    if(opensBelow){
+      if(createRow!==popup.lastElementChild)popup.appendChild(createRow);
+      createRow.style.setProperty('top','auto','important');
+      createRow.style.setProperty('bottom','0','important');
+      createRow.style.setProperty('margin','10px 0 0','important');
+      createRow.style.setProperty('padding','10px 0 1px','important');
+      createRow.style.setProperty('border-top','1px solid var(--border)','important');
+      createRow.style.setProperty('border-bottom','0','important');
+    }else{
+      if(createRow!==popup.firstElementChild)popup.insertBefore(createRow,popup.firstChild);
+      createRow.style.setProperty('top','0','important');
+      createRow.style.setProperty('bottom','auto','important');
+      createRow.style.setProperty('margin','0 0 10px','important');
+      createRow.style.setProperty('padding','1px 0 10px','important');
+      createRow.style.setProperty('border-top','0','important');
+      createRow.style.setProperty('border-bottom','1px solid var(--border)','important');
+    }
+  }
+
+  function watchMobileCategoryPopup(){
+    const popup=document.getElementById('categoryPopup');
+    if(!popup||popup.__qPokoyCategoryCreateObserver)return;
+    const observer=new MutationObserver(()=>{
+      if(!mobileCategoryPopupMedia.matches||!popup.classList.contains('open'))return;
+      requestAnimationFrame(()=>syncMobileCreateRowPlacement(popup));
+    });
+    observer.observe(popup,{attributes:true,attributeFilter:['class','style']});
+    popup.__qPokoyCategoryCreateObserver=observer;
+  }
+
   function renderIncomeCategoryOptions(){
     const popup=document.getElementById('categoryPopup');
     const value=document.getElementById('categoryValue');
@@ -143,18 +187,11 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
     createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Новая категория" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';
     const input=createRow.querySelector('.category-popup-create-input');
     const button=createRow.querySelector('.category-popup-create-btn');
-    const mobilePopup=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
+    const mobilePopup=mobileCategoryPopupMedia.matches;
     if(mobilePopup){
-      createRow.style.setProperty('position','static','important');
-      createRow.style.setProperty('top','auto','important');
-      createRow.style.setProperty('bottom','auto','important');
       createRow.style.setProperty('grid-template-columns','minmax(0,1fr) 46px','important');
       createRow.style.setProperty('gap','8px','important');
-      createRow.style.setProperty('margin','0 0 10px','important');
-      createRow.style.setProperty('padding','0 0 10px','important');
-      createRow.style.setProperty('border-top','0','important');
-      createRow.style.setProperty('border-bottom','1px solid var(--border)','important');
-      createRow.style.setProperty('background','transparent','important');
+      createRow.style.setProperty('background','var(--panel)','important');
       input.style.setProperty('height','46px','important');
       input.style.setProperty('min-height','46px','important');
       input.style.setProperty('padding','0 14px','important');
@@ -194,8 +231,7 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
       e.stopPropagation();
       if(e.key==='Enter')submit(e);
     });
-    if(mobilePopup)popup.insertBefore(createRow,popup.firstChild);
-    else popup.appendChild(createRow);
+    popup.appendChild(createRow);
   }
 
   async function loadForUser(user,bootstrapCategories){
@@ -257,6 +293,7 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
 
   function init(){
     renderManager();
+    watchMobileCategoryPopup();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
