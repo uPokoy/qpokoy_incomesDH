@@ -259,7 +259,7 @@
       const built=makeTrack(start,end,direction);
       wrapper.appendChild(built.box);
 
-      const duration=2800+digitIndex*20;
+      const duration=1850+digitIndex*15;
       maxDuration=Math.max(maxDuration,duration);
       requestAnimationFrame(function(){
         if(token!==animationToken)return;
