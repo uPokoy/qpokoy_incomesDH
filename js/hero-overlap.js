@@ -118,3 +118,33 @@
 
   observer.observe(total,{childList:true,attributes:true,attributeFilter:['class']});
 })();
+
+/* A real odometer keeps unchanged positions still. Only digit positions whose
+   value actually changes are allowed to roll. */
+(function(){
+  "use strict";
+  const total=document.getElementById('incomeTotal');
+  if(!total||typeof MutationObserver!=='function')return;
+
+  function freezeUnchangedDigits(){
+    if(!total.classList.contains('qp-odometer-active'))return;
+    const wrapper=total.querySelector(':scope > .qp-odometer');
+    if(!wrapper)return;
+
+    wrapper.querySelectorAll('.qp-odometer-digit').forEach(function(box){
+      const track=box.querySelector(':scope > .qp-odometer-track');
+      if(!track||track.children.length<2)return;
+      const start=track.firstElementChild?.textContent||'';
+      const end=track.lastElementChild?.textContent||'';
+      if(start!==end)return;
+
+      const fixed=document.createElement('span');
+      fixed.className='qp-odometer-fixed';
+      fixed.textContent=end;
+      box.replaceWith(fixed);
+    });
+  }
+
+  const observer=new MutationObserver(freezeUnchangedDigits);
+  observer.observe(total,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+})();
