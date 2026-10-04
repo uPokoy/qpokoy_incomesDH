@@ -114,6 +114,143 @@
     input.__qPokoySelectionDismiss=true;
   }
 
+  function bindIncomeOdometerAnimation(){
+    const form=document.getElementById('incomeForm');
+    const save=document.getElementById('saveIncome');
+    const total=document.getElementById('incomeTotal');
+    if(!form||!save||!total||save.__qPokoyOdometerAnimation)return;
+
+    let pending=null;
+    let pendingTimer=0;
+    let animationToken=0;
+
+    if(!document.getElementById('qpIncomeOdometerStyle')){
+      const style=document.createElement('style');
+      style.id='qpIncomeOdometerStyle';
+      style.textContent=
+        '#incomeTotal.qp-odometer-active{display:flex!important;align-items:center;justify-content:center;white-space:nowrap;font-variant-numeric:tabular-nums}'+
+        '#incomeTotal .qp-odometer{display:inline-flex;align-items:baseline;white-space:nowrap;line-height:1}'+
+        '#incomeTotal .qp-odometer-digit{display:inline-block;height:1em;overflow:hidden;line-height:1em;vertical-align:bottom}'+
+        '#incomeTotal .qp-odometer-track{display:flex;flex-direction:column;line-height:1em;will-change:transform}'+
+        '#incomeTotal .qp-odometer-track>span{display:block;height:1em;line-height:1em;text-align:center}'+
+        '#incomeTotal .qp-odometer-fixed{display:inline-block;white-space:pre;line-height:1em}';
+      document.head.appendChild(style);
+    }
+
+    function parseMoney(text){
+      const normalized=String(text||'').replace(/₽/g,'').replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
+      const value=Number(normalized);
+      return Number.isFinite(value)?value:null;
+    }
+
+    function waitUntilVisibleAndSettled(callback){
+      const started=performance.now();
+      let lastY=window.scrollY;
+      let stable=0;
+      function check(now){
+        const rect=total.getBoundingClientRect();
+        const visible=rect.bottom>0&&rect.top<window.innerHeight;
+        const moved=Math.abs(window.scrollY-lastY)>0.5;
+        lastY=window.scrollY;
+        if(visible&&!moved)stable++;
+        else stable=0;
+        if((visible&&stable>=5)||now-started>1300){
+          callback();
+          return;
+        }
+        requestAnimationFrame(check);
+      }
+      requestAnimationFrame(check);
+    }
+
+    function runOdometer(from,to,finalText){
+      const token=++animationToken;
+      const newDigits=String(Math.abs(Math.round(to)));
+      const oldDigits=String(Math.abs(Math.round(from))).padStart(newDigits.length,'0').slice(-newDigits.length);
+      const chars=[...finalText];
+      const wrapper=document.createElement('span');
+      wrapper.className='qp-odometer';
+      let digitIndex=0;
+      let maxDuration=0;
+
+      total.classList.add('qp-odometer-active');
+      total.setAttribute('aria-label',finalText);
+      total.replaceChildren(wrapper);
+
+      chars.forEach(function(char){
+        if(!/\d/.test(char)){
+          const fixed=document.createElement('span');
+          fixed.className='qp-odometer-fixed';
+          fixed.textContent=char;
+          wrapper.appendChild(fixed);
+          return;
+        }
+
+        const start=Number(oldDigits[digitIndex]||0);
+        const end=Number(newDigits[digitIndex]||char);
+        const steps=10+((end-start+10)%10);
+        const box=document.createElement('span');
+        box.className='qp-odometer-digit';
+        const track=document.createElement('span');
+        track.className='qp-odometer-track';
+        for(let step=0;step<=steps;step++){
+          const cell=document.createElement('span');
+          cell.textContent=String((start+step)%10);
+          track.appendChild(cell);
+        }
+        box.appendChild(track);
+        wrapper.appendChild(box);
+
+        const delay=digitIndex*70;
+        const duration=1250+digitIndex*55;
+        maxDuration=Math.max(maxDuration,delay+duration);
+        requestAnimationFrame(function(){
+          if(token!==animationToken)return;
+          track.animate(
+            [{transform:'translateY(0)'},{transform:'translateY(-'+steps+'em)'}],
+            {duration:duration,delay:delay,easing:'cubic-bezier(.18,.76,.22,1)',fill:'forwards'}
+          );
+        });
+        digitIndex++;
+      });
+
+      setTimeout(function(){
+        if(token!==animationToken)return;
+        total.classList.remove('qp-odometer-active');
+        total.removeAttribute('aria-label');
+        total.textContent=finalText;
+      },maxDuration+80);
+    }
+
+    save.addEventListener('click',function(){
+      if(form.hidden||save.disabled||save.textContent.trim()!=='Добавить')return;
+      const before=parseMoney(total.textContent);
+      if(before===null)return;
+      clearTimeout(pendingTimer);
+      pending={value:before,text:total.textContent,expires:Date.now()+2500};
+      pendingTimer=setTimeout(function(){
+        if(pending&&Date.now()>=pending.expires)pending=null;
+      },2550);
+    },true);
+
+    window.addEventListener('qpokoy:income-data-rendered',function(){
+      if(!pending||Date.now()>pending.expires)return;
+      const before=pending;
+      pending=null;
+      clearTimeout(pendingTimer);
+      pendingTimer=0;
+      const next=parseMoney(total.textContent);
+      if(next===null||next<=before.value)return;
+      const finalText=total.textContent;
+      total.textContent=before.text;
+      waitUntilVisibleAndSettled(function(){
+        runOdometer(before.value,next,finalText);
+      });
+    });
+
+    save.__qPokoyOdometerAnimation=true;
+  }
+
   function bindIncomeCalendarNavigation(){
     const popup=document.getElementById('calendarPopup');
     const monthHost=document.getElementById('calendarMonth');
@@ -383,6 +520,7 @@
   function bindEnhancements(){
     bindStatisticsSwipe();
     bindIncomeDateSelectionDismiss();
+    bindIncomeOdometerAnimation();
     bindIncomeCalendarNavigation();
   }
 
