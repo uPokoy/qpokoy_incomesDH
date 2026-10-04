@@ -77,3 +77,33 @@
     text-align:center !important;
   }
 }
+
+/* Mobile new-category editor: keep the add symbol and align it with the input. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html body #incomeForm .category-popup-create.is-editing{
+    align-items:center !important;
+  }
+
+  html body #incomeForm .category-popup-create.is-editing .category-popup-create-input,
+  html body #incomeForm .category-popup-create.is-editing .category-popup-create-btn{
+    align-self:center !important;
+    margin:0 !important;
+    transform:none !important;
+  }
+
+  html body #incomeForm .category-popup-create.is-editing .category-popup-create-btn{
+    position:static !important;
+    inset:auto !important;
+    font-size:0 !important;
+    line-height:1 !important;
+  }
+
+  html body #incomeForm .category-popup-create.is-editing .category-popup-create-btn::before{
+    content:"+";
+    display:block;
+    font-size:18px;
+    font-weight:700;
+    line-height:1;
+    color:inherit;
+  }
+}
