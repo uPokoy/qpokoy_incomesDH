@@ -71,6 +71,47 @@
     root.__qPokoyModeSwipe=true;
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindStatisticsSwipe);
-  else bindStatisticsSwipe();
+  function bindIncomeDateSelectionDismiss(){
+    const input=document.getElementById('incomeDate');
+    const calendarButton=document.getElementById('openCalendar');
+    const form=document.getElementById('incomeForm');
+    if(!input||input.__qPokoySelectionDismiss)return;
+
+    const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+
+    function clearSelection(){
+      if(!mobile.matches)return;
+      try{
+        const end=String(input.value||'').length;
+        if(typeof input.setSelectionRange==='function')input.setSelectionRange(end,end);
+      }catch(e){}
+      if(document.activeElement===input)input.blur();
+      try{
+        const selection=window.getSelection&&window.getSelection();
+        if(selection&&selection.rangeCount)selection.removeAllRanges();
+      }catch(e){}
+    }
+
+    if(calendarButton)calendarButton.addEventListener('pointerdown',clearSelection,{capture:true,passive:true});
+    if(form)form.addEventListener('touchmove',clearSelection,{passive:true});
+    window.addEventListener('scroll',function(){
+      if(document.activeElement===input||input.selectionStart!==input.selectionEnd)clearSelection();
+    },{passive:true});
+    input.addEventListener('blur',function(){
+      try{
+        const end=String(input.value||'').length;
+        if(typeof input.setSelectionRange==='function')input.setSelectionRange(end,end);
+      }catch(e){}
+    });
+
+    input.__qPokoySelectionDismiss=true;
+  }
+
+  function bindMobileFixes(){
+    bindStatisticsSwipe();
+    bindIncomeDateSelectionDismiss();
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindMobileFixes);
+  else bindMobileFixes();
 })();
