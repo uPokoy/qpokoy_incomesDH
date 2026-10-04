@@ -93,7 +93,7 @@
         <span class="qp-access-status-icon" aria-hidden="true">!</span>
         <div class="qp-access-readonly-copy">
           <div class="qp-access-readonly-title">Доступ закончился</div>
-          <p class="qp-access-readonly-text">Данные доступны для просмотра и экспорта PDF. Добавление и изменение доходов недоступно.</p>
+          <p class="qp-access-readonly-text">Данные доступны для просмотра и экспорта в PDF и json. Добавление и изменение доходов недоступно.</p>
         </div>
       </div>
       <div class="qp-access-renew-card">
