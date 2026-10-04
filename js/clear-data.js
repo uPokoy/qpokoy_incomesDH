@@ -12,6 +12,8 @@
     '#clearIncomeDataBtn',
     '#qpAppearanceCard button',
     '#qpAppearanceCard input',
+    '#qpCategoryInput',
+    '#qpCategoryAddBtn',
     '.edit-income',
     '.delete-income',
     '.income-recent-edit',
@@ -37,17 +39,42 @@
       .qp-access-readonly #importDataBtn:disabled,
       .qp-access-readonly #clearIncomeDataBtn:disabled,
       .qp-access-readonly #qpAppearanceCard button:disabled,
-      .qp-access-readonly #qpAppearanceCard input:disabled{opacity:.45!important;cursor:not-allowed!important;transform:none!important}
-      #qpAccessReadOnlyBanner{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 18px;padding:16px 18px;border:1px solid color-mix(in srgb,var(--primary) 42%,var(--border));border-radius:16px;background:color-mix(in srgb,var(--primary) 8%,var(--panel));box-shadow:0 10px 28px rgba(0,0,0,.10);box-sizing:border-box}
+      .qp-access-readonly #qpAppearanceCard input:disabled,
+      .qp-access-readonly #qpCategoryInput:disabled,
+      .qp-access-readonly #qpCategoryAddBtn:disabled{opacity:.45!important;cursor:not-allowed!important;transform:none!important}
+
+      #qpAccessReadOnlyBanner{display:flex;flex-direction:column;gap:12px;margin:0 0 18px;box-sizing:border-box}
       #qpAccessReadOnlyBanner[hidden]{display:none!important}
-      #qpAccessReadOnlyBanner .qp-access-readonly-copy{min-width:0}
+
+      #qpAccessReadOnlyBanner .qp-access-status-card,
+      #qpAccessReadOnlyBanner .qp-access-renew-card{box-sizing:border-box;border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.10)}
+
+      #qpAccessReadOnlyBanner .qp-access-status-card{display:flex;align-items:flex-start;gap:13px;padding:14px 16px;border:1px solid rgba(239,68,68,.48);background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.05));}
+      #qpAccessReadOnlyBanner .qp-access-status-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:rgba(239,68,68,.18);color:#fb7185;font-size:20px;font-weight:800;line-height:1}
+      #qpAccessReadOnlyBanner .qp-access-readonly-copy{min-width:0;padding-top:1px}
       #qpAccessReadOnlyBanner .qp-access-readonly-title{margin:0 0 4px;font-size:16px;font-weight:750;color:var(--text)}
       #qpAccessReadOnlyBanner .qp-access-readonly-text{margin:0;color:var(--text-muted);font-size:14px;line-height:1.45}
       #qpAccessReadOnlyBanner .qp-access-readonly-pending{display:block;margin-top:5px;font-size:12px;opacity:.82}
-      #qpAccessReadOnlyBanner .qp-access-renew{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 15px;border-radius:11px;background:var(--primary);color:#fff;text-decoration:none;font-weight:700;white-space:nowrap}
-      #qpAccessReadOnlyBanner.qp-access-attention{animation:qpAccessPulse .7s ease}
+
+      #qpAccessReadOnlyBanner .qp-access-renew-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 16px;border:1px solid color-mix(in srgb,var(--primary) 50%,var(--border));background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 13%,var(--panel)),color-mix(in srgb,var(--primary) 5%,var(--panel)))}
+      #qpAccessReadOnlyBanner .qp-access-renew-main{display:flex;align-items:center;gap:13px;min-width:0}
+      #qpAccessReadOnlyBanner .qp-access-renew-icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--primary) 22%,transparent);color:var(--primary)}
+      #qpAccessReadOnlyBanner .qp-access-renew-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+      #qpAccessReadOnlyBanner .qp-access-renew-copy{min-width:0}
+      #qpAccessReadOnlyBanner .qp-access-renew-title{margin:0 0 3px;font-size:15px;font-weight:750;color:var(--text)}
+      #qpAccessReadOnlyBanner .qp-access-renew-text{margin:0;color:var(--text-muted);font-size:13px;line-height:1.42}
+      #qpAccessReadOnlyBanner .qp-access-renew{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 16px;border-radius:11px;background:var(--primary);color:#fff;text-decoration:none;font-weight:700;white-space:nowrap}
+      #qpAccessReadOnlyBanner .qp-access-renew:hover{filter:brightness(1.06)}
+
+      #qpAccessReadOnlyBanner.qp-access-attention .qp-access-renew-card{animation:qpAccessPulse .7s ease}
       @keyframes qpAccessPulse{0%,100%{transform:translateY(0)}45%{transform:translateY(-2px)}}
-      @media (max-width:700px) and (pointer:coarse){#qpAccessReadOnlyBanner{align-items:stretch;flex-direction:column;padding:14px;margin-bottom:14px}#qpAccessReadOnlyBanner .qp-access-renew{width:100%;box-sizing:border-box}}
+
+      @media (max-width:700px) and (pointer:coarse){
+        #qpAccessReadOnlyBanner{gap:10px;margin-bottom:14px}
+        #qpAccessReadOnlyBanner .qp-access-status-card{padding:13px 14px}
+        #qpAccessReadOnlyBanner .qp-access-renew-card{align-items:stretch;flex-direction:column;padding:14px}
+        #qpAccessReadOnlyBanner .qp-access-renew{width:100%;box-sizing:border-box}
+      }
     `;
     document.head.appendChild(style);
   }
@@ -71,7 +98,24 @@
     banner.hidden=true;
     banner.setAttribute('role','status');
     banner.setAttribute('aria-live','polite');
-    banner.innerHTML='<div class="qp-access-readonly-copy"><div class="qp-access-readonly-title">Доступ закончился</div><p class="qp-access-readonly-text">Данные доступны для просмотра и экспорта PDF. Чтобы снова добавлять и изменять доходы, оформите доступ.<span class="qp-access-readonly-pending" hidden></span></p></div><a class="qp-access-renew" href="pricing.html">Оформить доступ</a>';
+    banner.innerHTML=`
+      <div class="qp-access-status-card">
+        <span class="qp-access-status-icon" aria-hidden="true">!</span>
+        <div class="qp-access-readonly-copy">
+          <div class="qp-access-readonly-title">Доступ закончился</div>
+          <p class="qp-access-readonly-text">Данные доступны для просмотра и экспорта PDF. Добавление и изменение доходов недоступно.<span class="qp-access-readonly-pending" hidden></span></p>
+        </div>
+      </div>
+      <div class="qp-access-renew-card">
+        <div class="qp-access-renew-main">
+          <span class="qp-access-renew-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8l3 4 4-7 4 7 3-4-1.5 10h-11L5 8Z"/><path d="M7 20h10"/></svg></span>
+          <div class="qp-access-renew-copy">
+            <div class="qp-access-renew-title">Продлите доступ к qPokoy</div>
+            <p class="qp-access-renew-text">Чтобы снова добавлять и изменять доходы, продлите доступ. Все ваши данные сохранены.</p>
+          </div>
+        </div>
+        <a class="qp-access-renew" href="pricing.html">Продлить доступ</a>
+      </div>`;
     host.prepend(banner);
     return banner;
   }
