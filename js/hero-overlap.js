@@ -465,3 +465,79 @@
   if(document.readyState==='complete')install();
   else window.addEventListener('load',install,{once:true});
 })();
+
+/* Optimistic delete: remove the income from the UI immediately, then confirm it in cloud. */
+(function(){
+  "use strict";
+  const store=window.IncomeStore;
+  if(!store||typeof store.remove!=='function'||store.remove.__qPokoyOptimisticDelete)return;
+
+  const inFlight=new Map();
+
+  function redraw(){
+    if(typeof window.applyIncomeHeaderFilters==='function')window.applyIncomeHeaderFilters();
+    else if(typeof window.renderIncomes==='function')window.renderIncomes();
+    if(typeof window.renderIncomeAnalytics==='function')window.renderIncomeAnalytics();
+  }
+
+  function restore(record,before,index){
+    const current=store.load();
+    const key=String(record.id);
+    if(current.some(item=>String(item.id)===key))return;
+
+    let insertAt=current.length;
+    for(let i=index+1;i<before.length;i++){
+      const nextKey=String(before[i].id);
+      const nextIndex=current.findIndex(item=>String(item.id)===nextKey);
+      if(nextIndex>=0){insertAt=nextIndex;break;}
+    }
+    if(insertAt===current.length){
+      for(let i=index-1;i>=0;i--){
+        const prevKey=String(before[i].id);
+        const prevIndex=current.findIndex(item=>String(item.id)===prevKey);
+        if(prevIndex>=0){insertAt=prevIndex+1;break;}
+      }
+    }
+
+    const restored=current.slice();
+    restored.splice(insertAt,0,record);
+    store.save(restored);
+    redraw();
+  }
+
+  function removeOptimistic(id){
+    const key=String(id);
+    if(inFlight.has(key))return inFlight.get(key);
+
+    const before=store.load();
+    const index=before.findIndex(item=>String(item.id)===key);
+    if(index<0)return Promise.resolve(before);
+    const record=before[index];
+
+    store.save(before.filter(item=>String(item.id)!==key));
+    redraw();
+
+    const job=(async function(){
+      try{
+        if(typeof window.qPokoyCloudRemove!=='function')throw new Error('Облачное хранилище недоступно. Повторите удаление позже.');
+        const removed=await window.qPokoyCloudRemove(id);
+        if(!removed){
+          restore(record,before,index);
+          return null;
+        }
+        return store.load();
+      }catch(error){
+        restore(record,before,index);
+        throw error;
+      }finally{
+        if(inFlight.get(key)===job)inFlight.delete(key);
+      }
+    })();
+
+    inFlight.set(key,job);
+    return job;
+  }
+
+  removeOptimistic.__qPokoyOptimisticDelete=true;
+  store.remove=removeOptimistic;
+})();
