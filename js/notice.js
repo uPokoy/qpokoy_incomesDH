@@ -29,4 +29,48 @@
     const btn=overlay.querySelector('[data-notice-close]');
     if(btn) requestAnimationFrame(function(){btn.focus();});
   };
+
+  function bindStatisticsSwipe(){
+    const root=document.getElementById('incomeAnalytics');
+    const monthBtn=document.getElementById('analyticsModeMonth');
+    const yearBtn=document.getElementById('analyticsModeYear');
+    if(!root||!monthBtn||!yearBtn||root.__qPokoyModeSwipe)return;
+
+    const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+    let startX=null;
+    let startY=null;
+    let startTime=0;
+
+    root.addEventListener('touchstart',function(event){
+      if(!mobile.matches||event.touches.length!==1)return;
+      if(event.target.closest('button,input,textarea,select,a,[contenteditable="true"]'))return;
+      const touch=event.touches[0];
+      startX=touch.clientX;
+      startY=touch.clientY;
+      startTime=Date.now();
+    },{passive:true});
+
+    root.addEventListener('touchend',function(event){
+      if(startX===null||startY===null||!mobile.matches||event.changedTouches.length!==1){
+        startX=null;
+        startY=null;
+        return;
+      }
+      const touch=event.changedTouches[0];
+      const dx=touch.clientX-startX;
+      const dy=touch.clientY-startY;
+      const elapsed=Date.now()-startTime;
+      startX=null;
+      startY=null;
+
+      if(elapsed>700||Math.abs(dx)<55||Math.abs(dx)<=Math.abs(dy)*1.2)return;
+      if(dx<0&&monthBtn.classList.contains('active'))yearBtn.click();
+      if(dx>0&&yearBtn.classList.contains('active'))monthBtn.click();
+    },{passive:true});
+
+    root.__qPokoyModeSwipe=true;
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindStatisticsSwipe);
+  else bindStatisticsSwipe();
 })();
