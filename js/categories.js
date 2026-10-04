@@ -110,6 +110,7 @@ if(!popup||!mobileCategoryPopupMedia.matches||!popup.classList.contains('open'))
 const createRow=popup.querySelector('.category-popup-create');
 if(!createRow)return;
 const opensBelow=popup.style.top&&popup.style.top!=='auto';
+popup.style.setProperty('padding','0 10px','important');
 createRow.style.setProperty('position','sticky','important');
 createRow.style.setProperty('z-index','4','important');
 createRow.style.setProperty('grid-template-columns',createRow.classList.contains('is-editing')?'minmax(0,1fr) 38px':'1fr','important');
@@ -120,7 +121,7 @@ if(createRow!==popup.lastElementChild)popup.appendChild(createRow);
 createRow.style.setProperty('top','auto','important');
 createRow.style.setProperty('bottom','0','important');
 createRow.style.setProperty('margin','0','important');
-createRow.style.setProperty('padding','3px 0 0','important');
+createRow.style.setProperty('padding','1px 0 0','important');
 createRow.style.setProperty('border-top','1px solid var(--border)','important');
 createRow.style.setProperty('border-bottom','0','important');
 }else{
@@ -128,7 +129,7 @@ if(createRow!==popup.firstElementChild)popup.insertBefore(createRow,popup.firstC
 createRow.style.setProperty('top','0','important');
 createRow.style.setProperty('bottom','auto','important');
 createRow.style.setProperty('margin','0','important');
-createRow.style.setProperty('padding','0 0 3px','important');
+createRow.style.setProperty('padding','0 0 1px','important');
 createRow.style.setProperty('border-top','0','important');
 createRow.style.setProperty('border-bottom','1px solid var(--border)','important');
 }
