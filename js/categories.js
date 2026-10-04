@@ -121,7 +121,7 @@ if(createRow!==popup.lastElementChild)popup.appendChild(createRow);
 createRow.style.setProperty('top','auto','important');
 createRow.style.setProperty('bottom','0','important');
 createRow.style.setProperty('margin','0','important');
-createRow.style.setProperty('padding','1px 0 0','important');
+createRow.style.setProperty('padding',createRow.classList.contains('is-editing')?'4px 0':'1px 0 0','important');
 createRow.style.setProperty('border-top','1px solid var(--border)','important');
 createRow.style.setProperty('border-bottom','0','important');
 }else{
@@ -129,7 +129,7 @@ if(createRow!==popup.firstElementChild)popup.insertBefore(createRow,popup.firstC
 createRow.style.setProperty('top','0','important');
 createRow.style.setProperty('bottom','auto','important');
 createRow.style.setProperty('margin','0','important');
-createRow.style.setProperty('padding','0 0 1px','important');
+createRow.style.setProperty('padding',createRow.classList.contains('is-editing')?'4px 0':'0 0 1px','important');
 createRow.style.setProperty('border-top','0','important');
 createRow.style.setProperty('border-bottom','1px solid var(--border)','important');
 }
