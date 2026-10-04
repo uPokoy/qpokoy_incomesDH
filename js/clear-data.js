@@ -54,7 +54,6 @@
       #qpAccessReadOnlyBanner .qp-access-readonly-copy{min-width:0;padding-top:1px}
       #qpAccessReadOnlyBanner .qp-access-readonly-title{margin:0 0 4px;font-size:16px;font-weight:750;color:var(--text)}
       #qpAccessReadOnlyBanner .qp-access-readonly-text{margin:0;color:var(--text-muted);font-size:14px;line-height:1.45}
-      #qpAccessReadOnlyBanner .qp-access-readonly-pending{display:block;margin-top:5px;font-size:12px;opacity:.82}
 
       #qpAccessReadOnlyBanner .qp-access-renew-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 16px;border:1px solid color-mix(in srgb,var(--primary) 50%,var(--border));background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 13%,var(--panel)),color-mix(in srgb,var(--primary) 5%,var(--panel)))}
       #qpAccessReadOnlyBanner .qp-access-renew-main{display:flex;align-items:center;gap:13px;min-width:0}
@@ -79,15 +78,6 @@
     document.head.appendChild(style);
   }
 
-  function pendingCount(){
-    try{
-      const userId=String(window.qPokoyAuthUserId||'');
-      const journal=JSON.parse(localStorage.getItem('qPokoyIncomeWriteJournalV1')||'[]');
-      if(!Array.isArray(journal))return 0;
-      return journal.filter(item=>item&&(!userId||String(item.userId)===userId)).length;
-    }catch(_){return 0;}
-  }
-
   function ensureBanner(){
     let banner=document.getElementById('qpAccessReadOnlyBanner');
     if(banner)return banner;
@@ -103,14 +93,14 @@
         <span class="qp-access-status-icon" aria-hidden="true">!</span>
         <div class="qp-access-readonly-copy">
           <div class="qp-access-readonly-title">Доступ закончился</div>
-          <p class="qp-access-readonly-text">Данные доступны для просмотра и экспорта PDF. Добавление и изменение доходов недоступно.<span class="qp-access-readonly-pending" hidden></span></p>
+          <p class="qp-access-readonly-text">Данные доступны для просмотра и экспорта PDF. Добавление и изменение доходов недоступно.</p>
         </div>
       </div>
       <div class="qp-access-renew-card">
         <div class="qp-access-renew-main">
           <span class="qp-access-renew-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8l3 4 4-7 4 7 3-4-1.5 10h-11L5 8Z"/><path d="M7 20h10"/></svg></span>
           <div class="qp-access-renew-copy">
-            <div class="qp-access-renew-title">Продлите доступ к qPokoy</div>
+            <div class="qp-access-renew-title">Продлите доступ</div>
             <p class="qp-access-renew-text">Чтобы снова добавлять и изменять доходы, продлите доступ. Все ваши данные сохранены.</p>
           </div>
         </div>
@@ -120,20 +110,12 @@
     return banner;
   }
 
-  function syncPendingText(){
-    const banner=ensureBanner();
-    const pending=banner?.querySelector('.qp-access-readonly-pending');
-    if(!pending)return;
-    const count=pendingCount();
-    pending.hidden=!count;
-    pending.textContent=count?'Несинхронизированные изменения сохранены локально и будут отправлены после восстановления доступа.':'';
-  }
+  function syncPendingText(){}
 
   function focusAccessBanner(scroll=true){
     const banner=ensureBanner();
     if(!banner||!readOnly)return;
     banner.hidden=false;
-    syncPendingText();
     if(scroll)banner.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
     banner.classList.remove('qp-access-attention');
     requestAnimationFrame(()=>{
@@ -176,7 +158,6 @@
     if(readOnly){
       const form=document.getElementById('incomeForm');
       if(form&&!form.hidden)document.getElementById('cancelIncome')?.click();
-      syncPendingText();
     }
     syncWriteControls();
     if(changed){
@@ -269,7 +250,6 @@
     const original=window.qPokoyNotice;
     const wrapped=function(title,text,type,...rest){
       if(readOnly&&title==='Ошибка синхронизации'&&/(Доступ закончился|Пробный период или подписка закончились)/i.test(String(text||''))){
-        syncPendingText();
         return;
       }
       return original.call(this,title,text,type,...rest);
