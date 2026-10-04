@@ -78,6 +78,13 @@
     if(!input||input.__qPokoySelectionDismiss)return;
 
     const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+    const nativeSelect=typeof input.select==='function'?input.select.bind(input):null;
+
+    if(nativeSelect){
+      input.select=function(){
+        if(!mobile.matches)return nativeSelect();
+      };
+    }
 
     function clearSelection(){
       if(!mobile.matches)return;
