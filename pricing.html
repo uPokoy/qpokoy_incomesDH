@@ -13,7 +13,7 @@
 :root{color-scheme:dark;--bg:#08101c;--panel:#101f33;--line:rgba(151,189,237,.2);--text:#f2f7ff;--muted:#a9bdd6;--blue:#71afff}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;min-height:100vh;min-height:100dvh;font:15px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:radial-gradient(80% 60% at 10% -10%,rgba(52,94,151,.25),transparent 68%),radial-gradient(65% 55% at 105% 25%,rgba(35,79,137,.19),transparent 70%),linear-gradient(145deg,#060a12,#0c1829 52%,#070d16)}
-a{color:inherit}a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+a{color:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
 .wrap{width:min(1120px,calc(100% - 36px));margin:auto}
 .head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:23px 0}
 .logo{font-weight:800;font-size:26px;letter-spacing:-.055em;text-decoration:none}.logo span{color:var(--blue)}
@@ -39,19 +39,21 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 .renew-option{min-height:42px;margin:0 0 12px;color:#c9daef;font-size:12px;line-height:1.35}
 .payment-action,.subscription-action{width:100%;border:1px solid rgba(116,177,255,.48);border-radius:11px;background:rgba(67,126,204,.28);color:#eef6ff;padding:11px 12px;font:inherit;font-weight:750;cursor:pointer}.payment-action:hover,.subscription-action:hover{background:rgba(79,143,226,.38)}.payment-action:disabled,.subscription-action:disabled{opacity:.55;cursor:not-allowed}
 .payment-message{min-height:22px;text-align:center;color:#bcd0e8;font-size:13px;margin:15px 0 0}.payment-message[data-error="true"]{color:#ffb8b8}
-.caption{text-align:center;color:var(--muted);font-size:12px;margin:10px 0 0}
 .section{margin-top:53px}.section h2{margin:0 0 17px;font-size:26px;line-height:1.25;letter-spacing:-.035em}
-.disclosure>summary{list-style:none;cursor:pointer;margin:0;font-size:26px;line-height:1.25;letter-spacing:-.035em;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px}.disclosure>summary::-webkit-details-marker{display:none}.disclosure>summary:after{content:"⌄";flex:0 0 auto;color:#bedbff;font-size:26px;line-height:1;transition:transform .18s ease}.disclosure[open]>summary:after{transform:rotate(180deg)}.disclosure-content{margin-top:17px}
+.disclosure{border:1px solid var(--line);border-radius:18px;background:linear-gradient(150deg,rgba(19,36,60,.86),rgba(12,24,41,.86));overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.1)}
+.disclosure>summary{list-style:none;cursor:pointer;margin:0;padding:20px 22px;font-size:26px;line-height:1.25;letter-spacing:-.035em;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:14px;-webkit-tap-highlight-color:transparent;outline:none;user-select:none}.disclosure>summary::-webkit-details-marker{display:none}.disclosure>summary:focus-visible .disclosure-toggle{box-shadow:0 0 0 2px var(--blue)}
+.disclosure-toggle{position:relative;display:block;flex:0 0 34px;width:34px;height:34px;border:1px solid rgba(118,181,255,.3);border-radius:10px;background:rgba(68,134,232,.14);transition:background .18s ease,border-color .18s ease}.disclosure-toggle:before{content:"";position:absolute;left:50%;top:46%;width:8px;height:8px;border-right:2px solid #cee4ff;border-bottom:2px solid #cee4ff;transform:translate(-50%,-50%) rotate(45deg);transition:transform .18s ease}.disclosure[open] .disclosure-toggle{background:rgba(68,134,232,.22);border-color:rgba(118,181,255,.45)}.disclosure[open] .disclosure-toggle:before{top:54%;transform:translate(-50%,-50%) rotate(225deg)}
+.disclosure-content{padding:0 22px 22px;border-top:1px solid var(--line)}.disclosure-content>.cards,.disclosure-content>.faq{margin-top:17px}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
 .card,.question,.subscription-box{border:1px solid var(--line);border-radius:15px;background:rgba(17,32,53,.72);padding:19px 21px}
 .card h3,.question h3{margin:0 0 7px;font-size:15px}.card p,.question p,.subscription-box p{margin:0;color:var(--muted);font-size:13px}
 .subscription-box{display:grid;gap:14px;max-width:660px}.subscription-actions{display:flex;gap:10px;flex-wrap:wrap}.subscription-action{width:auto;min-width:210px}.subscription-login{display:inline-flex;align-items:center;justify-content:center;min-width:160px;text-decoration:none;border:1px solid var(--line);border-radius:11px;background:rgba(27,48,75,.55);padding:10px 14px;font-weight:700;font-size:13px}.subscription-login[hidden],.subscription-action[hidden]{display:none}
 .subscription-note{font-size:12px!important}.faq{display:grid;gap:11px}.question{padding:16px 20px}
-.notice{margin-top:42px;padding:19px 21px;border:1px solid rgba(109,160,226,.27);border-radius:15px;background:rgba(52,95,151,.10);color:#c1d1e4;font-size:13px}.notice strong{color:#f2f7ff}
+.notice{margin-top:10px;padding:19px 21px;border:1px solid rgba(109,160,226,.27);border-radius:15px;background:rgba(52,95,151,.10);color:#c1d1e4;font-size:13px}.notice strong{color:#f2f7ff}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:23px 0 34px;border-top:1px solid var(--line);font-size:12px;color:#9aafc9}.foot a{text-decoration:none;color:#bedbff}
 @media(max-width:900px){.plans{grid-template-columns:1fr;max-width:520px;margin:auto}.cards{grid-template-columns:1fr}.plan{padding:23px}.price{margin-top:17px}.line{margin:16px 0}}
-@media(max-width:460px){.wrap{width:calc(100% - 28px)}.head{padding:18px 0}.logo{font-size:24px}.back{padding:8px 10px;font-size:12px}main{padding:25px 0 48px}h1{font-size:35px}.intro{margin-bottom:27px}.section{margin-top:42px}.subscription-actions{display:grid}.subscription-action,.subscription-login{width:100%}.disclosure>summary{font-size:26px}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.disclosure>summary:after{transition:none}}
+@media(max-width:460px){.wrap{width:calc(100% - 28px)}.head{padding:18px 0}.logo{font-size:24px}.back{padding:8px 10px;font-size:12px}main{padding:25px 0 48px}h1{font-size:35px}.intro{margin-bottom:27px}.section{margin-top:42px}.subscription-actions{display:grid}.subscription-action,.subscription-login{width:100%}.disclosure>summary{font-size:24px;padding:18px}.disclosure-content{padding:0 18px 18px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.disclosure-toggle,.disclosure-toggle:before{transition:none}}
 </style>
 </head>
 <body>
@@ -91,7 +93,7 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 </article>
 </section>
 <p id="paymentMessage" class="payment-message" role="status" aria-live="polite"></p>
-<p class="caption">Все варианты включают полный функционал. Цены указаны в российских рублях. Для оплаты нужен вход в аккаунт qPokoy.</p>
+<aside class="notice"><strong>Оплата проводится через ЮKassa.</strong> Перед оплатой ознакомьтесь с <a href="./offer.html">офертой</a>, <a href="./privacy.html">политикой конфиденциальности</a> и <a href="./about.html">сведениями об исполнителе</a>.</aside>
 <section class="section" aria-labelledby="subscription-title">
 <h2 id="subscription-title">Управление доступом</h2>
 <div class="subscription-box">
@@ -105,7 +107,7 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 </div>
 </section>
 <details class="section disclosure">
-<summary id="how-title">Как это работает?</summary>
+<summary id="how-title"><span>Как это работает</span><span class="disclosure-toggle" aria-hidden="true"></span></summary>
 <div class="disclosure-content">
 <div class="cards">
 <article class="card"><h3>Free</h3><p>14 дней полного доступа бесплатно, без привязки карты.</p></article>
@@ -115,7 +117,7 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 </div>
 </details>
 <details class="section disclosure">
-<summary id="faq-title">Условия доступа</summary>
+<summary id="faq-title"><span>Условия доступа</span><span class="disclosure-toggle" aria-hidden="true"></span></summary>
 <div class="disclosure-content">
 <div class="faq">
 <article class="question"><h3>Можно ли отключить автопродление?</h3><p>Да. Автопродление можно отключить выше в разделе «Управление доступом». После отключения оплаченный доступ сохранится до завершения оплаченного периода.</p></article>
@@ -124,7 +126,6 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 </div>
 </div>
 </details>
-<aside class="notice"><strong>Оплата проводится через ЮKassa.</strong> Перед оплатой ознакомьтесь с <a href="./offer.html">офертой</a>, <a href="./privacy.html">политикой конфиденциальности</a> и <a href="./about.html">сведениями об исполнителе</a>.</aside>
 </main>
 <footer class="foot"><span>© qPokoy — Учёт доходов</span><span><a href="./offer.html">Оферта</a> · <a href="./privacy.html">Конфиденциальность</a> · <a href="./about.html">О сервисе</a> · <a href="./">В приложение</a></span></footer>
 </div>
