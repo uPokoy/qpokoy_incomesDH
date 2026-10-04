@@ -428,3 +428,40 @@
     flush();
   });
 })();
+
+/* Rapid delete safety: one request per income at a time, and "already gone" is success. */
+(function(){
+  "use strict";
+  function install(){
+    const api=window.qPokoyApi;
+    if(!api||typeof api.deleteIncome!=='function'||api.deleteIncome.__qPokoyDeleteStable)return;
+
+    const original=api.deleteIncome.bind(api);
+    const inFlight=new Map();
+
+    function deleteIncomeStable(id){
+      const key=String(id);
+      if(inFlight.has(key))return inFlight.get(key);
+
+      const job=(async function(){
+        try{
+          return await original(id);
+        }catch(error){
+          if(error&&(error.status===404||error.code==='not_found'))return null;
+          throw error;
+        }
+      })();
+
+      inFlight.set(key,job);
+      const clear=function(){if(inFlight.get(key)===job)inFlight.delete(key);};
+      job.then(clear,clear);
+      return job;
+    }
+
+    deleteIncomeStable.__qPokoyDeleteStable=true;
+    api.deleteIncome=deleteIncomeStable;
+  }
+
+  if(document.readyState==='complete')install();
+  else window.addEventListener('load',install,{once:true});
+})();
