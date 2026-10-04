@@ -318,6 +318,50 @@
     refresh();
   }
 
+  function bindSettingsSwipe(){
+    const settings=document.getElementById('settings');
+    if(!settings||settings.__qPokoySwipe)return;
+
+    const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+    const tabs=['categories','appearance','data'];
+    let startX=null;
+    let startY=null;
+    let startTime=0;
+
+    settings.addEventListener('touchstart',event=>{
+      if(!mobile.matches||event.touches.length!==1)return;
+      if(event.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+      const touch=event.touches[0];
+      startX=touch.clientX;
+      startY=touch.clientY;
+      startTime=Date.now();
+    },{passive:true});
+
+    settings.addEventListener('touchend',event=>{
+      if(startX===null||startY===null||!mobile.matches||event.changedTouches.length!==1){
+        startX=null;
+        startY=null;
+        return;
+      }
+      const touch=event.changedTouches[0];
+      const dx=touch.clientX-startX;
+      const dy=touch.clientY-startY;
+      const elapsed=Date.now()-startTime;
+      startX=null;
+      startY=null;
+
+      if(elapsed>700||Math.abs(dx)<55||Math.abs(dx)<=Math.abs(dy)*1.2)return;
+      const current=settings.dataset.settingsTab||'categories';
+      const index=tabs.indexOf(current);
+      if(index<0)return;
+      const nextIndex=dx<0?index+1:index-1;
+      if(nextIndex<0||nextIndex>=tabs.length)return;
+      window.qPokoySetSettingsTab?.(tabs[nextIndex]);
+    },{passive:true});
+
+    settings.__qPokoySwipe=true;
+  }
+
   function bind(){
     const exp=document.getElementById('exportDataBtn');
     const imp=document.getElementById('importDataBtn');
@@ -346,6 +390,7 @@
     }
 
     mountBillingSettings();
+    bindSettingsSwipe();
   }
 
   if(document.readyState==='loading'){
