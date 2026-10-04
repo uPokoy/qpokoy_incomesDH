@@ -118,7 +118,8 @@
     const form=document.getElementById('incomeForm');
     const save=document.getElementById('saveIncome');
     const total=document.getElementById('incomeTotal');
-    if(!form||!save||!total||save.__qPokoyOdometerAnimation)return;
+    const formTitle=document.querySelector('.form-title');
+    if(!form||!save||!total||!formTitle||save.__qPokoyOdometerAnimation)return;
 
     let armed=null;
     let armedTimer=0;
@@ -145,7 +146,7 @@
     }
 
     function arm(){
-      if(animating||form.hidden||save.disabled||save.textContent.trim()!=='Добавить')return;
+      if(animating||form.hidden||save.disabled||formTitle.textContent.trim()!=='Новый доход')return;
       const before=parseMoney(total.textContent);
       if(before===null)return;
       clearTimeout(armedTimer);
