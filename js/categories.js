@@ -190,12 +190,13 @@ document.getElementById('categorySelect')?.classList.remove('open');
 };
 const showCreateEditor=function(){
 createRow.classList.add('is-editing');
-createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Название категории" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Сохранить новую категорию" title="Сохранить категорию">✓</button>';
+createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Название категории" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';
 const input=createRow.querySelector('.category-popup-create-input');
 const button=createRow.querySelector('.category-popup-create-btn');
 if(mobilePopup){
 createRow.style.setProperty('grid-template-columns','minmax(0,1fr) 38px','important');
 createRow.style.setProperty('gap','4px','important');
+createRow.style.setProperty('align-items','center','important');
 input.style.setProperty('height','36px','important');
 input.style.setProperty('min-height','36px','important');
 input.style.setProperty('padding','0 8px','important');
@@ -205,6 +206,8 @@ input.style.setProperty('background','var(--panel-muted)','important');
 input.style.setProperty('color','var(--text)','important');
 input.style.setProperty('box-shadow','none','important');
 input.style.setProperty('font-size','14px','important');
+input.style.setProperty('margin','0','important');
+input.style.setProperty('align-self','center','important');
 button.style.setProperty('width','38px','important');
 button.style.setProperty('min-width','38px','important');
 button.style.setProperty('height','36px','important');
@@ -218,6 +221,11 @@ button.style.setProperty('font-size','18px','important');
 button.style.setProperty('font-weight','700','important');
 button.style.setProperty('line-height','1','important');
 button.style.setProperty('box-shadow','none','important');
+button.style.setProperty('position','static','important');
+button.style.setProperty('inset','auto','important');
+button.style.setProperty('margin','0','important');
+button.style.setProperty('align-self','center','important');
+button.style.setProperty('transform','none','important');
 }
 button.addEventListener('click',e=>finishCreate(input.value,e));
 input.addEventListener('keydown',e=>{
