@@ -156,7 +156,10 @@
     let touchStartY=0;
     let touchActive=false;
     let touchHandled=false;
-    let swipeSuppressUntil=0;
+    let headingTouchStartX=0;
+    let headingTouchStartY=0;
+    let headingTouchActive=false;
+    let headingTouchHandledUntil=0;
     let wasOpen=popup.classList.contains('open');
 
     function currentParts(){
@@ -201,7 +204,7 @@
       weekdays.hidden=false;
       days.hidden=false;
       monthHost.dataset.qpDecoratedKey='';
-      requestAnimationFrame(decorateHeading);
+      decorateHeading();
     }
 
     function renderYears(){
@@ -253,19 +256,56 @@
       }finally{
         internalNav=false;
       }
+      decorateHeading();
     }
 
-    monthHost.addEventListener('click',function(event){
-      const button=event.target.closest('.qp-calendar-year-button');
-      if(!button)return;
-      event.preventDefault();
-      event.stopPropagation();
+    function toggleCalendarMode(){
       if(mode==='years'){
         showDays();
         return;
       }
       yearPageStart=currentParts().year-5;
       renderYears();
+    }
+
+    monthHost.addEventListener('touchstart',function(event){
+      const button=event.target.closest?.('.qp-calendar-year-button');
+      if(!mobile.matches||event.touches.length!==1||!button){
+        headingTouchActive=false;
+        return;
+      }
+      headingTouchStartX=event.touches[0].clientX;
+      headingTouchStartY=event.touches[0].clientY;
+      headingTouchActive=true;
+    },{passive:true});
+
+    monthHost.addEventListener('touchend',function(event){
+      if(!headingTouchActive||!mobile.matches||!event.changedTouches.length)return;
+      headingTouchActive=false;
+      const dx=event.changedTouches[0].clientX-headingTouchStartX;
+      const dy=event.changedTouches[0].clientY-headingTouchStartY;
+      if(Math.abs(dx)>14||Math.abs(dy)>14)return;
+      event.preventDefault();
+      event.stopPropagation();
+      touchActive=false;
+      touchHandled=false;
+      headingTouchHandledUntil=Date.now()+700;
+      toggleCalendarMode();
+    },{passive:false});
+
+    monthHost.addEventListener('touchcancel',function(){
+      headingTouchActive=false;
+      touchActive=false;
+      touchHandled=false;
+    },{passive:true});
+
+    monthHost.addEventListener('click',function(event){
+      const button=event.target.closest?.('.qp-calendar-year-button');
+      if(!button&&event.target!==monthHost)return;
+      event.preventDefault();
+      event.stopPropagation();
+      if(Date.now()<headingTouchHandledUntil)return;
+      toggleCalendarMode();
     });
 
     prev.addEventListener('click',function(event){
@@ -281,13 +321,6 @@
       changeYearPage(1);
     },true);
 
-    popup.addEventListener('click',function(event){
-      if(Date.now()<swipeSuppressUntil&&!internalNav){
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    },true);
-
     popup.addEventListener('touchstart',function(event){
       if(!mobile.matches||event.touches.length!==1){touchActive=false;touchHandled=false;return;}
       touchStartX=event.touches[0].clientX;
@@ -296,16 +329,15 @@
       touchHandled=false;
     },{passive:true});
     popup.addEventListener('touchmove',function(event){
-      if(!touchActive||touchHandled||mode!=='days'||!mobile.matches||event.touches.length!==1)return;
+      if(!touchActive||touchHandled||!mobile.matches||event.touches.length!==1)return;
       const dx=event.touches[0].clientX-touchStartX;
       const dy=event.touches[0].clientY-touchStartY;
       if(Math.abs(dx)<28||Math.abs(dx)<=Math.abs(dy)*1.1)return;
-      event.preventDefault();
       touchHandled=true;
       touchActive=false;
-      changeMonthBySwipe(dx<0?1:-1);
-      swipeSuppressUntil=Date.now()+450;
-    },{passive:false});
+      if(mode==='years')changeYearPage(dx<0?1:-1);
+      else changeMonthBySwipe(dx<0?1:-1);
+    },{passive:true});
     popup.addEventListener('touchend',function(event){
       if(touchHandled){touchHandled=false;touchActive=false;return;}
       if(!touchActive||!mobile.matches||!event.changedTouches.length)return;
@@ -313,18 +345,13 @@
       const dx=event.changedTouches[0].clientX-touchStartX;
       const dy=event.changedTouches[0].clientY-touchStartY;
       if(Math.abs(dx)<48||Math.abs(dx)<=Math.abs(dy)*1.15)return;
-      if(mode==='years'){
-        changeYearPage(dx<0?1:-1);
-        swipeSuppressUntil=Date.now()+450;
-      }else{
-        changeMonthBySwipe(dx<0?1:-1);
-        swipeSuppressUntil=Date.now()+450;
-      }
+      if(mode==='years')changeYearPage(dx<0?1:-1);
+      else changeMonthBySwipe(dx<0?1:-1);
     },{passive:true});
     popup.addEventListener('touchcancel',function(){touchActive=false;touchHandled=false;},{passive:true});
 
     const headingObserver=new MutationObserver(function(){
-      if(mode==='days')requestAnimationFrame(decorateHeading);
+      if(mode==='days')decorateHeading();
     });
     headingObserver.observe(monthHost,{childList:true,characterData:true,subtree:true});
 
