@@ -115,3 +115,26 @@
     overscroll-behavior-y:auto !important;
   }
 }
+
+/* Mobile UI alignment: match the settings-tab shell to the Month/Year control
+   and show five full-history cards before the inner list scrolls. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html body #incomeAnalytics #settings .qp-settings-tabs{
+    width:100% !important;
+    max-width:100% !important;
+    padding:3px !important;
+    gap:0 !important;
+    border-radius:11px !important;
+    box-sizing:border-box !important;
+  }
+
+  html body #incomeAnalytics #settings .qp-settings-tab{
+    min-height:36px !important;
+    height:36px !important;
+    border-radius:8px !important;
+  }
+
+  html body #income .income-recent-history-panel > #history.income-recent-inline-history #incomeList{
+    max-height:472px !important;
+  }
+}
