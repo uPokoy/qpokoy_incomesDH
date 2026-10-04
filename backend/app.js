@@ -144,6 +144,9 @@ function createApp(store, options = {}) {
       if (manual.plan === 'lifetime') return { ...common, mode: 'lifetime', status: 'active' };
       if (paid && new Date(paid).getTime() > currentMs) return { ...common, mode: 'paid', status: 'active' };
       if (grace && new Date(grace).getTime() > currentMs) return { ...common, mode: 'grace', status: 'grace' };
+      if (!billingEnforcementStartedAt || currentMs < billingEnforcementStartedAt.getTime()) {
+        return { ...base, mode: 'prelaunch', status: 'active', plan: null };
+      }
       return { ...common, mode: 'expired', status: 'expired', can_write: false };
     }
     if (!billingEnforcementStartedAt || currentMs < billingEnforcementStartedAt.getTime()) {
