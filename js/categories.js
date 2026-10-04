@@ -138,33 +138,31 @@ function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&'
       });
     }
 
-    if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
-      const createRow=document.createElement('div');
-      createRow.className='category-popup-create';
-      createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Новая категория" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';
-      const input=createRow.querySelector('.category-popup-create-input');
-      const button=createRow.querySelector('.category-popup-create-btn');
-      const submit=async function(e){
-        e?.preventDefault();
-        e?.stopPropagation();
-        const created=await createCategoryRecord(input.value);
-        if(!created)return;
-        hidden.value=created.name;
-        value.textContent=created.name;
-        hidden.closest('label')?.classList.remove('field-invalid');
-        renderManager();
-        renderIncomeCategoryOptions();
-        popup.classList.remove('open');
-        document.getElementById('categorySelect')?.classList.remove('open');
-      };
-      createRow.addEventListener('click',e=>e.stopPropagation());
-      button.addEventListener('click',submit);
-      input.addEventListener('keydown',e=>{
-        e.stopPropagation();
-        if(e.key==='Enter')submit(e);
-      });
-      popup.appendChild(createRow);
-    }
+    const createRow=document.createElement('div');
+    createRow.className='category-popup-create';
+    createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Новая категория" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';
+    const input=createRow.querySelector('.category-popup-create-input');
+    const button=createRow.querySelector('.category-popup-create-btn');
+    const submit=async function(e){
+      e?.preventDefault();
+      e?.stopPropagation();
+      const created=await createCategoryRecord(input.value);
+      if(!created)return;
+      hidden.value=created.name;
+      value.textContent=created.name;
+      hidden.closest('label')?.classList.remove('field-invalid');
+      renderManager();
+      renderIncomeCategoryOptions();
+      popup.classList.remove('open');
+      document.getElementById('categorySelect')?.classList.remove('open');
+    };
+    createRow.addEventListener('click',e=>e.stopPropagation());
+    button.addEventListener('click',submit);
+    input.addEventListener('keydown',e=>{
+      e.stopPropagation();
+      if(e.key==='Enter')submit(e);
+    });
+    popup.appendChild(createRow);
   }
 
   async function loadForUser(user,bootstrapCategories){
