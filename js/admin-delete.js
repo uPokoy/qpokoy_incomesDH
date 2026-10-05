@@ -15,9 +15,8 @@
     <div class="admin-delete-head">
       <div>
         <h2 id="adminDeleteTitle">Удаление пользователя</h2>
-        <p>Полностью удаляет аккаунт и все данные пользователя из qPokoy.</p>
       </div>
-      <button type="button" id="adminDeleteUser" class="admin-delete-user" disabled>Удалить пользователя</button>
+      <button type="button" id="adminDeleteUser" class="admin-delete-user" disabled>Удалить</button>
     </div>
     <div id="adminDeleteConfirm" class="admin-delete-confirm" hidden>
       <p class="admin-delete-warning"><strong>Удаление необратимо.</strong> Для подтверждения введите email пользователя:</p>
@@ -71,7 +70,7 @@
     confirmInput.disabled=value;
     cancelButton.disabled=value;
     confirmButton.disabled=value||!current||confirmInput.value.trim().toLowerCase()!==current.email.toLowerCase();
-    deleteButton.textContent=value?'Удаляем…':'Удалить пользователя';
+    deleteButton.textContent=value?'Удаляем…':'Удалить';
     confirmButton.textContent=value?'Удаляем…':'Удалить навсегда';
   }
   function showDeleteMessage(text,error=false){

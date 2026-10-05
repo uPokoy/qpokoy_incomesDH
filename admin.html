@@ -8,10 +8,12 @@
 <link rel="stylesheet" href="css/appearance.css?v=dev-2026.10.03.181">
 <link rel="stylesheet" href="css/admin.css?v=dev-2026.10.05.292">
 <link rel="stylesheet" href="css/admin-platform.css?v=dev-2026.10.03.181">
-<link rel="stylesheet" href="css/admin-delete.css?v=dev-2026.10.05.293">
+<link rel="stylesheet" href="css/admin-delete.css?v=dev-2026.10.05.295">
+<link rel="stylesheet" href="css/admin-ui-polish.css?v=dev-2026.10.05.295">
 <script defer src="js/api-client.js?v=dev-2026.10.03.185"></script>
 <script defer src="js/admin.js?v=dev-2026.10.05.292"></script>
-<script defer src="js/admin-delete.js?v=dev-2026.10.05.294"></script>
+<script defer src="js/admin-delete.js?v=dev-2026.10.05.295"></script>
+<script defer src="js/admin-ui-polish.js?v=dev-2026.10.05.295"></script>
 </head>
 <body class="qp-admin qp-bg-standard">
 <header class="admin-topbar">
@@ -20,15 +22,13 @@
     <span class="admin-badge">Admin</span>
   </a>
   <div class="admin-topbar-right">
-    <span class="admin-topbar-section">Пользователи</span>
-    <a class="admin-site-link" href="index.html">На сайт</a>
+    <a class="admin-site-link" href="index.html">Вход</a>
   </div>
 </header>
 <main>
-<section class="admin-access-shell" aria-labelledby="adminTitle">
+<section class="admin-access-shell" aria-label="Панель управления">
   <div>
     <p class="admin-eyebrow">Панель управления</p>
-    <h1 id="adminTitle">Пользователи</h1>
   </div>
   <p id="adminMessage" role="status" aria-live="polite">Проверяем доступ…</p>
 </section>
@@ -38,29 +38,24 @@
     <div class="admin-dashboard-head">
       <div>
         <h2 id="usersTitle">Все пользователи</h2>
-        <p>Актуальный список всех пользователей qPokoy</p>
       </div>
       <div class="admin-dashboard-actions">
         <span id="adminGeneratedAt" class="admin-updated-at"></span>
-        <button type="button" id="adminRefresh" class="admin-refresh">↻&nbsp;&nbsp;Обновить</button>
+        <button type="button" id="adminRefresh" class="admin-refresh" aria-label="Обновить список пользователей" title="Обновить">Обновить</button>
       </div>
     </div>
 
     <div class="admin-stats" aria-label="Статистика пользователей">
       <article class="admin-stat-card admin-stat-total">
-        <span class="admin-stat-icon">◎</span>
         <div><span>Всего пользователей</span><strong id="statTotal">—</strong></div>
       </article>
       <article class="admin-stat-card admin-stat-active">
-        <span class="admin-stat-icon">●</span>
         <div><span>Активные</span><strong id="statActive">—</strong></div>
       </article>
       <article class="admin-stat-card admin-stat-trial">
-        <span class="admin-stat-icon">◷</span>
         <div><span>Пробный период</span><strong id="statTrial">—</strong></div>
       </article>
       <article class="admin-stat-card admin-stat-expired">
-        <span class="admin-stat-icon">Ⅱ</span>
         <div><span>Без доступа</span><strong id="statExpired">—</strong></div>
       </article>
     </div>
@@ -95,7 +90,7 @@
           <option value="no">Выключено</option>
         </select>
       </label>
-      <button type="button" id="adminResetFilters" class="admin-filter-reset">Сбросить</button>
+      <button type="button" id="adminResetFilters" class="admin-filter-reset" hidden>Сбросить</button>
     </div>
 
     <form id="adminExactSearch" class="admin-exact-search" hidden>
