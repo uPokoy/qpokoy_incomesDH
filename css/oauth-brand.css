@@ -313,3 +313,12 @@ html[data-theme="dark"] #qpAuthGate .qp-auth-card{
   #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingStatus{grid-row:7 !important;}
   #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > .settings-card-subtitle{grid-row:8 !important;}
 }
+
+/* Keep desktop account action rows compact instead of stretching empty space between buttons. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountCard{
+    align-content:start !important;
+    grid-auto-rows:max-content !important;
+    row-gap:10px !important;
+  }
+}
