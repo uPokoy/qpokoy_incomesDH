@@ -84,3 +84,26 @@
     box-sizing:border-box !important;
   }
 }
+
+/* Mobile account settings: keep the subscription term inside the same visual box as the email. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountEmail{
+    border-bottom:0 !important;
+    border-radius:12px 12px 0 0 !important;
+    padding-bottom:7px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingTerm{
+    position:relative !important;
+    z-index:1 !important;
+    width:100% !important;
+    margin-top:-10px !important;
+    padding:0 14px 12px !important;
+    border:1px solid var(--border) !important;
+    border-top:0 !important;
+    border-radius:0 0 12px 12px !important;
+    background:var(--panel-muted) !important;
+    color:var(--text-muted) !important;
+    box-sizing:border-box !important;
+  }
+}
