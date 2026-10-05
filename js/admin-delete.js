@@ -30,7 +30,7 @@
   confirmBox.innerHTML=`
     <p class="admin-delete-warning"><strong>Удаление необратимо.</strong> Для подтверждения введите email пользователя:</p>
     <p id="adminDeleteTarget" class="admin-delete-target"></p>
-    <input id="adminDeleteEmail" name="delete-confirmation-text" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" aria-label="Email для подтверждения удаления">
+    <div id="adminDeleteEmail" class="admin-delete-email-input" contenteditable="plaintext-only" role="textbox" aria-label="Email для подтверждения удаления" data-placeholder="Введите email вручную"></div>
     <div class="admin-delete-actions">
       <button type="button" id="adminDeleteCancel" class="admin-delete-cancel">Отмена</button>
       <button type="button" id="adminDeleteConfirmButton" class="admin-delete-confirm-button" disabled>Удалить навсегда</button>
@@ -46,6 +46,7 @@
   let current=null;
   let deleting=false;
 
+  function confirmationValue(){return confirmInput.textContent.trim();}
   function detailValue(label){
     for(const item of details.querySelectorAll('.admin-detail-card')){
       const dt=item.querySelector('dt');
@@ -56,7 +57,7 @@
   }
   function resetConfirm(){
     confirmBox.hidden=true;
-    confirmInput.value='';
+    confirmInput.textContent='';
     targetText.textContent='';
     deleteMessage.hidden=true;
     deleteMessage.textContent='';
@@ -73,9 +74,10 @@
   function setDeleting(value){
     deleting=value;
     deleteButton.disabled=value||!current;
-    confirmInput.disabled=value;
+    confirmInput.contentEditable=value?'false':'plaintext-only';
+    confirmInput.setAttribute('aria-disabled',String(value));
     cancelButton.disabled=value;
-    confirmButton.disabled=value||!current||confirmInput.value.trim().toLowerCase()!==current.email.toLowerCase();
+    confirmButton.disabled=value||!current||confirmationValue().toLowerCase()!==current.email.toLowerCase();
     deleteButton.textContent=value?'Удаляем…':'Удалить';
     confirmButton.textContent=value?'Удаляем…':'Удалить навсегда';
   }
@@ -90,19 +92,19 @@
     resetConfirm();
     confirmBox.hidden=false;
     targetText.textContent=current.email;
-    confirmInput.placeholder='Введите email вручную';
     confirmInput.focus();
   });
   cancelButton.addEventListener('click',()=>{if(!deleting)resetConfirm();});
   confirmInput.addEventListener('input',()=>{
     deleteMessage.hidden=true;
-    confirmButton.disabled=deleting||!current||confirmInput.value.trim().toLowerCase()!==current.email.toLowerCase();
+    confirmButton.disabled=deleting||!current||confirmationValue().toLowerCase()!==current.email.toLowerCase();
   });
   confirmInput.addEventListener('keydown',event=>{
+    if(event.key==='Enter')event.preventDefault();
     if(event.key==='Escape'&&!deleting)resetConfirm();
   });
   confirmButton.addEventListener('click',async()=>{
-    if(!current||deleting||confirmInput.value.trim().toLowerCase()!==current.email.toLowerCase())return;
+    if(!current||deleting||confirmationValue().toLowerCase()!==current.email.toLowerCase())return;
     const deletingTarget={...current};
     setDeleting(true);
     try{

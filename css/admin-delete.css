@@ -5,7 +5,10 @@
 .qp-admin .admin-delete-confirm{max-width:720px;margin-top:14px;padding:14px;border:1px solid #7e3845;border-radius:12px;background:#241319}
 .qp-admin .admin-delete-warning{margin:0 0 8px;color:#f4cbd1}
 .qp-admin .admin-delete-target{margin:0 0 10px;color:#fff;font-weight:700;overflow-wrap:anywhere}
-.qp-admin .admin-delete-confirm input{width:100%;height:42px;margin:0 0 12px;padding:0 12px;border:1px solid #7e4a54;border-radius:9px;background:#171118;color:#fff}
+.qp-admin .admin-delete-email-input{width:100%;height:42px;margin:0 0 12px;padding:0 12px;border:1px solid #7e4a54;border-radius:9px;background:#171118;color:#fff;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;outline:0}
+.qp-admin .admin-delete-email-input:focus{border-color:#4a86df;box-shadow:0 0 0 2px rgba(74,134,223,.28)}
+.qp-admin .admin-delete-email-input:empty::before{content:attr(data-placeholder);color:#8f8590;pointer-events:none}
+.qp-admin .admin-delete-email-input[aria-disabled=true]{opacity:.65;pointer-events:none}
 .qp-admin .admin-delete-actions{display:flex;gap:10px;flex-wrap:wrap}
 .qp-admin .admin-delete-cancel{min-height:34px;padding:0 14px;border:1px solid #465775;border-radius:9px;background:#202d43;color:#eef5ff}
 .qp-admin .admin-delete-message{width:max-content;max-width:100%;margin:12px 0 0;padding:8px 12px;border:1px solid #9e5d68;border-radius:9px;background:#351d24;color:#ffc2c9;box-sizing:border-box;font-size:14px}
