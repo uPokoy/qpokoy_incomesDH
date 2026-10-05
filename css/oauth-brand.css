@@ -300,3 +300,16 @@ html[data-theme="dark"] #qpAuthGate .qp-auth-card{
     margin-top:0 !important;
   }
 }
+
+/* Desktop account settings: keep actions in the requested rows. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountEmail{grid-row:2 !important;}
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingTerm{grid-row:3 !important;}
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingPurchase{grid-row:4 !important;}
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingDisableRenew{grid-row:5 !important;}
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingUnlinkCard{grid-row:5 !important;}
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAuthLogoutBtn{grid-row:6 !important;}
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAuthDeleteAccountBtn{grid-row:6 !important;}
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingStatus{grid-row:7 !important;}
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > .settings-card-subtitle{grid-row:8 !important;}
+}
