@@ -44,3 +44,23 @@
   transform:none!important;
   box-sizing:border-box!important;
 }
+
+/* Desktop account settings: renewal controls fill the row directly below the access button. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > div[style*="display:flex"]:not(#qpBillingDeleteWrap){
+    grid-column:1 / -1 !important;
+    grid-row:5 !important;
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+    width:100% !important;
+    margin:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > div[style*="display:flex"]:not(#qpBillingDeleteWrap) > #qpBillingDisableRenew,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > div[style*="display:flex"]:not(#qpBillingDeleteWrap) > #qpBillingUnlinkCard{
+    grid-row:auto !important;
+    grid-column:auto !important;
+    order:initial !important;
+  }
+}
