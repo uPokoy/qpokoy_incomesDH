@@ -5,10 +5,9 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
-      - 'js/api-client.js'
-      - 'js/auth.js'
+      - 'js/**'
+      - 'tests/**'
       - 'index.html'
-      - 'tests/api-client.test.js'
       - '.github/workflows/backend-build.yml'
 
   pull_request:
