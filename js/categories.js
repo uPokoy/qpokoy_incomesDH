@@ -131,6 +131,7 @@ popup.appendChild(option);
 const createRow=document.createElement('div');
 createRow.className='category-popup-create';
 const mobilePopup=mobileCategoryPopupMedia.matches;
+const addIcon='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 const finishCreate=async function(rawName,e){
 e?.preventDefault();
 e?.stopPropagation();
@@ -146,7 +147,7 @@ document.getElementById('categorySelect')?.classList.remove('open');
 };
 const showCreateEditor=function(){
 createRow.classList.add('is-editing');
-createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Название категории" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';
+createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Название категории" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">'+addIcon+'</button>';
 const input=createRow.querySelector('.category-popup-create-input');
 const button=createRow.querySelector('.category-popup-create-btn');
 if(mobilePopup){
@@ -173,9 +174,9 @@ button.style.setProperty('border','0','important');
 button.style.setProperty('border-radius','10px','important');
 button.style.setProperty('display','grid','important');
 button.style.setProperty('place-items','center','important');
-button.style.setProperty('font-size','18px','important');
+button.style.setProperty('font-size','0','important');
 button.style.setProperty('font-weight','700','important');
-button.style.setProperty('line-height','1','important');
+button.style.setProperty('line-height','0','important');
 button.style.setProperty('box-shadow','none','important');
 button.style.setProperty('position','static','important');
 button.style.setProperty('inset','auto','important');
@@ -245,9 +246,11 @@ createRow.__qPokoyResetCreate=renderMobileTrigger;
 createRow.addEventListener('click',e=>e.stopPropagation());
 if(mobilePopup)renderMobileTrigger();
 else{
-createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Новая категория" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">+</button>';
+createRow.innerHTML='<input type="text" class="category-popup-create-input" maxlength="80" placeholder="Новая категория" autocomplete="off" aria-label="Название новой категории"><button type="button" class="category-popup-create-btn" aria-label="Добавить новую категорию" title="Добавить категорию">'+addIcon+'</button>';
 const input=createRow.querySelector('.category-popup-create-input');
 const button=createRow.querySelector('.category-popup-create-btn');
+button.style.setProperty('font-size','0','important');
+button.style.setProperty('line-height','0','important');
 button.addEventListener('click',e=>finishCreate(input.value,e));
 input.addEventListener('keydown',e=>{
 e.stopPropagation();
