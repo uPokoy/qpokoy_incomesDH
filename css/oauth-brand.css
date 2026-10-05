@@ -233,3 +233,70 @@ html[data-theme="dark"] #qpAuthGate .qp-auth-card{
     line-height:1.4 !important;
   }
 }
+
+/* Desktop account settings: wide access action and exit beside account deletion. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountCard{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountCard > .settings-title,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountCard > .settings-card-subtitle{
+    grid-column:1 / -1 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountCard .qp-account-row,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > div[style*="display:flex"]{
+    display:contents !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountEmail{
+    grid-column:1 / -1 !important;
+    order:10;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingTerm{
+    grid-column:1 / -1 !important;
+    order:20;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingPurchase{
+    grid-column:1 / -1 !important;
+    order:30;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingDisableRenew{
+    grid-column:1 !important;
+    order:40;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingUnlinkCard{
+    grid-column:2 !important;
+    order:40;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAuthLogoutBtn{
+    grid-column:1 !important;
+    order:50;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAuthDeleteAccountBtn{
+    grid-column:2 !important;
+    order:50;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingStatus{
+    grid-column:1 / -1 !important;
+    order:60;
+    margin-top:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > .settings-card-subtitle{
+    grid-column:1 / -1 !important;
+    order:70;
+    margin-top:0 !important;
+  }
+}
