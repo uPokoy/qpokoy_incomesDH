@@ -3,6 +3,7 @@
 const {createYdbStore}=require('./ydb');
 const {createYooKassaClient}=require('./yookassa');
 const {createPaymentRouter}=require('./payment-router');
+const {hasValidPrechargeNoticeForUser}=require('./precharge-notifications');
 function createRenewalWorker(store,router,options={}){
   const now=options.now||(()=>new Date());
   return async function run(event={}){
@@ -21,7 +22,13 @@ function createRenewalWorker(store,router,options={}){
       for(const row of rows){
         if(elapsedNow()>=deadline){result.next_cursor=after;return result;}
         result.checked++;
-        try{const r=await router.renewUser(row.user_id);if(!r.skipped)result.processed++;}catch(_){result.failed++;}
+        try{
+          if(options.requirePrechargeNotice===true&&!await hasValidPrechargeNoticeForUser(store,row.user_id)){
+            after=row.user_id;
+            continue;
+          }
+          const r=await router.renewUser(row.user_id);if(!r.skipped)result.processed++;
+        }catch(_){result.failed++;}
         after=row.user_id;
       }
       if(rows.length<100)return result;
@@ -38,7 +45,7 @@ async function handler(event={}){
     client:createYooKassaClient({shopId:process.env.YOOKASSA_SHOP_ID||'',secretKey:process.env.YOOKASSA_SECRET_KEY||''}),
     appBaseUrl:process.env.APP_BASE_URL||'https://qpokoy.ru/',billingEnforcementStartedAt:process.env.BILLING_ENFORCEMENT_STARTED_AT||''});
     worker=createRenewalWorker(store,router,{enabled:process.env.YOOKASSA_RENEWALS_ENABLED==='true',
-      billingEnforcementStartedAt:process.env.BILLING_ENFORCEMENT_STARTED_AT||''});}
+      billingEnforcementStartedAt:process.env.BILLING_ENFORCEMENT_STARTED_AT||'',requirePrechargeNotice:true});}
   try { return await worker(event); } catch (_) { return {failed:true,code:'renewal_worker_failed'}; }
 }
 module.exports={handler,createRenewalWorker};
