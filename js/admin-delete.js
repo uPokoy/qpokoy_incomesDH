@@ -101,7 +101,7 @@
     const deletingTarget={...current};
     setDeleting(true);
     try{
-      await api.request('DELETE','/admin/users/'+encodeURIComponent(deletingTarget.id));
+      await api.request('POST','/admin/users/'+encodeURIComponent(deletingTarget.id)+'/delete',{confirm_email:deletingTarget.email});
       closeButton?.click();
       if(message){message.textContent='Пользователь '+deletingTarget.email+' удалён.';message.dataset.error='false';}
       refreshButton?.click();
