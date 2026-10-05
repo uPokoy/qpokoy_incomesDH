@@ -8,12 +8,12 @@
 <link rel="stylesheet" href="css/appearance.css?v=dev-2026.10.03.181">
 <link rel="stylesheet" href="css/admin.css?v=dev-2026.10.05.292">
 <link rel="stylesheet" href="css/admin-platform.css?v=dev-2026.10.03.181">
-<link rel="stylesheet" href="css/admin-delete.css?v=dev-2026.10.05.296">
-<link rel="stylesheet" href="css/admin-ui-polish.css?v=dev-2026.10.05.296">
+<link rel="stylesheet" href="css/admin-delete.css?v=dev-2026.10.05.297">
+<link rel="stylesheet" href="css/admin-ui-polish.css?v=dev-2026.10.05.297">
 <script defer src="js/api-client.js?v=dev-2026.10.03.185"></script>
 <script defer src="js/admin.js?v=dev-2026.10.05.292"></script>
-<script defer src="js/admin-delete.js?v=dev-2026.10.05.295"></script>
-<script defer src="js/admin-ui-polish.js?v=dev-2026.10.05.296"></script>
+<script defer src="js/admin-delete.js?v=dev-2026.10.05.297"></script>
+<script defer src="js/admin-ui-polish.js?v=dev-2026.10.05.297"></script>
 </head>
 <body class="qp-admin qp-bg-standard">
 <header class="admin-topbar">
@@ -26,13 +26,6 @@
   </div>
 </header>
 <main>
-<section class="admin-access-shell" aria-label="Панель управления">
-  <div>
-    <p class="admin-eyebrow">Панель управления</p>
-  </div>
-  <p id="adminMessage" role="status" aria-live="polite">Проверяем доступ…</p>
-</section>
-
 <section id="adminControls" hidden>
   <section class="admin-dashboard" aria-labelledby="usersTitle">
     <div class="admin-dashboard-head">
@@ -40,6 +33,7 @@
         <h2 id="usersTitle">Все пользователи</h2>
       </div>
       <div class="admin-dashboard-actions">
+        <p id="adminMessage" class="admin-dashboard-status" role="status" aria-live="polite">Проверяем доступ…</p>
         <span id="adminGeneratedAt" class="admin-updated-at"></span>
         <button type="button" id="adminRefresh" class="admin-refresh" aria-label="Обновить список пользователей" title="Обновить">Обновить</button>
       </div>
@@ -113,7 +107,6 @@
             <th>Автопродление</th>
             <th>Оплачено до</th>
             <th>Регистрация</th>
-            <th>Действия</th>
           </tr>
         </thead>
         <tbody id="adminUsersBody"></tbody>

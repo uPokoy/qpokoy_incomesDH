@@ -7,18 +7,37 @@
   let openFilter=null;
 
   function tidyMessage(){
-    if(message?.textContent.trim()==='Пользователь открыт.')message.textContent='';
+    if(message?.textContent.trim()==='Пользователь открыт.')message.textContent='Доступ подтверждён';
   }
 
   function tidyRows(){
     if(!usersBody)return;
     for(const row of usersBody.querySelectorAll('tr')){
-      const cells=row.cells;
+      let cells=row.cells;
+      const actionButton=cells[6]?.querySelector('.admin-open-user');
+      if(actionButton&&!row.dataset.openReady){
+        row.dataset.openReady='true';
+        row.tabIndex=0;
+        row.setAttribute('role','button');
+        row.setAttribute('aria-label','Открыть пользователя '+(cells[0]?.querySelector('strong')?.textContent.trim()||''));
+        const openRow=()=>{if(!actionButton.disabled)actionButton.click();};
+        row.addEventListener('click',openRow);
+        row.addEventListener('keydown',event=>{
+          if(event.key==='Enter'||event.key===' '){event.preventDefault();openRow();}
+        });
+      }
+      if(cells[6])cells[6].remove();
+      cells=row.cells;
+
       const renewPill=cells[3]?.querySelector('.admin-pill');
       if(renewPill&&renewPill.textContent.trim()==='—')renewPill.textContent='Не подключено';
-      if(cells[4]&&cells[4].textContent.trim()==='—'){
+
+      const paidCell=cells[4];
+      if(paidCell){
+        const paidText=paidCell.textContent.trim();
         const accessText=cells[2]?.textContent.trim()||'';
-        cells[4].textContent=accessText==='Бессрочный'?'Бессрочно':accessText==='Без доступа'?'Не оплачено':'Не требуется';
+        if(paidText==='∞')paidCell.textContent='Бессрочно';
+        else if(paidText==='—'||paidText==='Не требуется')paidCell.textContent=accessText==='Бессрочный'?'Бессрочно':'Нет даты';
       }
     }
   }
@@ -36,12 +55,12 @@
     for(const item of details.querySelectorAll('.admin-detail-card')){
       const label=item.querySelector('dt')?.textContent.trim();
       const value=item.querySelector('dd');
-      if(label==='Оплачено до'&&value?.textContent.trim()==='—'){
-        const plan=detailValue('План назначения');
-        const mode=detailValue('Режим');
-        const access=detailValue('Статус доступа');
-        value.textContent=plan==='Бессрочный'||mode==='Бессрочный'?'Бессрочно':plan==='Месяц'||plan==='Год'||access==='Доступ истёк'?'Не оплачено':'Не требуется';
-      }
+      if(label!=='Оплачено до'||!value)continue;
+      const text=value.textContent.trim();
+      const plan=detailValue('План назначения');
+      const mode=detailValue('Режим');
+      if(text==='∞')value.textContent='Бессрочно';
+      else if(text==='—'||text==='Не требуется')value.textContent=plan==='Бессрочный'||mode==='Бессрочный'?'Бессрочно':'Нет даты';
     }
   }
 

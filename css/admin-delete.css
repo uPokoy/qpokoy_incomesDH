@@ -1,9 +1,8 @@
-.qp-admin .admin-delete-zone{margin:14px 0 0;padding:0;background:transparent;border:0;box-sizing:border-box}
-.qp-admin .admin-delete-head{width:max-content;max-width:100%;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:10px 12px;border:1px solid #5b2d36;border-radius:10px;background:#151e2b}
-.qp-admin .admin-delete-head h2{margin:0;color:#ffd8dd;font-size:14px;font-weight:600;white-space:nowrap}
+.qp-admin .admin-user-title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.qp-admin .admin-user-title-row h2{margin:0}
 .qp-admin .admin-delete-user,.qp-admin .admin-delete-confirm-button{min-height:34px;padding:0 14px;border:1px solid #b64e5f;border-radius:9px;background:#4a2029;color:#ffd7dd;font-weight:700}
 .qp-admin .admin-delete-user:not(:disabled):hover,.qp-admin .admin-delete-confirm-button:not(:disabled):hover{background:#632a36;border-color:#d76274}
-.qp-admin .admin-delete-confirm{max-width:720px;margin-top:12px;padding:14px;border:1px solid #7e3845;border-radius:12px;background:#241319}
+.qp-admin .admin-delete-confirm{max-width:720px;margin-top:14px;padding:14px;border:1px solid #7e3845;border-radius:12px;background:#241319}
 .qp-admin .admin-delete-warning{margin:0 0 8px;color:#f4cbd1}
 .qp-admin .admin-delete-target{margin:0 0 10px;color:#fff;font-weight:700;overflow-wrap:anywhere}
 .qp-admin .admin-delete-confirm input{width:100%;height:42px;margin:0 0 12px;padding:0 12px;border:1px solid #7e4a54;border-radius:9px;background:#171118;color:#fff}
@@ -12,7 +11,6 @@
 .qp-admin .admin-delete-message{width:max-content;max-width:100%;margin:12px 0 0;padding:8px 12px;border:1px solid #9e5d68;border-radius:9px;background:#351d24;color:#ffc2c9;box-sizing:border-box;font-size:14px}
 .qp-admin .admin-delete-message[data-error=false]{border-color:#2c7b60;background:#123528;color:#8de0bb}
 @media(max-width:560px){
-  .qp-admin .admin-delete-head{width:100%;justify-content:space-between;gap:10px}
-  .qp-admin .admin-delete-head h2{white-space:normal}
+  .qp-admin .admin-user-title-row{align-items:flex-start}
   .qp-admin .admin-delete-actions button{flex:1 1 140px}
 }

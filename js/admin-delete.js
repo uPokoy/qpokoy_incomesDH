@@ -6,37 +6,43 @@
   const closeButton=document.getElementById('adminCloseUser');
   const refreshButton=document.getElementById('adminRefresh');
   const message=document.getElementById('adminMessage');
-  if(!api||!card||!details)return;
+  const title=document.getElementById('adminUserTitle');
+  const accessPanel=card?.querySelector('.access-panel');
+  if(!api||!card||!details||!title||!accessPanel)return;
 
-  const section=document.createElement('section');
-  section.className='admin-delete-zone';
-  section.setAttribute('aria-labelledby','adminDeleteTitle');
-  section.innerHTML=`
-    <div class="admin-delete-head">
-      <div>
-        <h2 id="adminDeleteTitle">Удаление пользователя</h2>
-      </div>
-      <button type="button" id="adminDeleteUser" class="admin-delete-user" disabled>Удалить</button>
+  const titleRow=document.createElement('div');
+  titleRow.className='admin-user-title-row';
+  title.parentNode.insertBefore(titleRow,title);
+  titleRow.append(title);
+
+  const deleteButton=document.createElement('button');
+  deleteButton.type='button';
+  deleteButton.id='adminDeleteUser';
+  deleteButton.className='admin-delete-user';
+  deleteButton.textContent='Удалить';
+  deleteButton.disabled=true;
+  titleRow.append(deleteButton);
+
+  const confirmBox=document.createElement('section');
+  confirmBox.id='adminDeleteConfirm';
+  confirmBox.className='admin-delete-confirm';
+  confirmBox.hidden=true;
+  confirmBox.innerHTML=`
+    <p class="admin-delete-warning"><strong>Удаление необратимо.</strong> Для подтверждения введите email пользователя:</p>
+    <p id="adminDeleteTarget" class="admin-delete-target"></p>
+    <input id="adminDeleteEmail" type="email" autocomplete="off" spellcheck="false" aria-label="Email для подтверждения удаления">
+    <div class="admin-delete-actions">
+      <button type="button" id="adminDeleteCancel" class="admin-delete-cancel">Отмена</button>
+      <button type="button" id="adminDeleteConfirmButton" class="admin-delete-confirm-button" disabled>Удалить навсегда</button>
     </div>
-    <div id="adminDeleteConfirm" class="admin-delete-confirm" hidden>
-      <p class="admin-delete-warning"><strong>Удаление необратимо.</strong> Для подтверждения введите email пользователя:</p>
-      <p id="adminDeleteTarget" class="admin-delete-target"></p>
-      <input id="adminDeleteEmail" type="email" autocomplete="off" spellcheck="false" aria-label="Email для подтверждения удаления">
-      <div class="admin-delete-actions">
-        <button type="button" id="adminDeleteCancel" class="admin-delete-cancel">Отмена</button>
-        <button type="button" id="adminDeleteConfirmButton" class="admin-delete-confirm-button" disabled>Удалить навсегда</button>
-      </div>
-      <p id="adminDeleteMessage" class="admin-delete-message" role="status" aria-live="polite" hidden></p>
-    </div>`;
-  card.append(section);
+    <p id="adminDeleteMessage" class="admin-delete-message" role="status" aria-live="polite" hidden></p>`;
+  accessPanel.insertAdjacentElement('afterend',confirmBox);
 
-  const deleteButton=section.querySelector('#adminDeleteUser');
-  const confirmBox=section.querySelector('#adminDeleteConfirm');
-  const targetText=section.querySelector('#adminDeleteTarget');
-  const confirmInput=section.querySelector('#adminDeleteEmail');
-  const cancelButton=section.querySelector('#adminDeleteCancel');
-  const confirmButton=section.querySelector('#adminDeleteConfirmButton');
-  const deleteMessage=section.querySelector('#adminDeleteMessage');
+  const targetText=confirmBox.querySelector('#adminDeleteTarget');
+  const confirmInput=confirmBox.querySelector('#adminDeleteEmail');
+  const cancelButton=confirmBox.querySelector('#adminDeleteCancel');
+  const confirmButton=confirmBox.querySelector('#adminDeleteConfirmButton');
+  const deleteMessage=confirmBox.querySelector('#adminDeleteMessage');
   let current=null;
   let deleting=false;
 
