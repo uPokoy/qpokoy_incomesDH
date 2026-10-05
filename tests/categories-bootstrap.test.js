@@ -7,7 +7,10 @@ const vm=require('node:vm');
 
 test('categories consume bootstrap rows without GET and retain explicit reload support',async()=>{
   let reads=0;
-  const win={qPokoyApi:{async listCategories(){reads++;return [{id:'server',name:'Прочее'}];}}};
+  const win={
+    qPokoyApi:{async listCategories(){reads++;return [{id:'server',name:'Прочее'}];}},
+    matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}})
+  };
   const document={readyState:'complete',querySelector:()=>null,getElementById:()=>null};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../js/categories.js'),'utf8'),{window:win,document});
   await win.qPokoyLoadCategories({id:'user-1'},[{id:'other',name:'Подработка'},{id:'salary',name:'Зарплата'}]);
