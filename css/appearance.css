@@ -65,3 +65,29 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
   .qp-background-preview{height:64px;margin-bottom:6px;border-radius:7px;}
   .qp-background-option>span:last-child{font-size:10px;}
 }
+
+/* Mobile category add button: keep exactly one explicit SVG plus. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #incomeForm .category-popup-create-btn{
+    overflow:hidden !important;
+    font-size:0 !important;
+    line-height:0 !important;
+    text-shadow:none !important;
+    background-image:none !important;
+  }
+  #incomeForm .category-popup-create-btn::before,
+  #incomeForm .category-popup-create-btn::after{
+    content:none !important;
+    display:none !important;
+  }
+  #incomeForm .category-popup-create-btn > svg{
+    display:block !important;
+    width:18px !important;
+    height:18px !important;
+    min-width:18px !important;
+    min-height:18px !important;
+    margin:0 !important;
+    padding:0 !important;
+    flex:0 0 18px !important;
+  }
+}
