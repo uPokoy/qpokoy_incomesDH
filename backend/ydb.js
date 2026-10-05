@@ -1,10 +1,12 @@
 'use strict';
 
 const { createYdbStore: createBaseYdbStore } = require('./ydb-core');
+const { Driver, MetadataAuthService, TypedData } = require('ydb-sdk');
 
 function createYdbStore(env, DriverClass) {
   const customDriver = typeof DriverClass === 'function';
-  const store = createBaseYdbStore(env, DriverClass);
+  const config = env || process.env;
+  const store = createBaseYdbStore(config, DriverClass);
 
   // Unit/integration harnesses inject their own DriverClass and rely on the
   // original adapter semantics. The production Cloud Function does not pass
@@ -39,6 +41,45 @@ function createYdbStore(env, DriverClass) {
       return row;
     }
     return baseGetIncome(uid, id);
+  };
+
+  // The admin list is deliberately kept outside the normal application data
+  // bundle: only an authenticated admin endpoint can call this method. A lazy
+  // driver keeps ordinary user requests unchanged.
+  let adminDriver = null;
+  let adminReadyPromise = null;
+  async function readyAdminDriver() {
+    if (!adminDriver) {
+      adminDriver = new Driver({
+        endpoint: config.ENDPOINT,
+        database: config.DATABASE,
+        authService: new MetadataAuthService()
+      });
+    }
+    adminReadyPromise ||= adminDriver.ready(10000);
+    try {
+      if (!await adminReadyPromise) throw new Error('YDB admin driver is not ready');
+    } catch (error) {
+      adminReadyPromise = null;
+      throw error;
+    }
+  }
+
+  store.listAdminUsers = async function listAdminUsers() {
+    await readyAdminDriver();
+    return adminDriver.tableClient.withSession(async (session) => {
+      const result = await session.executeQuery(`
+        SELECT user_id,email,status,created_at,updated_at,trial_ends_at
+          FROM \`users\` ORDER BY created_at DESC;
+        SELECT user_id,setting_key,setting_value,updated_at
+          FROM \`settings\`
+          WHERE setting_key="billing.admin_override" OR setting_key="billing.access";
+      `);
+      const rows = (index) => result.resultSets?.[index]
+        ? TypedData.createNativeObjects(result.resultSets[index])
+        : [];
+      return { users: rows(0), settings: rows(1) };
+    });
   };
 
   return store;

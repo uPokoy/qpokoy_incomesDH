@@ -6,59 +6,168 @@
 <meta name="robots" content="noindex,nofollow">
 <title>qPokoy — Управление</title>
 <link rel="stylesheet" href="css/appearance.css?v=dev-2026.10.03.181">
-<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.03.178">
+<link rel="stylesheet" href="css/admin.css?v=dev-2026.10.05.292">
 <link rel="stylesheet" href="css/admin-platform.css?v=dev-2026.10.03.181">
 <script defer src="js/api-client.js?v=dev-2026.10.03.185"></script>
-<script defer src="js/admin.js?v=dev-2026.10.03.177"></script>
+<script defer src="js/admin.js?v=dev-2026.10.05.292"></script>
 </head>
 <body class="qp-admin qp-bg-standard">
+<header class="admin-topbar">
+  <a class="admin-brand" href="index.html" aria-label="Вернуться на qPokoy">
+    <span class="admin-brand-name">qPokoy</span>
+    <span class="admin-badge">Admin</span>
+  </a>
+  <div class="admin-topbar-right">
+    <span class="admin-topbar-section">Пользователи</span>
+    <a class="admin-site-link" href="index.html">На сайт</a>
+  </div>
+</header>
 <main>
 <section class="admin-access-shell" aria-labelledby="adminTitle">
-<h1 id="adminTitle">Управление</h1>
-<a href="index.html">Главная / вход</a>
-<p id="adminMessage" role="status" aria-live="polite">Проверяем доступ…</p>
+  <div>
+    <p class="admin-eyebrow">Панель управления</p>
+    <h1 id="adminTitle">Пользователи</h1>
+  </div>
+  <p id="adminMessage" role="status" aria-live="polite">Проверяем доступ…</p>
 </section>
+
 <section id="adminControls" hidden>
-<form id="adminSearch">
-<div class="search-line">
-<input id="adminEmail" type="email" maxlength="254" required autocomplete="off" aria-label="Email пользователя">
-<button class="search-button" type="submit" aria-label="Найти пользователя" title="Найти пользователя">
-<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg>
-</button>
-</div>
-</form>
-<article id="adminUser" hidden>
-<dl id="adminDetails" class="admin-details"></dl>
-<section class="access-panel" aria-labelledby="grantAccessTitle">
-<h2 id="grantAccessTitle">Доступ</h2>
-<div class="date-line">
-<div class="admin-date-picker">
-<input id="adminUntil" type="text" readonly inputmode="none" placeholder="дд.мм.гггг" aria-label="Дата окончания доступа" aria-haspopup="dialog" aria-expanded="false">
-<button type="button" class="admin-date-clear" id="adminDateClear" aria-label="Очистить дату" title="Очистить дату" hidden>×</button>
-<div class="admin-calendar-popup" id="adminCalendarPopup" role="dialog" aria-label="Выбор даты">
-<div class="admin-calendar-head">
-<button type="button" class="admin-calendar-nav" id="adminCalendarPrev" aria-label="Предыдущий месяц">‹</button>
-<div class="admin-calendar-heading">
-<span id="adminCalendarMonth"></span>
-<button type="button" class="admin-calendar-year-button" id="adminCalendarYearButton" aria-label="Выбрать год"></button>
-</div>
-<button type="button" class="admin-calendar-nav" id="adminCalendarNext" aria-label="Следующий месяц">›</button>
-</div>
-<div class="admin-calendar-weekdays" id="adminCalendarWeekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
-<div class="admin-calendar-days" id="adminCalendarDays"></div>
-<div class="admin-calendar-years" id="adminCalendarYears" hidden></div>
-</div>
-</div>
-</div>
-<div class="actions" aria-label="Срок доступа"><button type="button" data-choice="month">Месяц</button><button type="button" data-choice="year">Год</button><button type="button" data-choice="lifetime">Бессрочный</button></div>
-<div class="renew"><label><input id="adminAutoRenew" type="checkbox"> Автопродление на месяц / год</label></div>
-<div class="final-actions">
-<button type="button" id="adminSaveAccess" class="save-access">Сохранить</button>
-<button type="button" id="adminResetAccess" class="danger">Сбросить</button>
-</div>
-<p id="adminSaveMessage" class="admin-save-message" role="status" aria-live="polite" hidden></p>
-</section>
-</article>
+  <section class="admin-dashboard" aria-labelledby="usersTitle">
+    <div class="admin-dashboard-head">
+      <div>
+        <h2 id="usersTitle">Все пользователи</h2>
+        <p>Актуальный список всех пользователей qPokoy</p>
+      </div>
+      <div class="admin-dashboard-actions">
+        <span id="adminGeneratedAt" class="admin-updated-at"></span>
+        <button type="button" id="adminRefresh" class="admin-refresh">↻&nbsp;&nbsp;Обновить</button>
+      </div>
+    </div>
+
+    <div class="admin-stats" aria-label="Статистика пользователей">
+      <article class="admin-stat-card admin-stat-total">
+        <span class="admin-stat-icon">◎</span>
+        <div><span>Всего пользователей</span><strong id="statTotal">—</strong></div>
+      </article>
+      <article class="admin-stat-card admin-stat-active">
+        <span class="admin-stat-icon">●</span>
+        <div><span>Активные</span><strong id="statActive">—</strong></div>
+      </article>
+      <article class="admin-stat-card admin-stat-trial">
+        <span class="admin-stat-icon">◷</span>
+        <div><span>Пробный период</span><strong id="statTrial">—</strong></div>
+      </article>
+      <article class="admin-stat-card admin-stat-expired">
+        <span class="admin-stat-icon">Ⅱ</span>
+        <div><span>Без доступа</span><strong id="statExpired">—</strong></div>
+      </article>
+    </div>
+
+    <div class="admin-filters">
+      <label class="admin-search-box">
+        <span class="admin-search-icon" aria-hidden="true">⌕</span>
+        <input id="adminListSearch" type="search" autocomplete="off" placeholder="Поиск по email или user_id" aria-label="Поиск пользователей">
+      </label>
+      <label class="admin-filter-field"><span>Статус</span>
+        <select id="adminStatusFilter">
+          <option value="all">Все</option>
+          <option value="active">Активен</option>
+          <option value="pending_email">Ждёт подтверждения</option>
+          <option value="disabled">Отключён</option>
+          <option value="blocked">Заблокирован</option>
+        </select>
+      </label>
+      <label class="admin-filter-field"><span>Доступ</span>
+        <select id="adminAccessFilter">
+          <option value="all">Все</option>
+          <option value="active">Активный</option>
+          <option value="trial">Пробный</option>
+          <option value="lifetime">Бессрочный</option>
+          <option value="expired">Без доступа</option>
+        </select>
+      </label>
+      <label class="admin-filter-field"><span>Автопродление</span>
+        <select id="adminRenewFilter">
+          <option value="all">Все</option>
+          <option value="yes">Включено</option>
+          <option value="no">Выключено</option>
+        </select>
+      </label>
+      <button type="button" id="adminResetFilters" class="admin-filter-reset">Сбросить</button>
+    </div>
+
+    <form id="adminExactSearch" class="admin-exact-search" hidden>
+      <p>Список пока недоступен. Можно открыть пользователя по email.</p>
+      <div class="search-line">
+        <input id="adminEmail" type="email" maxlength="254" required autocomplete="off" placeholder="Email пользователя" aria-label="Email пользователя">
+        <button class="search-button" type="submit" aria-label="Найти пользователя" title="Найти пользователя">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg>
+        </button>
+      </div>
+    </form>
+
+    <div class="admin-table-wrap">
+      <table class="admin-users-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Статус</th>
+            <th>Доступ</th>
+            <th>Автопродление</th>
+            <th>Оплачено до</th>
+            <th>Регистрация</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="adminUsersBody"></tbody>
+      </table>
+      <div id="adminUsersEmpty" class="admin-users-empty" hidden>Пользователи не найдены.</div>
+    </div>
+    <div class="admin-table-footer">
+      <span id="adminUsersCount">Загрузка…</span>
+      <nav id="adminPagination" class="admin-pagination" aria-label="Страницы списка пользователей"></nav>
+    </div>
+  </section>
+
+  <article id="adminUser" class="admin-user-panel" hidden>
+    <div class="admin-user-panel-head">
+      <div>
+        <p class="admin-eyebrow">Карточка пользователя</p>
+        <h2 id="adminUserTitle">Пользователь</h2>
+      </div>
+      <button type="button" id="adminCloseUser" class="admin-close-user" aria-label="Закрыть карточку">×</button>
+    </div>
+    <dl id="adminDetails" class="admin-details"></dl>
+    <section class="access-panel" aria-labelledby="grantAccessTitle">
+      <h2 id="grantAccessTitle">Доступ</h2>
+      <div class="date-line">
+        <div class="admin-date-picker">
+          <input id="adminUntil" type="text" readonly inputmode="none" placeholder="дд.мм.гггг" aria-label="Дата окончания доступа" aria-haspopup="dialog" aria-expanded="false">
+          <button type="button" class="admin-date-clear" id="adminDateClear" aria-label="Очистить дату" title="Очистить дату" hidden>×</button>
+          <div class="admin-calendar-popup" id="adminCalendarPopup" role="dialog" aria-label="Выбор даты">
+            <div class="admin-calendar-head">
+              <button type="button" class="admin-calendar-nav" id="adminCalendarPrev" aria-label="Предыдущий месяц">‹</button>
+              <div class="admin-calendar-heading">
+                <span id="adminCalendarMonth"></span>
+                <button type="button" class="admin-calendar-year-button" id="adminCalendarYearButton" aria-label="Выбрать год"></button>
+              </div>
+              <button type="button" class="admin-calendar-nav" id="adminCalendarNext" aria-label="Следующий месяц">›</button>
+            </div>
+            <div class="admin-calendar-weekdays" id="adminCalendarWeekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+            <div class="admin-calendar-days" id="adminCalendarDays"></div>
+            <div class="admin-calendar-years" id="adminCalendarYears" hidden></div>
+          </div>
+        </div>
+      </div>
+      <div class="actions" aria-label="Срок доступа"><button type="button" data-choice="month">Месяц</button><button type="button" data-choice="year">Год</button><button type="button" data-choice="lifetime">Бессрочный</button></div>
+      <div class="renew"><label><input id="adminAutoRenew" type="checkbox"> Автопродление на месяц / год</label></div>
+      <div class="final-actions">
+        <button type="button" id="adminSaveAccess" class="save-access">Сохранить</button>
+        <button type="button" id="adminResetAccess" class="danger">Сбросить</button>
+      </div>
+      <p id="adminSaveMessage" class="admin-save-message" role="status" aria-live="polite" hidden></p>
+    </section>
+  </article>
 </section>
 </main>
 </body>
