@@ -38,7 +38,7 @@ function fixture(){
   return{store,user,values,now:()=>new Date(clock),setTime:v=>{clock=new Date(v);}};
 }
 
-test('precharge email includes amount, date and opt-out instructions',async()=>{
+test('precharge email includes approved layout, preview, amount, date and opt-out instructions',async()=>{
   const calls=[];
   const fakeFetch=async(url,init={})=>{
     calls.push({url,init});
@@ -50,12 +50,17 @@ test('precharge email includes amount, date and opt-out instructions',async()=>{
     chargeAt:'2026-10-09T12:00:00Z',settingsUrl:'https://qpokoy.ru/',fetchImpl:fakeFetch});
   assert.equal(result.MessageId,'precharge-1');
   const body=JSON.parse(calls[1].init.body);
-  assert.equal(body.Content.Simple.Subject.Data,'qPokoy — предстоящее автопродление');
+  assert.equal(body.Content.Simple.Subject.Data,'Предстоящее автопродление');
   assert.match(body.Content.Simple.Body.Text.Data,/149 ₽/);
   assert.match(body.Content.Simple.Body.Text.Data,/9 октября 2026/);
   assert.match(body.Content.Simple.Body.Text.Data,/Отключить автопродление/);
   assert.match(body.Content.Simple.Body.Text.Data,/Отвязать карту/);
+  assert.match(body.Content.Simple.Body.Html.Data,/149 ₽ · списание 9 октября 2026/);
+  assert.match(body.Content.Simple.Body.Html.Data,/Доступ на месяц/);
+  assert.match(body.Content.Simple.Body.Html.Data,/font-size:36px/);
+  assert.match(body.Content.Simple.Body.Html.Data,/Хотите оставить автопродление\?/);
   assert.match(body.Content.Simple.Body.Html.Data,/Управление доступом/);
+  assert.match(body.Content.Simple.Body.Html.Data,/Отключение автопродления или отвязка карты не меняют уже оплаченный период/);
 });
 
 test('notification worker is disabled by default and cannot be public HTTP',async()=>{

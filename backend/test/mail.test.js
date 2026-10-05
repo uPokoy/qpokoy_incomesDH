@@ -30,9 +30,11 @@ test('Postbox sender gets IAM token from metadata and sends UTF-8 reset email', 
   const body = JSON.parse(calls[1].init.body);
   assert.equal(body.FromEmailAddress, 'qPokoy <noreply@qpokoy.ru>');
   assert.deepEqual(body.Destination.ToAddresses, ['тест@example.com']);
-  assert.equal(body.Content.Simple.Subject.Data, 'qPokoy — восстановление пароля');
+  assert.equal(body.Content.Simple.Subject.Data, 'Восстановление пароля');
+  assert.match(body.Content.Simple.Body.Text.Data, /Вы запросили восстановление пароля/);
   assert.match(body.Content.Simple.Body.Text.Data, /30 минут/);
   assert.match(body.Content.Simple.Body.Html.Data, /Сбросьте пароль/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Вы запросили восстановление пароля\. Перейдите по ссылке, чтобы установить новый пароль\./);
   assert.match(body.Content.Simple.Body.Html.Data, /#2c6fe4/);
   assert.match(body.Content.Simple.Body.Html.Data, /Учёт доходов/);
   assert.match(body.Content.Simple.Body.Html.Data, /Команда qPokoy/);
@@ -51,9 +53,11 @@ test('Postbox sender sends UTF-8 registration verification email', async () => {
   const result = await sendEmailVerificationEmail({ to: 'тест@example.com', verificationUrl, fetchImpl: fakeFetch });
   assert.equal(result.MessageId, 'message-verify');
   const body = JSON.parse(calls[1].init.body);
-  assert.equal(body.Content.Simple.Subject.Data, 'qPokoy — подтверждение электронной почты');
+  assert.equal(body.Content.Simple.Subject.Data, 'Подтвердите электронную почту');
+  assert.match(body.Content.Simple.Body.Text.Data, /Вы создали аккаунт\. Подтвердите адрес электронной почты, чтобы завершить регистрацию\./);
   assert.match(body.Content.Simple.Body.Text.Data, /24 часа/);
   assert.match(body.Content.Simple.Body.Html.Data, /Подтвердите ваш email/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Вы создали аккаунт\. Подтвердите адрес электронной почты, чтобы завершить регистрацию\./);
   assert.match(body.Content.Simple.Body.Html.Data, /Подтвердить email/);
   assert.match(body.Content.Simple.Body.Html.Data, /#070b12/);
   assert.match(body.Content.Simple.Body.Html.Data, /#121a25/);
@@ -70,7 +74,8 @@ test('qPokoy email template escapes dynamic text and link attributes', () => {
     secondLine: 'Вторая <строка>',
     actionLabel: 'Открыть "ссылку"',
     actionUrl: 'https://qpokoy.ru/?x=1&y="2"',
-    ignoreText: "Примечание <тест>"
+    ignoreText: "Примечание <тест>",
+    previewText: 'Превью <тест>'
   });
   assert.match(html, /&lt;Письмо&gt;/);
   assert.match(html, /&lt;Подтверждение&gt;/);
@@ -79,6 +84,7 @@ test('qPokoy email template escapes dynamic text and link attributes', () => {
   assert.match(html, /Открыть &quot;ссылку&quot;/);
   assert.match(html, /x=1&amp;y=&quot;2&quot;/);
   assert.match(html, /Примечание &lt;тест&gt;/);
+  assert.match(html, /Превью &lt;тест&gt;/);
   assert.doesNotMatch(html, /<Подтверждение>/);
 });
 

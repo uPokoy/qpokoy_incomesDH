@@ -53,28 +53,36 @@ async function sendPrechargeNotificationEmail({
   const amount = new Intl.NumberFormat('ru-RU').format(Number(amountRub)) + ' ₽';
   const chargeDate = formatChargeDate(chargeAt);
   const label = planLabel(plan);
-  const subject = 'qPokoy — предстоящее автопродление';
-  const firstLine = `${label}: ${amount}. Планируемая дата списания — ${chargeDate}.`;
-  const secondLine = 'Чтобы отказаться от будущего списания, откройте qPokoy → Настройки → Данные и нажмите «Отключить автопродление» или «Отвязать карту».';
+  const subject = 'Предстоящее автопродление';
+  const previewText = `${amount} · списание ${chargeDate}`;
+  const keepAutoRenewText = 'Хотите оставить автопродление? Ничего делать не нужно — списание произойдёт автоматически в указанную дату.';
+  const optOutText = 'Чтобы отказаться от будущего списания, откройте qPokoy → Настройки → Данные и нажмите «Отключить автопродление» или «Отвязать карту».';
+  const paidPeriodText = 'Отключение автопродления или отвязка карты не меняют уже оплаченный период.';
   const text = [
-    'Предстоящее автопродление — qPokoy',
+    subject,
     '',
-    firstLine,
-    secondLine,
+    label,
+    `Сумма списания: ${amount}`,
+    `Дата списания: ${chargeDate}`,
+    '',
+    keepAutoRenewText,
     '',
     'Управление доступом: ' + settingsUrl,
     '',
-    'Отключение автопродления или отвязка карты не меняют уже оплаченный период.'
+    optOutText,
+    '',
+    paidPeriodText
   ].join('\n');
   const html = qPokoyEmailTemplate({
-    pageTitle: 'Предстоящее автопродление — qPokoy',
+    pageTitle: subject,
     icon: '&#8635;',
-    title: 'Предстоящее автопродление',
-    firstLine,
-    secondLine,
+    title: subject,
     actionLabel: 'Управление доступом',
     actionUrl: settingsUrl,
-    ignoreText: 'Отключение автопродления или отвязка карты не меняют уже оплаченный период.'
+    previewText,
+    details: { label, amount, chargeDate },
+    afterActionText: keepAutoRenewText,
+    noteLines: [optOutText, paidPeriodText]
   });
 
   const iamToken = await getIamToken(fetchImpl);

@@ -29,9 +29,48 @@ function qPokoyEmailTemplate({
   secondLine,
   actionLabel,
   actionUrl,
-  ignoreText
+  ignoreText,
+  previewText = '',
+  details = null,
+  afterActionText = '',
+  noteLines = null
 }) {
   const safeUrl = escapeHtml(actionUrl);
+  const preheader = previewText
+    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;">${escapeHtml(previewText)}</div>`
+    : '';
+  const firstLineHtml = firstLine
+    ? `<tr><td align="center" class="qp-body-text" style="color:#cdd7e5;font-size:16px;line-height:1.6;padding:0 0 12px;">${escapeHtml(firstLine)}</td></tr>`
+    : '';
+  const secondLineHtml = secondLine
+    ? `<tr><td align="center" class="qp-body-text" style="color:#cdd7e5;font-size:16px;line-height:1.6;padding:0 0 29px;">${escapeHtml(secondLine)}</td></tr>`
+    : '';
+  const detailsHtml = details ? `
+              <tr><td align="center" style="padding:0 0 22px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:420px;border-collapse:separate;border-spacing:0;border:1px solid #385d8e;border-radius:16px;background:#1b2f49;">
+                  <tr>
+                    <td align="center" style="padding:18px 20px 6px;color:#f7faff;font-size:18px;font-weight:700;line-height:1.35;">${escapeHtml(details.label)}</td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:0 20px 10px;color:#9fb3cb;font-size:13px;line-height:1.4;">Сумма списания</td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:0 20px 14px;color:#f7faff;font-size:36px;font-weight:700;line-height:1.15;">${escapeHtml(details.amount)}</td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:0 20px 6px;color:#9fb3cb;font-size:13px;line-height:1.4;">Дата списания</td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:0 20px 18px;color:#f7faff;font-size:18px;font-weight:700;line-height:1.4;">${escapeHtml(details.chargeDate)}</td>
+                  </tr>
+                </table>
+              </td></tr>` : '';
+  const afterActionHtml = afterActionText
+    ? `<tr><td align="center" class="qp-body-text" style="color:#cdd7e5;font-size:16px;line-height:1.6;padding:0 0 22px;">${escapeHtml(afterActionText)}</td></tr>`
+    : '';
+  const notes = Array.isArray(noteLines) && noteLines.length ? noteLines : [ignoreText];
+  const noteHtml = notes.filter(Boolean).map(escapeHtml).join('<br><br>');
+
   return `<!doctype html>
 <html lang="ru">
 <head>
@@ -52,6 +91,7 @@ function qPokoyEmailTemplate({
   </style>
 </head>
 <body style="margin:0;padding:0;background:#070b12;color:#eef3f8;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+${preheader}
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#070b12" style="width:100%;border-collapse:collapse;background-color:#070b12;background-image:radial-gradient(ellipse 77% 47% at -8% 72%,rgba(35,50,70,.84) 0%,rgba(30,43,61,.9) 45%,rgba(14,23,36,.89) 63%,transparent 64%),radial-gradient(ellipse 82% 53% at 108% 15%,rgba(40,55,77,.82) 0%,rgba(27,40,58,.9) 49%,rgba(12,20,32,.93) 68%,transparent 69%),linear-gradient(145deg,#05080e 0%,#09111c 42%,#070c14 72%,#04070c 100%);background-repeat:no-repeat;">
   <tr>
     <td align="center" class="qp-outer" style="padding:36px 16px 42px;">
@@ -89,8 +129,9 @@ function qPokoyEmailTemplate({
               <tr><td align="center" style="padding:0 0 25px;">
                 <h1 class="qp-h1" style="margin:0;color:#f7faff;font-size:29px;font-weight:750;line-height:1.2;">${escapeHtml(title)}</h1>
               </td></tr>
-              <tr><td align="center" class="qp-body-text" style="color:#cdd7e5;font-size:16px;line-height:1.6;padding:0 0 12px;">${escapeHtml(firstLine)}</td></tr>
-              <tr><td align="center" class="qp-body-text" style="color:#cdd7e5;font-size:16px;line-height:1.6;padding:0 0 29px;">${escapeHtml(secondLine)}</td></tr>
+              ${firstLineHtml}
+              ${secondLineHtml}
+              ${detailsHtml}
               <tr><td align="center" style="padding:0 0 24px;">
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="qp-button" style="border-collapse:separate;">
                   <tr><td align="center" bgcolor="#2c6fe4" style="border-radius:13px;background:#2c6fe4;">
@@ -98,6 +139,7 @@ function qPokoyEmailTemplate({
                   </td></tr>
                 </table>
               </td></tr>
+              ${afterActionHtml}
               <tr><td style="padding:0 0 25px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border:1px solid #344155;border-radius:12px;background:#192332;">
                   <tr><td style="padding:14px 17px;color:#c3cfdf;font-size:13px;line-height:1.55;">
@@ -107,7 +149,7 @@ function qPokoyEmailTemplate({
                 </table>
               </td></tr>
               <tr><td style="height:1px;background:#344155;font-size:1px;line-height:1px;">&nbsp;</td></tr>
-              <tr><td align="center" style="padding:20px 0 0;color:#aab5c4;font-size:13px;line-height:1.55;">${escapeHtml(ignoreText)}</td></tr>
+              <tr><td align="center" style="padding:20px 0 0;color:#aab5c4;font-size:13px;line-height:1.65;">${noteHtml}</td></tr>
             </table>
           </td>
         </tr>
@@ -154,11 +196,13 @@ async function sendPostboxEmail({ to, from, subject, text, html, fetchImpl }) {
 }
 
 async function sendPasswordResetEmail({ to, resetUrl, from = 'qPokoy <noreply@qpokoy.ru>', fetchImpl = globalThis.fetch }) {
-  const subject = 'qPokoy — восстановление пароля';
+  const subject = 'Восстановление пароля';
+  const previewText = 'Вы запросили восстановление пароля. Перейдите по ссылке, чтобы установить новый пароль.';
   const text = [
-    'Сбросьте пароль — qPokoy',
+    'Восстановление пароля',
     '',
-    'Вы отправили запрос на восстановление пароля в qPokoy.',
+    previewText,
+    '',
     'Чтобы установить новый пароль, откройте ссылку:',
     resetUrl,
     '',
@@ -173,18 +217,21 @@ async function sendPasswordResetEmail({ to, resetUrl, from = 'qPokoy <noreply@qp
     secondLine: 'Чтобы установить новый пароль, перейдите по ссылке ниже.',
     actionLabel: 'Сбросить пароль',
     actionUrl: resetUrl,
-    ignoreText: 'Если вы не отправляли запрос на восстановление пароля, просто проигнорируйте это письмо.'
+    ignoreText: 'Если вы не отправляли запрос на восстановление пароля, просто проигнорируйте это письмо.',
+    previewText
   });
   return sendPostboxEmail({ to, from, subject, text, html, fetchImpl });
 }
 
 async function sendEmailVerificationEmail({ to, verificationUrl, from = 'qPokoy <noreply@qpokoy.ru>', fetchImpl = globalThis.fetch }) {
-  const subject = 'qPokoy — подтверждение электронной почты';
+  const subject = 'Подтвердите электронную почту';
+  const previewText = 'Вы создали аккаунт. Подтвердите адрес электронной почты, чтобы завершить регистрацию.';
   const text = [
-    'Подтвердите ваш email — qPokoy',
+    'Подтвердите электронную почту',
     '',
-    'Вы создали аккаунт в qPokoy.',
-    'Чтобы завершить регистрацию и начать пользоваться сервисом, подтвердите адрес электронной почты:',
+    previewText,
+    '',
+    'Ссылка для подтверждения:',
     verificationUrl,
     '',
     'Ссылка действует 24 часа и может быть использована только один раз.',
@@ -198,7 +245,8 @@ async function sendEmailVerificationEmail({ to, verificationUrl, from = 'qPokoy 
     secondLine: 'Чтобы завершить регистрацию и начать пользоваться сервисом, подтвердите адрес электронной почты.',
     actionLabel: 'Подтвердить email',
     actionUrl: verificationUrl,
-    ignoreText: 'Если вы не создавали аккаунт в qPokoy, просто проигнорируйте это письмо.'
+    ignoreText: 'Если вы не создавали аккаунт в qPokoy, просто проигнорируйте это письмо.',
+    previewText
   });
   return sendPostboxEmail({ to, from, subject, text, html, fetchImpl });
 }
