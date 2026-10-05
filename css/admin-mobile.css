@@ -42,8 +42,10 @@
   .qp-admin .admin-users-table td{display:block;min-width:0;padding:0;border:0;background:transparent}
   .qp-admin .admin-users-table td:first-child{grid-column:1/-1;padding:0 26px 9px 0;border-bottom:1px solid #1d314a}
   .qp-admin .admin-users-table td:nth-child(n+2){padding:9px 10px;border:1px solid #203753;border-radius:10px;background:#0d1b2e}
+  .qp-admin .admin-users-table td:nth-child(5){padding-bottom:5px}
   .qp-admin .admin-users-table td:nth-child(6){grid-column:1/-1}
   .qp-admin .admin-users-table td:nth-child(n+2)::before{display:block;margin-bottom:5px;color:#7f94af;font-size:9px;line-height:1.2;font-weight:600}
+  .qp-admin .admin-users-table td:nth-child(5)::before{margin-bottom:9px}
   .qp-admin .admin-users-table td:nth-child(2)::before{content:"Статус"}
   .qp-admin .admin-users-table td:nth-child(3)::before{content:"Доступ"}
   .qp-admin .admin-users-table td:nth-child(4)::before{content:"Автопродление"}
