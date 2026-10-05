@@ -1,8 +1,10 @@
 .qp-admin .admin-mobile-filter-toggle{display:none}
 
 @media(max-width:640px){
+  body.qp-admin{touch-action:pan-y pinch-zoom}
+  body.qp-admin.qp-bg-standard{background-attachment:scroll!important}
   .qp-admin main{padding:12px 8px 32px}
-  .qp-admin .admin-topbar{height:56px;padding:0 10px}
+  .qp-admin .admin-topbar{height:56px;padding:0 10px;background:rgba(4,13,25,.96);-webkit-backdrop-filter:none;backdrop-filter:none}
   .qp-admin .admin-brand{gap:9px}
   .qp-admin .admin-brand-name{font-size:24px;letter-spacing:-1.2px}
   .qp-admin .admin-badge{padding:4px 8px;font-size:10px}
@@ -36,7 +38,8 @@
   .qp-admin .admin-users-table{display:block;width:100%;min-width:0!important;border-collapse:separate}
   .qp-admin .admin-users-table thead{display:none}
   .qp-admin .admin-users-table tbody{display:grid;gap:8px}
-  .qp-admin .admin-users-table tbody tr[role=button]{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px 10px;padding:12px;border:1px solid #213651;border-radius:12px;background:#0a1829}
+  .qp-admin .admin-users-table tbody tr[role=button]{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px 10px;padding:12px;border:1px solid #213651;border-radius:12px;background:#0a1829;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+  .qp-admin .admin-users-table tbody tr[role=button] *{-webkit-user-select:none;user-select:none}
   .qp-admin .admin-users-table tbody tr[role=button]:active{background:#10243a}
   .qp-admin .admin-users-table tbody tr[role=button]::after{content:"›";position:absolute;right:11px;top:10px;color:#607b9b;font-size:24px;line-height:1}
   .qp-admin .admin-users-table td{display:block;min-width:0;padding:0;border:0;background:transparent}
