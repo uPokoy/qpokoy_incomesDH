@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           rm -rf site
           mkdir -p site
-          cp index.html admin.html about.html offer.html pricing.html privacy.html manifest.json site/
+          cp index.html admin.html about.html service.html offer.html pricing.html privacy.html manifest.json site/
           cp -R css js icons site/
 
           commit_subject="$(git log -1 --pretty=%s)"
