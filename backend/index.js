@@ -12,6 +12,7 @@ let store;
 let paymentRouter;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const BILLING_ACCESS_SETTING = 'billing.access';
+const ADMIN_USER_PATH = /^\/admin\/users\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
 
 function normalizeIso(value) {
   if (!value) return null;
@@ -184,6 +185,7 @@ async function handler(event = {}) {
     if (!result) {
       const requestUrl = new URL(path, 'https://qpokoy.local');
       const wantsAdminList = method === 'GET' && requestUrl.pathname === '/admin/users' && !requestUrl.searchParams.has('email');
+      const adminDeleteMatch = method === 'DELETE' ? ADMIN_USER_PATH.exec(requestUrl.pathname) : null;
       if (wantsAdminList) {
         const access = await app.handle('GET', '/admin/session', {}, headers, requestContext);
         if (access.status !== 200) result = access;
@@ -191,6 +193,24 @@ async function handler(event = {}) {
         else {
           const snapshot = await store.listAdminUsers();
           result = { status: 200, body: { data: buildAdminUsersData(snapshot, process.env.BILLING_ENFORCEMENT_STARTED_AT || '') } };
+        }
+      } else if (adminDeleteMatch) {
+        const access = await app.handle('GET', '/admin/session', {}, headers, requestContext);
+        if (access.status !== 200) result = access;
+        else {
+          const targetId = adminDeleteMatch[1];
+          const currentUser = await app.handle('GET', '/auth/me', {}, headers, requestContext);
+          if (currentUser.status !== 200) result = currentUser;
+          else if (String(currentUser.body?.user?.user_id || '').toLowerCase() === targetId.toLowerCase()) {
+            result = { status: 409, body: { error: { code: 'cannot_delete_self', message: 'Нельзя удалить собственный аккаунт администратора из админ-панели.' } } };
+          } else {
+            const target = await store.getUser(targetId);
+            if (!target) result = { status: 404, body: { error: { code: 'not_found', message: 'Пользователь не найден.' } } };
+            else {
+              await store.deleteAccount(targetId);
+              result = { status: 204, body: null };
+            }
+          }
         }
       } else {
         result = await app.handle(method, path, body, headers, requestContext);
