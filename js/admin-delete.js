@@ -30,7 +30,7 @@
   confirmBox.innerHTML=`
     <p class="admin-delete-warning"><strong>Удаление необратимо.</strong> Для подтверждения введите email пользователя:</p>
     <p id="adminDeleteTarget" class="admin-delete-target"></p>
-    <input id="adminDeleteEmail" type="email" autocomplete="off" spellcheck="false" aria-label="Email для подтверждения удаления">
+    <input id="adminDeleteEmail" name="delete-confirmation-text" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" aria-label="Email для подтверждения удаления">
     <div class="admin-delete-actions">
       <button type="button" id="adminDeleteCancel" class="admin-delete-cancel">Отмена</button>
       <button type="button" id="adminDeleteConfirmButton" class="admin-delete-confirm-button" disabled>Удалить навсегда</button>
@@ -90,7 +90,7 @@
     resetConfirm();
     confirmBox.hidden=false;
     targetText.textContent=current.email;
-    confirmInput.placeholder=current.email;
+    confirmInput.placeholder='Введите email вручную';
     confirmInput.focus();
   });
   cancelButton.addEventListener('click',()=>{if(!deleting)resetConfirm();});
