@@ -59,50 +59,6 @@ else { let h=0; for(let k=0;k<n.length;k++)h=((h<<5)-h+n.charCodeAt(k))|0; i=Mat
 return {icon:icons[i],color:colors[i]};
 };
 })();
-(function(){
-const icons=[
-'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="14" rx="2"/><path d="M2 21h20"/><path d="M8 18h8"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3z"/><path d="M7 7V5h10v2"/><path d="M8 12h8"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M2 10h20"/><path d="M6 10V7h12v3"/><path d="M8 20v-6h8v6"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 12h6"/></svg>'
-];
-const colors=['#22c55e','#8b5cf6','#f59e0b','#3b82f6','#ec4899','#06b6d4','#f97316','#84cc16'];
-window.qPokoyCategoryVisual=function(name,index){
-const n=String(name||'').trim().toLowerCase();
-let i=index%icons.length;
-if(n==='зарплата') i=0;
-else if(n==='подработка') i=1;
-else if(n==='прочее') i=2;
-else { let h=0; for(let k=0;k<n.length;k++)h=((h<<5)-h+n.charCodeAt(k))|0; i=Math.abs(h)%icons.length; }
-return {icon:icons[i],color:colors[i]};
-};
-})();
-(function(){
-const icons=[
-'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="14" rx="2"/><path d="M2 21h20"/><path d="M8 18h8"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3z"/><path d="M7 7V5h10v2"/><path d="M8 12h8"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M2 10h20"/><path d="M6 10V7h12v3"/><path d="M8 20v-6h8v6"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
-'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 12h6"/></svg>'
-];
-const colors=['#22c55e','#8b5cf6','#f59e0b','#3b82f6','#ec4899','#06b6d4','#f97316','#84cc16'];
-window.qPokoyCategoryVisual=function(name,index){
-const n=String(name||'').trim().toLowerCase();
-let i=index%icons.length;
-if(n==='зарплата') i=0;
-else if(n==='подработка') i=1;
-else if(n==='прочее') i=2;
-else { let h=0; for(let k=0;k<n.length;k++)h=((h<<5)-h+n.charCodeAt(k))|0; i=Math.abs(h)%icons.length; }
-return {icon:icons[i],color:colors[i]};
-};
-})();
 function escapeHtml(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));}
 const mobileCategoryPopupMedia=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
 function syncMobileCreateRowPlacement(popup){
