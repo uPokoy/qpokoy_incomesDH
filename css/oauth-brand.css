@@ -155,3 +155,81 @@ html[data-theme="dark"] #qpAuthGate .qp-auth-card{
   html[data-theme="dark"] #qpAuthGate::after{width:78vw;height:34vw;right:-14vw;top:-8vw;}
 }
 
+/* Desktop account settings: carry the mobile control style onto PC without changing billing/auth logic. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountCard{
+    padding:20px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountCard .qp-account-row{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    align-items:stretch !important;
+    gap:10px !important;
+    margin-top:12px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAccountCard .qp-account-email{
+    grid-column:1 / -1 !important;
+    min-width:0 !important;
+    padding:12px 14px !important;
+    overflow:hidden !important;
+    border:1px solid var(--border) !important;
+    border-radius:12px !important;
+    background:var(--panel-muted) !important;
+    color:var(--text) !important;
+    font-size:14px !important;
+    line-height:1.35 !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingTerm{
+    grid-column:1 / -1 !important;
+    margin:0 !important;
+    padding:0 2px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingPurchase,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAuthLogoutBtn,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingDisableRenew,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingUnlinkCard,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAuthDeleteAccountBtn{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:46px !important;
+    margin:0 !important;
+    padding:0 14px !important;
+    border-radius:12px !important;
+    box-shadow:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings{
+    margin-top:10px !important;
+    padding-top:0 !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > div[style*="display:flex"]:not(#qpBillingDeleteWrap){
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+    margin-top:10px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingDeleteWrap{
+    display:block !important;
+    margin-top:10px !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpAuthDeleteAccountBtn{
+    border-color:color-mix(in srgb,var(--danger) 34%,var(--border)) !important;
+    background:color-mix(in srgb,var(--danger) 7%,var(--panel-muted)) !important;
+    color:color-mix(in srgb,var(--danger) 82%,var(--text)) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingStatus,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="data"] #qpBillingSettings > .settings-card-subtitle{
+    padding:0 2px !important;
+    line-height:1.4 !important;
+  }
+}
