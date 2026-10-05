@@ -1,0 +1,96 @@
+.qp-admin .admin-mobile-filter-toggle{display:none}
+
+@media(max-width:640px){
+  .qp-admin main{padding:12px 8px 32px}
+  .qp-admin .admin-topbar{height:56px;padding:0 10px}
+  .qp-admin .admin-brand{gap:9px}
+  .qp-admin .admin-brand-name{font-size:24px;letter-spacing:-1.2px}
+  .qp-admin .admin-badge{padding:4px 8px;font-size:10px}
+  .qp-admin .admin-site-link{padding:7px 10px;font-size:12px}
+
+  .qp-admin .admin-dashboard{padding:14px 12px;border-radius:14px}
+  .qp-admin .admin-dashboard-head{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:14px}
+  .qp-admin .admin-dashboard-head h2{font-size:21px;line-height:1.2}
+  .qp-admin .admin-dashboard-actions{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 8px;align-items:center;justify-content:stretch}
+  .qp-admin .admin-dashboard-status{grid-column:1;grid-row:1;font-size:11px!important;white-space:normal}
+  .qp-admin .admin-updated-at{grid-column:1;grid-row:2;font-size:10px;white-space:normal;line-height:1.3}
+  .qp-admin .admin-refresh{grid-column:2;grid-row:1/3;align-self:center}
+
+  .qp-admin .admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px;margin-bottom:12px}
+  .qp-admin .admin-stat-card{min-height:66px;padding:10px 11px;border-radius:10px}
+  .qp-admin .admin-stat-card div{gap:2px}
+  .qp-admin .admin-stat-card span{font-size:10px!important}
+  .qp-admin .admin-stat-card strong{font-size:21px}
+
+  .qp-admin .admin-filters{grid-template-columns:1fr!important;gap:8px;margin-bottom:12px}
+  .qp-admin .admin-search-box{grid-column:1!important;height:44px;padding:0 12px}
+  .qp-admin .admin-mobile-filter-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;height:42px;padding:0 12px;border:1px solid #29415f;border-radius:10px;background:#0d1b2d;color:#dbe6f4;font-weight:600;text-align:left}
+  .qp-admin .admin-mobile-filter-toggle::after{content:"";width:9px;height:9px;border-right:2px solid #8ea3bd;border-bottom:2px solid #8ea3bd;transform:rotate(45deg) translateY(-2px);transition:transform .15s ease}
+  .qp-admin .mobile-filters-open .admin-mobile-filter-toggle::after{transform:rotate(225deg) translate(-1px,-1px)}
+  .qp-admin .admin-filter-field{display:none}
+  .qp-admin .mobile-filters-open .admin-filter-field{display:flex}
+  .qp-admin .admin-custom-filter-button{height:44px}
+  .qp-admin .admin-custom-filter-option{min-height:42px}
+
+  .qp-admin .admin-table-wrap{overflow:visible;border:0;border-radius:0;background:transparent}
+  .qp-admin .admin-users-table{display:block;width:100%;min-width:0!important;border-collapse:separate}
+  .qp-admin .admin-users-table thead{display:none}
+  .qp-admin .admin-users-table tbody{display:grid;gap:8px}
+  .qp-admin .admin-users-table tbody tr[role=button]{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px 10px;padding:12px;border:1px solid #213651;border-radius:12px;background:#0a1829}
+  .qp-admin .admin-users-table tbody tr[role=button]:active{background:#10243a}
+  .qp-admin .admin-users-table tbody tr[role=button]::after{content:"›";position:absolute;right:11px;top:10px;color:#607b9b;font-size:24px;line-height:1}
+  .qp-admin .admin-users-table td{display:block;min-width:0;padding:0;border:0;background:transparent}
+  .qp-admin .admin-users-table td:first-child{grid-column:1/-1;padding:0 26px 9px 0;border-bottom:1px solid #1d314a}
+  .qp-admin .admin-users-table td:nth-child(6){grid-column:1/-1}
+  .qp-admin .admin-users-table td:nth-child(n+2)::before{display:block;margin-bottom:4px;color:#7189a7;font-size:9px;line-height:1.2;font-weight:500}
+  .qp-admin .admin-users-table td:nth-child(2)::before{content:"Статус"}
+  .qp-admin .admin-users-table td:nth-child(3)::before{content:"Доступ"}
+  .qp-admin .admin-users-table td:nth-child(4)::before{content:"Автопродление"}
+  .qp-admin .admin-users-table td:nth-child(5)::before{content:"Оплачено до"}
+  .qp-admin .admin-users-table td:nth-child(6)::before{content:"Регистрация"}
+  .qp-admin .admin-email-cell{min-width:0;gap:1px}
+  .qp-admin .admin-email-cell strong{font-size:13px;line-height:1.3}
+  .qp-admin .admin-email-cell small{font-size:9px;line-height:1.3;overflow-wrap:anywhere}
+  .qp-admin .admin-pill{max-width:100%;padding:4px 7px;font-size:10px;white-space:normal;line-height:1.2}
+  .qp-admin .admin-table-date{font-size:11px;white-space:normal}
+  .qp-admin .admin-table-footer{min-height:0;padding-top:10px;flex-direction:row!important;align-items:center!important;justify-content:space-between;gap:8px}
+  .qp-admin .admin-pagination{justify-content:flex-end!important;gap:4px}
+  .qp-admin .admin-page-button{min-width:34px;height:34px;padding:0 7px}
+
+  .qp-admin .admin-user-panel{margin-top:12px;padding:14px 12px!important;border-radius:14px}
+  .qp-admin .admin-user-panel-head{align-items:flex-start;gap:10px;margin-bottom:12px}
+  .qp-admin .admin-user-panel-head>div{min-width:0;flex:1}
+  .qp-admin .admin-user-panel-head .admin-eyebrow{display:none}
+  .qp-admin .admin-user-title-row{align-items:center!important;gap:8px!important;flex-wrap:wrap}
+  .qp-admin .admin-user-title-row h2{min-width:0;font-size:20px!important;line-height:1.2;overflow-wrap:anywhere}
+  .qp-admin .admin-delete-user{min-height:34px;padding:0 11px;font-size:12px}
+  .qp-admin .admin-close-user{width:36px;height:36px;min-height:36px;flex:0 0 36px}
+
+  .qp-admin .admin-details{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px}
+  .qp-admin .admin-detail-card{padding:9px 10px;border-radius:9px}
+  .qp-admin .admin-detail-card:first-child{display:none}
+  .qp-admin .admin-detail-card:nth-child(2){grid-column:1/-1}
+  .qp-admin .admin-detail-card dt{margin-bottom:3px;font-size:9px}
+  .qp-admin .admin-detail-card dd{font-size:11px;line-height:1.3}
+
+  .qp-admin .access-panel{margin-top:10px;padding:12px;border-radius:11px}
+  .qp-admin .access-panel h2{margin-bottom:11px;font-size:17px}
+  .qp-admin .date-line{width:100%;max-width:none;margin-bottom:8px}
+  .qp-admin .admin-date-picker{flex:1 1 100%}
+  .qp-admin #adminUntil{height:44px}
+  .qp-admin .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:9px 0 12px}
+  .qp-admin .actions button{min-height:44px;padding:0 5px;font-size:12px}
+  .qp-admin .renew{margin:4px 0 12px;font-size:12px}
+  .qp-admin .renew label{align-items:flex-start;line-height:1.35}
+  .qp-admin .renew input{width:19px;height:19px;flex:0 0 19px}
+  .qp-admin .final-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .qp-admin .save-access,.qp-admin .danger{min-height:44px;padding:0 10px;font-size:12px}
+
+  .qp-admin .admin-delete-confirm{max-width:none;margin-top:10px;padding:12px;border-radius:11px}
+  .qp-admin .admin-delete-warning{font-size:12px;line-height:1.4}
+  .qp-admin .admin-delete-target{font-size:13px}
+  .qp-admin .admin-delete-email-input{height:44px;line-height:42px}
+  .qp-admin .admin-delete-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .qp-admin .admin-delete-actions button{min-height:44px!important;padding:0 9px;font-size:12px}
+  .qp-admin .admin-calendar-popup{width:calc(100vw - 44px)!important;max-width:320px}
+}
