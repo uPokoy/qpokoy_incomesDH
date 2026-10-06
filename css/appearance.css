@@ -134,10 +134,13 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
   display:none !important;
 }
 
-/* Monthly summary bubbles use the same geometry as the year cards. */
-#incomeAnalytics .monthly-summary-card::after{
-  right:-35px !important;
-  bottom:-45px !important;
-  width:110px !important;
-  height:110px !important;
+/* Desktop month cards: match the year-card decorative bubble exactly. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #incomeAnalytics.is-monthly .monthly-summary-card::after{
+    right:-54px !important;
+    bottom:-76px !important;
+    width:150px !important;
+    height:150px !important;
+    opacity:1 !important;
+  }
 }
