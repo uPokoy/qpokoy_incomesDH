@@ -152,3 +152,18 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
   outline:none !important;
   box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 34%,transparent) !important;
 }
+
+/* Service-page inspired shell for the main statistics window only. */
+#income #incomeAnalytics:not(.is-settings-open){
+  background:
+    radial-gradient(90% 130% at 100% 0,
+      color-mix(in srgb,var(--primary) 10%,transparent),
+      transparent 58%),
+    linear-gradient(145deg,
+      color-mix(in srgb,var(--panel) 88%,#173253 12%),
+      color-mix(in srgb,var(--panel) 94%,#07111e 6%)) !important;
+  border-color:color-mix(in srgb,var(--primary) 22%,var(--border)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 18px 44px rgba(0,0,0,.22) !important;
+}
