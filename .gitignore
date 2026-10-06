@@ -21,3 +21,5 @@ secrets.json
 # Local OS/editor files.
 .DS_Store
 Thumbs.db
+
+# Deploy trigger: DEV320
