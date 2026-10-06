@@ -120,3 +120,16 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
     inset 0 1px 0 rgba(255,255,255,.02),
     0 4px 12px rgba(0,0,0,.09);
 }
+
+/* Settings polish after dashboard depth: avoid a dark strip between tabs and content. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    background:transparent !important;
+  }
+}
+
+/* The data-card accent bubble is decorative and must not overlap destructive actions. */
+#settings #qpDataCard::before{
+  content:none !important;
+  display:none !important;
+}
