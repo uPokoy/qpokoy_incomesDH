@@ -125,3 +125,23 @@
     text-indent:0 !important;
   }
 }
+
+/* DEV328: month bubbles use the same translucency as year bubbles. */
+#incomeAnalytics.is-monthly .monthly-summary-card::after{
+  background:color-mix(in srgb,var(--monthly-accent) 8%,transparent) !important;
+  opacity:1 !important;
+}
+#incomeAnalytics.is-monthly .monthly-category-card::after{
+  background:color-mix(in srgb,var(--monthly-category) 8%,transparent) !important;
+  opacity:1 !important;
+}
+
+/* Percentage badges always stay above decorative bubbles. */
+#incomeAnalytics .monthly-best-share,
+#incomeAnalytics .monthly-corner-percent,
+#incomeAnalytics .monthly-category-share,
+#incomeAnalytics .annual-month-share,
+#incomeAnalytics .annual-year-compare-percent,
+#incomeAnalytics .analytics-category-panel-share{
+  z-index:6 !important;
+}
