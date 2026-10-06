@@ -399,3 +399,29 @@
     bind();
   }
 })();
+
+(function qPokoyMoveDevVersion(){
+  function mount(){
+    const panel=document.querySelector('.qp-dev-panel');
+    const dataCard=document.getElementById('qpDataCard');
+    if(!panel||!dataCard)return;
+
+    panel.querySelector('#qPokoyDevRefresh')?.remove();
+    panel.className='qp-dev-note';
+    panel.removeAttribute('aria-label');
+    panel.style.cssText='margin:16px 0 0;padding:8px 2px 0;border:0;background:transparent;box-shadow:none;color:var(--text-muted);font-size:11px;line-height:1.35;font-weight:400;opacity:.52;text-align:left;';
+
+    const strong=panel.querySelector('#qPokoyDevVersion');
+    if(strong){
+      strong.style.cssText='font:inherit;font-weight:400;color:inherit;';
+    }
+
+    dataCard.appendChild(panel);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',mount,{once:true});
+  }else{
+    mount();
+  }
+})();
