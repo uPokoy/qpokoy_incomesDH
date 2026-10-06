@@ -82,3 +82,16 @@
     margin:0!important;
   }
 }
+
+/* DEV341: desktop statistics keeps DEV339 glow, moved from top-right to bottom-left. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #income #incomeAnalytics:not(.is-settings-open){
+    background:
+      radial-gradient(90% 130% at 0% 100%,
+        color-mix(in srgb,var(--primary) 10%,transparent),
+        transparent 58%),
+      linear-gradient(145deg,
+        color-mix(in srgb,var(--panel) 92%,transparent),
+        color-mix(in srgb,#07111e 94%,transparent)) !important;
+  }
+}
