@@ -119,12 +119,17 @@ test('ambiguous renewal retries exact parameters, while canceled renewal retains
   const h=fixture();await paidRenewable(h);h.client.failCreate=true;await assert.rejects(h.router.renewUser(h.user.id));const args=h.requests.at(-1);h.client.failCreate=false;h.setTime('2026-11-03T13:00:00Z');await h.router.renewUser(h.user.id);assert.deepEqual(h.requests.at(-1),args);
   const c=fixture();await paidRenewable(c);c.client.afterCreate=p=>{if(p.metadata.order_id!==[...c.payments.values()][0].metadata.order_id){p.status='canceled';p.paid=false;}};await c.router.renewUser(c.user.id);assert.equal(c.get(ACCESS).auto_renew,false);assert.equal(c.get(ACCESS).grace_until,'2026-11-06T12:00:00.000Z');const count=c.requests.length;await c.router.renewUser(c.user.id);assert.equal(c.requests.length,count);
 });
-test('renewal skips prelaunch, legacy users, lifetime, missing consent/method and admin overrides',async()=>{
-  for(const kind of ['prelaunch','future','legacy','lifetime','consent','method','override']){const h=fixture();await paidRenewable(h);
+test('renewal skips prelaunch, future enforcement, lifetime, missing consent/method and admin overrides',async()=>{
+  for(const kind of ['prelaunch','future','lifetime','consent','method','override']){const h=fixture();await paidRenewable(h);
     let router=h.router;if(kind==='prelaunch'||kind==='future')router=createPaymentRouter(h.store,{...h.options,billingEnforcementStartedAt:kind==='prelaunch'?'':'2030-01-01'});
-    if(kind==='legacy')h.users.get(h.user.id).created_at='2026-09-01';if(kind==='lifetime')h.set(ACCESS,{plan:'lifetime',auto_renew:true});if(kind==='consent')h.set(CONSENT_KEY,{enabled:false});if(kind==='method')h.set(METHOD,{saved:false,payment_method_id:randomUUID()});if(kind==='override')h.set('billing.admin_override',{plan:'lifetime'});
+    if(kind==='lifetime')h.set(ACCESS,{plan:'lifetime',auto_renew:true});if(kind==='consent')h.set(CONSENT_KEY,{enabled:false});if(kind==='method')h.set(METHOD,{saved:false,payment_method_id:randomUUID()});if(kind==='override')h.set('billing.admin_override',{plan:'lifetime'});
     const count=h.requests.length;assert.equal((await router.renewUser(h.user.id)).skipped,true,kind);assert.equal(h.requests.length,count);
   }
+});
+test('paid auto-renew account created before enforcement start can renew',async()=>{
+  const h=fixture();await paidRenewable(h);h.users.get(h.user.id).created_at='2026-09-01T00:00:00Z';
+  const count=h.requests.length;const result=await h.router.renewUser(h.user.id);
+  assert.equal(result.status,'succeeded');assert.equal(h.requests.length,count+1);assert.equal(h.get(ACCESS).paid_until,'2026-12-03T12:00:00.000Z');
 });
 test('old DEV182 known payments reconcile; arbitrary historical metadata cannot grant access',async()=>{
   const h=fixture(),id=randomUUID(),p={id,status:'succeeded',paid:true,amount:{value:'149.00',currency:'RUB'},metadata:{app:'qpokoy-v1',user_id:h.user.id,plan:'monthly',paid_until:'2026-11-03',grace_until:'2026-11-06'}};

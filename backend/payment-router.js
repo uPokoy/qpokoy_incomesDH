@@ -199,7 +199,7 @@ function createPaymentRouter(store, options = {}) {
   // Called only by the separately deployed private worker, never an HTTP route.
   async function renewUser(userId){
     configured();const user=await store.getUser(userId),start=Date.parse(options.billingEnforcementStartedAt||'');
-    if(!user||user.status!=='active'||!Number.isFinite(start)||start>now().getTime()||Date.parse(user.created_at)<start)return {skipped:true};
+    if(!user||user.status!=='active'||!Number.isFinite(start)||start>now().getTime())return {skipped:true};
     const order=await tx(userId,async t=>{
       const access=await t.get(BILLING_ACCESS_SETTING),method=await t.get(BILLING_PAYMENT_METHOD_SETTING),consent=await t.get(CONSENT_KEY);
       if(await t.get('billing.admin_override')||!access?.auto_renew||!['monthly','yearly'].includes(access.plan)||!consent?.enabled||consent.plan!==access.plan||!method?.saved||!methodIdValid(method.payment_method_id))return null;

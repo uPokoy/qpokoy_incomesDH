@@ -141,7 +141,8 @@ function createPrechargeNotificationWorker(store, options = {}) {
 
   async function notifyUser(userId, start) {
     const user = await store.getUser(userId);
-    if (!user || user.status !== 'active' || !user.email || Date.parse(user.created_at) < start) return { skipped: true };
+    // Account age must not suppress a later explicit paid recurring subscription.
+    if (!user || user.status !== 'active' || !user.email) return { skipped: true };
     const timestamp = now();
     const reservation = await store.withPaymentTransaction(userId, async t => {
       const access = await t.get(BILLING_ACCESS_SETTING);

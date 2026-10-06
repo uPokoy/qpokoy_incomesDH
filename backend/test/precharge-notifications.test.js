@@ -22,7 +22,7 @@ function response(status,body,asJson=false){return{ok:status>=200&&status<300,st
 function fixture(){
   let clock=new Date('2026-10-05T12:00:00Z');
   const values=new Map();
-  const user={user_id:UID,email:'user@example.com',status:'active',created_at:'2026-10-02T00:00:00Z'};
+  const user={user_id:UID,email:'user@example.com',status:'active',created_at:'2026-09-01T00:00:00Z'};
   values.set(ACCESS,{plan:'monthly',auto_renew:true,paid_until:'2026-10-09T12:00:00.000Z',last_payment_id:'payment-1234567890'});
   values.set(METHOD,{saved:true,payment_method_id:'method-1234567890',source_payment_id:'payment-1234567890'});
   values.set(CONSENT,{enabled:true,plan:'monthly',version:'consent-v1'});
