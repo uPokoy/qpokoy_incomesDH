@@ -303,3 +303,65 @@
     box-shadow:none !important;
   }
 }
+
+/* DEV339: final desktop visual consistency pass; presentation only. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #income .income-top,
+  #income #incomeForm,
+  #income #incomeAnalytics{
+    border-color:color-mix(in srgb,var(--primary) 20%,var(--border)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.028),
+      0 16px 38px rgba(0,0,0,.19) !important;
+  }
+
+  #income #incomeAnalytics:not(.is-settings-open) .analytics-card,
+  #income #incomeAnalytics:not(.is-settings-open) .annual-total-card,
+  #income #incomeAnalytics:not(.is-settings-open) .analytics-category-panel,
+  #income #incomeAnalytics:not(.is-settings-open) .monthly-summary-card,
+  #income #incomeAnalytics:not(.is-settings-open) .monthly-total-card,
+  #income #incomeAnalytics:not(.is-settings-open) .monthly-category-card,
+  #income .income-recent-card,
+  #income .income-recent-history-panel #incomeList,
+  #incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings > .settings-card{
+    border-color:color-mix(in srgb,var(--border) 84%,#7da9df 16%) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.018),
+      0 5px 14px rgba(0,0,0,.10) !important;
+    transition:border-color .15s ease,background .15s ease,box-shadow .15s ease !important;
+  }
+
+  #income .income-top .month-switcher,
+  #income .income-top .income-chart-year-switcher,
+  #income #incomeAnalytics .analytics-mode-tabs,
+  #income #incomeAnalytics .analytics-settings-toggle,
+  #income .income-recent-toggle,
+  #income .income-recent-history,
+  #income .income-recent-page-btn,
+  #income .income-history-report-btn,
+  #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
+    border-color:color-mix(in srgb,var(--border) 80%,#7da9df 20%) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.022),
+      0 4px 12px rgba(0,0,0,.08) !important;
+    transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,color .15s ease !important;
+  }
+
+  #income #incomeAnalytics:not(.is-settings-open) .analytics-category-panel:hover,
+  #income #incomeAnalytics:not(.is-settings-open) .monthly-category-card:hover,
+  #income .income-recent-card:hover{
+    border-color:color-mix(in srgb,var(--primary) 30%,var(--border)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.022),
+      0 6px 16px rgba(0,0,0,.11) !important;
+  }
+
+  #income .income-top .add-income-btn:hover,
+  #income #incomeForm .save-btn:hover,
+  #incomeAnalytics .analytics-settings-host #settings #exportDataBtn:hover,
+  #incomeAnalytics .analytics-settings-host #settings #importDataBtn:hover,
+  #incomeAnalytics .analytics-settings-host #settings #printIncomeReportBtn:hover,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add button:hover{
+    filter:brightness(1.04) !important;
+  }
+}
