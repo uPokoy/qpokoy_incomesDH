@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "qPokoy — помощник чеков «Мой налог»",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Переносит данные оплаченного платежа из админки qPokoy в форму «Мой налог». Кнопку «Выдать чек» всегда нажимает пользователь.",
   "permissions": ["storage"],
   "content_scripts": [

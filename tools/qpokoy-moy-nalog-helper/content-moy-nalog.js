@@ -70,22 +70,27 @@
     const receipt=result?.[KEY];
     if(!receipt||!Number.isFinite(Number(receipt.saved_at))||Date.now()-Number(receipt.saved_at)>MAX_AGE){chrome.storage.local.remove(KEY);return;}
     if(!Number.isFinite(Number(receipt.amount_rub))||!receipt.service_name||!Number.isFinite(Date.parse(receipt.operation_time||''))){chrome.storage.local.remove(KEY);return;}
-    let completed=false,saleClicked=false,attempts=0,observer=null,timer=null;
+    let completed=false,filling=false,saleClicked=false,attempts=0,observer=null,timer=null;
     const finish=(dateFilled)=>{
-      if(completed)return;completed=true;
+      if(completed)return;completed=true;filling=false;
       observer?.disconnect();if(timer)clearInterval(timer);chrome.storage.local.remove(KEY);
       toast(dateFilled?'qPokoy: данные подставлены. Проверьте их и нажмите «Выдать чек».':'qPokoy: сумма и услуга подставлены. Проверьте дату оплаты и нажмите «Выдать чек».',!dateFilled);
     };
     const tryFill=()=>{
-      if(completed)return;
+      if(completed||filling)return;
       attempts++;
-      let service=findField(['наименование услуги','наименование','название услуги','товар или услуга']);
-      let amount=findField(['стоимость','сумма','цена']);
+      const service=findField(['наименование услуги','наименование','название услуги','товар или услуга']);
+      const amount=findField(['стоимость','сумма','цена']);
       if(!service||!amount){
-        if(!saleClicked){const start=clickableByText(['новая продажа'],true)||clickableByText(['новая продажа']);if(start){saleClicked=true;start.click();}}
-        if(attempts>180){observer?.disconnect();if(timer)clearInterval(timer);toast('qPokoy: не удалось найти форму «Новая продажа». Откройте её вручную — данные останутся подготовлены.',true);}
+        if(!saleClicked){
+          const start=clickableByText(['новая продажа','добавить продажу']);
+          if(start){saleClicked=true;start.click();}
+        }
+        if(attempts>180){observer?.disconnect();if(timer)clearInterval(timer);toast('qPokoy: не удалось найти форму продажи. Откройте «Добавить продажу» вручную и повторите оформление чека.',true);}
         return;
       }
+      filling=true;
+      observer?.disconnect();if(timer){clearInterval(timer);timer=null;}
       setNativeValue(service,String(receipt.service_name));
       setNativeValue(amount,String(Number(receipt.amount_rub)).replace('.',','));
       clickChoice(['физическому лицу','физическое лицо']);
