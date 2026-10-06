@@ -1,6 +1,24 @@
 (function(){
   var KEY="qPokoyAccentColor", DEFAULT="#2563eb";
+  var PRESET_COLORS=[
+    {color:"#2563eb",label:"Синий"},
+    {color:"#0891b2",label:"Бирюзовый"},
+    {color:"#6366f1",label:"Индиго"},
+    {color:"#446c9c",label:"Стальной синий"},
+    {color:"#7c3aed",label:"Фиолетовый"},
+    {color:"#db2777",label:"Розовый"}
+  ];
+  var LEGACY_PRESET_MAP={"#059669":"#6366f1","#d97706":"#446c9c","#dc2626":"#7c3aed"};
   function valid(c){return /^#[0-9a-fA-F]{6}$/.test(c||"");}
+  function syncPresetPalette(){
+    document.querySelectorAll(".accent-swatch").forEach(function(el,index){
+      var preset=PRESET_COLORS[index];
+      if(!preset) return;
+      el.setAttribute("data-accent",preset.color);
+      el.setAttribute("aria-label",preset.label);
+      el.style.setProperty("--accent-swatch",preset.color);
+    });
+  }
   function apply(c){
     if(!valid(c)) c=DEFAULT;
     var root=document.documentElement;
@@ -21,11 +39,13 @@
     if(typeof window.renderIncomeMonthChart==="function") window.renderIncomeMonthChart();
   }
   function init(){
+    syncPresetPalette();
     document.querySelectorAll(".accent-swatch").forEach(function(el){el.addEventListener("click",function(){apply(el.getAttribute("data-accent"));});});
     var custom=document.getElementById("accentCustomColor");
     if(custom) custom.addEventListener("input",function(){apply(custom.value);});
     var saved=DEFAULT;
     try{saved=localStorage.getItem(KEY)||DEFAULT;}catch(e){}
+    if(LEGACY_PRESET_MAP[saved.toLowerCase()]) saved=LEGACY_PRESET_MAP[saved.toLowerCase()];
     apply(saved);
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
