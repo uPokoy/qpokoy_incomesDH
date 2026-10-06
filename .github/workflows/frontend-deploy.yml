@@ -33,19 +33,21 @@ jobs:
           commit_date="$(git show -s --format=%cs HEAD | tr '-' '.')"
           if [[ "$commit_subject" =~ ^DEV([0-9]+): ]]; then
             dev_number="${BASH_REMATCH[1]}"
-            dev_label="dev-${commit_date}.${dev_number}"
-            python - "$dev_label" <<'PY'
+            version_label="${commit_date}.${dev_number}"
+            dev_label="dev-${version_label}"
+            python - "$dev_label" "$version_label" <<'PY'
           import re
           import sys
           from pathlib import Path
 
           label = sys.argv[1]
+          display_label = sys.argv[2]
 
           index = Path('site/index.html')
           text = index.read_text(encoding='utf-8')
           text, count = re.subn(
               r'(<strong id="qPokoyDevVersion">)dev-\d{4}\.\d{2}\.\d{2}\.\d+(</strong>)',
-              rf'\g<1>{label}\g<2>',
+              rf'\g<1>{display_label}\g<2>',
               text,
               count=1,
           )
@@ -57,7 +59,7 @@ jobs:
           app_text = app.read_text(encoding='utf-8')
           app_text, count = re.subn(
               r"const qPokoyDevVersion='dev-\d{4}\.\d{2}\.\d{2}\.\d+';",
-              f"const qPokoyDevVersion='{label}';",
+              f"const qPokoyDevVersion='{display_label}';",
               app_text,
               count=1,
           )
