@@ -70,6 +70,15 @@ test('notification worker is disabled by default and cannot be public HTTP',asyn
   await assert.rejects(run({httpMethod:'POST'}),/not be public/);
 });
 
+test('old account without paid recurring state never receives a precharge notice',async()=>{
+  const h=fixture();let emails=0;
+  h.values.delete(ACCESS);h.values.delete(METHOD);h.values.delete(CONSENT);
+  const run=createPrechargeNotificationWorker(h.store,{enabled:true,billingEnforcementStartedAt:'2026-10-01',now:h.now,
+    sendEmail:async()=>{emails++;return{};}});
+  const result=await run();
+  assert.equal(result.checked,1);assert.equal(result.sent,0);assert.equal(result.failed,0);assert.equal(emails,0);
+});
+
 test('notification worker sends once per billing cycle and deduplicates later scans',async()=>{
   const h=fixture(),sent=[];
   const run=createPrechargeNotificationWorker(h.store,{enabled:true,billingEnforcementStartedAt:'2026-10-01',now:h.now,
