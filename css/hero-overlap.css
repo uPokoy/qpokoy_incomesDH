@@ -145,3 +145,161 @@
 #incomeAnalytics .analytics-category-panel-share{
   z-index:6 !important;
 }
+
+/* DEV338: bring desktop settings into the same calm glass system as the dashboard. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #income #incomeAnalytics.is-settings-open{
+    background:
+      radial-gradient(92% 135% at 100% 0,
+        color-mix(in srgb,var(--primary) 8%,transparent),
+        transparent 62%),
+      linear-gradient(145deg,
+        color-mix(in srgb,var(--panel) 91%,transparent),
+        color-mix(in srgb,#07111e 94%,transparent)) !important;
+    border-color:color-mix(in srgb,var(--primary) 20%,var(--border)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.028),
+      0 18px 44px rgba(0,0,0,.20) !important;
+  }
+
+  #incomeAnalytics.is-settings-open .analytics-settings-host{
+    background:transparent !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tabs{
+    border-color:color-mix(in srgb,var(--border) 78%,#7da9df 22%) !important;
+    background:
+      linear-gradient(145deg,
+        color-mix(in srgb,#10233b 68%,transparent),
+        color-mix(in srgb,#08111d 80%,transparent)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.022),
+      0 5px 14px rgba(0,0,0,.10) !important;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tab{
+    border:1px solid transparent !important;
+    background:transparent !important;
+    color:color-mix(in srgb,var(--text-muted) 92%,white 8%) !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tab:hover:not(.active){
+    color:var(--text) !important;
+    border-color:color-mix(in srgb,var(--primary) 18%,transparent) !important;
+    background:color-mix(in srgb,var(--primary) 6%,transparent) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host .qp-settings-tab.active{
+    color:var(--text) !important;
+    border-color:color-mix(in srgb,var(--primary) 48%,var(--border)) !important;
+    background:
+      linear-gradient(145deg,
+        color-mix(in srgb,var(--primary) 14%,var(--panel-muted)),
+        color-mix(in srgb,var(--primary) 8%,var(--panel))) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.035),
+      0 4px 12px color-mix(in srgb,var(--primary) 10%,transparent) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings > .settings-card{
+    border-color:color-mix(in srgb,var(--border) 84%,#7da9df 16%) !important;
+    background:
+      linear-gradient(150deg,
+        color-mix(in srgb,#0b1727 86%,transparent),
+        color-mix(in srgb,#070e18 91%,transparent)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.018),
+      0 8px 20px rgba(0,0,0,.12) !important;
+    backdrop-filter:blur(7px);
+    -webkit-backdrop-filter:blur(7px);
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings .settings-card input:not([type="color"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]),
+  #incomeAnalytics .analytics-settings-host #settings .settings-card select,
+  #incomeAnalytics .analytics-settings-host #settings .settings-card textarea,
+  #incomeAnalytics .analytics-settings-host #settings .settings-report-period,
+  #incomeAnalytics .analytics-settings-host #settings #qpAccountCard .qp-account-email,
+  #incomeAnalytics .analytics-settings-host #settings #qpBillingTerm{
+    border-color:color-mix(in srgb,var(--border) 88%,#7da9df 12%) !important;
+    background:
+      linear-gradient(145deg,
+        color-mix(in srgb,var(--panel) 70%,transparent),
+        color-mix(in srgb,#07111e 82%,transparent)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.014),
+      0 2px 8px rgba(0,0,0,.05) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings .settings-card input:not([type="color"]):not([type="file"]):focus,
+  #incomeAnalytics .analytics-settings-host #settings .settings-card select:focus,
+  #incomeAnalytics .analytics-settings-host #settings .settings-card textarea:focus{
+    border-color:var(--primary) !important;
+    outline:none !important;
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 24%,transparent) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-item{
+    border-color:color-mix(in srgb,var(--border) 86%,#7da9df 14%) !important;
+    background:
+      linear-gradient(150deg,
+        color-mix(in srgb,#0b1727 80%,transparent),
+        color-mix(in srgb,#070e18 88%,transparent)) !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.015) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-item:hover{
+    border-color:color-mix(in srgb,var(--category-color) 38%,var(--border)) !important;
+    background:
+      linear-gradient(150deg,
+        color-mix(in srgb,var(--category-color) 6%,#0b1727),
+        color-mix(in srgb,#070e18 90%,transparent)) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings .settings-card .btn-secondary:not(#qpAuthDeleteAccountBtn):not(#clearIncomeDataBtn),
+  #incomeAnalytics .analytics-settings-host #settings #qpBillingDisableRenew,
+  #incomeAnalytics .analytics-settings-host #settings #qpBillingUnlinkCard{
+    border-color:color-mix(in srgb,var(--border) 82%,#7da9df 18%) !important;
+    background:
+      linear-gradient(145deg,
+        color-mix(in srgb,#10233b 62%,transparent),
+        color-mix(in srgb,#08111d 76%,transparent)) !important;
+    color:var(--text) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.02),
+      0 4px 12px rgba(0,0,0,.07) !important;
+    transform:none !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings .settings-card .btn-secondary:not(#qpAuthDeleteAccountBtn):not(#clearIncomeDataBtn):hover,
+  #incomeAnalytics .analytics-settings-host #settings #qpBillingDisableRenew:hover,
+  #incomeAnalytics .analytics-settings-host #settings #qpBillingUnlinkCard:hover{
+    border-color:color-mix(in srgb,var(--primary) 32%,var(--border)) !important;
+    background:color-mix(in srgb,var(--primary) 7%,#0b1727) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings #exportDataBtn,
+  #incomeAnalytics .analytics-settings-host #settings #importDataBtn,
+  #incomeAnalytics .analytics-settings-host #settings #printIncomeReportBtn,
+  #incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-add button{
+    border-color:color-mix(in srgb,var(--primary) 70%,white 8%) !important;
+    background:
+      linear-gradient(145deg,
+        color-mix(in srgb,var(--primary) 88%,transparent),
+        color-mix(in srgb,var(--primary) 72%,#0b1727 28%)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.09),
+      0 6px 16px color-mix(in srgb,var(--primary) 14%,transparent) !important;
+  }
+
+  #incomeAnalytics .analytics-settings-host #settings #qpAuthDeleteAccountBtn,
+  #incomeAnalytics .analytics-settings-host #settings #clearIncomeDataBtn{
+    border-color:color-mix(in srgb,var(--danger) 42%,var(--border)) !important;
+    background:color-mix(in srgb,var(--danger) 8%,transparent) !important;
+    color:var(--danger) !important;
+    box-shadow:none !important;
+  }
+}
