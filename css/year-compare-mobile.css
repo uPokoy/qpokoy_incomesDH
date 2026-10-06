@@ -95,3 +95,46 @@
         color-mix(in srgb,#07111e 94%,transparent)) !important;
   }
 }
+
+/* DEV344: bring recent income cards closer to the statistics card material on desktop. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #income .income-recent-card{
+    background:
+      linear-gradient(150deg,
+        color-mix(in srgb,#0b1727 82%,transparent),
+        color-mix(in srgb,#070e18 89%,transparent)) !important;
+    border-color:color-mix(in srgb,var(--border) 84%,#7da9df 16%) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.024),
+      0 5px 14px rgba(0,0,0,.10) !important;
+    backdrop-filter:blur(7px) saturate(1.02);
+    -webkit-backdrop-filter:blur(7px) saturate(1.02);
+  }
+
+  #income .income-recent-card:hover:not(.is-selected){
+    background:
+      linear-gradient(150deg,
+        color-mix(in srgb,#0d1b2d 85%,transparent),
+        color-mix(in srgb,#08111d 91%,transparent)) !important;
+    border-color:color-mix(in srgb,var(--primary) 28%,var(--border)) !important;
+  }
+
+  #income .income-recent-category{
+    padding:5px 10px !important;
+    border:1px solid color-mix(in srgb,currentColor 38%,var(--border)) !important;
+    border-radius:10px !important;
+    background:color-mix(in srgb,currentColor 8%,transparent) !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.022) !important;
+    font-weight:650 !important;
+  }
+
+  #income .income-recent-amount{
+    font-size:27px !important;
+    font-weight:780 !important;
+    letter-spacing:-.025em !important;
+  }
+
+  #income .income-recent-date{
+    color:color-mix(in srgb,var(--text-muted) 92%,white 8%) !important;
+  }
+}
