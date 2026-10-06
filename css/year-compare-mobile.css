@@ -75,7 +75,7 @@
     white-space:nowrap!important;
     text-overflow:clip!important;
   }
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body > #annualYearComparePercent{
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-percent{
     position:absolute!important;
     top:8px!important;
     right:9px!important;
