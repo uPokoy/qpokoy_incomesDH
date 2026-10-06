@@ -359,3 +359,56 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
     filter:brightness(1.06);
   }
 }
+
+/* Service-style glass polish for the add-income window. */
+#income #incomeForm{
+  background:
+    radial-gradient(92% 135% at 100% 0,
+      color-mix(in srgb,var(--primary) 7%,transparent),
+      transparent 62%),
+    linear-gradient(145deg,
+      color-mix(in srgb,var(--panel) 91%,transparent),
+      color-mix(in srgb,#07111e 94%,transparent)) !important;
+  border-color:color-mix(in srgb,var(--primary) 18%,var(--border)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.028),
+    0 18px 44px rgba(0,0,0,.20) !important;
+  backdrop-filter:blur(10px) saturate(1.04);
+  -webkit-backdrop-filter:blur(10px) saturate(1.04);
+}
+
+#income #incomeForm .form-grid input,
+#income #incomeForm .category-select,
+#income #incomeForm .calendar-btn{
+  border-color:color-mix(in srgb,var(--border) 78%,#7da9df 22%) !important;
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb,#10233b 68%,transparent),
+      color-mix(in srgb,#08111d 78%,transparent)) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.022) !important;
+  backdrop-filter:blur(7px);
+  -webkit-backdrop-filter:blur(7px);
+}
+
+#income #incomeForm .form-grid input:hover,
+#income #incomeForm .category-select:hover,
+#income #incomeForm .calendar-btn:hover{
+  border-color:color-mix(in srgb,var(--primary) 28%,var(--border)) !important;
+}
+
+#income #incomeForm .save-btn{
+  border:1px solid color-mix(in srgb,var(--primary) 72%,white 8%) !important;
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb,var(--primary) 88%,transparent),
+      color-mix(in srgb,var(--primary) 72%,#0b1727 28%)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 7px 18px color-mix(in srgb,var(--primary) 18%,transparent) !important;
+}
+
+#income #incomeForm .cancel-btn{
+  border-color:color-mix(in srgb,var(--danger) 34%,var(--border)) !important;
+  background:color-mix(in srgb,var(--danger) 7%,transparent) !important;
+  box-shadow:none !important;
+}
