@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="css/admin-mobile.css?v=dev-2026.10.05.305">
 <script defer src="js/api-client.js?v=dev-2026.10.03.185"></script>
 <script defer src="js/admin.js?v=dev-2026.10.05.292"></script>
+<script defer src="js/admin-receipt.js?v=dev-2026.10.06.349"></script>
 <script defer src="js/admin-delete.js?v=dev-2026.10.05.299"></script>
 <script defer src="js/admin-ui-polish.js?v=dev-2026.10.05.297"></script>
 <script defer src="js/admin-mobile.js?v=dev-2026.10.05.302"></script>
@@ -130,6 +131,14 @@
       <button type="button" id="adminCloseUser" class="admin-close-user" aria-label="Закрыть карточку">×</button>
     </div>
     <dl id="adminDetails" class="admin-details"></dl>
+    <section id="adminReceiptPanel" class="access-panel" aria-labelledby="adminReceiptTitle" hidden>
+      <h2 id="adminReceiptTitle">Чек «Мой налог»</h2>
+      <p id="adminReceiptSummary">Последний оплаченный платёж готов к оформлению чека.</p>
+      <div class="final-actions">
+        <button type="button" id="adminPrepareReceipt" class="save-access">Оформить чек</button>
+      </div>
+      <p id="adminReceiptMessage" class="admin-save-message" role="status" aria-live="polite" hidden></p>
+    </section>
     <section class="access-panel" aria-labelledby="grantAccessTitle">
       <h2 id="grantAccessTitle">Доступ</h2>
       <div class="date-line">

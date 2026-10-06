@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {createApp}=require('../app');
 const {adminFixture}=require('./helpers/admin-store');
-const {grantFor,adminIds}=require('../admin-billing');
+const {grantFor,adminIds,readGrant}=require('../admin-billing');
 function harness(options={}){const h=adminFixture();h.time=new Date('2026-10-03T12:00:00Z');h.app=createApp(h.store,{now:()=>h.time,adminUserIds:[h.admin.id],billingEnforcementStartedAt:'2026-10-01',...options});h.write=(body,headers=h.admin.headers)=>h.app.handle('POST','/admin/users/'+h.target.id+'/access',body,headers);h.status=async()=> (await h.app.handle('GET','/billing/status',{},h.target.headers)).body.data;return h;}
 test('admin IDs fail closed, ordinary user cannot access or write by direct requests',async()=>{
   const h=harness();assert.equal(adminIds('bad, ').size,0);
@@ -54,4 +54,11 @@ test('admin search and writes are separately rate limited with Retry-After',asyn
 test('calendar grants clamp month-end and leap-day without overflow',()=>{
   assert.equal(grantFor('month',null,new Date('2026-01-31T12:00:00Z')).paid_until,'2026-02-28T12:00:00.000Z');
   assert.equal(grantFor('year',null,new Date('2028-02-29T12:00:00Z')).paid_until,'2029-02-28T12:00:00.000Z');
+});
+test('readGrant exposes only validated payment metadata for manual receipt helper',()=>{
+  const valid=readGrant({setting_value:JSON.stringify({plan:'monthly',paid_until:'2026-11-05T12:00:00.000Z',auto_renew:true,last_payment_id:'2f17a9b0-1234-4abc-9def-1234567890ab',last_paid_at:'2026-10-05T12:00:00+03:00'})});
+  assert.equal(valid.last_payment_id,'2f17a9b0-1234-4abc-9def-1234567890ab');
+  assert.equal(valid.last_paid_at,'2026-10-05T09:00:00.000Z');
+  const invalid=readGrant({setting_value:JSON.stringify({plan:'monthly',last_payment_id:'bad',last_paid_at:'not-a-date'})});
+  assert.equal(invalid.last_payment_id,null);assert.equal(invalid.last_paid_at,null);
 });

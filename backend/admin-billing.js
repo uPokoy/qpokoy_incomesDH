@@ -9,8 +9,12 @@ function readGrant(row) {
   try {
     const v = JSON.parse(row?.setting_value || 'null');
     if (!v || !['monthly', 'yearly', 'lifetime'].includes(v.plan)) return null;
+    const paymentId = /^[A-Za-z0-9-]{10,80}$/.test(String(v.last_payment_id || '')) ? String(v.last_payment_id) : null;
+    const paidAtMs = Date.parse(v.last_paid_at || '');
+    const paidAt = Number.isFinite(paidAtMs) ? new Date(paidAtMs).toISOString() : null;
     return { plan: v.plan, paid_until: v.paid_until || null, grace_until: v.grace_until || null,
-      auto_renew: v.plan !== 'lifetime' && v.auto_renew === true };
+      auto_renew: v.plan !== 'lifetime' && v.auto_renew === true,
+      last_payment_id: paymentId, last_paid_at: paidAt };
   } catch (_) { return null; }
 }
 function grantFor(action, date, current) {
