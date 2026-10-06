@@ -144,3 +144,11 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
     opacity:1 !important;
   }
 }
+
+/* Add-income text fields follow the selected interface accent while focused. */
+#income #incomeForm .form-grid input:focus,
+#income #incomeForm .form-grid input:focus-visible{
+  border-color:var(--primary) !important;
+  outline:none !important;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 34%,transparent) !important;
+}
