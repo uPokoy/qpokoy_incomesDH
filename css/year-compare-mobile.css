@@ -75,7 +75,7 @@
     white-space:nowrap!important;
     text-overflow:clip!important;
   }
-  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-percent{
+  #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card.annual-year-compare-card > .annual-year-compare-body > #annualYearComparePercent{
     position:absolute!important;
     top:8px!important;
     right:9px!important;
@@ -83,13 +83,13 @@
   }
 }
 
-/* DEV341: desktop statistics keeps DEV339 glow, moved from top-right to bottom-left. */
+/* DEV342: soften desktop statistics glow to match the top panel, keeping it bottom-left. */
 @media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income #incomeAnalytics:not(.is-settings-open){
     background:
-      radial-gradient(90% 130% at 0% 100%,
-        color-mix(in srgb,var(--primary) 10%,transparent),
-        transparent 58%),
+      radial-gradient(92% 135% at 0% 100%,
+        color-mix(in srgb,var(--primary) 8%,transparent),
+        transparent 60%),
       linear-gradient(145deg,
         color-mix(in srgb,var(--panel) 92%,transparent),
         color-mix(in srgb,#07111e 94%,transparent)) !important;
