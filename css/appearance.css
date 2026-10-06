@@ -66,6 +66,11 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
   .qp-background-option>span:last-child{font-size:10px;}
 }
 
+/* Keep the settings card surface neutral when the interface accent changes. */
+#incomeAnalytics .analytics-settings-host #settings.analytics-inline-settings > .settings-card{
+  background:var(--panel) !important;
+}
+
 /* Mobile category add button: keep exactly one explicit SVG plus. */
 @media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
   #incomeForm .category-popup-create-btn{
