@@ -262,3 +262,34 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
     transform:none !important;
   }
 }
+
+/* Service-page glass depth: let the site background subtly show through analytics layers. */
+#income #incomeAnalytics:not(.is-settings-open){
+  background:
+    radial-gradient(90% 130% at 100% 0,
+      color-mix(in srgb,var(--primary) 10%,transparent),
+      transparent 58%),
+    linear-gradient(145deg,
+      color-mix(in srgb,var(--panel) 92%,transparent),
+      color-mix(in srgb,#07111e 94%,transparent)) !important;
+}
+
+#income #incomeAnalytics:not(.is-settings-open) .analytics-card,
+#income #incomeAnalytics:not(.is-settings-open) .annual-total-card,
+#income #incomeAnalytics:not(.is-settings-open) .analytics-category-panel,
+#income #incomeAnalytics:not(.is-settings-open) .monthly-summary-card,
+#income #incomeAnalytics:not(.is-settings-open) .monthly-total-card,
+#income #incomeAnalytics:not(.is-settings-open) .monthly-category-card{
+  background:
+    linear-gradient(150deg,
+      color-mix(in srgb,#0b1727 82%,transparent),
+      color-mix(in srgb,#070e18 88%,transparent)) !important;
+}
+
+#income #incomeAnalytics:not(.is-settings-open) .analytics-category-panel:hover,
+#income #incomeAnalytics:not(.is-settings-open) .monthly-category-card:hover{
+  background:
+    linear-gradient(150deg,
+      color-mix(in srgb,#0d1b2d 84%,transparent),
+      color-mix(in srgb,#08111d 90%,transparent)) !important;
+}
