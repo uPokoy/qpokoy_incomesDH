@@ -6,6 +6,8 @@ const { sendPasswordResetEmail, sendEmailVerificationEmail } = require('./mail')
 const { createOAuthService } = require('./oauth');
 const { createYooKassaClient } = require('./yookassa');
 const { createPaymentRouter } = require('./payment-router');
+const { sendReceiptEmail } = require('./receipt-mail');
+const { RECEIPT_SETTING, paymentIdValue, normalizeReceiptUrl, planReceipt, readReceiptRecord } = require('./admin-receipt');
 const { OVERRIDE_KEY, readGrant } = require('./admin-billing');
 let app;
 let store;
@@ -13,6 +15,7 @@ let paymentRouter;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const BILLING_ACCESS_SETTING = 'billing.access';
 const ADMIN_USER_DELETE_PATH = /^\/admin\/users\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/delete$/i;
+const ADMIN_RECEIPT_PATH = /^\/admin\/users\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/receipt$/i;
 
 function normalizeIso(value) {
   if (!value) return null;
@@ -186,6 +189,7 @@ async function handler(event = {}) {
       const requestUrl = new URL(path, 'https://qpokoy.local');
       const wantsAdminList = method === 'GET' && requestUrl.pathname === '/admin/users' && !requestUrl.searchParams.has('email');
       const adminDeleteMatch = method === 'POST' ? ADMIN_USER_DELETE_PATH.exec(requestUrl.pathname) : null;
+      const adminReceiptMatch = (method === 'GET' || method === 'POST') ? ADMIN_RECEIPT_PATH.exec(requestUrl.pathname) : null;
       if (wantsAdminList) {
         const access = await app.handle('GET', '/admin/session', {}, headers, requestContext);
         if (access.status !== 200) result = access;
@@ -193,6 +197,72 @@ async function handler(event = {}) {
         else {
           const snapshot = await store.listAdminUsers();
           result = { status: 200, body: { data: buildAdminUsersData(snapshot, process.env.BILLING_ENFORCEMENT_STARTED_AT || '') } };
+        }
+      } else if (adminReceiptMatch) {
+        const access = await app.handle('GET', '/admin/session', {}, headers, requestContext);
+        if (access.status !== 200) result = access;
+        else {
+          const targetId = adminReceiptMatch[1];
+          const target = await store.getUser(targetId);
+          if (!target) result = { status: 404, body: { error: { code: 'not_found', message: 'Пользователь не найден.' } } };
+          else {
+            const billingRow = await store.getSetting(targetId, BILLING_ACCESS_SETTING);
+            const billing = readGrant(billingRow);
+            const expectedPaymentId = paymentIdValue(billing?.last_payment_id);
+            const receiptPlan = planReceipt(billing?.plan);
+            if (!expectedPaymentId || !receiptPlan) {
+              result = { status: 409, body: { error: { code: 'receipt_payment_unavailable', message: 'Для пользователя нет подтверждённого оплаченного платежа.' } } };
+            } else {
+              const requestedPaymentId = paymentIdValue(method === 'GET' ? requestUrl.searchParams.get('payment_id') : body.payment_id);
+              if (!requestedPaymentId || requestedPaymentId !== expectedPaymentId) {
+                result = { status: 409, body: { error: { code: 'receipt_payment_mismatch', message: 'Платёж изменился. Обновите карточку пользователя.' } } };
+              } else if (method === 'GET') {
+                const saved = readReceiptRecord(await store.getSetting(targetId, RECEIPT_SETTING));
+                result = { status: 200, body: { data: saved?.payment_id === expectedPaymentId ? saved : null } };
+              } else {
+                const receiptUrl = normalizeReceiptUrl(body.receipt_url);
+                if (!receiptUrl) {
+                  result = { status: 400, body: { error: { code: 'invalid_receipt_url', message: 'Нужна ссылка на чек с сайта «Мой налог».' } } };
+                } else {
+                  const saved = readReceiptRecord(await store.getSetting(targetId, RECEIPT_SETTING));
+                  if (saved?.payment_id === expectedPaymentId && saved.status === 'sent') {
+                    if (saved.receipt_url !== receiptUrl) {
+                      result = { status: 409, body: { error: { code: 'receipt_already_sent', message: 'Для этого платежа уже сохранён и отправлен другой чек.' } } };
+                    } else {
+                      result = { status: 200, body: { data: saved, already_sent: true } };
+                    }
+                  } else {
+                    const startedAt = new Date();
+                    if (saved?.payment_id === expectedPaymentId && saved.status === 'sending' && saved.receipt_url === receiptUrl &&
+                        saved.started_at && startedAt.getTime() - Date.parse(saved.started_at) < 5 * 60 * 1000) {
+                      result = { status: 202, body: { data: saved, sending: true } };
+                    } else {
+                      const pending = { payment_id: expectedPaymentId, receipt_url: receiptUrl, status: 'sending', started_at: startedAt.toISOString(), sent_at: null };
+                      await store.putSetting({ user_id: targetId, setting_key: RECEIPT_SETTING,
+                        setting_value: JSON.stringify(pending), updated_at: startedAt });
+                      try {
+                        await sendReceiptEmail({
+                          to: target.email,
+                          receiptUrl,
+                          amountRub: receiptPlan.amount_rub,
+                          serviceName: receiptPlan.service_name,
+                          from: process.env.POSTBOX_FROM || 'qPokoy <noreply@qpokoy.ru>'
+                        });
+                        const sentAt = new Date();
+                        const sent = { ...pending, status: 'sent', sent_at: sentAt.toISOString() };
+                        await store.putSetting({ user_id: targetId, setting_key: RECEIPT_SETTING,
+                          setting_value: JSON.stringify(sent), updated_at: sentAt });
+                        result = { status: 200, body: { data: sent, already_sent: false } };
+                      } catch (error) {
+                        try { await store.deleteSetting(targetId, RECEIPT_SETTING); } catch (_) {}
+                        throw error;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       } else if (adminDeleteMatch) {
         const access = await app.handle('GET', '/admin/session', {}, headers, requestContext);

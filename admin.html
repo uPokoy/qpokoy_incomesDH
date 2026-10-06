@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="css/admin-mobile.css?v=dev-2026.10.05.305">
 <script defer src="js/api-client.js?v=dev-2026.10.03.185"></script>
 <script defer src="js/admin.js?v=dev-2026.10.05.292"></script>
-<script defer src="js/admin-receipt.js?v=dev-2026.10.06.349"></script>
+<script defer src="js/admin-receipt.js?v=dev-2026.10.06.351"></script>
 <script defer src="js/admin-delete.js?v=dev-2026.10.05.299"></script>
 <script defer src="js/admin-ui-polish.js?v=dev-2026.10.05.297"></script>
 <script defer src="js/admin-mobile.js?v=dev-2026.10.05.302"></script>
@@ -136,6 +136,11 @@
       <p id="adminReceiptSummary">Последний оплаченный платёж готов к оформлению чека.</p>
       <div class="final-actions">
         <button type="button" id="adminPrepareReceipt" class="save-access">Оформить чек</button>
+      </div>
+      <div class="date-line">
+        <div class="admin-date-picker">
+          <input id="adminReceiptUrl" type="url" autocomplete="off" spellcheck="false" placeholder="Вставьте ссылку на чек — она сразу отправится пользователю" aria-label="Ссылка на чек Мой налог">
+        </div>
       </div>
       <p id="adminReceiptMessage" class="admin-save-message" role="status" aria-live="polite" hidden></p>
     </section>
