@@ -133,3 +133,11 @@ body.qp-bg-custom>.app{position:relative;z-index:1;background:transparent !impor
   content:none !important;
   display:none !important;
 }
+
+/* Monthly summary bubbles use the same geometry as the year cards. */
+#incomeAnalytics .monthly-summary-card::after{
+  right:-35px !important;
+  bottom:-45px !important;
+  width:110px !important;
+  height:110px !important;
+}
