@@ -16,6 +16,7 @@ const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const BILLING_ACCESS_SETTING = 'billing.access';
 const ADMIN_USER_DELETE_PATH = /^\/admin\/users\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/delete$/i;
 const ADMIN_RECEIPT_PATH = /^\/admin\/users\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/receipt$/i;
+const ADMIN_USER_ACCESS_PATH = /^\/admin\/users\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/access$/i;
 
 function normalizeIso(value) {
   if (!value) return null;
@@ -190,6 +191,7 @@ async function handler(event = {}) {
       const wantsAdminList = method === 'GET' && requestUrl.pathname === '/admin/users' && !requestUrl.searchParams.has('email');
       const adminDeleteMatch = method === 'POST' ? ADMIN_USER_DELETE_PATH.exec(requestUrl.pathname) : null;
       const adminReceiptMatch = (method === 'GET' || method === 'POST') ? ADMIN_RECEIPT_PATH.exec(requestUrl.pathname) : null;
+      const adminReceiptCompatMatch = method === 'POST' && body?.action === 'receipt' ? ADMIN_USER_ACCESS_PATH.exec(requestUrl.pathname) : null;
       if (wantsAdminList) {
         const access = await app.handle('GET', '/admin/session', {}, headers, requestContext);
         if (access.status !== 200) result = access;
@@ -198,11 +200,11 @@ async function handler(event = {}) {
           const snapshot = await store.listAdminUsers();
           result = { status: 200, body: { data: buildAdminUsersData(snapshot, process.env.BILLING_ENFORCEMENT_STARTED_AT || '') } };
         }
-      } else if (adminReceiptMatch) {
+      } else if (adminReceiptMatch || adminReceiptCompatMatch) {
         const access = await app.handle('GET', '/admin/session', {}, headers, requestContext);
         if (access.status !== 200) result = access;
         else {
-          const targetId = adminReceiptMatch[1];
+          const targetId = (adminReceiptMatch || adminReceiptCompatMatch)[1];
           const target = await store.getUser(targetId);
           if (!target) result = { status: 404, body: { error: { code: 'not_found', message: 'Пользователь не найден.' } } };
           else {
