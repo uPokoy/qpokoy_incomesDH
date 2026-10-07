@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Prepare frontend
         shell: bash
@@ -29,13 +31,20 @@ jobs:
           cp index.html admin.html about.html service.html offer.html pricing.html privacy.html manifest.json site/
           cp -R css js icons site/
 
-          commit_subject="$(git log -1 --pretty=%s)"
+          # Stable baseline: the production tree after Stage 2 corresponds to DEV363.
+          # Every later main commit gets the next DEV number automatically.
+          dev_base_sha="3ffb73e473f2eabca1904023b84d75c93468113c"
+          dev_base_number=363
+          if ! git cat-file -e "${dev_base_sha}^{commit}"; then
+            echo "DEV baseline commit is unavailable: ${dev_base_sha}" >&2
+            exit 1
+          fi
+          commits_since_base="$(git rev-list --count "${dev_base_sha}..HEAD")"
+          dev_number="$((dev_base_number + commits_since_base))"
           commit_date="$(git show -s --format=%cs HEAD | tr '-' '.')"
-          if [[ "$commit_subject" =~ ^DEV([0-9]+): ]]; then
-            dev_number="${BASH_REMATCH[1]}"
-            version_label="${commit_date}.${dev_number}"
-            dev_label="dev-${version_label}"
-            python - "$dev_label" "$version_label" <<'PY'
+          version_label="${commit_date}.${dev_number}"
+          dev_label="dev-${version_label}"
+          python - "$dev_label" "$version_label" <<'PY'
           import re
           import sys
           from pathlib import Path
@@ -75,7 +84,6 @@ jobs:
               html = asset_pattern.sub(rf'\1?v={label}"', html)
               path.write_text(html, encoding='utf-8')
           PY
-          fi
 
       - name: Install AWS CLI
         run: |
