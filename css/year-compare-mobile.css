@@ -138,3 +138,55 @@
     color:color-mix(in srgb,var(--text-muted) 92%,white 8%) !important;
   }
 }
+
+/* DEV357: make recent income cards visually match the lower statistics cards on desktop. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #income .income-recent-card{
+    overflow:hidden !important;
+    border-radius:18px !important;
+    background:var(--panel-muted) !important;
+    border-color:color-mix(in srgb,var(--primary) 24%,var(--border)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.02),
+      0 5px 14px rgba(0,0,0,.10) !important;
+  }
+
+  #income .income-recent-card::after{
+    content:"";
+    position:absolute;
+    z-index:0;
+    right:-48px;
+    bottom:-74px;
+    width:140px;
+    height:140px;
+    border-radius:50%;
+    background:color-mix(in srgb,var(--primary) 8%,transparent);
+    pointer-events:none;
+  }
+
+  #income .income-recent-amount,
+  #income .income-recent-category,
+  #income .income-recent-date{
+    position:relative;
+    z-index:1;
+  }
+
+  #income .income-recent-edit{
+    z-index:2;
+  }
+
+  #income .income-recent-category{
+    border-color:color-mix(in srgb,var(--primary) 32%,var(--border)) !important;
+    background:color-mix(in srgb,var(--primary) 9%,transparent) !important;
+    color:var(--primary) !important;
+  }
+
+  #income .income-recent-date{
+    color:color-mix(in srgb,var(--text-muted) 78%,transparent) !important;
+  }
+
+  #income .income-recent-card:hover:not(.is-selected){
+    background:color-mix(in srgb,var(--primary) 4%,var(--panel-muted)) !important;
+    border-color:color-mix(in srgb,var(--primary) 36%,var(--border)) !important;
+  }
+}
