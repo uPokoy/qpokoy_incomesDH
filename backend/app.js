@@ -110,7 +110,9 @@ function createApp(store, options = {}) {
   const oauthCallbackBaseUrl = String(options.oauthCallbackBaseUrl || '').replace(/\/$/, '');
   const allowedAdmins = adminIds(options.adminUserIds);
   const rateLimits = { ...RATE_LIMITS, ...(options.rateLimits || {}) };
+  const hasLegacyBillingStart = Object.prototype.hasOwnProperty.call(options, 'billingEnforcementStartedAt');
   const billingEnforcementStartedAt = (() => {
+    if (!hasLegacyBillingStart) return null;
     const value = options.billingEnforcementStartedAt;
     if (!value) return null;
     const parsed = value instanceof Date ? new Date(value) : new Date(String(value));
@@ -127,7 +129,7 @@ function createApp(store, options = {}) {
     const currentMs = current.getTime();
     let trialEndsAt = isoDate(user?.trial_ends_at);
     const createdAtMs = Date.parse(user?.created_at);
-    if (billingEnforcementStartedAt && Number.isFinite(createdAtMs) && createdAtMs < billingEnforcementStartedAt.getTime()) {
+    if (hasLegacyBillingStart && billingEnforcementStartedAt && Number.isFinite(createdAtMs) && createdAtMs < billingEnforcementStartedAt.getTime()) {
       const launchTrialEndsAt = new Date(billingEnforcementStartedAt.getTime() + 14 * 86400000).toISOString();
       if (!trialEndsAt || Date.parse(trialEndsAt) < Date.parse(launchTrialEndsAt)) trialEndsAt = launchTrialEndsAt;
     }
@@ -146,7 +148,7 @@ function createApp(store, options = {}) {
       if (grace && new Date(grace).getTime() > currentMs) return { ...common, mode: 'grace', status: 'grace' };
       return { ...common, mode: 'expired', status: 'expired', can_write: false };
     }
-    if (!billingEnforcementStartedAt || currentMs < billingEnforcementStartedAt.getTime()) {
+    if (hasLegacyBillingStart && (!billingEnforcementStartedAt || currentMs < billingEnforcementStartedAt.getTime())) {
       return { ...base, mode: 'prelaunch', status: 'active', plan: null };
     }
     let saved = null;
@@ -471,7 +473,6 @@ function createApp(store, options = {}) {
             }
           }
         }
-        // Always return the same response so the endpoint does not reveal whether an email is registered.
         return response(202, { ok: true });
       }
       if (method === 'POST' && pathname === '/auth/password-reset/confirm') {
@@ -508,7 +509,6 @@ function createApp(store, options = {}) {
       const { user, session } = await authenticate(headers);
       const userId = user.user_id;
       if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-        // Check the authenticated server identity on every admin request, before any lookup.
         if (!allowedAdmins.has(String(userId).toLowerCase())) throw new HttpError(403,
           allowedAdmins.size ? 'admin_forbidden' : 'admin_not_configured', 'Нет доступа к админ-панели.');
         if (method === 'GET' && pathname === '/admin/session') return response(200, { data: { admin: true } });

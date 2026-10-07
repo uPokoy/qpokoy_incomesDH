@@ -139,9 +139,8 @@ function createPrechargeNotificationWorker(store, options = {}) {
   const sendEmail = options.sendEmail || sendPrechargeNotificationEmail;
   const settingsUrl = options.settingsUrl || options.appBaseUrl || 'https://qpokoy.ru/';
 
-  async function notifyUser(userId, start) {
+  async function notifyUser(userId) {
     const user = await store.getUser(userId);
-    // Account age must not suppress a later explicit paid recurring subscription.
     if (!user || user.status !== 'active' || !user.email) return { skipped: true };
     const timestamp = now();
     const reservation = await store.withPaymentTransaction(userId, async t => {
@@ -212,8 +211,7 @@ function createPrechargeNotificationWorker(store, options = {}) {
   }
 
   return async function run(event = {}) {
-    const start = Date.parse(options.billingEnforcementStartedAt || '');
-    if (options.enabled !== true || !Number.isFinite(start) || start > now().getTime()) return { disabled: true };
+    if (options.enabled !== true) return { disabled: true };
     if (event.httpMethod || event.requestContext?.http) throw new Error('Precharge notification worker must not be public HTTP');
     let after = typeof event.cursor === 'string' ? event.cursor : '';
     if (after && !/^[0-9a-f-]{36}$/i.test(after)) throw new Error('Invalid notification cursor');
@@ -226,7 +224,7 @@ function createPrechargeNotificationWorker(store, options = {}) {
         if (elapsedNow() >= deadline) { result.next_cursor = after; return result; }
         result.checked++;
         try {
-          const notification = await notifyUser(row.user_id, start);
+          const notification = await notifyUser(row.user_id);
           if (notification.sent) result.sent++;
         } catch (_) { result.failed++; }
         after = row.user_id;
@@ -241,13 +239,11 @@ function createPrechargeNotificationWorker(store, options = {}) {
 
 let worker;
 async function handler(event = {}) {
-  const start = Date.parse(process.env.BILLING_ENFORCEMENT_STARTED_AT || '');
-  if (process.env.PRECHARGE_NOTIFICATIONS_ENABLED !== 'true' || !Number.isFinite(start) || start > Date.now()) return { disabled: true };
+  if (process.env.PRECHARGE_NOTIFICATIONS_ENABLED !== 'true') return { disabled: true };
   if (!worker) {
     const store = createYdbStore();
     worker = createPrechargeNotificationWorker(store, {
       enabled: true,
-      billingEnforcementStartedAt: process.env.BILLING_ENFORCEMENT_STARTED_AT || '',
       appBaseUrl: process.env.APP_BASE_URL || 'https://qpokoy.ru/'
     });
   }

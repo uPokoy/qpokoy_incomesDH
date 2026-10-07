@@ -5,10 +5,8 @@ const {createYooKassaClient}=require('./yookassa');
 const {createPaymentRouter}=require('./payment-router');
 const {hasValidPrechargeNoticeForUser}=require('./precharge-notifications');
 function createRenewalWorker(store,router,options={}){
-  const now=options.now||(()=>new Date());
   return async function run(event={}){
-    const start=Date.parse(options.billingEnforcementStartedAt||'');
-    if(options.enabled!==true||!Number.isFinite(start)||start>now().getTime())return {disabled:true};
+    if(options.enabled!==true)return {disabled:true};
     if(event.httpMethod||event.requestContext?.http)throw new Error('Renewal worker must not be public HTTP');
     let after=typeof event.cursor==='string'?event.cursor:'';
     if(after&&!/^[0-9a-f-]{36}$/i.test(after))throw new Error('Invalid renewal cursor');
@@ -39,13 +37,11 @@ function createRenewalWorker(store,router,options={}){
 }
 let worker;
 async function handler(event={}){
-  const start=Date.parse(process.env.BILLING_ENFORCEMENT_STARTED_AT||'');
-  if(process.env.YOOKASSA_RENEWALS_ENABLED!=='true'||!Number.isFinite(start)||start>Date.now())return {disabled:true};
+  if(process.env.YOOKASSA_RENEWALS_ENABLED!=='true')return {disabled:true};
   if(!worker){const store=createYdbStore(),router=createPaymentRouter(store,{
     client:createYooKassaClient({shopId:process.env.YOOKASSA_SHOP_ID||'',secretKey:process.env.YOOKASSA_SECRET_KEY||''}),
-    appBaseUrl:process.env.APP_BASE_URL||'https://qpokoy.ru/',billingEnforcementStartedAt:process.env.BILLING_ENFORCEMENT_STARTED_AT||''});
-    worker=createRenewalWorker(store,router,{enabled:process.env.YOOKASSA_RENEWALS_ENABLED==='true',
-      billingEnforcementStartedAt:process.env.BILLING_ENFORCEMENT_STARTED_AT||'',requirePrechargeNotice:true});}
+    appBaseUrl:process.env.APP_BASE_URL||'https://qpokoy.ru/'});
+    worker=createRenewalWorker(store,router,{enabled:true,requirePrechargeNotice:true});}
   try { return await worker(event); } catch (_) { return {failed:true,code:'renewal_worker_failed'}; }
 }
 module.exports={handler,createRenewalWorker};

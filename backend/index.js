@@ -24,13 +24,8 @@ function normalizeIso(value) {
   return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : null;
 }
 
-function buildAdminUsersData(snapshot = {}, billingEnforcementStartedAt = '', current = new Date()) {
+function buildAdminUsersData(snapshot = {}, _unused = '', current = new Date()) {
   const currentMs = current.getTime();
-  const enforcement = (() => {
-    if (!billingEnforcementStartedAt) return null;
-    const parsed = new Date(String(billingEnforcementStartedAt));
-    return Number.isFinite(parsed.getTime()) ? parsed : null;
-  })();
   const settings = new Map();
   for (const row of Array.isArray(snapshot.settings) ? snapshot.settings : []) {
     if (!row?.user_id || ![OVERRIDE_KEY, BILLING_ACCESS_SETTING, RECEIPT_SETTING].includes(row.setting_key)) continue;
@@ -39,12 +34,7 @@ function buildAdminUsersData(snapshot = {}, billingEnforcementStartedAt = '', cu
   }
 
   function accessFor(user, manual, normal) {
-    let trialEndsAt = normalizeIso(user?.trial_ends_at);
-    const createdAtMs = Date.parse(user?.created_at);
-    if (enforcement && Number.isFinite(createdAtMs) && createdAtMs < enforcement.getTime()) {
-      const launchTrialEndsAt = new Date(enforcement.getTime() + 14 * 86400000).toISOString();
-      if (!trialEndsAt || Date.parse(trialEndsAt) < Date.parse(launchTrialEndsAt)) trialEndsAt = launchTrialEndsAt;
-    }
+    const trialEndsAt = normalizeIso(user?.trial_ends_at);
     const base = {
       can_read: true,
       can_export_pdf: true,
@@ -72,9 +62,6 @@ function buildAdminUsersData(snapshot = {}, billingEnforcementStartedAt = '', cu
       if (paid && Date.parse(paid) > currentMs) return { ...common, mode: 'paid', status: 'active' };
       if (grace && Date.parse(grace) > currentMs) return { ...common, mode: 'grace', status: 'grace' };
       return { ...common, mode: 'expired', status: 'expired', can_write: false };
-    }
-    if (!enforcement || currentMs < enforcement.getTime()) {
-      return { ...base, mode: 'prelaunch', status: 'active' };
     }
     if (normal) {
       const paid = normalizeIso(normal.paid_until);
@@ -181,7 +168,6 @@ async function handler(event = {}) {
       oauth: createOAuthService(process.env),
       requireEmailVerification: String(process.env.REQUIRE_EMAIL_VERIFICATION || '').toLowerCase() === 'true',
       adminUserIds: process.env.ADMIN_USER_IDS || '',
-      billingEnforcementStartedAt: process.env.BILLING_ENFORCEMENT_STARTED_AT || '',
       sendPasswordResetEmail: ({ to, resetUrl }) => sendPasswordResetEmail({
         to,
         resetUrl,
@@ -208,7 +194,7 @@ async function handler(event = {}) {
         else if (typeof store.listAdminUsers !== 'function') result = { status: 503, body: { error: { code: 'admin_list_unavailable', message: 'Список пользователей временно недоступен.' } } };
         else {
           const snapshot = await store.listAdminUsers();
-          result = { status: 200, body: { data: buildAdminUsersData(snapshot, process.env.BILLING_ENFORCEMENT_STARTED_AT || '') } };
+          result = { status: 200, body: { data: buildAdminUsersData(snapshot) } };
         }
       } else if (adminReceiptMatch || adminReceiptCompatMatch) {
         const access = await app.handle('GET', '/admin/session', {}, headers, requestContext);

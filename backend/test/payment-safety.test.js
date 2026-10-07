@@ -36,7 +36,7 @@ function fixture(){
     },
     async getPayment(id){if(client.failGet)throw new YooKassaError('yookassa_unavailable','Synthetic unavailable',502);return structuredClone(payments.get(id));}
   };
-  const options={client,now:()=>new Date(clock),billingEnforcementStartedAt:'2026-10-01'};
+  const options={client,now:()=>new Date(clock)};
   const router=createPaymentRouter(store,options);
   const post=(body,who=user)=>router.handle('POST','/billing/payments',body,who.headers,{sourceIp:'127.0.0.1'});
   const notify=async(id,event='payment.succeeded',extra={})=>router.handle('POST','/billing/yookassa/webhook',{type:'notification',event,object:{id,...extra}}, {},{sourceIp:'127.0.0.1'});
@@ -119,14 +119,13 @@ test('ambiguous renewal retries exact parameters, while canceled renewal retains
   const h=fixture();await paidRenewable(h);h.client.failCreate=true;await assert.rejects(h.router.renewUser(h.user.id));const args=h.requests.at(-1);h.client.failCreate=false;h.setTime('2026-11-03T13:00:00Z');await h.router.renewUser(h.user.id);assert.deepEqual(h.requests.at(-1),args);
   const c=fixture();await paidRenewable(c);c.client.afterCreate=p=>{if(p.metadata.order_id!==[...c.payments.values()][0].metadata.order_id){p.status='canceled';p.paid=false;}};await c.router.renewUser(c.user.id);assert.equal(c.get(ACCESS).auto_renew,false);assert.equal(c.get(ACCESS).grace_until,'2026-11-06T12:00:00.000Z');const count=c.requests.length;await c.router.renewUser(c.user.id);assert.equal(c.requests.length,count);
 });
-test('renewal skips prelaunch, future enforcement, lifetime, missing consent/method and admin overrides',async()=>{
-  for(const kind of ['prelaunch','future','lifetime','consent','method','override']){const h=fixture();await paidRenewable(h);
-    let router=h.router;if(kind==='prelaunch'||kind==='future')router=createPaymentRouter(h.store,{...h.options,billingEnforcementStartedAt:kind==='prelaunch'?'':'2030-01-01'});
+test('renewal skips lifetime, missing consent/method and admin overrides',async()=>{
+  for(const kind of ['lifetime','consent','method','override']){const h=fixture();await paidRenewable(h);
     if(kind==='lifetime')h.set(ACCESS,{plan:'lifetime',auto_renew:true});if(kind==='consent')h.set(CONSENT_KEY,{enabled:false});if(kind==='method')h.set(METHOD,{saved:false,payment_method_id:randomUUID()});if(kind==='override')h.set('billing.admin_override',{plan:'lifetime'});
-    const count=h.requests.length;assert.equal((await router.renewUser(h.user.id)).skipped,true,kind);assert.equal(h.requests.length,count);
+    const count=h.requests.length;assert.equal((await h.router.renewUser(h.user.id)).skipped,true,kind);assert.equal(h.requests.length,count);
   }
 });
-test('paid auto-renew account created before enforcement start can renew',async()=>{
+test('paid auto-renew account age does not block renewal',async()=>{
   const h=fixture();await paidRenewable(h);h.users.get(h.user.id).created_at='2026-09-01T00:00:00Z';
   const count=h.requests.length;const result=await h.router.renewUser(h.user.id);
   assert.equal(result.status,'succeeded');assert.equal(h.requests.length,count+1);assert.equal(h.get(ACCESS).paid_until,'2026-12-03T12:00:00.000Z');
