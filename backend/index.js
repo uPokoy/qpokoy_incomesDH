@@ -33,7 +33,7 @@ function buildAdminUsersData(snapshot = {}, billingEnforcementStartedAt = '', cu
   })();
   const settings = new Map();
   for (const row of Array.isArray(snapshot.settings) ? snapshot.settings : []) {
-    if (!row?.user_id || ![OVERRIDE_KEY, BILLING_ACCESS_SETTING].includes(row.setting_key)) continue;
+    if (!row?.user_id || ![OVERRIDE_KEY, BILLING_ACCESS_SETTING, RECEIPT_SETTING].includes(row.setting_key)) continue;
     if (!settings.has(row.user_id)) settings.set(row.user_id, new Map());
     settings.get(row.user_id).set(row.setting_key, row.setting_value);
   }
@@ -105,6 +105,15 @@ function buildAdminUsersData(snapshot = {}, billingEnforcementStartedAt = '', cu
     const own = settings.get(user.user_id) || new Map();
     const manual = readGrant({ setting_value: own.get(OVERRIDE_KEY) || '' });
     const normal = readGrant({ setting_value: own.get(BILLING_ACCESS_SETTING) || '' });
+    const receipt = readReceiptRecord({ setting_value: own.get(RECEIPT_SETTING) || '' });
+    const paymentId = paymentIdValue(normal?.last_payment_id);
+    const receiptStatus = !paymentId || !planReceipt(normal?.plan)
+      ? 'not_required'
+      : receipt?.payment_id === paymentId && receipt.status === 'sent'
+        ? 'sent'
+        : receipt?.payment_id === paymentId && receipt.status === 'sending'
+          ? 'sending'
+          : 'pending';
     const assignment = manual
       ? { ...manual, source: 'admin' }
       : normal
@@ -117,7 +126,8 @@ function buildAdminUsersData(snapshot = {}, billingEnforcementStartedAt = '', cu
       created_at: user.created_at,
       trial_ends_at: user.trial_ends_at,
       billing: accessFor(user, manual, normal),
-      assignment
+      assignment,
+      receipt_status: receiptStatus
     };
   });
 

@@ -7,13 +7,14 @@
 <title>qPokoy — Управление</title>
 <link rel="stylesheet" href="css/appearance.css?v=dev-2026.10.03.181">
 <link rel="stylesheet" href="css/admin.css?v=dev-2026.10.05.292">
+<link rel="stylesheet" href="css/admin-receipt-status.css?v=dev-2026.10.07.354">
 <link rel="stylesheet" href="css/admin-platform.css?v=dev-2026.10.03.181">
 <link rel="stylesheet" href="css/admin-delete.css?v=dev-2026.10.05.300">
 <link rel="stylesheet" href="css/admin-ui-polish.css?v=dev-2026.10.05.301">
 <link rel="stylesheet" href="css/admin-mobile.css?v=dev-2026.10.05.305">
 <script defer src="js/api-client.js?v=dev-2026.10.03.185"></script>
-<script defer src="js/admin.js?v=dev-2026.10.05.292"></script>
-<script defer src="js/admin-receipt.js?v=dev-2026.10.06.351"></script>
+<script defer src="js/admin.js?v=dev-2026.10.07.354"></script>
+<script defer src="js/admin-receipt.js?v=dev-2026.10.07.354"></script>
 <script defer src="js/admin-delete.js?v=dev-2026.10.05.299"></script>
 <script defer src="js/admin-ui-polish.js?v=dev-2026.10.05.297"></script>
 <script defer src="js/admin-mobile.js?v=dev-2026.10.05.302"></script>
@@ -85,6 +86,14 @@
           <option value="all">Все</option>
           <option value="yes">Включено</option>
           <option value="no">Выключено</option>
+        </select>
+      </label>
+      <label class="admin-filter-field"><span>Чек</span>
+        <select id="adminReceiptFilter">
+          <option value="all">Все</option>
+          <option value="pending">Нужно отправить</option>
+          <option value="sent">Отправлено</option>
+          <option value="not_required">Не требуется</option>
         </select>
       </label>
       <button type="button" id="adminResetFilters" class="admin-filter-reset" hidden>Сбросить</button>

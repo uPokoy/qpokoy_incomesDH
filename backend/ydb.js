@@ -73,7 +73,7 @@ function createYdbStore(env, DriverClass) {
           FROM \`users\` ORDER BY created_at DESC;
         SELECT user_id,setting_key,setting_value,updated_at
           FROM \`settings\`
-          WHERE setting_key="billing.admin_override" OR setting_key="billing.access";
+          WHERE setting_key="billing.admin_override" OR setting_key="billing.access" OR setting_key="billing.receipt.last";
       `);
       const rows = (index) => result.resultSets?.[index]
         ? TypedData.createNativeObjects(result.resultSets[index])

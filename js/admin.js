@@ -22,6 +22,7 @@
   const statusFilter=document.getElementById('adminStatusFilter');
   const accessFilter=document.getElementById('adminAccessFilter');
   const renewFilter=document.getElementById('adminRenewFilter');
+  const receiptFilter=document.getElementById('adminReceiptFilter');
   const resetFilters=document.getElementById('adminResetFilters');
   const usersBody=document.getElementById('adminUsersBody');
   const usersEmpty=document.getElementById('adminUsersEmpty');
@@ -131,6 +132,9 @@
     if(!['monthly','yearly'].includes(a.plan))return null;
     return !!a.auto_renew;
   }
+  function receiptState(user){
+    return ['pending','sending','sent','not_required'].includes(user?.receipt_status)?user.receipt_status:'not_required';
+  }
   function paidUntil(user){
     const a=user?.assignment||user?.billing||{};
     if(a.plan==='lifetime'||user?.billing?.mode==='lifetime')return '∞';
@@ -154,6 +158,10 @@
       const renewState=renewalState(user);
       if(renewFilter.value==='yes'&&renewState!==true)return false;
       if(renewFilter.value==='no'&&renewState!==false)return false;
+      const receipt=receiptState(user);
+      if(receiptFilter.value==='pending'&&!['pending','sending'].includes(receipt))return false;
+      if(receiptFilter.value==='sent'&&receipt!=='sent')return false;
+      if(receiptFilter.value==='not_required'&&receipt!=='not_required')return false;
       return true;
     });
   }
@@ -360,7 +368,8 @@
   statusFilter.addEventListener('change',()=>{page=1;renderUsers();});
   accessFilter.addEventListener('change',()=>{page=1;renderUsers();});
   renewFilter.addEventListener('change',()=>{page=1;renderUsers();});
-  resetFilters.addEventListener('click',()=>{listSearch.value='';statusFilter.value='all';accessFilter.value='all';renewFilter.value='all';page=1;renderUsers();});
+  receiptFilter.addEventListener('change',()=>{page=1;renderUsers();});
+  resetFilters.addEventListener('click',()=>{listSearch.value='';statusFilter.value='all';accessFilter.value='all';renewFilter.value='all';receiptFilter.value='all';page=1;renderUsers();});
   closeUser.addEventListener('click',clearTarget);
   exactSearch.addEventListener('submit',async e=>{e.preventDefault();adminEmail.blur();if(busy)return;clearTarget();lock(true);try{show(await api.adminFindUser(adminEmail.value.trim()));say('Пользователь открыт.');card.scrollIntoView({behavior:'smooth',block:'start'});}catch(err){error(err);}finally{lock(false);}});
 
