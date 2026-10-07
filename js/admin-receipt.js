@@ -11,6 +11,10 @@
   const message=document.getElementById('adminReceiptMessage');
   if(!api||!card||!title||!details||!panel||!summary||!button||!receiptUrl||!message)return;
 
+  const receiptLine=receiptUrl.closest('.date-line');
+  if(receiptLine){receiptLine.style.width='100%';receiptLine.style.maxWidth='760px';}
+  Object.assign(receiptUrl.style,{width:'100%',height:'44px',padding:'0 12px',border:'1px solid #405876',borderRadius:'9px',background:'#132238',color:'#edf4fd'});
+
   const prices={monthly:149,yearly:1190,lifetime:1790};
   const labels={monthly:'Доступ к сервису qPokoy на 1 месяц',yearly:'Доступ к сервису qPokoy на 1 год',lifetime:'Бессрочный доступ к сервису qPokoy'};
   let current=null,refreshTimer=null,refreshSeq=0,sending=false;
