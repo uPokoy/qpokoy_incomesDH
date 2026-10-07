@@ -190,3 +190,26 @@
     border-color:color-mix(in srgb,var(--primary) 36%,var(--border)) !important;
   }
 }
+
+/* DEV358: remove the overly blue card fill and match the dark statistics material on desktop. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #income .income-recent-card{
+    background:
+      linear-gradient(150deg,
+        color-mix(in srgb,#0b1727 82%,transparent),
+        color-mix(in srgb,#070e18 91%,transparent)) !important;
+    border-color:color-mix(in srgb,var(--border) 86%,#7da9df 14%) !important;
+  }
+
+  #income .income-recent-card::after{
+    background:color-mix(in srgb,var(--primary) 5%,transparent) !important;
+  }
+
+  #income .income-recent-card:hover:not(.is-selected){
+    background:
+      linear-gradient(150deg,
+        color-mix(in srgb,#0d1b2d 84%,transparent),
+        color-mix(in srgb,#08111d 92%,transparent)) !important;
+    border-color:color-mix(in srgb,var(--primary) 28%,var(--border)) !important;
+  }
+}
