@@ -110,7 +110,6 @@
     return banner;
   }
 
-  function syncPendingText(){}
 
   function focusAccessBanner(scroll=true){
     const banner=ensureBanner();

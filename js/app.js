@@ -2150,11 +2150,6 @@ function getAllIncomeRecords(){
     return IncomeStore.load();
   }
 
-  function setBackupStatus(text){
-    const el=document.getElementById('incomeBackupStatus');
-    if(el) el.textContent=text||'';
-  }
-
   function exportData(){
     const records=getAllIncomeRecords();
     const payload={
@@ -2175,7 +2170,6 @@ function getAllIncomeRecords(){
     setTimeout(()=>URL.revokeObjectURL(url),1000);
     if(typeof window.qPokoyNotice==='function') window.qPokoyNotice('Экспорт завершён',`Файл с данными подготовлен. Записей: ${records.length}.`,'success');
     localStorage.setItem(BACKUP_KEY,new Date().toISOString());
-    setBackupStatus(`Экспортировано записей: ${records.length}.`);
   }
 
   function canonicalDate(value){
@@ -2235,7 +2229,6 @@ function getAllIncomeRecords(){
     const search=document.getElementById('historySearch');
     if(search) search.value='';
 
-    setBackupStatus(`Импортировано: ${clean.length}. Всего записей: ${clean.length}.`);
     if(typeof window.applyIncomeHeaderFilters==='function') window.applyIncomeHeaderFilters();
     if(typeof window.renderDashboard==='function') window.renderDashboard();
     if(typeof window.renderAnalytics==='function') window.renderAnalytics();
@@ -2244,14 +2237,6 @@ function getAllIncomeRecords(){
 
   window.IncomeBackup={exportData,importData,getAllIncomeRecords,persistRecords};
 
-  document.addEventListener('click',function(e){
-    const exportBtn=e.target.closest('#exportIncomeData');
-    if(exportBtn){ e.preventDefault(); exportData(); return; }
-
-  });
-
-  const last=localStorage.getItem(BACKUP_KEY);
-  if(last) setBackupStatus(`Последний экспорт: ${new Date(last).toLocaleString('ru-RU')}`);
 })();
 
 
