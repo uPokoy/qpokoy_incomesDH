@@ -30,7 +30,7 @@ test('receipt records fail closed and normalize timestamps', () => {
   assert.equal(readReceiptRecord({ setting_value: '{bad' }), null);
 });
 
-test('receipt email sends official link through Postbox', async () => {
+test('receipt email sends official link through Postbox without repeating brand in notification text', async () => {
   const calls = [];
   const fetchImpl = async (url, options = {}) => {
     calls.push({ url, options });
@@ -48,7 +48,9 @@ test('receipt email sends official link through Postbox', async () => {
   assert.equal(calls.length, 2);
   const body = JSON.parse(calls[1].options.body);
   assert.deepEqual(body.Destination.ToAddresses, ['buyer@example.test']);
-  assert.match(body.Content.Simple.Subject.Data, /Чек/);
+  assert.equal(body.Content.Simple.Subject.Data, 'Чек об оплате');
+  assert.match(body.Content.Simple.Body.Text.Data, /^Чек об оплате\n\nСпасибо за оплату\./);
   assert.match(body.Content.Simple.Body.Text.Data, /149/);
   assert.match(body.Content.Simple.Body.Text.Data, /lknpd\.nalog\.ru/);
+  assert.match(body.Content.Simple.Body.Html.Data, /Ваш чек на сумму 149 ₽/);
 });

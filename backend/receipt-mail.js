@@ -36,9 +36,9 @@ async function sendReceiptEmail({
   from = 'qPokoy <noreply@qpokoy.ru>',
   fetchImpl = globalThis.fetch
 }) {
-  const subject = 'Чек об оплате qPokoy';
+  const subject = 'Чек об оплате';
   const text = [
-    'Чек об оплате qPokoy',
+    'Чек об оплате',
     '',
     `Спасибо за оплату. ${serviceName}.`,
     `Сумма: ${amountRub} ₽.`,
@@ -49,15 +49,15 @@ async function sendReceiptEmail({
     'Сохраните это письмо или ссылку на чек.'
   ].join('\n');
   const html = qPokoyEmailTemplate({
-    pageTitle: 'Чек об оплате — qPokoy',
+    pageTitle: 'Чек об оплате',
     icon: '&#10003;',
     title: 'Чек об оплате',
-    firstLine: 'Спасибо за оплату qPokoy.',
+    firstLine: 'Спасибо за оплату.',
     secondLine: `${serviceName}. Сумма: ${amountRub} ₽.`,
     actionLabel: 'Открыть чек',
     actionUrl: receiptUrl,
     ignoreText: 'Это официальный чек, сформированный в сервисе «Мой налог».',
-    previewText: `Чек qPokoy на сумму ${amountRub} ₽`,
+    previewText: `Ваш чек на сумму ${amountRub} ₽`,
     noteLines: ['Это официальный чек, сформированный в сервисе «Мой налог».', 'Сохраните это письмо или ссылку на чек.']
   });
   return sendPostbox({ to, from, subject, text, html, fetchImpl });
