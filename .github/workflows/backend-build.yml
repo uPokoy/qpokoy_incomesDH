@@ -7,8 +7,11 @@ on:
       - 'backend/**'
       - 'js/**'
       - 'tests/**'
-      - 'index.html'
-      - '.github/workflows/backend-build.yml'
+      - '*.html'
+      - 'css/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/**'
 
   pull_request:
     branches: [main]
@@ -16,9 +19,11 @@ on:
       - 'backend/**'
       - 'js/**'
       - 'tests/**'
-      - 'admin.html'
-      - 'css/admin.css'
-      - '.github/workflows/backend-build.yml'
+      - '*.html'
+      - 'css/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
@@ -78,10 +83,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: API client tests
+      - name: Test dependency manager
+        uses: pnpm/action-setup@v4
+        with:
+          version: '11.19.0'
+      - name: Install test-only dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Frontend API and DOM regression tests
         run: node --test tests/*.test.js
-      - name: Syntax check
-        run: |
-          node --check js/admin.js
-          node --check js/api-client.js
-          node --check js/auth.js
+      - name: All frontend syntax and HTML/CSS structure
+        run: node tests/helpers/check-project.js

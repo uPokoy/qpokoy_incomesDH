@@ -20,6 +20,22 @@ const user={user_id:'user-1',email:'тест@example.com'};
 const cachedRow={id:'income-1',user_id:user.user_id,income_date:'2026-09-15',category:'Зарплата',description:'Кэш',amount:123};
 const bundle=(revision='revision-a')=>({user,revision,not_modified:false,incomes:[cachedRow],categories:[{id:'c1',name:'Зарплата'}],settings:[]});
 
+test('delayed bootstrap response from the old session cannot replace a new user cache',async()=>{
+  const values=new Map([[TOKEN_KEY,'old-session.secret']]);
+  const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
+  let release;
+  const response=new Promise(resolve=>{release=resolve;});
+  const api=createApiClient({storage,fetchImpl:()=>response});
+  const oldRequest=api.bootstrap();
+  const rejected=assert.rejects(oldRequest,error=>error.code==='session_changed');
+  values.set(TOKEN_KEY,'new-session.secret');
+  values.set(BOOTSTRAP_CACHE_KEY,'new-user-cache-marker');
+  release({ok:true,status:200,text:async()=>JSON.stringify(bundle())});
+  await rejected;
+  assert.equal(values.get(TOKEN_KEY),'new-session.secret');
+  assert.equal(values.get(BOOTSTRAP_CACHE_KEY),'new-user-cache-marker');
+});
+
 test('first full bootstrap saves cache; reload validates revision with no legacy requests',async()=>{
   const h=harness([ok(bundle()),ok({user,revision:'revision-a',not_modified:true})]);
   h.values.set(TOKEN_KEY,'session.secret');

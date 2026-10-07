@@ -1,0 +1,14 @@
+{
+  "name": "qpokoy-regression-tests",
+  "private": true,
+  "description": "Test-only DOM and structural checks; not included in frontend deployment",
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "check": "node tests/helpers/check-project.js"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "postcss": "8.5.6"
+  }
+}
