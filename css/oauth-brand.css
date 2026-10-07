@@ -322,3 +322,56 @@ html[data-theme="dark"] #qpAuthGate .qp-auth-card{
     row-gap:10px !important;
   }
 }
+
+/* DEV359: simplify the desktop legal/info block below Yandex OAuth without changing auth logic or mobile. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #qpAuthYandex + p{
+    margin:10px 0 0 !important;
+    font-size:0 !important;
+    line-height:1.45 !important;
+    text-align:center !important;
+    opacity:.72 !important;
+  }
+
+  #qpAuthYandex + p::before{
+    content:"Продолжая, вы принимаете условия ";
+    font-size:11px;
+  }
+
+  #qpAuthYandex + p a{
+    font-size:0 !important;
+    opacity:1 !important;
+  }
+
+  #qpAuthYandex + p a:first-of-type::before{
+    content:"Оферты";
+    font-size:11px;
+  }
+
+  #qpAuthYandex + p a:first-of-type::after{
+    content:" и ";
+    display:inline-block;
+    margin:0 2px;
+    font-size:11px;
+    text-decoration:none;
+  }
+
+  #qpAuthYandex + p a:nth-of-type(2)::before{
+    content:"Политики конфиденциальности";
+    font-size:11px;
+  }
+
+  #qpAuthYandex + p a:nth-of-type(2)::after{
+    content:".";
+    font-size:11px;
+    text-decoration:none;
+  }
+
+  #qpAuthYandex + p + nav{
+    margin-top:8px !important;
+  }
+
+  #qpAuthYandex + p + nav a:not(:first-child){
+    display:none !important;
+  }
+}
