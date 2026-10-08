@@ -4,6 +4,23 @@ CommonJS API for Yandex Cloud Functions / YDB, used by the frontend's `js/api-cl
 The build workflow checks code and creates a source archive; it does **not** deploy
 the Cloud Function, API Gateway, environment, service accounts or payment resources.
 
+## Account onboarding and whole-ruble amounts
+
+Email and OAuth registration atomically store `auth.onboarding_completed=false`
+in the existing `settings` table with the user and default categories. No schema
+migration or legacy-user backfill is needed. Missing/null legacy flags mean
+completed. Session, `/auth/me` and bootstrap user responses include the boolean;
+the internal setting itself stays private. The flag is read even on a
+`not_modified` bootstrap, adding one small settings lookup to startup.
+`PUT /settings/onboarding_completed` with `{"setting_value":"true"}` completes
+the authenticated user's tour through the existing Gateway route. It is
+idempotent, cannot reset the flag and does not require paid income write access.
+
+Income create, edit and replacement accept positive decimal numbers or decimal
+strings with a dot/comma and whitespace separators. Fractions are truncated,
+never rounded; persisted amounts remain integer rubles. Invalid, non-finite,
+non-positive amounts and values over the existing 1e12 limit are rejected.
+
 ## Modules and entry points
 
 - `index.js` exports `handler` (`index.handler`): API Gateway transport, OPTIONS/CORS,

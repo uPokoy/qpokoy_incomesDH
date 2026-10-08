@@ -1,9 +1,8 @@
 /* Desktop onboarding presentation. Demo values never enter IncomeStore/API/storage.
- * Set this flag false when a separate, approved once-per-user policy is ready. */
+ * Completion belongs to the authenticated account, not this browser. */
 (function(){
-  const ONBOARDING_TEST_MODE=true;
   const desktop=window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)');
-  if(!desktop.matches||!ONBOARDING_TEST_MODE)return;
+  if(!desktop.matches)return;
   const byId=id=>document.getElementById(id);
   const texts=[
     'Здесь самое важное: доход за текущий месяц, а также годовой график.',
@@ -12,6 +11,7 @@
     'Не нашли нужную категорию? Добавьте её здесь или позже в Настройках.'
   ];
   let started=false,finished=false,step=0,demo=false,frame=0,startFrame=0;
+  let tourUser=null;
   let target=null,tip=null,focus=null,shades=[],previousFocus=null;
   const snapshots=new Map(),attributes=[];
   const money=value=>value.toLocaleString('ru-RU')+' ₽';
@@ -97,13 +97,12 @@
     [tip,focus,...shades].forEach(node=>node?.remove());
     tip=null;focus=null;shades=[];target=null;
   }
-  function finish(){
+  function finish(completed=false){
     if(finished)return;
     finished=true;step=0;
+    if(completed)window.qPokoyAuth.completeOnboarding().catch(()=>{});
     cancelAnimationFrame(startFrame);startFrame=0;
-    removeOverlay();restoreDemo();observer.disconnect();
-    window.removeEventListener('scroll',schedule,true);
-    window.removeEventListener('resize',schedule);
+    removeOverlay();restoreDemo();
     if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});
   }
   function position(){
@@ -154,7 +153,7 @@
     tip=document.createElement('section');tip.className='qp-tour-tip';tip.id='qpOnboarding';tip.setAttribute('role','dialog');tip.setAttribute('aria-modal',step<3?'true':'false');tip.setAttribute('aria-labelledby','qpTourText');
     tip.innerHTML='<div class="qp-tour-heading"><span class="qp-tour-number" aria-hidden="true">'+step+'</span><p id="qpTourText"></p></div><div class="qp-tour-footer"><span class="qp-tour-progress">'+step+' из 4</span><button type="button" data-tour-skip>Пропустить</button>'+(step>=3?'':'<button type="button" class="qp-tour-next" data-tour-next>Далее →</button>')+'</div>';
     tip.querySelector('p').textContent=texts[step-1];
-    tip.querySelector('[data-tour-skip]').addEventListener('click',finish);
+    tip.querySelector('[data-tour-skip]').addEventListener('click',()=>finish(true));
     tip.querySelector('[data-tour-next]')?.addEventListener('click',()=>show(step+1));
     document.body.appendChild(tip);
     if(step===2){
@@ -167,13 +166,16 @@
   }
   function ready(){return !document.body.classList.contains('qp-auth-checking')&&!document.body.classList.contains('qp-auth-locked')&&!document.documentElement.classList.contains('qp-appearance-pending')&&document.querySelector('.app')?.getAttribute('aria-hidden')==='false';}
   function check(){
+    if(started&&!ready()){finish();started=false;tourUser=null;return;}
+    const user=window.qPokoyAuth?.getUser();
+    if(ready()&&user?.id!==tourUser){tourUser=user?.id;started=false;finished=false;}
     if(finished)return;
-    if(started&&!ready()){finish();return;}
     if(!started&&ready()&&desktop.matches){
+      if(window.qPokoyAuth?.getUser()?.onboarding_completed!==false)return;
       // Let the analytics renderer queued by bootstrap finish its first frame.
       if(!startFrame)startFrame=requestAnimationFrame(()=>{
         startFrame=0;
-        if(finished||!ready()||!desktop.matches)return;
+        if(finished||!ready()||!desktop.matches||window.qPokoyAuth?.getUser()?.onboarding_completed!==false)return;
         started=true;previousFocus=document.activeElement;showDemo();show(1);
       });
       return;
@@ -192,15 +194,15 @@
     if(event.target.closest('#qpOnboarding'))return;
     if(step===3&&event.target.closest('#openIncomeForm')){removeOverlay();step=-1;return;}
     if(step===4&&event.target.closest('#categoryPopup')){
-      if(event.target.closest('button.category-option,.category-popup-create'))finish();
+      if(event.target.closest('button.category-option,.category-popup-create'))finish(true);
       return;
     }
     event.preventDefault();event.stopImmediatePropagation();
   },true);
   document.addEventListener('keydown',event=>{
     if(!tip)return;
-    if(step===4&&event.key==='Enter'&&event.target.closest('.category-popup-create-input')){finish();return;}
-    if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();finish();return;}
+    if(step===4&&event.key==='Enter'&&event.target.closest('.category-popup-create-input')){finish(true);return;}
+    if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();finish(true);return;}
     if(event.key==='Tab'){
       const controls=[...tip.querySelectorAll('button')];
       if(step===3)controls.push(byId('openIncomeForm'));

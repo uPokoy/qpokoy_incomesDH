@@ -46,10 +46,10 @@ async function createHarness(options={}){
   w.HTMLAnchorElement.prototype.click=function(){};
   w.matchMedia=query=>({media:query,matches:matches(query,options),addEventListener(){},addListener(){},removeEventListener(){}});
   w.innerWidth=options.width||1440;w.innerHeight=options.height||900;
-  const users=[userA,userB];
-  const records=new Map(users.map(user=>[user.user_id,options.empty?[]:[row(user,user===userA?100:700,user.email)]]));
+  const users=[userA,userB].map(user=>({...user,...(options.onboardingCompleted===undefined?{}:{onboarding_completed:options.onboardingCompleted})}));
+  const records=new Map(users.map(user=>[user.user_id,options.empty?[]:[row(user,user.user_id===userA.user_id?100:700,user.email)]]));
   const categories=new Map(users.map(user=>[user.user_id,[{id:randomUUID(),user_id:user.user_id,name:'Зарплата'}]]));
-  let current=options.signedOut?null:userA;
+  let current=options.signedOut?null:users[0];
   let hold=null;
   const calls=[];
   const billing={mode:'active',plan:'monthly',can_write:options.readOnly!==true,auto_renew:true,payment_method_saved:true,paid_until:'2026-11-07T00:00:00Z'};
@@ -78,6 +78,7 @@ async function createHarness(options={}){
     async replaceIncomes(values){calls.push('replaceIncomes');const rows=values.map(value=>({...value,id:value.id||randomUUID(),user_id:current.user_id}));records.set(current.user_id,rows);return rows;},
     async deleteAllIncomes(){records.set(current.user_id,[]);},
     async putSetting(){},
+    async completeOnboarding(){calls.push('completeOnboarding');if(options.completionError)throw Error('Temporary failure');current.onboarding_completed=true;},
     async setBillingAutoRenew(enabled){billing.auto_renew=enabled;return {...billing};},
     async request(){return {data:{unlinked:true}};}
   };

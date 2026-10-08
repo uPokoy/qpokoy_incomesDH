@@ -81,8 +81,11 @@ UI permissions/billing wrappers elsewhere remain external, not moved here.
 `showGate(show, checking=false)`, `setMode(next)`, `getSettings()` (copies rows).
 These UI functions do not themselves log a user in/out. `cloudUser`, readiness,
 busy/generation flags, `sync`, journal and OAuth helpers remain private.
-No new public user object: normalized user (`id` from `user_id`) is passed to
-categories; account email is displayed through `#qpAccountEmail`. The auth user
+  `getUser()` returns a copy of the normalized current user (`id` from `user_id`),
+  including server `onboarding_completed`. `completeOnboarding()` marks it locally
+  and persists completion through the authenticated API once; a failed request
+  may be retried by the tour after a fresh bootstrap. User objects are passed to
+  categories; account email is displayed through `#qpAccountEmail`. The auth user
 ID global used by billing is published by clear-data, not by auth.
 
 **Legacy public cloud hooks:**

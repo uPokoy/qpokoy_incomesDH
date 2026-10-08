@@ -140,3 +140,26 @@ test('history category filter survives redraw and category removal uses confirma
   const selected=h.w.document.querySelector('.filter-choice.selected');
   assert.match(selected.textContent,/Зарплата/);noErrors(h);
 });
+
+
+test('bank amounts retain raw input/paste and save truncated whole rubles, including edit',async t=>{
+  const h=await boot(t,{empty:true});
+  for(const [input,expected] of [['100',100],['100.90',100],['100,90',100],['1 250,75',1250],['1 250.75',1250],['199.99',199]]){
+    h.node('openIncomeForm').click();
+    const field=h.node('incomeAmount');
+    const paste=new h.w.Event('paste',{bubbles:true,cancelable:true});
+    Object.defineProperty(paste,'clipboardData',{value:{getData:()=>input}});field.dispatchEvent(paste);
+    assert.equal(paste.defaultPrevented,false);
+    field.value=input;field.dispatchEvent(new h.w.Event('input',{bubbles:true}));assert.equal(field.value,input);
+    h.node('incomeDate').value='07.10.26';h.node('incomeCategory').value='Зарплата';h.node('saveIncome').click();await h.settle();
+    assert.equal(h.records.get(userA.user_id).at(-1).amount,expected);
+  }
+  const first=h.records.get(userA.user_id)[0];
+  h.node('incomeList').querySelector('.edit-income[data-id="'+first.id+'"]').click();h.node('incomeAmount').value='199.99';h.node('saveIncome').click();await h.settle();
+  assert.equal(h.records.get(userA.user_id).find(x=>x.id===first.id).amount,199);
+  for(const input of ['abc',',','.','0','-100','','Infinity','1.2.3','1e3','0.99']){
+    const count=h.records.get(userA.user_id).length;h.add(input);await h.settle();
+    assert.equal(h.records.get(userA.user_id).length,count,input);h.node('cancelIncome').click();
+  }
+  assert.ok(h.w.IncomeBackup.getAllIncomeRecords().every(x=>Number.isInteger(x.amount)));noErrors(h);
+});

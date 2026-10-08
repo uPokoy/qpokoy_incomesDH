@@ -760,5 +760,14 @@
   }
 
   // Public UI API; user/session/journal state stays private. Settings are copies.
-  window.qPokoyAuth={client:api,showGate,setMode,getSettings:()=>cloudSettings.map(row=>({...row}))};
+  window.qPokoyAuth={client:api,showGate,setMode,getSettings:()=>cloudSettings.map(row=>({...row})),
+    getUser:()=>cloudUser?{...cloudUser}:null,
+    async completeOnboarding(){
+      const user=cloudUser;
+      if(!user||user.onboarding_completed!==false)return;
+      // Close locally even on a transient failure; a fresh bootstrap may retry.
+      user.onboarding_completed=true;
+      await api.completeOnboarding();
+    }
+  };
 })();

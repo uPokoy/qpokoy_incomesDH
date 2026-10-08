@@ -7,7 +7,7 @@ const next=h=>tour(h).querySelector('[data-tour-next]').click();
 const storage=h=>JSON.stringify(Object.fromEntries(Object.keys(h.w.localStorage).map(key=>[key,h.w.localStorage.getItem(key)])));
 
 test('desktop tour uses DOM-only demo, restores real records before plus and waits for actual category popup',async t=>{
-  const h=await createHarness({onboarding:true});t.after(()=>h.close());
+  const h=await createHarness({onboarding:true,onboardingCompleted:false});t.after(()=>h.close());
   assert.match(tour(h).textContent,/1 из 4/);
   assert.equal(h.node('incomeTotal').textContent,'57 600 ₽');
   assert.equal(h.node('monthlyGrowthValue').textContent,'+8%');
@@ -42,7 +42,7 @@ test('desktop tour uses DOM-only demo, restores real records before plus and wai
   h.node('cancelIncome').click();
   assert.equal(JSON.stringify([...h.records]),records);
   assert.equal(JSON.stringify([...h.categories]),categories);
-  assert.equal(storage(h),beforeStorage);assert.deepEqual(h.calls,beforeCalls);
+  assert.equal(storage(h),beforeStorage);assert.deepEqual(h.calls,[...beforeCalls,'completeOnboarding']);
   assert.deepEqual(h.errors,[]);
   // Ordinary existing CRUD handlers work after completing the presentation.
   h.add(123,'After tour');await h.settle();
@@ -50,33 +50,34 @@ test('desktop tour uses DOM-only demo, restores real records before plus and wai
   assert.equal(h.calls.filter(value=>value==='addIncome').length,1);
 });
 
-test('Skip stops all later hints, restores real UI and does not persist tour status',async t=>{
-  const h=await createHarness({onboarding:true});t.after(()=>h.close());
+test('Skip persists completion once and restores real UI without storing demo data',async t=>{
+  const h=await createHarness({onboarding:true,onboardingCompleted:false});t.after(()=>h.close());
   const before=storage(h),calls=[...h.calls];
   tour(h).querySelector('[data-tour-skip]').click();
   assert.equal(tour(h),null);assert.match(h.node('incomeTotal').textContent,/100/);
   assert.equal(h.w.document.querySelector('.qp-tour-shade,.qp-tour-focus,.qp-tour-demo-badge'),null);
   h.node('openIncomeForm').click();h.node('categorySelect').click();await h.settle();
-  assert.equal(tour(h),null);assert.equal(storage(h),before);assert.deepEqual(h.calls,calls);
+  assert.equal(tour(h),null);assert.equal(storage(h),before);assert.deepEqual(h.calls,[...calls,'completeOnboarding']);
   assert.deepEqual(h.errors,[]);
-  const reload=await createHarness({onboarding:true});t.after(()=>reload.close());
-  assert.match(tour(reload).textContent,/1 из 4/);
+  const reload=await createHarness({onboarding:true,onboardingCompleted:h.w.qPokoyAuth.getUser().onboarding_completed});t.after(()=>reload.close());
+  assert.equal(tour(reload),null);
+  await h.logout();await h.login();assert.equal(tour(h),null);
 });
 
 test('onboarding waits for authenticated bootstrap and never appears on mobile or signed-out screen',async t=>{
   for(const options of [{signedOut:true},{width:390,height:844,pointer:'coarse'}]){
-    const h=await createHarness({...options,onboarding:true});t.after(()=>h.close());
+    const h=await createHarness({...options,onboarding:true,onboardingCompleted:false});t.after(()=>h.close());
     assert.equal(tour(h),null);assert.equal(h.w.document.querySelector('.qp-tour-demo-badge'),null);
     assert.deepEqual(h.errors,[]);
   }
   let release;const bootstrapGate=new Promise(resolve=>{release=resolve;});
-  const h=await createHarness({onboarding:true,bootstrapGate});t.after(()=>h.close());
+  const h=await createHarness({onboarding:true,onboardingCompleted:false,bootstrapGate});t.after(()=>h.close());
   assert.equal(tour(h),null);release();await h.settle();
   assert.match(tour(h).textContent,/1 из 4/);assert.deepEqual(h.errors,[]);
 });
 
 test('real data render cancels presentation rather than retaining stale demo values',async t=>{
-  const h=await createHarness({onboarding:true});t.after(()=>h.close());
+  const h=await createHarness({onboarding:true,onboardingCompleted:false});t.after(()=>h.close());
   h.w.renderIncomes();await h.settle();
   assert.equal(tour(h),null);assert.match(h.node('incomeTotal').textContent,/100/);
   assert.equal(h.w.document.querySelector('.qp-tour-demo-badge'),null);
@@ -84,7 +85,7 @@ test('real data render cancels presentation rather than retaining stale demo val
 });
 
 test('empty account demo reveals the best share temporarily and returns to genuine zero state',async t=>{
-  const h=await createHarness({onboarding:true,empty:true});t.after(()=>h.close());
+  const h=await createHarness({onboarding:true,onboardingCompleted:false,empty:true});t.after(()=>h.close());
   assert.equal(h.node('monthlyBestShare').hidden,false);
   assert.equal(h.node('monthlyBestShare').textContent,'69%');
   assert.equal(h.records.get(userA.user_id).length,0);
@@ -97,7 +98,7 @@ test('empty account demo reveals the best share temporarily and returns to genui
 });
 
 test('category hint closes on creation without blocking the existing category handler',async t=>{
-  const h=await createHarness({onboarding:true});t.after(()=>h.close());
+  const h=await createHarness({onboarding:true,onboardingCompleted:false});t.after(()=>h.close());
   next(h);next(h);h.node('openIncomeForm').click();h.node('categorySelect').click();await h.settle();
   const popup=h.node('categoryPopup');
   assert.match(tour(h).textContent,/4 из 4/);
@@ -111,7 +112,7 @@ test('category hint closes on creation without blocking the existing category ha
 });
 
 test('Skip from category hint removes overlay without closing or changing the real form',async t=>{
-  const h=await createHarness({onboarding:true});t.after(()=>h.close());
+  const h=await createHarness({onboarding:true,onboardingCompleted:false});t.after(()=>h.close());
   next(h);next(h);h.node('openIncomeForm').click();h.node('categorySelect').click();await h.settle();
   tour(h).querySelector('[data-tour-skip]').click();
   assert.equal(tour(h),null);assert.equal(h.node('incomeForm').hidden,false);
@@ -120,4 +121,22 @@ test('Skip from category hint removes overlay without closing or changing the re
   assert.equal(h.node('incomeCategory').value,'Зарплата');
   assert.equal(h.calls.some(value=>value==='addCategory'),false);
   assert.deepEqual(h.errors,[]);
+});
+
+
+test('legacy missing/null and completed accounts never see onboarding',async t=>{
+  for(const flag of [undefined,null,true]){
+    const h=await createHarness({onboarding:true,onboardingCompleted:flag});t.after(()=>h.close());
+    assert.equal(tour(h),null);assert.equal(h.calls.includes('completeOnboarding'),false);assert.deepEqual(h.errors,[]);
+  }
+});
+
+test('completion failure closes locally without demo leakage; lifecycle cancellation does not complete',async t=>{
+  const failed=await createHarness({onboarding:true,onboardingCompleted:false,completionError:true});t.after(()=>failed.close());
+  tour(failed).querySelector('[data-tour-skip]').click();await failed.settle();
+  assert.equal(tour(failed),null);assert.equal(failed.calls.filter(x=>x==='completeOnboarding').length,1);assert.deepEqual(failed.errors,[]);
+  await failed.logout();await failed.login();assert.ok(tour(failed));
+  const cancelled=await createHarness({onboarding:true,onboardingCompleted:false});t.after(()=>cancelled.close());
+  cancelled.w.renderIncomes();await cancelled.settle();
+  assert.equal(cancelled.calls.includes('completeOnboarding'),false);
 });

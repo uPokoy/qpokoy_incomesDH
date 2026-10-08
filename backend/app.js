@@ -86,8 +86,11 @@ const uuidValue = (value) => {
 };
 const incomeValue = (body) => {
   if (!body || typeof body !== 'object' || Array.isArray(body)) bad('Expected JSON object');
-  const amount = body.amount;
-  if (typeof amount !== 'number' || !Number.isInteger(amount) || amount <= 0 || amount > 1e12) bad('Invalid amount');
+  const input = typeof body.amount === 'string' ? body.amount.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.') : body.amount;
+  if (typeof input !== 'number' && (typeof input !== 'string' || !/^\d+(?:\.\d+)?$/.test(input))) bad('Invalid amount');
+  const value = Number(input);
+  const amount = Math.trunc(value);
+  if (!Number.isFinite(value) || amount <= 0 || value > 1e12) bad('Invalid amount');
   if (typeof body.description !== 'string' || body.description.length > 5000) bad('Invalid description');
   return {
     income_date: validDate(body.income_date),
@@ -98,6 +101,17 @@ const incomeValue = (body) => {
 
 function createApp(store, options = {}) {
   const now = options.now || (() => new Date());
+  // Account-scoped flag in the existing settings table. Only explicit false
+  // starts the tour; absent/null legacy records are already completed.
+  async function publicUser(user, includeOnboarding = true) {
+    const result = { user_id: user.user_id, email: user.email, status: user.status,
+      created_at: user.created_at, trial_ends_at: user.trial_ends_at };
+    if (includeOnboarding) {
+      const flag = await store.getSetting(user.user_id, 'auth.onboarding_completed');
+      result.onboarding_completed = flag?.setting_value !== 'false';
+    }
+    return result;
+  }
   const sessionDays = 30;
   const resetMinutes = 30;
   const resetBaseUrl = options.passwordResetBaseUrl || 'https://qpokoy.ru/';
@@ -238,7 +252,7 @@ function createApp(store, options = {}) {
     await store.addSession({ session_id: session.sessionId, user_id: user.user_id,
       secret_hash: session.secretHash, created_at: createdAt,
       expires_at: new Date(createdAt.getTime() + sessionDays * 86400000) });
-    return { token: session.token, expires_at: new Date(createdAt.getTime() + sessionDays * 86400000).toISOString(), user: publicUser(user) };
+    return { token: session.token, expires_at: new Date(createdAt.getTime() + sessionDays * 86400000).toISOString(), user: await publicUser(user) };
   }
 
   async function issueEmailVerification(user, respectCooldown = false) {
@@ -405,7 +419,7 @@ function createApp(store, options = {}) {
         if (!requireEmailVerification) return response(201, await createSession(user));
         const sent = await issueEmailVerification(user);
         if (!sent) throw new HttpError(503, 'verification_email_failed', 'Account created but verification email could not be sent');
-        return response(201, { ok: true, verification_required: true, user: publicUser(user) });
+        return response(201, { ok: true, verification_required: true, user: await publicUser(user) });
       }
       if (method === 'POST' && pathname === '/auth/login') {
         await enforceRateLimit('loginIp', sourceIp);
@@ -499,12 +513,12 @@ function createApp(store, options = {}) {
           validateUser(user);
         }, revision);
         if (startup.not_modified) return response(200, {
-          user: publicUser(startup.user), revision: startup.revision, not_modified: true,
+          user: await publicUser(startup.user), revision: startup.revision, not_modified: true,
           billing: await billingAccess(startup.user)
         });
         return response(200, {
           revision: startup.revision, not_modified: false,
-          user: publicUser(startup.user), incomes: startup.incomes, categories: startup.categories,
+          user: await publicUser(startup.user), incomes: startup.incomes, categories: startup.categories,
           settings: startup.settings.filter((row) => !/^(auth|system|rate|billing)\./.test(String(row.setting_key))),
           billing: await billingAccess(startup.user)
         });
@@ -518,7 +532,7 @@ function createApp(store, options = {}) {
         const summary = async (target) => {
           const manual = readGrant(await store.getSetting(target.user_id, OVERRIDE_KEY));
           const normal = readGrant(await store.getSetting(target.user_id, BILLING_ACCESS_SETTING));
-          return { ...publicUser(target), billing: await billingAccess(target),
+          return { ...await publicUser(target, false), billing: await billingAccess(target),
             assignment: manual ? { ...manual, source: 'admin' } : normal ? { ...normal, source: 'payment' } : null };
         };
         if (method === 'GET' && pathname === '/admin/users') {
@@ -559,7 +573,7 @@ function createApp(store, options = {}) {
         }
         throw new HttpError(404, 'not_found', 'Admin route not found');
       }
-      if (method === 'GET' && pathname === '/auth/me') return response(200, { user: publicUser(user) });
+      if (method === 'GET' && pathname === '/auth/me') return response(200, { user: await publicUser(user) });
       if (method === 'GET' && pathname === '/billing/status') return response(200, {
         data: await billingAccess(user), plans: BILLING_PLANS
       });
@@ -622,9 +636,16 @@ function createApp(store, options = {}) {
       });
       const settingMatch = /^\/settings\/([^/]+)$/.exec(pathname);
       if (settingMatch && method === 'PUT') {
-        await requireWriteAccess(user);
         const key = requiredString(decodeURIComponent(settingMatch[1]), 'setting_key', 80);
         if (!/^[A-Za-z0-9_.-]+$/.test(key)) bad('Invalid setting_key');
+        // Completion is account metadata, not a paid income write. Reuse the
+        // existing Gateway settings route; clients cannot reset it to false.
+        if (key === 'onboarding_completed') {
+          if (body.setting_value !== 'true') bad('Invalid onboarding completion');
+          await store.putSetting({ user_id: userId, setting_key: 'auth.onboarding_completed', setting_value: 'true', updated_at: now() });
+          return response(200, { onboarding_completed: true });
+        }
+        await requireWriteAccess(user);
         if (/^(auth|system|rate|billing)\./.test(key)) throw new HttpError(403, 'reserved_setting', 'This setting is server-managed');
         if (typeof body.setting_value !== 'string' || body.setting_value.length > 65536) bad('Invalid setting_value');
         const row = { user_id: userId, setting_key: key, setting_value: body.setting_value, updated_at: now() };
@@ -641,9 +662,5 @@ function createApp(store, options = {}) {
   return { handle };
 }
 
-function publicUser(user) {
-  return { user_id: user.user_id, email: user.email, status: user.status,
-    created_at: user.created_at, trial_ends_at: user.trial_ends_at };
-}
 function response(status, body, headers = {}) { return { status, body, headers }; }
 module.exports = { createApp };

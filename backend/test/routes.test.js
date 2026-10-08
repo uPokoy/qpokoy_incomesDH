@@ -46,6 +46,7 @@ function memoryStore() {
       users.set(user.user_id, user);
       identities.set(emailKey, { provider: 'email', provider_user_id: user.email, user_id: user.user_id, password_hash: hash });
       defaults.forEach((row) => categories.set(key(row.user_id, row.id), row));
+      settings.set(key(user.user_id, 'auth.onboarding_completed'), { user_id: user.user_id, setting_key: 'auth.onboarding_completed', setting_value: 'false', updated_at: user.created_at });
       return true;
     },
     registerOAuth: async (user, provider, providerUserId, defaults) => {
@@ -56,6 +57,7 @@ function memoryStore() {
       identities.set(emailKey, { provider: 'email', provider_user_id: user.email, user_id: user.user_id, password_hash: '' });
       identities.set(providerKey, { provider, provider_user_id: providerUserId, user_id: user.user_id, password_hash: '' });
       defaults.forEach((row) => categories.set(key(row.user_id, row.id), row));
+      settings.set(key(user.user_id, 'auth.onboarding_completed'), { user_id: user.user_id, setting_key: 'auth.onboarding_completed', setting_value: 'false', updated_at: user.created_at });
       return true;
     },
     getIdentity: async (provider, providerUserId) => identities.get(identityKey(provider, providerUserId)),
@@ -350,6 +352,7 @@ test('Yandex OAuth login creates and exchanges a single-use qPokoy session ticke
     assert.equal(exchange.status, 200);
     assert.ok(exchange.body.token);
     assert.equal(exchange.body.user.email, 'oauth@example.com');
+    assert.equal(exchange.body.user.onboarding_completed, false);
     assert.equal((await app.handle('POST', '/auth/oauth/exchange', { ticket })).status, 400);
     return exchange.body;
   }
@@ -535,9 +538,10 @@ test('income CRUD is bound to the verified session, never client user_id', async
   assert.equal((await app.handle('PUT', `/incomes/${id}`, input, auth(bob.token))).status, 404);
   assert.equal((await app.handle('DELETE', `/incomes/${id}`, {}, auth(bob.token))).status, 404);
   assert.equal((await app.handle('PUT', `/incomes/${id}`, { ...input, amount: 42 }, auth(alice.token))).body.data.amount, 42);
-  assert.equal((await app.handle('PUT', `/incomes/${id}`, { ...input, amount: 42.5 }, auth(alice.token))).status, 400);
+  assert.equal((await app.handle('PUT', `/incomes/${id}`, { ...input, amount: 42.5 }, auth(alice.token))).body.data.amount, 42);
   const fractionalId = '7dfabf32-bb83-4dc9-b67f-8a2975258de8';
-  assert.equal((await app.handle('POST', '/incomes', { ...input, id: fractionalId, amount: 99.99 }, auth(alice.token))).status, 400);
+  assert.equal((await app.handle('POST', '/incomes', { ...input, id: fractionalId, amount: 99.99 }, auth(alice.token))).body.data.amount, 99);
+  assert.equal((await app.handle('DELETE', `/incomes/${fractionalId}`, {}, auth(alice.token))).status, 204);
   assert.equal((await app.handle('DELETE', `/incomes/${id}`, {}, auth(alice.token))).status, 204);
   assert.equal((await app.handle('GET', '/incomes', {}, auth(alice.token))).body.data.length, 0);
 });
@@ -594,7 +598,7 @@ test('atomic replace validates all rows, ignores client ownership, and accepts e
   assert.equal(invalid.status, 400);
   for (const malformed of [
     { ...replacement[1], amount: 0 },
-    { ...replacement[1], amount: 100.5 },
+    { ...replacement[1], amount: '100.5.1' },
     { ...replacement[1], category: 'x'.repeat(81) },
     { ...replacement[1], description: 'x'.repeat(5001) },
     { ...replacement[1], id: 'not-a-uuid' }
@@ -742,4 +746,47 @@ test('billing payment and grace state are server-managed and keep writes enabled
   clock = new Date('2026-10-29T12:00:00.000Z');
   assert.equal((await app.handle('GET', '/billing/status', {}, headers)).body.data.mode, 'expired');
   assert.equal((await app.handle('POST', '/categories', { name: 'Blocked category' }, headers)).status, 402);
+});
+
+
+test('onboarding is new-account-only, private, persistent across sessions and fresh cached bootstrap',async()=>{
+  const store=memoryStore(),app=createApp(store,{requireEmailVerification:false});
+  const account=(await register(app,'onboarding@example.com')).body,headers=auth(account.token);
+  assert.equal(account.user.onboarding_completed,false);
+  const before=(await app.handle('GET','/bootstrap',{},headers)).body;
+  assert.equal(before.user.onboarding_completed,false);
+  assert.equal(before.settings.some(x=>x.setting_key==='auth.onboarding_completed'),false);
+  assert.equal((await app.handle('PUT','/settings/onboarding_completed')).status,401);
+  assert.equal((await app.handle('PUT','/settings/onboarding_completed',{setting_value:'true'},headers)).status,200);
+  assert.equal((await app.handle('PUT','/settings/onboarding_completed',{setting_value:'false'},headers)).status,400);
+  const cached=(await app.handle('GET','/bootstrap?revision='+before.revision,{},headers)).body;
+  assert.equal(cached.not_modified,true);assert.equal(cached.user.onboarding_completed,true);
+  const second=(await app.handle('POST','/auth/login',{email:account.user.email,password:'very-secret-password'})).body;
+  assert.equal(second.user.onboarding_completed,true);
+  assert.equal((await app.handle('GET','/auth/me',{},auth(second.token))).body.user.onboarding_completed,true);
+  await store.deleteSetting(account.user.user_id,'auth.onboarding_completed');
+  assert.equal((await app.handle('GET','/auth/me',{},headers)).body.user.onboarding_completed,true);
+  await store.putSetting({user_id:account.user.user_id,setting_key:'auth.onboarding_completed',setting_value:'null'});
+  assert.equal((await app.handle('GET','/auth/me',{},headers)).body.user.onboarding_completed,true);
+  const other=(await register(app,'onboarding-other@example.com')).body;
+  assert.equal(other.user.onboarding_completed,false);
+  assert.equal((await app.handle('PUT','/settings/auth.onboarding_completed',{setting_value:'false'},headers)).status,403);
+});
+
+test('decimal strings and numbers normalize on create/edit/replace; malformed values never persist',async()=>{
+  const app=make(),account=(await register(app,'decimal@example.com')).body,headers=auth(account.token);
+  const base={income_date:'2026-10-08',category:'Зарплата',description:'Decimal test'};
+  for(const [amount,expected] of [[100,100],[100.90,100],['100.90',100],['100,90',100],['1 250,75',1250],['1 250.75',1250],['199.99',199]]){
+    const added=await app.handle('POST','/incomes',{...base,amount},headers);
+    assert.equal(added.status,201);assert.equal(added.body.data.amount,expected);
+    const edited=await app.handle('PUT','/incomes/'+added.body.data.id,{...base,amount},headers);
+    assert.equal(edited.body.data.amount,expected);
+  }
+  const before=(await app.handle('GET','/incomes',{},headers)).body.data.length;
+  for(const amount of ['',null,undefined,true,[],{},'abc',',','.',0,-100,NaN,Infinity,'Infinity','1.2.3','1e3','-100','0.99',1e12+1]){
+    assert.equal((await app.handle('POST','/incomes',{...base,amount},headers)).status,400,String(amount));
+  }
+  assert.equal((await app.handle('GET','/incomes',{},headers)).body.data.length,before);
+  const replaced=await app.handle('POST','/incomes/replace',{incomes:[{...base,amount:'1 250,75'},{...base,amount:199.99}]},headers);
+  assert.equal(replaced.status,200);assert.deepEqual(replaced.body.data.map(x=>x.amount),[1250,199]);
 });

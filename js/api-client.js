@@ -141,6 +141,7 @@
         try{return (await request('GET','/auth/me')).user;}
         catch(error){if(error.status===401)return null;throw error;}
       },
+      async completeOnboarding(){return request('PUT','/settings/onboarding_completed',{setting_value:'true'});},
       async bootstrap(){
         if(!getToken())return null;
         const token=getToken();

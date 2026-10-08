@@ -133,18 +133,12 @@ const incomeCategory=document.getElementById('incomeCategory');
 const incomeAmount=document.getElementById('incomeAmount');
 const categorySelect=document.getElementById('categorySelect');
 
-if(incomeAmount){
-  incomeAmount.addEventListener('keydown',event=>{
-    if(['.',',','e','E','+','-'].includes(event.key))event.preventDefault();
-  });
-  incomeAmount.addEventListener('paste',event=>{
-    const text=String(event.clipboardData?.getData('text')||'').trim();
-    if(text&&!/^\d+$/.test(text))event.preventDefault();
-  });
-  incomeAmount.addEventListener('input',()=>{
-    const value=String(incomeAmount.value||'');
-    if(value&&!/^\d+$/.test(value))incomeAmount.value='';
-  });
+// Keep the bank's pasted value visible; normalize only when saving.
+function normalizeIncomeAmount(input){
+  const text=String(input).replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
+  if(!/^\d+(?:\.\d+)?$/.test(text))return null;
+  const value=Number(text),amount=Math.trunc(value);
+  return Number.isFinite(value)&&amount>0&&value<=1e12?amount:null;
 }
 
 const categoryPopup=document.getElementById('categoryPopup');
@@ -1375,14 +1369,14 @@ saveBtn.addEventListener('click',(e)=>{
   let invalid=false;
   required.forEach(({el,wrap})=>{
     const value=String(el?.value||'').trim();
-    if(!value || (el===incomeAmount && (!Number.isInteger(Number(value)) || Number(value)<=0))) {
+    if(!value || (el===incomeAmount && normalizeIncomeAmount(value)===null)) {
       wrap?.classList.add('field-invalid');
       invalid=true;
     }
   });
   if(invalid){ e.preventDefault(); return; }
 
-  const amount=Number(incomeAmount.value);
+  const amount=normalizeIncomeAmount(incomeAmount.value);
   const parsed=textDateToDate(incomeDate.value.trim());
   if(!parsed||!incomeCategory.value||!Number.isInteger(amount)||amount<=0) return;
 

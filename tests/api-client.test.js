@@ -310,3 +310,12 @@ test('admin API uses bearer, encoded exact email and server writes; 403 is propa
   assert.ok(h.calls[1].url.endsWith('/admin/users?email=user%2Btest%40example.invalid'));assert.equal(h.calls[2].method,'POST');assert.deepEqual(h.calls[2].body,{action:'lifetime'});assert.equal(h.calls[2].headers.Authorization,'Bearer synthetic-session.synthetic-secret');
   await assert.rejects(h.api.adminSession(),e=>e.status===403&&e.code==='admin_forbidden');
 });
+
+
+test('onboarding completion uses the existing authenticated settings route and invalidates bootstrap cache',async()=>{
+  const h=harness([ok({onboarding_completed:true})]);h.values.set(TOKEN_KEY,'fixture.secret');h.values.set(BOOTSTRAP_CACHE_KEY,'cached');
+  await h.api.completeOnboarding();
+  assert.equal(h.calls[0].method,'PUT');assert.equal(h.calls[0].url,API_BASE_URL+'/settings/onboarding_completed');
+  assert.deepEqual(h.calls[0].body,{setting_value:'true'});assert.equal(h.calls[0].headers.Authorization,'Bearer fixture.secret');
+  assert.equal(h.values.has(BOOTSTRAP_CACHE_KEY),false);
+});

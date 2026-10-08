@@ -251,6 +251,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
       try {
         await query(`DECLARE $uid AS Utf8; DECLARE $email AS Utf8; DECLARE $provider AS Utf8; DECLARE $providerId AS Utf8;
           DECLARE $emailProvider AS Utf8; DECLARE $status AS Utf8; DECLARE $hash AS Utf8;
+          DECLARE $onboardingKey AS Utf8; DECLARE $onboardingValue AS Utf8;
           DECLARE $created AS Timestamp; DECLARE $updated AS Timestamp; DECLARE $trial AS Timestamp;
           DECLARE $cat0 AS Utf8; DECLARE $cat1 AS Utf8; DECLARE $cat2 AS Utf8;
           DECLARE $name0 AS Utf8; DECLARE $name1 AS Utf8; DECLARE $name2 AS Utf8;
@@ -259,9 +260,12 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
           INSERT INTO \`users\` (user_id,email,status,created_at,updated_at,trial_ends_at)
           VALUES ($uid,$email,$status,$created,$updated,$trial);
           INSERT INTO \`categories\` (user_id,id,name,created_at) VALUES
-          ($uid,$cat0,$name0,$created),($uid,$cat1,$name1,$created),($uid,$cat2,$name2,$created);`,
+          ($uid,$cat0,$name0,$created),($uid,$cat1,$name1,$created),($uid,$cat2,$name2,$created);
+          INSERT INTO \`settings\` (user_id,setting_key,setting_value,updated_at)
+          VALUES ($uid,$onboardingKey,$onboardingValue,$created);`,
         { $uid: U(user.user_id), $email: U(user.email), $provider: U(provider), $providerId: U(providerUserId),
           $emailProvider: U('email'), $status: U(user.status), $hash: U(''), $created: T(user.created_at),
+          $onboardingKey: U('auth.onboarding_completed'), $onboardingValue: U('false'),
           $updated: T(user.updated_at), $trial: T(user.trial_ends_at),
           $cat0: U(categories[0].id), $cat1: U(categories[1].id), $cat2: U(categories[2].id),
           $name0: U(categories[0].name), $name1: U(categories[1].name), $name2: U(categories[2].name) });
@@ -336,6 +340,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
         await query(`DECLARE $uid AS Utf8; DECLARE $email AS Utf8; DECLARE $provider AS Utf8; DECLARE $status AS Utf8;
           DECLARE $created AS Timestamp; DECLARE $updated AS Timestamp; DECLARE $trial AS Timestamp;
           DECLARE $hash AS Utf8;
+          DECLARE $onboardingKey AS Utf8; DECLARE $onboardingValue AS Utf8;
           DECLARE $cat0 AS Utf8; DECLARE $cat1 AS Utf8; DECLARE $cat2 AS Utf8;
           DECLARE $name0 AS Utf8; DECLARE $name1 AS Utf8; DECLARE $name2 AS Utf8;
           INSERT INTO \`auth_identities\` (provider,provider_user_id,user_id,password_hash,created_at)
@@ -343,9 +348,12 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
           INSERT INTO \`users\` (user_id,email,status,created_at,updated_at,trial_ends_at)
           VALUES ($uid,$email,$status,$created,$updated,$trial);
           INSERT INTO \`categories\` (user_id,id,name,created_at) VALUES
-          ($uid,$cat0,$name0,$created),($uid,$cat1,$name1,$created),($uid,$cat2,$name2,$created);`,
+          ($uid,$cat0,$name0,$created),($uid,$cat1,$name1,$created),($uid,$cat2,$name2,$created);
+          INSERT INTO \`settings\` (user_id,setting_key,setting_value,updated_at)
+          VALUES ($uid,$onboardingKey,$onboardingValue,$created);`,
         { $uid: U(user.user_id), $email: U(user.email), $provider: U('email'), $status: U(user.status), $created: T(user.created_at),
           $updated: T(user.updated_at), $trial: T(user.trial_ends_at), $hash: U(passwordHash),
+          $onboardingKey: U('auth.onboarding_completed'), $onboardingValue: U('false'),
           $cat0: U(categories[0].id), $cat1: U(categories[1].id), $cat2: U(categories[2].id),
           $name0: U(categories[0].name), $name1: U(categories[1].name), $name2: U(categories[2].name) });
         return true;
