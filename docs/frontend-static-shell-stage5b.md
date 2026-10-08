@@ -1,5 +1,7 @@
 # Stage 5B — two static UI shells
 
+Historical stage-specific record. For the current architecture, see [architecture-current.md](architecture-current.md).
+
 Base: published Stage 5A / DEV367, `b2253adb9eff95875ab513d902d57bbd16e0beeb`.
 
 Only the category manager and admin filter toggle move to production HTML.

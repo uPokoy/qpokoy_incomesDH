@@ -1,5 +1,7 @@
 # Frontend module contracts — Stage 3
 
+Historical stage-specific record. For the current architecture, see [architecture-current.md](architecture-current.md).
+
 Baseline: DEV364, `bd1ed06b1513ad29d5837fde0cb6c9f1f6e6d4f0`.
 This documents existing behavior, not a new startup protocol. No public name,
 signature, return convention, storage key or publication point is changed.

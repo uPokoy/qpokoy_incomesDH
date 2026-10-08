@@ -1,38 +1,119 @@
 # qPokoy backend
 
-This directory contains the Yandex Cloud Functions API used by the current frontend API client. Merging code builds a backend archive but does not deploy the Cloud Function or Gateway; verify those separately in staging before releasing backend changes.
+CommonJS API for Yandex Cloud Functions / YDB, used by the frontend's `js/api-client.js`.
+The build workflow checks code and creates a source archive; it does **not** deploy
+the Cloud Function, API Gateway, environment, service accounts or payment resources.
 
-## Deployable files
+## Modules and entry points
 
-Upload the runtime files in the workflow archive as Cloud Function source (including all billing/payment modules listed below), plus `package.json` and `package-lock.json`. Tests and this README are not needed at runtime. Use Node.js 22 and entrypoint `index.handler`. Install dependencies from the lockfile (`npm ci --omit=dev`) before packaging if uploading an archive. Both `ydb-sdk@5.11.1` and its compatible `@yandex-cloud/nodejs-sdk@2.9.3` must be present. There are no credentials in this repository.
+- `index.js` exports `handler` (`index.handler`): API Gateway transport, OPTIONS/CORS,
+  base64/JSON parsing, 2 MiB body limit, serialization, lazy service creation and
+  transport admin list/receipt/delete routes.
+- `app.js` exports `createApp`: auth/OAuth/bootstrap, authenticated application/admin
+  dispatch, income/settings/account routes, validation, billing access and error handling.
+- `category-router.js` exports `createCategoryRouter`: GET/POST categories and DELETE
+  category by ID, with injected dependencies. Authentication stays in app; category
+  routing stays after incomes and before settings; exceptions reach the existing app catch.
+- `payment-router.js`, `billing-payments.js`, `yookassa.js`: payment routes/grants/provider
+  adapter; `admin-billing.js`, `admin-receipt.js`: admin grant/receipt helpers.
+- `ydb-core.js` supplies queries/transactions/revisions/retry; `ydb.js` wraps production
+  income reads/writes and adds the lazy admin driver. Injected FakeDriver follows a different path.
+- `security.js`, `oauth.js`, `mail.js`, `receipt-mail.js`: crypto/session, Yandex OAuth,
+  metadata-IAM/Postbox email. The OAuth adapter currently implements Yandex, not Google.
+- `renewals.handler`, `precharge-notifications.handler` and `precharge-test.handler`
+  are separate worker/diagnostic entry points, not public routes of `index.handler`.
 
-The function service account must have permission to access the existing YDB database. Set `ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:2135` and `DATABASE=/ru-central1/b1gpa63ouuea1kj8rm5d/etnov7clc5jg5habs3kg` in Cloud Functions. The SDK uses `MetadataAuthService` and the function's attached service account; do not upload a service-account key. `ALLOWED_ORIGINS` can contain a comma-separated explicit allowlist for a future frontend (for example, the qpokoy.ru and GitHub Pages origins). Leave it empty while the API is private. API Gateway must route the listed paths and methods to this private function, with its gateway service account as invoker. This repository does not change the deployed function, gateway, DNS, Supabase, or payment resources.
+Current cross-layer map: [architecture-current.md](../docs/architecture-current.md).
+Detailed category extraction/contracts: [Stage 8](../docs/backend-routing-stage8.md).
 
-## REST contract
+## Build/package and configuration
 
-Request and response bodies are JSON. A successful GET or write returns `{ "data": ... }` except auth and health routes; errors return `{ "error": { "code": "...", "message": "..." } }`. Provide `Authorization: Bearer <token>` for all routes other than health/register/login. The token is opaque (`session_id.secret`) and is returned by register/login. The client should store it securely and send it over HTTPS only; the database stores only SHA-256 of the random secret. Do not include `user_id` in requests as authority: it is ignored for writes, and YDB queries always scope reads/writes to the server-authenticated user.
+CI uses Node.js 22, `npm ci`, `npm test`, then explicit `node --check` commands.
+The source ZIP has **19 files at its root**, from the explicit `zip -j` list in
+[backend-build.yml](../.github/workflows/backend-build.yml):
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| GET | `/health` | YDB-backed health check |
-| POST | `/auth/register` | `{email,password}`; creates user and returns session |
-| POST | `/auth/login` | `{email,password}`; returns session |
-| POST | `/auth/logout` | Revokes current session |
-| GET | `/auth/me` | Current user |
-| GET | `/bootstrap` | Authenticated startup: `{user,incomes,categories,settings}` in one response |
-| DELETE | `/auth/me` | Atomically deletes the authenticated account, identities, sessions, incomes, categories and settings |
-| GET, POST | `/incomes` | List/create income |
-| DELETE | `/incomes` | Deletes only the authenticated user's incomes; leaves their account, categories and settings intact |
-| POST | `/incomes/replace` | Atomically replaces all own incomes with `{incomes:[...]}`; an empty array clears them |
-| PUT, PATCH, DELETE | `/incomes/:id` | Update/delete own income |
-| GET, POST | `/categories` | List/create category |
-| DELETE | `/categories/:id` | Delete own category except `Зарплата` |
-| GET | `/settings` | List own setting rows |
-| PUT | `/settings/:key` | Save `{setting_value: string}` |
+```text
+index.js app.js category-router.js
+admin-billing.js admin-receipt.js billing-payments.js payment-router.js yookassa.js
+renewals.js precharge-notifications.js precharge-test.js receipt-mail.js
+ydb.js ydb-core.js security.js mail.js oauth.js
+package.json package-lock.json
+```
 
-Income JSON uses `id`, `user_id`, `income_date` (`YYYY-MM-DD`), `category`, `description`, `amount`, `created_at`, `updated_at`—matching the existing cloud row semantics. Category JSON uses `id`, `user_id`, `name`, `created_at`. Registration saves `trial_ends_at` exactly 14 days after `created_at` and creates `Зарплата`, `Подработка`, and `Прочее` in the same YDB transaction as the user and email identity. Income, category and settings write endpoints enforce the current billing access through requireWriteAccess(): when trial/subscription access has expired and no other access applies, they return HTTP 402 subscription_required. Prelaunch access remains writable. `POST /incomes/replace` accepts at most 500 records; the complete JSON request body is capped at **2 MiB (2,097,152 UTF-8 bytes)** in `index.js`. It validates the entire array before starting a single serializable YDB transaction. Supplied `user_id` is ignored and the authenticated user's ID is used. The initial version described here did not implement Supabase OAuth identities, subscriptions, payments, or frontend cutover; see the later DEV sections for the current billing/payment implementation. Email registration here is a **separate** account namespace from Supabase; existing site passwords and sessions cannot be used to log into this backend. No live data migration is attempted.
+It does not contain README/tests/node_modules. Cloud Function runtime dependencies
+must be installed from the included lockfile by the source build/runtime packaging
+process; do not assume local npm ci causes node_modules to be included in this ZIP.
+Pinned dependencies: `ydb-sdk@5.11.1` and compatible `@yandex-cloud/nodejs-sdk@2.9.3`.
+Adding a runtime module requires adding its name to both package and syntax-check lists.
 
-The existing API Gateway must forward `POST /incomes/replace`, `DELETE /incomes`, and `DELETE /auth/me` to this function. These URLs reuse existing path shapes, but whether a Gateway configuration change is required depends on its current per-method route declarations; this repository does not contain the deployed Gateway specification. The Gateway may impose its own request-size cap below 2 MiB, so verify that separately before enabling large imports.
+YDB needs `ENDPOINT`, `DATABASE` and an attached service account with appropriate
+permissions; MetadataAuthService obtains credentials, not an uploaded service-account key.
+The HTTP entry reads `ALLOWED_ORIGINS` (explicit comma-separated allowlist),
+`APP_BASE_URL`, `PUBLIC_API_BASE_URL`, `REQUIRE_EMAIL_VERIFICATION`, `ADMIN_USER_IDS`,
+`POSTBOX_FROM`, YooKassa shop/secret/return URL configuration and Yandex OAuth configuration.
+Secrets belong in the deployed environment/secret manager, never in frontend/source docs.
+Empty ALLOWED_ORIGINS means no allow-origin response header; it does not make the API private.
+Gateway routing/invoker configuration is not specified by this repository.
+
+The current index entry does **not** forward BILLING_ENFORCEMENT_STARTED_AT.
+Legacy prelaunch behavior remains an explicit `createApp` option
+(`billingEnforcementStartedAt`), used by compatibility tests, not a current index env switch.
+Worker enable/configuration must be checked separately against each worker entry.
+
+## HTTP contracts
+
+Errors return `{error:{code,message}}`; ordinary resources generally return `{data:...}`.
+Auth/health/bootstrap, payment and redirect responses have their own shapes.
+Bearer token `session_id.secret` identifies the server-authenticated owner, not a request user_id.
+The database stores only a hash of the random session secret. Sessions expire after 30 days.
+
+| Routes | Current behavior |
+| --- | --- |
+| GET /health | Public YDB health check |
+| POST /auth/register, /auth/login | Public email/password; registration returns session or verification-required depending on configuration |
+| POST /auth/email-verification/resend, /confirm | Public verification flow; 202 / 204 |
+| POST /auth/password-reset/request, /confirm | Public reset flow; 202 / 204 |
+| GET /auth/oauth/yandex/start, /callback; POST /auth/oauth/exchange | Public OAuth start/callback/ticket exchange; callback redirects |
+| GET /auth/me; POST /auth/logout; DELETE /auth/me | Authenticated current user, revoke session, atomic account deletion |
+| GET /bootstrap?revision=... | Authenticated revision-validated full bundle or not_modified response; includes billing |
+| GET /billing/status | Authenticated access/plans |
+| GET, POST, DELETE /incomes; PUT, PATCH, DELETE /incomes/:id | Own income CRUD; write-access gate on mutations |
+| POST /incomes/replace | Own atomic replacement, maximum 500 records; empty list clears |
+| GET, POST /categories; DELETE /categories/:id | Own category CRUD; protected salary and write-access checks |
+| GET /settings; PUT /settings/:key | Own public settings; auth/system/rate/billing namespaces excluded/reserved |
+| GET /admin/session; GET /admin/users; POST /admin/users/:id/access, /delete | Admin allowlist; exact-email search versus no-email transport list; grant/delete contracts |
+| GET, POST /admin/users/:id/receipt | Admin receipt flow, plus POST access action=receipt compatibility |
+| POST /billing/payments; GET /billing/payments/:id; POST /billing/auto-renew; DELETE /billing/payment-method | Authenticated payment/consent/method routes |
+| POST /billing/yookassa/webhook | Public notification; provider status is independently verified |
+
+The general app validates JSON object input, name/UUID/date/amount/length constraints.
+Trial dates/default categories are created atomically with user/identity; email verification
+confirmation also initializes the verified trial period. Expired write access returns
+402 subscription_required; reads/PDF export/account deletion remain allowed.
+Admin authentication is not provided by hiding/showing admin.html.
+
+Bootstrap store-level auth/revision reads borrow one session: cache hit uses one executeQuery;
+a full miss uses three executeQuery calls and an explicit bundle transaction. These are
+**loadBootstrap counts**, not total HTTP endpoint/YDB RU counts: app also evaluates billing
+via getSetting calls. Internal auth/system/rate/billing settings are not public bundle rows.
+Mutation revision writes and RESOURCE_EXHAUSTED retry remain unchanged.
+
+## Tests and verification limits
+
+From backend/: `npm ci`, `npm test` (script is exactly `node --test`).
+At the Stage 9 audit the standard discovery runs 125 tests, skipped/todo 0, including the
+precharge-test.js module and test helper; selecting only test/*.test.js is not equivalent.
+Tests use in-memory stores, fake SDK drivers and mocked production-wrapper/provider paths.
+They do not prove live Gateway configuration, actual query plans/RU, real email/charge
+delivery or complete production YDB equivalence. Verify those separately in staging.
+
+## Historical implementation notes
+
+The sections below retain the context of their named implementation versions.
+Their rollout instructions, prelaunch/env assumptions, Supabase migration statements and
+operation counts describe those stages, **not current deployment configuration or a release
+checklist**. In particular old bootstrap counts exclude later billing reads; current
+configuration/package/routes are described above.
 
 DEV137 startup uses `GET /bootstrap`. Publish the backend and ensure the Gateway forwards this new GET **before** releasing its frontend; the frontend deliberately does not fall back to the old startup GETs. No deployment or Gateway update is performed by this patch. The store checks the session/user with one parameterized JOIN, validates the bearer secret/expiry/revocation/status, then reads incomes/categories/settings using one multi-result query in the same borrowed YDB session. Internal `auth.*` settings are omitted from the response. Ordinary reloads without pending writes use two `executeQuery` calls and one `withSession`, versus eight calls/sessions for `/auth/me` + `/incomes` + `/categories` (eleven if `/settings` was also requested). This reduces five logical table reads from eight/eleven repeated reads; it does not imply a fixed RU charge. Existing RESOURCE_EXHAUSTED retry remains active, and pending journal recovery still performs necessary writes. Local appearance settings are not overwritten by the returned settings; frontend consumers can use `qPokoyAuth.getSettings()`.
 

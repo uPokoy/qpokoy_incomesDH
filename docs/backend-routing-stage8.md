@@ -1,5 +1,7 @@
 # Stage 8 — category routing (DEV370 baseline)
 
+Historical stage-specific record. For the current architecture, see [architecture-current.md](architecture-current.md).
+
 Baseline: `c6c340af13f77affdc85ff73494baa18915d6803`. Branch: `codex/stage8-backend-routing`.
 One route group only; no frontend change, deployment or main merge.
 
@@ -61,8 +63,9 @@ No new transaction, query, retry, external side effect or rate-limit behavior wa
 
 ## Evidence / tests
 
-Five regression tests compare the new router with an independently compiled **verbatim DEV370
-block**, frozen in `backend/test/fixtures/stage8-category-baseline.txt` (not compiled from the new router).
+Five regression tests cover the route group. Two compare the new router with an independently
+compiled **verbatim DEV370 block**, frozen in `backend/test/fixtures/stage8-category-baseline.txt`
+(not compiled from the new router); the other three exercise app integration.
 Thirteen scenarios compare exact results/errors and ordered dependency calls: list/create/delete,
 normalized name, duplicate, empty/too-long name, null body at internal boundary, invalid UUID,
 missing category, case-insensitive protected salary, unsupported method, unrelated/deep path.

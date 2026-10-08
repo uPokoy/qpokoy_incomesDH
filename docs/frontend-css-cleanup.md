@@ -1,5 +1,7 @@
 # Stage 7 — bounded CSS cleanup
 
+Historical stage-specific record. For the current architecture, see [architecture-current.md](architecture-current.md).
+
 Base: DEV369 / `97a4c8d61ae9604854bc073392145e3f4ae0bf2b`.
 Scope is two presentation primitives, not a general analytics redesign:
 `#incomeChartSvg` and `.analytics-bar`. Only two early overflow declarations

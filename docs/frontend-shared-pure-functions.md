@@ -1,5 +1,7 @@
 # Stage 6 — pure-function inventory and extraction boundary
 
+Historical stage-specific record. For the current architecture, see [architecture-current.md](architecture-current.md).
+
 Base: DEV368, `0ae16ff38df9388ab12a54f4a259246d093bf550`.
 This stage deliberately keeps production code unchanged. It documents proven
 duplicates and adds direct tests of actual production function bodies.

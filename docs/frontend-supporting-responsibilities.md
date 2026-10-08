@@ -1,5 +1,7 @@
 # Supporting frontend responsibilities — Stage 4
 
+Historical stage-specific record. For the current architecture, see [architecture-current.md](architecture-current.md).
+
 Baseline: DEV365 / `8132ac5a0204d5293f45a580a74afdde16877330`.
 This is a bounded internal separation, not a new UI lifecycle. Existing script
 tags, window APIs, DOM IDs/classes, injected styles, storage keys and network

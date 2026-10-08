@@ -1,5 +1,7 @@
 # Stage 5A — static shell transition compatibility
 
+Historical stage-specific record. For the current architecture, see [architecture-current.md](architecture-current.md).
+
 Base: DEV366 / `e763806d933ddb9a1d2454e2628b3d676bf7e01d`.
 Stage 5 reference only: `ef76232055d1e966757b68d1198f29cc6c137752`.
 Production HTML remains unchanged. The old Stage 5 branch is not amended,
