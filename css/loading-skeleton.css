@@ -12,6 +12,12 @@ body.qp-auth-checking #incomeForm,
 body.qp-auth-checking #incomeRecentHistoryPanel,
 body.qp-auth-checking .qp-dev-note{visibility:hidden !important;}
 
+/* Keep presentation colors scoped to loading; mobile gets a modest contrast lift. */
+body.qp-auth-checking{--qp-skeleton-base:#263345;--qp-skeleton-glint:rgba(169,188,213,.09);}
+@media(max-width:560px){
+  body.qp-auth-checking{--qp-skeleton-base:#34465b;--qp-skeleton-glint:rgba(181,199,222,.13);}
+}
+
 /* Mask entire data-bearing surfaces, including locally cached user text.
    Pseudo-elements are decorative; .app is inert/aria-hidden until verified. */
 body.qp-auth-checking :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .income-recent-card,
@@ -31,36 +37,48 @@ body.qp-auth-checking :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .inco
   #incomeAnalytics .analytics-card,#incomeAnalytics .analytics-panel)::after{
   content:"";position:absolute;inset:18px;pointer-events:none;
   border-radius:10px;
-  background:linear-gradient(100deg,transparent 35%,rgba(169,188,213,.09) 48%,transparent 62%),
-    linear-gradient(#263345,#263345);
+  background:linear-gradient(100deg,transparent 35%,var(--qp-skeleton-glint) 48%,transparent 62%),
+    linear-gradient(var(--qp-skeleton-base),var(--qp-skeleton-base));
   background-size:250% 100%,100% 100%;
   animation:qpSkeletonShimmer 1.4s linear infinite;
 }
 body.qp-auth-checking #income #incomeTotal::after{inset:20% 0;width:min(85%,320px);border-radius:12px;}
 body.qp-auth-checking #income #incomeMonthChart::after{
   inset:18px 4px 28px;
-  background:linear-gradient(100deg,transparent 35%,rgba(169,188,213,.09) 48%,transparent 62%),
-    repeating-linear-gradient(90deg,#263345 0 5%,transparent 5% 8.33%);
+  background:linear-gradient(100deg,transparent 35%,var(--qp-skeleton-glint) 48%,transparent 62%),
+    linear-gradient(var(--qp-skeleton-base),var(--qp-skeleton-base));
   background-size:250% 100%,100% 100%;
-  clip-path:polygon(0 65%,8% 65%,8% 40%,16% 40%,16% 55%,25% 55%,25% 20%,33% 20%,33% 40%,41% 40%,41% 10%,50% 10%,50% 35%,58% 35%,58% 20%,66% 20%,66% 45%,75% 45%,75% 30%,83% 30%,83% 55%,91% 55%,91% 40%,100% 40%,100% 100%,0 100%);
+  /* Same twelve bars and heights; only their silhouette is rounded. */
+  --qp-skeleton-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%20preserveAspectRatio%3D%22none%22%20fill%3D%22white%22%3E%3Crect%20x%3D%220.000%22%20y%3D%2265%22%20width%3D%225%22%20height%3D%2235%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%228.333%22%20y%3D%2240%22%20width%3D%225%22%20height%3D%2260%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2216.667%22%20y%3D%2255%22%20width%3D%225%22%20height%3D%2245%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2225.000%22%20y%3D%2220%22%20width%3D%225%22%20height%3D%2280%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2233.333%22%20y%3D%2240%22%20width%3D%225%22%20height%3D%2260%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2241.667%22%20y%3D%2210%22%20width%3D%225%22%20height%3D%2290%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2250.000%22%20y%3D%2235%22%20width%3D%225%22%20height%3D%2265%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2258.333%22%20y%3D%2220%22%20width%3D%225%22%20height%3D%2280%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2266.667%22%20y%3D%2245%22%20width%3D%225%22%20height%3D%2255%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2275.000%22%20y%3D%2230%22%20width%3D%225%22%20height%3D%2270%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2283.333%22%20y%3D%2255%22%20width%3D%225%22%20height%3D%2245%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3Crect%20x%3D%2291.667%22%20y%3D%2240%22%20width%3D%225%22%20height%3D%2260%22%20rx%3D%221%22%20ry%3D%223%22%2F%3E%3C%2Fsvg%3E");
+  -webkit-mask-image:var(--qp-skeleton-mask);
+  mask-image:var(--qp-skeleton-mask);
+  mask-size:100% 100%;mask-repeat:no-repeat;
 }
 
 body.qp-auth-checking #income #incomeRecentGrid .income-recent-card::after{
   inset:14px !important;width:auto !important;height:auto !important;
   opacity:1 !important;border-radius:8px !important;
-  background:linear-gradient(100deg,transparent 35%,rgba(169,188,213,.09) 48%,transparent 62%),
-    repeating-linear-gradient(0deg,#263345 0 15px,transparent 15px 29px) !important;
+  background:linear-gradient(100deg,transparent 35%,var(--qp-skeleton-glint) 48%,transparent 62%),
+    linear-gradient(var(--qp-skeleton-base),var(--qp-skeleton-base)) !important;
   background-size:250% 100%,100% 100% !important;
+  --qp-skeleton-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22white%22%3E%3Crect%20width%3D%22100%25%22%20y%3D%220%22%20height%3D%2215%22%20rx%3D%224%22%2F%3E%3Crect%20width%3D%22100%25%22%20y%3D%2229%22%20height%3D%2215%22%20rx%3D%224%22%2F%3E%3Crect%20width%3D%22100%25%22%20y%3D%2258%22%20height%3D%2215%22%20rx%3D%224%22%2F%3E%3C%2Fsvg%3E");
+  -webkit-mask-image:var(--qp-skeleton-mask);
+  mask-image:var(--qp-skeleton-mask);
+  mask-size:100% 100%;mask-repeat:no-repeat;
 }
 body.qp-auth-checking #income #incomeAnalytics :is(#monthlyAnalyticsTotal,.monthly-summary-card,.monthly-total-card,.monthly-category-card,.analytics-card)::after{
   inset:20px !important;
   width:auto !important;height:auto !important;transform:none !important;
   display:block !important;opacity:1 !important;box-shadow:none !important;
-  background:linear-gradient(100deg,transparent 35%,rgba(169,188,213,.09) 48%,transparent 62%),
-    linear-gradient(#263345,#263345) 0 0/65% 12px no-repeat,
-    linear-gradient(#263345,#263345) 0 30px/85% 22px no-repeat,
-    linear-gradient(#263345,#263345) 0 68px/45% 10px no-repeat !important;
+  background:linear-gradient(100deg,transparent 35%,var(--qp-skeleton-glint) 48%,transparent 62%),
+    linear-gradient(var(--qp-skeleton-base),var(--qp-skeleton-base)) 0 0/65% 12px no-repeat,
+    linear-gradient(var(--qp-skeleton-base),var(--qp-skeleton-base)) 0 30px/85% 22px no-repeat,
+    linear-gradient(var(--qp-skeleton-base),var(--qp-skeleton-base)) 0 68px/45% 10px no-repeat !important;
   background-size:250% 100%,65% 12px,85% 22px,45% 10px !important;
+  --qp-skeleton-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22white%22%3E%3Crect%20width%3D%2265%25%22%20y%3D%220%22%20height%3D%2212%22%20rx%3D%224%22%2F%3E%3Crect%20width%3D%2285%25%22%20y%3D%2230%22%20height%3D%2222%22%20rx%3D%226%22%2F%3E%3Crect%20width%3D%2245%25%22%20y%3D%2268%22%20height%3D%2210%22%20rx%3D%224%22%2F%3E%3C%2Fsvg%3E");
+  -webkit-mask-image:var(--qp-skeleton-mask);
+  mask-image:var(--qp-skeleton-mask);
+  mask-size:100% 100%;mask-repeat:no-repeat;
 }
 body:not(.qp-auth-checking):not(.qp-auth-locked) :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .income-recent-card,#monthlyAnalytics,.analytics-cards){animation:qpSkeletonReveal .2s ease-out;}
 body.qp-auth-checking #income #incomeAnalytics :is(.monthly-summary-card,.monthly-total-card,.monthly-category-card)::before{display:none !important;}
