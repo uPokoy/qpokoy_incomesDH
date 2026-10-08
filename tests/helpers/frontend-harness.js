@@ -30,7 +30,7 @@ async function createHarness(options={}){
   const errors=[];
   const vc=new VirtualConsole();
   vc.on('jsdomError',error=>errors.push(error.message));
-  const dom=new JSDOM(fs.readFileSync(path.join(root,'index.html'),'utf8'),{
+  const dom=new JSDOM(options.html??fs.readFileSync(path.join(root,'index.html'),'utf8'),{
     url:'https://qpokoy.example/',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc
   });
   const w=dom.window;

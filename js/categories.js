@@ -34,8 +34,12 @@ box.className='qp-category-manager';
 box.innerHTML='<div class="qp-category-add"><input id="qpCategoryInput" type="text" maxlength="80" placeholder="Название категории" autocomplete="off"><button type="button" id="qpCategoryAddBtn" aria-label="Добавить категорию" title="Добавить категорию">+</button></div>'+
 '<div class="qp-category-list" id="qpCategoryList"></div>';
 card.appendChild(box);
+}
+// Creation and binding are independent: accept both legacy and static shells.
+if(!box.__qPokoyManagerBound){
 box.querySelector('#qpCategoryAddBtn').addEventListener('click',addCategory);
 box.querySelector('#qpCategoryInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addCategory();}});
+box.__qPokoyManagerBound=true;
 }
 const list=box.querySelector('#qpCategoryList');
 if(!currentUser){list.innerHTML='<div class="qp-category-empty">Войдите в аккаунт, чтобы управлять категориями.</div>';return;}
