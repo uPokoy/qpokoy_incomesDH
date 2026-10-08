@@ -1,0 +1,85 @@
+/* Startup presentation only: local appearance first, then the existing layout.
+   Auth owns qp-auth-checking; subscription/read-only rules remain independent. */
+html.qp-appearance-pending{background:#070b12;}
+html.qp-appearance-pending body{visibility:hidden;background:#070b12 !important;}
+html.qp-appearance-pending #qpStandardBackgroundLayer{visibility:hidden;}
+body.qp-auth-checking #qpAuthGate{display:none !important;}
+body.qp-auth-checking .app{pointer-events:none;}
+body.qp-auth-checking #openIncomeForm{pointer-events:none;}
+body.qp-auth-checking #analyticsSettingsToggle{opacity:.45;cursor:default;}
+body.qp-auth-checking #settings,
+body.qp-auth-checking #incomeForm,
+body.qp-auth-checking #incomeRecentHistoryPanel,
+body.qp-auth-checking .qp-dev-note{visibility:hidden !important;}
+
+/* Mask entire data-bearing surfaces, including locally cached user text.
+   Pseudo-elements are decorative; .app is inert/aria-hidden until verified. */
+body.qp-auth-checking :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .income-recent-card,
+  #monthlyAnalyticsTotal,.monthly-summary-card,.monthly-total-card,.monthly-category-card,#analyticsTotal,
+  #incomeAnalytics .analytics-card,#incomeAnalytics .analytics-panel){
+  position:relative;
+  color:transparent !important;
+  text-shadow:none !important;
+}
+body.qp-auth-checking :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .income-recent-card,
+  #monthlyAnalyticsTotal,.monthly-summary-card,.monthly-total-card,.monthly-category-card,#analyticsTotal,
+  #incomeAnalytics .analytics-card,#incomeAnalytics .analytics-panel) *{
+  visibility:hidden !important;
+}
+body.qp-auth-checking :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .income-recent-card,
+  #monthlyAnalyticsTotal,.monthly-summary-card,.monthly-total-card,.monthly-category-card,#analyticsTotal,
+  #incomeAnalytics .analytics-card,#incomeAnalytics .analytics-panel)::after{
+  content:"";position:absolute;inset:18px;pointer-events:none;
+  border-radius:10px;
+  background:linear-gradient(100deg,transparent 35%,rgba(169,188,213,.09) 48%,transparent 62%),
+    linear-gradient(#263345,#263345);
+  background-size:250% 100%,100% 100%;
+  animation:qpSkeletonShimmer 1.4s linear infinite;
+}
+body.qp-auth-checking #income #incomeTotal::after{inset:20% 0;width:min(85%,320px);border-radius:12px;}
+body.qp-auth-checking #income #incomeMonthChart::after{
+  inset:18px 4px 28px;
+  background:linear-gradient(100deg,transparent 35%,rgba(169,188,213,.09) 48%,transparent 62%),
+    repeating-linear-gradient(90deg,#263345 0 5%,transparent 5% 8.33%);
+  background-size:250% 100%,100% 100%;
+  clip-path:polygon(0 65%,8% 65%,8% 40%,16% 40%,16% 55%,25% 55%,25% 20%,33% 20%,33% 40%,41% 40%,41% 10%,50% 10%,50% 35%,58% 35%,58% 20%,66% 20%,66% 45%,75% 45%,75% 30%,83% 30%,83% 55%,91% 55%,91% 40%,100% 40%,100% 100%,0 100%);
+}
+
+body.qp-auth-checking #income #incomeRecentGrid .income-recent-card::after{
+  inset:14px !important;width:auto !important;height:auto !important;
+  opacity:1 !important;border-radius:8px !important;
+  background:linear-gradient(100deg,transparent 35%,rgba(169,188,213,.09) 48%,transparent 62%),
+    repeating-linear-gradient(0deg,#263345 0 15px,transparent 15px 29px) !important;
+  background-size:250% 100%,100% 100% !important;
+}
+body.qp-auth-checking #income #incomeAnalytics :is(#monthlyAnalyticsTotal,.monthly-summary-card,.monthly-total-card,.monthly-category-card,.analytics-card)::after{
+  inset:20px !important;
+  width:auto !important;height:auto !important;transform:none !important;
+  display:block !important;opacity:1 !important;box-shadow:none !important;
+  background:linear-gradient(100deg,transparent 35%,rgba(169,188,213,.09) 48%,transparent 62%),
+    linear-gradient(#263345,#263345) 0 0/65% 12px no-repeat,
+    linear-gradient(#263345,#263345) 0 30px/85% 22px no-repeat,
+    linear-gradient(#263345,#263345) 0 68px/45% 10px no-repeat !important;
+  background-size:250% 100%,65% 12px,85% 22px,45% 10px !important;
+}
+body:not(.qp-auth-checking):not(.qp-auth-locked) :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .income-recent-card,#monthlyAnalytics,.analytics-cards){animation:qpSkeletonReveal .2s ease-out;}
+body.qp-auth-checking #income #incomeAnalytics :is(.monthly-summary-card,.monthly-total-card,.monthly-category-card)::before{display:none !important;}
+@keyframes qpSkeletonShimmer{from{background-position:120% 0,0 0,0 30px,0 68px;}to{background-position:-120% 0,0 0,0 30px,0 68px;}}
+@keyframes qpSkeletonReveal{from{opacity:.65;}to{opacity:1;}}
+@media(prefers-reduced-motion:reduce){
+  body.qp-auth-checking #income *::after{animation:none !important;}
+  body:not(.qp-auth-checking):not(.qp-auth-locked) :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .income-recent-card,#monthlyAnalytics,.analytics-cards){animation:none !important;}
+}
+
+/* Color-only category polish: preserve the existing geometry and icon mapping. */
+#incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-icon{
+  background:color-mix(in srgb,var(--category-color) 8%,transparent) !important;
+  color:color-mix(in srgb,var(--category-color) 85%,var(--text-muted)) !important;
+}
+#incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-delete{
+  color:color-mix(in srgb,var(--danger) 45%,var(--text-muted)) !important;
+}
+#incomeAnalytics .analytics-settings-host #settings[data-settings-tab="categories"] .qp-category-delete:is(:hover,:focus-visible){
+  background:color-mix(in srgb,var(--danger) 5%,transparent) !important;
+  color:color-mix(in srgb,var(--danger) 60%,var(--text-muted)) !important;
+}

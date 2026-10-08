@@ -55,11 +55,12 @@ async function createHarness(options={}){
   const billing={mode:'active',plan:'monthly',can_write:options.readOnly!==true,auto_renew:true,payment_method_saved:true,paid_until:'2026-11-07T00:00:00Z'};
   const tokenKey='qPokoyYdbSessionTokenV1';
   w.localStorage.setItem('incomeSelectedPeriod',JSON.stringify({month:10,year:2026}));
+  if(options.localIncomes)w.localStorage.setItem('incomes',JSON.stringify(options.localIncomes));
   if(current)w.localStorage.setItem(tokenKey,'session-a.secret');
   const api={
     getToken:()=>w.localStorage.getItem(tokenKey),
     setUnauthorizedHandler(handler){this.unauthorized=handler;},
-    async bootstrap(){calls.push('bootstrap');return current?{user:current,incomes:records.get(current.user_id).map(x=>({...x})),categories:categories.get(current.user_id),settings:[],billing}:null;},
+    async bootstrap(){calls.push('bootstrap');if(options.bootstrapGate)await options.bootstrapGate;return current?{user:current,incomes:records.get(current.user_id).map(x=>({...x})),categories:categories.get(current.user_id),settings:[],billing}:null;},
     async login(email){current=users.find(user=>user.email===email);if(!current)throw Error('Unknown fixture user');w.localStorage.setItem(tokenKey,'session-'+current.user_id+'.secret');return current;},
     async logout(){current=null;w.localStorage.removeItem(tokenKey);w.localStorage.removeItem('qPokoyBootstrapCacheV1');},
     async billingStatus(){return {...billing};},

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru" data-theme="dark">
+<html lang="ru" data-theme="dark" class="qp-appearance-pending">
 <head>
 <!-- qPokoy patch: add-income scroll + robust calendar positioning + close-on-scroll -->
 
@@ -206,10 +206,11 @@
 
 
 
+<link rel="stylesheet" href="css/loading-skeleton.css">
 </head>
-<body class="qp-auth-locked qp-auth-checking">
+<body class="qp-auth-checking">
 <div id="qpStandardBackgroundLayer" aria-hidden="true"></div>
-<div class="app">
+<div class="app" inert aria-hidden="true" aria-busy="true">
   <aside class="sidebar">
     <button class="toggle-btn" id="toggleSidebar" aria-label="Свернуть или развернуть меню">
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"/></svg>
@@ -710,12 +711,6 @@
 
 
 <div id="qpAuthGate">
-  <div class="qp-auth-loading" role="status" aria-live="polite" aria-label="Загрузка данных">
-    <div class="qp-auth-loading-box">
-      <span class="qp-auth-loading-spinner" aria-hidden="true"></span>
-      <span>Загрузка…</span>
-    </div>
-  </div>
   <div class="qp-auth-card" role="dialog" aria-modal="true">
     
     <div class="qp-auth-tabs" role="tablist">

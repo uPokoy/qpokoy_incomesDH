@@ -59,7 +59,7 @@ const icons=[
 '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
 '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 12h6"/></svg>'
 ];
-const colors=['#22c55e','#8b5cf6','#f59e0b','#3b82f6','#ec4899','#06b6d4','#f97316','#84cc16'];
+const colors=['#82a695','#a092b7','#b29d76','#849db9','#b58ca6','#78a5ab','#b69a80','#9aa77d'];
 window.qPokoyCategoryVisual=function(name,index){
 const n=String(name||'').trim().toLowerCase();
 let i=index%icons.length;

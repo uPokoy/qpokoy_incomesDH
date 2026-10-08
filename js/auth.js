@@ -74,10 +74,32 @@
     setResetMessage('');
   }
   function showGate(show,checking=false){
-    gate.hidden=!show;
-    document.body.classList.toggle('qp-auth-locked',show);
+    gate.hidden=!show||checking;
+    document.body.classList.toggle('qp-auth-locked',show&&!checking);
     document.body.classList.toggle('qp-auth-checking',show&&checking);
+    const app=document.querySelector('.app');
+    if(app){
+      app.inert=show;
+      app.toggleAttribute('inert',show);
+      app.setAttribute('aria-hidden',String(show));
+      app.setAttribute('aria-busy',String(show&&checking));
+    }
+    const settingsToggle=document.getElementById('analyticsSettingsToggle');
+    if(settingsToggle)settingsToggle.disabled=show&&checking;
+    const recent=document.getElementById('incomeRecentGrid');
+    if(recent?.children&&show&&checking&&!recent.querySelector('.income-recent-card')){
+      recent.innerHTML=Array.from({length:4},()=>'<article class="income-recent-card qp-skeleton-row" aria-hidden="true"><div class="income-recent-amount">&nbsp;</div><div class="income-recent-category">&nbsp;</div><div class="income-recent-date">&nbsp;</div></article>').join('');
+    }
+    if(recent?.querySelectorAll&&!checking)recent.querySelectorAll('.qp-skeleton-row').forEach(row=>row.remove());
   }
+  // Capture before delegated handlers; keep this lock separate from billing.
+  for(const eventName of ['click','submit'])document.addEventListener(eventName,event=>{
+    if(document.body.classList.contains('qp-auth-checking')&&
+      event.target.closest?.('.app,#openIncomeForm')){
+      event.preventDefault();event.stopImmediatePropagation();
+    }
+  },true);
+  showGate(true,true);
   function friendlyError(error){
     if(error&&error.code==='rate_limited')return 'Слишком много попыток. Попробуйте позже.';
     if(error&&error.code==='internal_error')return 'Сервер временно недоступен. Попробуйте обновить страницу через несколько секунд.';

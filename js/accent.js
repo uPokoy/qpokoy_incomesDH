@@ -59,7 +59,9 @@
   var STORE_NAME="backgrounds";
   var CUSTOM_KEY="custom";
   var currentObjectUrl="";
+  var appliedBlob=null;
   var mode="standard";
+  var initialBackgroundRead=null;
 
 
   try{
@@ -134,6 +136,8 @@
   }
 
   function applyCustomBlob(blob){
+    if(blob===appliedBlob&&currentObjectUrl)return;
+    appliedBlob=blob;
     if(currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
     currentObjectUrl=blob?URL.createObjectURL(blob):"";
     var layer=ensureCustomLayer();
@@ -268,18 +272,27 @@
     });
 
     storeMode(mode);
-    readCustomBackground().then(function(blob){
+    (initialBackgroundRead||readCustomBackground()).then(function(blob){
       refreshCustomState(blob);
       if(mode==="custom"&&!blob) storeMode("standard");
     }).catch(function(){if(mode==="custom") storeMode("standard");});
   }
 
-  if(mode==="custom"){
-    readCustomBackground().then(function(blob){
-      if(blob){applyCustomBlob(blob);setBodyMode("custom");}
-      else storeMode("standard");
-    }).catch(function(){storeMode("standard");});
-  }
+  // Resolve local appearance independently of server bootstrap, before reveal.
+  initialBackgroundRead=mode==="custom"?readCustomBackground():null;
+  window.qPokoyAppearanceReady=Promise.resolve(initialBackgroundRead).then(function(blob){
+    if(mode!=="custom")return;
+    if(!blob){storeMode("standard");return;}
+    applyCustomBlob(blob);
+    setBodyMode("custom");
+    var image=new Image();
+    image.src=currentObjectUrl;
+    return image.decode();
+  }).catch(function(){if(!currentObjectUrl)storeMode("standard");}).finally(function(){
+    function reveal(){document.documentElement.classList.remove("qp-appearance-pending");}
+    if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",reveal,{once:true});
+    else reveal();
+  });
 
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",createUi); else createUi();
   window.addEventListener("beforeunload",function(){if(currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);});

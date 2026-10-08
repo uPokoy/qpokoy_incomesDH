@@ -27,7 +27,8 @@ function setup(overrides={},options={}){
     });
     return nodes.get(id);
   }
-  const document={getElementById:node,querySelectorAll:()=>[],body:{classList:{toggle(){}}}};
+  const bodyClasses=new Set();
+  const document={getElementById:node,querySelector:()=>null,querySelectorAll:()=>[],addEventListener(){},body:{classList:{toggle(name,on){if(on)bodyClasses.add(name);else bodyClasses.delete(name);},contains:name=>bodyClasses.has(name)}}};
   let records=[];
   const saves=[];
   const notices=[];
@@ -48,10 +49,12 @@ function setup(overrides={},options={}){
   const store={load:()=>records,save(next){records=next;saves.push(next);storage.setItem('incomes',JSON.stringify(next));}};
   vm.runInNewContext(source,{window:win,document,localStorage:storage,IncomeStore:store,console:{error(){}},Date,Promise,
     URLSearchParams,URL,location:{search:options.search||'',href:'https://qpokoy.ru/'+(options.search||'')},history:{replaceState(){}}});
-  return {win,api,values,nodes,notices,calls,saves,get records(){return records;},get categoryLoads(){return categoryLoads;},confirm:()=>confirmation()};
+  return {win,api,values,nodes,notices,calls,saves,get checking(){return bodyClasses.has('qp-auth-checking');},get records(){return records;},get categoryLoads(){return categoryLoads;},confirm:()=>confirmation()};
 }
 async function ready(h){
-  for(let i=0;i<10&&!h.nodes.get('qpAuthGate').hidden;i++)await new Promise(resolve=>setImmediate(resolve));
+  // The gate is also hidden during skeleton; wait for authenticated hydration.
+  for(let i=0;i<10&&h.checking;i++)await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.checking,false);
   assert.equal(h.nodes.get('qpAuthGate').hidden,true);
 }
 
