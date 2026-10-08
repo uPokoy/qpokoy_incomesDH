@@ -304,6 +304,34 @@
   }
 }
 
+/* Fine-pointer data deletion uses the existing export/import presentation. */
+@media (pointer:fine){
+  #settings #clearIncomeDataBtn{
+    background:var(--primary);
+    color:#fff;
+    border-color:transparent;
+  }
+  #settings #clearIncomeDataBtn:hover{background:var(--primary)}
+
+  #incomeAnalytics .analytics-settings-host #settings #clearIncomeDataBtn{
+    border-color:color-mix(in srgb,var(--border) 82%,#7da9df 18%) !important;
+    background:
+      linear-gradient(145deg,
+        color-mix(in srgb,#10233b 62%,transparent),
+        color-mix(in srgb,#08111d 76%,transparent)) !important;
+    color:var(--text) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.02),
+      0 4px 12px rgba(0,0,0,.07) !important;
+    transform:none !important;
+  }
+  #incomeAnalytics .analytics-settings-host #settings #clearIncomeDataBtn:hover{
+    border-color:color-mix(in srgb,var(--primary) 32%,var(--border)) !important;
+    background:color-mix(in srgb,var(--primary) 7%,#0b1727) !important;
+    filter:brightness(1.04) !important;
+  }
+}
+
 /* DEV339: final desktop visual consistency pass; presentation only. */
 @media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
   #income .income-top,

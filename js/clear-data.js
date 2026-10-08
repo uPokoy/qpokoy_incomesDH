@@ -274,10 +274,16 @@
   // Prompt/binding: no deletion occurs before the existing confirmation callback.
   function clearAllIncomeData(btn){
     if(readOnly){focusAccessBanner();return;}
-    if(typeof window.qPokoyConfirm!=='function')return;
+    if(typeof window.qPokoyConfirm!=='function'||typeof window.qPokoyConfirmPhrase!=='function')return;
     window.qPokoyConfirm('Удалить все доходы?','Все доходы будут безвозвратно удалены из облака.',function(){
-      return runConfirmedIncomeClear(btn);
-    });
+      window.qPokoyConfirmPhrase(
+        'Подтверждение удаления',
+        'Для подтверждения введите УДАЛИТЬ.',
+        'УДАЛИТЬ',
+        function(){return runConfirmedIncomeClear(btn);},
+        {inputLabel:'Введите слово «УДАЛИТЬ»',cancelLabel:'Отмена',confirmLabel:'Удалить данные навсегда'}
+      );
+    },{cancelLabel:'Отмена',confirmLabel:'Удалить',danger:true});
   }
 
   function bindClearButton(){

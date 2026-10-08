@@ -88,11 +88,11 @@
       +'<button type="button" id="qpBillingPurchase" style="background:var(--primary);color:#fff;border-color:transparent;">Оформить доступ</button>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">'
       +'<button type="button" class="btn-secondary" id="qpBillingDisableRenew">Отключить автопродление</button>'
-      +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Отвязать карту</button>'
+      +'<button type="button" class="btn-secondary" id="qpBillingUnlinkCard">Удалить способ оплаты</button>'
       +'</div>'
       +'<div id="qpBillingDeleteWrap" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>'
       +'<div id="qpBillingStatus" class="settings-card-subtitle" style="margin-top:10px;">Проверяем состояние подписки…</div>'
-      +'<div class="settings-card-subtitle" style="margin-top:8px;">Отвязка карты отключает автопродление. Уже оплаченный период сохраняется.</div>';
+      +'<div class="settings-card-subtitle" style="margin-top:8px;">Удаление способа оплаты отключает автопродление. Уже оплаченный период сохраняется.</div>';
     card.appendChild(block);
 
     const api=window.qPokoyApi;
@@ -122,11 +122,11 @@
     function syncBillingButtons(){
       disable.textContent=autoRenewEnabled?'Отключить автопродление':'Подключить автопродление';
       if(paymentMethodSaved===false){
-        unlink.textContent='Карта не привязана';
+        unlink.textContent='Способ оплаты не сохранён';
         unlink.disabled=true;
         disable.disabled=true;
       }else{
-        unlink.textContent='Отвязать карту';
+        unlink.textContent='Удалить способ оплаты';
         unlink.disabled=false;
         disable.disabled=false;
       }
@@ -290,12 +290,12 @@
     unlink.addEventListener('click',()=>{
       if(!api?.getToken?.()||paymentMethodSaved===false)return;
       confirmBillingAction(
-        'Отвязать карту?',
+        'Удалить способ оплаты?',
         'Сохранённый способ оплаты будет удалён, автопродление отключится. Оплаченный период сохранится.',
-        'Отвязать',
+        'Удалить',
         async()=>{
           unlink.disabled=true;
-          showBillingProgress('Отвязываем карту','Отвязываем карту…');
+          showBillingProgress('Удаляем способ оплаты','Удаляем способ оплаты…');
           try{
             const result=await api.request('DELETE','/billing/payment-method');
             const unlinked=result?.data?.unlinked??result?.unlinked;
@@ -303,12 +303,12 @@
             autoRenewEnabled=false;
             syncBillingButtons();
             if(unlinked){
-              showBillingNotice('Карта отвязана','Автопродление отключено. Оплаченный период сохранён.');
+              showBillingNotice('Способ оплаты удалён','Автопродление отключено. Оплаченный период сохранён.');
             }else{
-              showBillingNotice('Карта не привязана','Сохранённая карта не была привязана.');
+              showBillingNotice('Способ оплаты не сохранён','Сохранённый способ оплаты отсутствует.');
             }
           }catch(error){
-            const message=billingErrorMessage(error,'Не удалось отвязать карту.');
+            const message=billingErrorMessage(error,'Не удалось удалить способ оплаты.');
             showBillingNotice('Ошибка',message,'error');
           }finally{
             if(paymentMethodSaved!==false){
