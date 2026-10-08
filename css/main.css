@@ -785,3 +785,8 @@ body.dark textarea,
     box-shadow:0 0 0 2px rgba(239,68,68,.14) !important;
   }
 }
+
+/* Desktop calendar hover stays anchored inside the date field. */
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #income #incomeForm .calendar-btn:hover{transform:none;background:color-mix(in srgb,var(--active) 60%,transparent) !important;}
+}
