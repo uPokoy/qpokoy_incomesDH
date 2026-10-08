@@ -211,6 +211,9 @@
       markers;
   }
 
+  // DOM-only chart renderer shared with onboarding; does not read/write income state.
+  window.qPokoyRenderIncomeSpikes=renderIncomeSpikes;
+
   function render(){
     const period=readPeriod();
     const data=loadData();

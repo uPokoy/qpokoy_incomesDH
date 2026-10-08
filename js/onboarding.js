@@ -64,8 +64,14 @@
       const height=value/58500*128;
       return '<g><title>'+names[i]+': '+money(value)+' — пример данных</title><rect class="income-chart-bar" x="'+(18+i*41.67)+'" y="'+(140-height)+'" width="26" height="'+height+'" rx="4"/></g>';
     }).join(''));
-    html('monthlyHeroBars','<svg class="monthly-spikes-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path class="monthly-spikes-area" d="M2 82 L15 62 L28 42 L41 45 L54 29 L67 32 L80 17 L98 8 L98 100 L2 100Z"/><path class="monthly-spikes-line" d="M2 82 L15 62 L28 42 L41 45 L54 29 L67 32 L80 17 L98 8"/></svg>');
-    html('monthlyHeroDaysLabels','');
+    const dayTotals=Array(31).fill(0);
+    [[1,5000],[4,6500],[7,4100],[10,12000],[14,7200],[18,8400],[23,6400],[28,8000]].forEach(([day,value])=>{dayTotals[day-1]=value;});
+    const chart=document.createElement('div');
+    window.qPokoyRenderIncomeSpikes(chart,dayTotals,{month:9,year:2026});
+    swap('monthlyHeroBars',[...chart.childNodes]);
+    attribute(byId('monthlyHeroDaysLabels'),'style',byId('monthlyHeroDaysLabels').getAttribute('style')||'');
+    byId('monthlyHeroDaysLabels').style.setProperty('--monthly-days','31');
+    html('monthlyHeroDaysLabels',dayTotals.map((value,index)=>'<span>'+([1,5,10,15,20,25,31].includes(index+1)?index+1:'')+'</span>').join(''));
     const categories=[['Зарплата',40000,69],['Подработка',12500,22],['Продажи',4100,7],['Прочее',1000,2]];
     html('monthlyAnalyticsCategories',categories.map(([name,value,share],i)=>{
       const visual=window.qPokoyCategoryVisual(name,i);
@@ -111,12 +117,19 @@
       top=Math.max(0,Math.min(month.top,chart.top)-12);
       bottom=Math.min(h,Math.max(month.bottom,chart.bottom)+12);
     }
-    const left=Math.max(0,rect.left-pad),right=Math.min(w,rect.right+pad);
+    let left=Math.max(0,rect.left-pad),right=Math.min(w,rect.right+pad);
+    const focusBox={left:left+'px',top:top+'px',width:Math.max(0,right-left)+'px',height:Math.max(0,bottom-top)+'px'};
+    if(step===4){
+      // Keep the entire real list undimmed and interactive; outline only creation.
+      const popup=byId('categoryPopup').getBoundingClientRect();
+      left=Math.max(0,popup.left-pad);right=Math.min(w,popup.right+pad);
+      top=Math.max(0,popup.top-pad);bottom=Math.min(h,popup.bottom+pad);
+    }
     const boxes=[[0,0,w,top],[0,bottom,w,h-bottom],[0,top,left,bottom-top],[right,top,w-right,bottom-top]];
     shades.forEach((node,i)=>{
       const [x,y,width,height]=boxes[i];Object.assign(node.style,{left:x+'px',top:y+'px',width:Math.max(0,width)+'px',height:Math.max(0,height)+'px'});
     });
-    Object.assign(focus.style,{left:left+'px',top:top+'px',width:Math.max(0,right-left)+'px',height:Math.max(0,bottom-top)+'px'});
+    Object.assign(focus.style,focusBox);
     const box=tip.getBoundingClientRect();
     let x=Math.min(w-box.width-16,Math.max(16,left));
     let y=top>box.height+28?top-box.height-18:bottom+18;
@@ -139,10 +152,10 @@
     shades=Array.from({length:4},()=>{const node=document.createElement('div');node.className='qp-tour-shade';node.setAttribute('aria-hidden','true');document.body.appendChild(node);return node;});
     focus=document.createElement('div');focus.className='qp-tour-focus';focus.setAttribute('aria-hidden','true');document.body.appendChild(focus);
     tip=document.createElement('section');tip.className='qp-tour-tip';tip.id='qpOnboarding';tip.setAttribute('role','dialog');tip.setAttribute('aria-modal',step<3?'true':'false');tip.setAttribute('aria-labelledby','qpTourText');
-    tip.innerHTML='<div class="qp-tour-heading"><span class="qp-tour-number" aria-hidden="true">'+step+'</span><p id="qpTourText"></p></div><div class="qp-tour-footer"><span class="qp-tour-progress">'+step+' из 4</span><button type="button" data-tour-skip>Пропустить</button>'+(step===3?'':'<button type="button" class="qp-tour-next" data-tour-next>'+(step===4?'Готово':'Далее →')+'</button>')+'</div>';
+    tip.innerHTML='<div class="qp-tour-heading"><span class="qp-tour-number" aria-hidden="true">'+step+'</span><p id="qpTourText"></p></div><div class="qp-tour-footer"><span class="qp-tour-progress">'+step+' из 4</span><button type="button" data-tour-skip>Пропустить</button>'+(step>=3?'':'<button type="button" class="qp-tour-next" data-tour-next>Далее →</button>')+'</div>';
     tip.querySelector('p').textContent=texts[step-1];
     tip.querySelector('[data-tour-skip]').addEventListener('click',finish);
-    tip.querySelector('[data-tour-next]')?.addEventListener('click',()=>step===4?finish():show(step+1));
+    tip.querySelector('[data-tour-next]')?.addEventListener('click',()=>show(step+1));
     document.body.appendChild(tip);
     if(step===2){
       // Reserve space above tall statistics at narrow desktop sizes rather
@@ -178,19 +191,23 @@
     }
     if(event.target.closest('#qpOnboarding'))return;
     if(step===3&&event.target.closest('#openIncomeForm')){removeOverlay();step=-1;return;}
-    if(step===4&&event.target.closest('.category-popup-create'))return;
+    if(step===4&&event.target.closest('#categoryPopup')){
+      if(event.target.closest('button.category-option,.category-popup-create'))finish();
+      return;
+    }
     event.preventDefault();event.stopImmediatePropagation();
   },true);
   document.addEventListener('keydown',event=>{
     if(!tip)return;
+    if(step===4&&event.key==='Enter'&&event.target.closest('.category-popup-create-input')){finish();return;}
     if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();finish();return;}
     if(event.key==='Tab'){
       const controls=[...tip.querySelectorAll('button')];
       if(step===3)controls.push(byId('openIncomeForm'));
-      if(step===4)controls.push(...target.querySelectorAll('input,button'));
+      if(step===4)controls.push(...byId('categoryPopup').querySelectorAll('input,button'));
       const index=controls.indexOf(document.activeElement),delta=event.shiftKey?-1:1;
       event.preventDefault();controls[(index+delta+controls.length)%controls.length].focus({preventScroll:true});
-    }else if(!event.target.closest('#qpOnboarding')&&!(step===3&&event.target.closest('#openIncomeForm'))&&!(step===4&&event.target.closest('.category-popup-create'))){
+    }else if(!event.target.closest('#qpOnboarding')&&!(step===3&&event.target.closest('#openIncomeForm'))&&!(step===4&&event.target.closest('#categoryPopup'))){
       event.preventDefault();event.stopImmediatePropagation();
     }
   },true);

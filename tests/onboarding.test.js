@@ -17,6 +17,15 @@ test('desktop tour uses DOM-only demo, restores real records before plus and wai
   const beforeStorage=storage(h),beforeCalls=[...h.calls];
   next(h);assert.match(tour(h).textContent,/2 из 4/);
   assert.equal(h.node('monthlyAnalyticsCategories').children.length,4);
+  const dayTotals=Array(31).fill(0);
+  [[1,5000],[4,6500],[7,4100],[10,12000],[14,7200],[18,8400],[23,6400],[28,8000]].forEach(([day,value])=>{dayTotals[day-1]=value;});
+  assert.equal(dayTotals.reduce((sum,value)=>sum+value,0),57600);
+  const expectedChart=h.w.document.createElement('div');
+  h.w.qPokoyRenderIncomeSpikes(expectedChart,dayTotals,{month:9,year:2026});
+  assert.equal(h.node('monthlyHeroBars').innerHTML,expectedChart.innerHTML);
+  assert.equal(h.node('monthlyHeroBars').querySelectorAll('.monthly-spike-marker').length,8);
+  assert.equal(h.node('monthlyHeroBars').querySelectorAll('.monthly-spike-label').length,3);
+  assert.match(h.node('monthlyHeroDaysLabels').textContent,/151015202531/);
   next(h);assert.match(tour(h).textContent,/3 из 4/);
   assert.match(h.node('incomeTotal').textContent,/100/);
   assert.equal(h.w.document.querySelector('.qp-tour-demo-badge'),null);
@@ -26,7 +35,10 @@ test('desktop tour uses DOM-only demo, restores real records before plus and wai
   h.node('categorySelect').click();await h.settle();
   assert.match(tour(h).textContent,/Не нашли нужную категорию/);
   assert.ok(h.node('categoryPopup').querySelector('.category-popup-create'));
-  next(h);assert.equal(tour(h),null);
+  assert.equal(tour(h).querySelector('[data-tour-next]'),null);
+  h.node('categoryPopup').querySelector('button.category-option').click();
+  assert.equal(tour(h),null);
+  assert.equal(h.node('incomeCategory').value,'Зарплата');
   h.node('cancelIncome').click();
   assert.equal(JSON.stringify([...h.records]),records);
   assert.equal(JSON.stringify([...h.categories]),categories);
@@ -81,5 +93,31 @@ test('empty account demo reveals the best share temporarily and returns to genui
   assert.equal(h.node('monthlyBestShare').hidden,true);
   assert.equal(h.records.get(userA.user_id).length,0);
   assert.equal(h.calls.some(value=>/add|update|replace/i.test(value)),false);
+  assert.deepEqual(h.errors,[]);
+});
+
+test('category hint closes on creation without blocking the existing category handler',async t=>{
+  const h=await createHarness({onboarding:true});t.after(()=>h.close());
+  next(h);next(h);h.node('openIncomeForm').click();h.node('categorySelect').click();await h.settle();
+  const popup=h.node('categoryPopup');
+  assert.match(tour(h).textContent,/4 из 4/);
+  popup.querySelector('.category-popup-create-input').value='Tour test category';
+  popup.querySelector('.category-popup-create-btn').click();
+  assert.equal(tour(h),null);await h.settle();
+  assert.equal(h.calls.filter(value=>value==='addCategory').length,1);
+  assert.equal(h.node('incomeCategory').value,'Tour test category');
+  assert.ok(h.categories.get(userA.user_id).some(category=>category.name==='Tour test category'));
+  assert.deepEqual(h.errors,[]);
+});
+
+test('Skip from category hint removes overlay without closing or changing the real form',async t=>{
+  const h=await createHarness({onboarding:true});t.after(()=>h.close());
+  next(h);next(h);h.node('openIncomeForm').click();h.node('categorySelect').click();await h.settle();
+  tour(h).querySelector('[data-tour-skip]').click();
+  assert.equal(tour(h),null);assert.equal(h.node('incomeForm').hidden,false);
+  h.node('categorySelect').click();
+  h.node('categoryPopup').querySelector('button.category-option').click();
+  assert.equal(h.node('incomeCategory').value,'Зарплата');
+  assert.equal(h.calls.some(value=>value==='addCategory'),false);
   assert.deepEqual(h.errors,[]);
 });
