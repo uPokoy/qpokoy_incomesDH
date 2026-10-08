@@ -5143,3 +5143,47 @@ html[data-theme="dark"] #qpAuthResetForm .qp-auth-reset-back{
   }
 }
 
+
+/* Desktop income actions: one selected card/row, no icon backplates. */
+.income-recent-delete{display:none;}
+@media (hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px){
+  #income #incomeRecentGrid :is(.income-recent-edit,.income-recent-delete),
+  #history #incomeList > .income-row :is(.edit-income,.delete-income){
+    display:grid;place-items:center;
+    width:28px;height:28px;padding:0;
+    border:0;border-radius:0;background:transparent;box-shadow:none;
+    color:#82b4de;cursor:pointer;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .15s ease;
+  }
+  #income #incomeRecentGrid :is(.income-recent-edit,.income-recent-delete){
+    position:absolute;bottom:10px;top:auto;z-index:2;transform:none;
+  }
+  #income #incomeRecentGrid .income-recent-edit{right:44px;}
+  #income #incomeRecentGrid .income-recent-delete{right:10px;}
+  #history #incomeList > .income-row :is(.edit-income,.delete-income){
+    top:50%;transform:translateY(-50%);
+  }
+  #income #incomeRecentGrid .income-recent-delete,
+  #history #incomeList > .income-row .delete-income{color:#c87c8c;}
+  #income #incomeRecentGrid .is-desktop-actions-open :is(.income-recent-edit,.income-recent-delete),
+  #history #incomeList > .is-desktop-actions-open :is(.edit-income,.delete-income){
+    opacity:1;visibility:visible;pointer-events:auto;
+  }
+  #income #incomeRecentGrid :is(.income-recent-edit,.income-recent-delete) svg,
+  #history #incomeList > .income-row :is(.edit-income,.delete-income) svg{
+    width:22px;height:22px;fill:none;stroke:currentColor;
+    stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+  }
+  #history #incomeList > .income-row .history-delete-close{display:none;}
+  #history #incomeList > .income-row .history-delete-trash{display:block !important;}
+  #income #incomeRecentGrid .income-recent-edit::after,
+  #history #incomeList > .income-row .edit-income::after{
+    content:"";position:absolute;right:-3px;top:4px;height:20px;width:1px;
+    background:color-mix(in srgb,#82b4de 35%,transparent);pointer-events:none;
+  }
+  #income #incomeRecentGrid :is(.income-recent-edit,.income-recent-delete):hover,
+  #history #incomeList > .income-row :is(.edit-income,.delete-income):hover{filter:brightness(1.12);}
+  #income #incomeRecentGrid :is(.income-recent-edit,.income-recent-delete):focus-visible,
+  #history #incomeList > .income-row :is(.edit-income,.delete-income):focus-visible{outline:1px solid currentColor;outline-offset:2px;}
+}

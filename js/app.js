@@ -700,7 +700,28 @@ function ensureRecentIncomePager(){
   return pager;
 }
 
+const desktopIncomeActionsMedia=window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)');
+const desktopIncomeEditIcon='<svg class="desktop-income-pencil" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L20 8a2.1 2.1 0 0 0-4-4L4 16Z"/><path d="m14 6 4 4M4 16l4 4"/></svg>';
+let desktopIncomeActiveItem=null;
+let desktopIncomeActionsTimer=0;
+function clearDesktopIncomeActions(){
+  clearTimeout(desktopIncomeActionsTimer);
+  desktopIncomeActionsTimer=0;
+  if(desktopIncomeActiveItem){
+    desktopIncomeActiveItem.classList.remove('is-desktop-actions-open','is-selected');
+    desktopIncomeActiveItem=null;
+  }
+}
+function showDesktopIncomeActions(item){
+  clearDesktopIncomeActions();
+  desktopIncomeActiveItem=item;
+  item.classList.add('is-desktop-actions-open');
+  if(item.classList.contains('income-recent-card'))item.classList.add('is-selected');
+  desktopIncomeActionsTimer=setTimeout(clearDesktopIncomeActions,5000);
+}
+
 function renderRecentIncomes(period=getSelectedIncomePeriod()){
+  clearDesktopIncomeActions();
   const host=document.getElementById('incomeRecentGrid');
   if(!host)return;
 
@@ -752,13 +773,14 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
   }
 
   host.innerHTML=visible.map(item=>`
-    <article class="income-recent-card" data-id="${escapeHtml(item.id)}" tabindex="-1">
+    <article class="income-recent-card" data-id="${escapeHtml(item.id)}" tabindex="${desktopIncomeActionsMedia.matches?0:-1}">
       <div class="income-recent-amount">${formatMoney(Number(item.amount||0))}</div>
       <div class="income-recent-category">${escapeHtml(item.category||'—')}</div>
       <div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}</div>
       <button class="income-recent-edit" data-id="${escapeHtml(item.id)}" type="button" title="Редактировать" aria-label="Редактировать">
-        <span class="history-action-pencil" aria-hidden="true">✎</span>
+        ${desktopIncomeActionsMedia.matches?desktopIncomeEditIcon:'<span class="history-action-pencil" aria-hidden="true">✎</span>'}
       </button>
+      ${desktopIncomeActionsMedia.matches?`<button class="income-recent-delete" data-id="${escapeHtml(item.id)}" type="button" title="Удалить доход" aria-label="Удалить доход"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>`:''}
       <div class="income-recent-mobile-actions">
         <button class="income-recent-mobile-edit" data-id="${escapeHtml(item.id)}" type="button" aria-label="Редактировать доход" title="Редактировать">
           <svg class="history-action-pencil" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg><span class="history-action-label" style="display:none">Изменить</span>
@@ -818,13 +840,34 @@ incomeRecentGrid?.addEventListener('click',e=>{
     openRecentIncomeEdit(editButton.dataset.id);
     return;
   }
-  const card=e.target.closest('.income-recent-card');
-  if(!card)return;
-  incomeRecentGrid.querySelectorAll('.income-recent-card.is-selected').forEach(item=>{
-    if(item!==card)item.classList.remove('is-selected');
-  });
-  card.classList.add('is-selected');
+  const deleteButton=e.target.closest('.income-recent-delete');
+  if(deleteButton){
+    e.stopPropagation();
+    window.qPokoyDeleteIncome(deleteButton.dataset.id);
+  }
 });
+
+// Close before action handlers run, without intercepting edit/delete itself.
+const desktopIncomeItemSelector='#incomeRecentGrid .income-recent-card,#incomeList > .income-row:not(.income-header)';
+document.addEventListener('click',e=>{
+  if(!desktopIncomeActionsMedia.matches)return;
+  if(e.target.closest('#incomeRecentGrid .income-recent-edit,#incomeRecentGrid .income-recent-delete,#incomeList .edit-income,#incomeList .delete-income')){
+    clearDesktopIncomeActions();
+    return;
+  }
+  const item=e.target.closest(desktopIncomeItemSelector);
+  if(item)showDesktopIncomeActions(item);
+  else clearDesktopIncomeActions();
+},true);
+document.addEventListener('keydown',e=>{
+  if(!desktopIncomeActionsMedia.matches)return;
+  if(e.key==='Escape'){clearDesktopIncomeActions();return;}
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches(desktopIncomeItemSelector)){
+    e.preventDefault();showDesktopIncomeActions(e.target);
+  }
+});
+if(typeof desktopIncomeActionsMedia.addEventListener==='function')desktopIncomeActionsMedia.addEventListener('change',clearDesktopIncomeActions);
+else if(typeof desktopIncomeActionsMedia.addListener==='function')desktopIncomeActionsMedia.addListener(clearDesktopIncomeActions);
 
 if(incomeRecentGrid&&!incomeRecentGrid.dataset.qpLongPressBound){
   incomeRecentGrid.dataset.qpLongPressBound='1';
@@ -924,7 +967,7 @@ window.renderIncomes=function renderIncomes(filteredData=null){
   const mobileHistoryRows=historyNativeSwipeMedia.matches;
   const historyEditIcon=mobileHistoryRows
     ? '<svg class="history-action-pencil" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>'
-    : '<span class="history-action-pencil" aria-hidden="true">✎</span>';
+    : desktopIncomeActionsMedia.matches?desktopIncomeEditIcon:'<span class="history-action-pencil" aria-hidden="true">✎</span>';
   incomeList.innerHTML=header+
     rows.map(item=>{
       const cells=`
@@ -941,7 +984,7 @@ window.renderIncomes=function renderIncomes(filteredData=null){
         </button>`;
       return mobileHistoryRows
         ? `<div class="income-row history-swipe-row"><div class="history-card-surface">${cells}</div><div class="history-swipe-actions">${actions}</div></div>`
-        : `<div class="income-row">${cells}${actions}</div>`;
+        : `<div class="income-row"${desktopIncomeActionsMedia.matches?' tabindex="0"':''}>${cells}${actions}</div>`;
     }).join('');
   if(typeof window.renderIncomeMonthChart==='function') window.renderIncomeMonthChart();
   if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
