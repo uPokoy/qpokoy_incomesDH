@@ -9,15 +9,13 @@ const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const reference=read('tests/fixtures/stage5-static-shells.html');
 function html(page,staticShell){
-  if(!staticShell)return read(page);
-  const dom=new JSDOM(read(page)),fixture=new JSDOM(reference);
+  // Exercise the real production static HTML and reconstruct legacy HTML by
+  // removing only its shell (no whitespace edits or synthetic replacement).
+  if(staticShell)return read(page);
+  const dom=new JSDOM(read(page));
   const d=dom.window.document;
-  if(page==='index.html'){
-    d.getElementById('qpAppearanceCard').appendChild(d.importNode(fixture.window.document.querySelector('.qp-category-manager'),true));
-  }else{
-    d.querySelector('.admin-search-box').insertAdjacentElement('afterend',d.importNode(fixture.window.document.querySelector('.admin-mobile-filter-toggle'),true));
-  }
-  const value=dom.serialize();dom.window.close();fixture.window.close();return value;
+  d.querySelector(page==='index.html'?'.qp-category-manager':'.admin-mobile-filter-toggle').remove();
+  const value=dom.serialize();dom.window.close();return value;
 }
 function categoryContract(h){
   const d=h.w.document,card=d.querySelector('#settings > .settings-card:not([style])');
@@ -31,6 +29,50 @@ function categoryContract(h){
   expected.window.close();
   for(const id of ['qpCategoryInput','qpCategoryAddBtn','qpCategoryList'])assert.equal(d.querySelectorAll('#'+id).length,1);
 }
+
+test('production static shells match reference and contain no duplicate IDs',()=>{
+  const fixture=new JSDOM(reference);
+  try{
+    for(const [page,selector] of [['index.html','.qp-category-manager'],['admin.html','.admin-mobile-filter-toggle']]){
+      const dom=new JSDOM(read(page));
+      try{
+        const d=dom.window.document,nodes=d.querySelectorAll(selector);
+        assert.equal(nodes.length,1);
+        assert.equal(nodes[0].outerHTML,fixture.window.document.querySelector(selector).outerHTML);
+        const ids=[...d.querySelectorAll('[id]')].map(n=>n.id);
+        assert.equal(new Set(ids).size,ids.length);
+        if(page==='index.html')assert.equal(d.querySelector('#settings > .settings-card:not([style])').id,'qpAppearanceCard');
+        else assert.equal(nodes[0].previousSibling,d.querySelector('.admin-search-box'));
+      }finally{dom.window.close();}
+    }
+  }finally{fixture.window.close();}
+});
+
+test('static and fallback shells produce equivalent fully initialized DOM',async()=>{
+  const normalize=value=>value.replace(/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}/gi,'UUID');
+  for(const options of [{},{signedOut:true},{readOnly:true,pointer:'coarse',width:390,height:844}]){
+    const snapshots=[];
+    for(const staticShell of [false,true]){
+      const h=await createHarness({...options,html:html('index.html',staticShell)});
+      try{
+        snapshots.push({dom:normalize(h.node('qpAppearanceCard').outerHTML),calls:[...h.calls],errors:[...h.errors]});
+      }finally{h.close();}
+    }
+    assert.deepEqual(snapshots[0],snapshots[1]);
+  }
+  for(const mobile of [false,true]){
+    const snapshots=[];
+    for(const staticShell of [false,true]){
+      const dom=new JSDOM(html('admin.html',staticShell),{runScripts:'outside-only'});
+      try{
+        const w=dom.window;w.matchMedia=()=>({matches:mobile,addEventListener(){}});
+        w.eval(read('js/admin-ui-polish.js'));w.eval(read('js/admin-mobile.js'));
+        snapshots.push(w.document.querySelector('.admin-filters').outerHTML);
+      }finally{dom.window.close();}
+    }
+    assert.equal(snapshots[0],snapshots[1]);
+  }
+});
 
 for(const staticShell of [false,true]){
   const mode=staticShell?'future static HTML':'legacy HTML';
