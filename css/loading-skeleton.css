@@ -80,6 +80,8 @@ body.qp-auth-checking #income #incomeAnalytics :is(#monthlyAnalyticsTotal,.month
   mask-image:var(--qp-skeleton-mask);
   mask-size:100% 100%;mask-repeat:no-repeat;
 }
+/* Mobile best-category styling suppresses its decorative ::after content. */
+body.qp-auth-checking #income #incomeAnalytics.is-monthly .monthly-summary-best::after{content:"" !important;}
 body:not(.qp-auth-checking):not(.qp-auth-locked) :is(#incomeTotal,#incomeMonthChart,#incomeRecentGrid .income-recent-card,#monthlyAnalytics,.analytics-cards){animation:qpSkeletonReveal .2s ease-out;}
 body.qp-auth-checking #income #incomeAnalytics :is(.monthly-summary-card,.monthly-total-card,.monthly-category-card)::before{display:none !important;}
 @keyframes qpSkeletonShimmer{from{background-position:120% 0,0 0,0 30px,0 68px;}to{background-position:-120% 0,0 0,0 30px,0 68px;}}
