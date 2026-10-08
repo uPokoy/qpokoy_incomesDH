@@ -1,5 +1,10 @@
 
-(function qPokoyBackupInit(){
+/* Settings orchestration: backup controls, billing UI and settings gestures.
+   These sections keep separate state; initialization below preserves their order.
+   The independent DEV panel relocation remains in its own IIFE. */
+(function qPokoySettingsControlsInit(){
+  // Backup UI adapter. Preserve this exporter separately from IncomeBackup.exportData:
+  // source selection, date normalization, notices and revoke timing are not equivalent.
   const KEY='incomes';
 
   function canonicalDate(value){
@@ -63,6 +68,7 @@
     throw new Error('Модуль импорта недоступен.');
   }
 
+  // Billing UI owns only its mounted controls and the existing API interactions.
   function formatBillingDate(value){
     if(!value)return '';
     const date=new Date(value);
@@ -318,6 +324,7 @@
     refresh();
   }
 
+  // Settings navigation bridge; does not depend on backup or billing state.
   function bindSettingsSwipe(){
     const settings=document.getElementById('settings');
     if(!settings||settings.__qPokoySwipe)return;
@@ -362,7 +369,7 @@
     settings.__qPokoySwipe=true;
   }
 
-  function bind(){
+  function bindBackupControls(){
     const exp=document.getElementById('exportDataBtn');
     const imp=document.getElementById('importDataBtn');
     const input=document.getElementById('importDataInput');
@@ -389,6 +396,10 @@
       });
     }
 
+  }
+
+  function bind(){
+    bindBackupControls();
     mountBillingSettings();
     bindSettingsSwipe();
   }

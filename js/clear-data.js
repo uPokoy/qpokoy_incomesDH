@@ -1,3 +1,6 @@
+/* Access guards plus clear-data UI. Account deletion remains owned by auth.js.
+   API/store/notice wrappers must keep their current installation timing.
+   Confirmed deletion action is separate from prompting/binding below. */
 (function(){
   'use strict';
 
@@ -24,6 +27,7 @@
     '.category-popup-create input'
   ].join(',');
 
+  // Access presentation: banner, styles and write-control disabled state.
   function ensureReadOnlyStyles(){
     if(document.getElementById('qpAccessReadOnlyStyles'))return;
     const style=document.createElement('style');
@@ -172,6 +176,7 @@
     return error;
   }
 
+  // Access enforcement bridges. Preserve original receiver/return/error semantics.
   function wrapApi(){
     const api=window.qPokoyApi;
     if(!api||api.__qPokoyAccessWrapped)return;
@@ -258,14 +263,20 @@
     return true;
   }
 
+  // Confirmed action: cloud hook owns data/session changes; UI only tracks busy state.
+  async function runConfirmedIncomeClear(btn){
+    btn.disabled=true;
+    try{
+      if(typeof window.qPokoyCloudDeleteAll==='function')await window.qPokoyCloudDeleteAll();
+    }finally{btn.disabled=false;syncWriteControls();}
+  }
+
+  // Prompt/binding: no deletion occurs before the existing confirmation callback.
   function clearAllIncomeData(btn){
     if(readOnly){focusAccessBanner();return;}
     if(typeof window.qPokoyConfirm!=='function')return;
-    window.qPokoyConfirm('Удалить все доходы?','Все доходы будут безвозвратно удалены из облака.',async function(){
-      btn.disabled=true;
-      try{
-        if(typeof window.qPokoyCloudDeleteAll==='function')await window.qPokoyCloudDeleteAll();
-      }finally{btn.disabled=false;syncWriteControls();}
+    window.qPokoyConfirm('Удалить все доходы?','Все доходы будут безвозвратно удалены из облака.',function(){
+      return runConfirmedIncomeClear(btn);
     });
   }
 

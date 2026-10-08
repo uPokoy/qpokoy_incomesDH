@@ -1,3 +1,7 @@
+/* Ownership map: visual fitting/odometer observers first; legacy application
+   bridges (swipe render deferral, API delete deduplication, optimistic removal)
+   live in separate IIFEs below. Their timing/semantics are deliberately retained.
+   See docs/frontend-supporting-responsibilities.md. */
 /* DEV79: layout-only collision prevention for month/year hero totals.
    No income calculations, storage, click handlers or percentage data changes. */
 (function(){
@@ -356,7 +360,10 @@
   observer.observe(total,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
 })();
 
-/* Keep mobile history swipe gestures alive while async income redraws arrive. */
+/* Legacy render bridge, NOT a post-render visual refresh:
+   it delays the underlying render during touch/snap settling. Removing it changes
+   history behavior; keep the exact wrapper, receiver and flush order.
+   Keep mobile history swipe gestures alive while async income redraws arrive. */
 (function(){
   "use strict";
   const list=document.getElementById('incomeList');
@@ -429,7 +436,8 @@
   });
 })();
 
-/* Rapid delete safety: one request per income at a time, and "already gone" is success. */
+/* Legacy transport bridge (not layout): installed on load after access guards.
+   Rapid delete safety: one request per income at a time, and "already gone" is success. */
 (function(){
   "use strict";
   function install(){
@@ -466,7 +474,8 @@
   else window.addEventListener('load',install,{once:true});
 })();
 
-/* Optimistic delete: remove the income from the UI immediately, then confirm it in cloud. */
+/* Legacy store bridge (not layout): retains existing cloud callback and rollback.
+   Optimistic delete: remove the income from the UI immediately, then confirm it in cloud. */
 (function(){
   "use strict";
   const store=window.IncomeStore;

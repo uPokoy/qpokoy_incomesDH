@@ -1,5 +1,7 @@
 
-(function(){
+/* Notification UI owns only the overlay and its dismissal/focus lifecycle.
+   Legacy page enhancements below have a separate private scope; no new exports. */
+(function qPokoyNoticeUI(){
   function close(){
     const overlay=document.getElementById('qpNoticeOverlay');
     if(overlay) overlay.remove();
@@ -30,6 +32,11 @@
     if(btn) requestAnimationFrame(function(){btn.focus();});
   };
 
+})();
+
+/* Existing page enhancements are not notification responsibilities.
+   Keep their initialization point/order unchanged until a dedicated UI stage. */
+(function qPokoyLegacyPageEnhancements(){
   function bindStatisticsSwipe(){
     const root=document.getElementById('incomeAnalytics');
     const monthBtn=document.getElementById('analyticsModeMonth');
