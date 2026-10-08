@@ -1,4 +1,10 @@
 
+/* Module contract: docs/frontend-module-contracts.md (auth).
+ * Owns auth gate/account UI, bootstrap hydration and per-user pending writes.
+ * qPokoyAuth is the UI/settings surface; qPokoyCloud* are legacy sync hooks.
+ * Uses qPokoyApi, IncomeStore and qPokoyLoadCategories, then refreshes app views.
+ * Keep hooks at their current publication points; no new auth-change event.
+ */
 (function(){
   const api=window.qPokoyApi;
 
@@ -503,6 +509,7 @@
     }
   }
 
+  // Public bulk-write hook: confirm cloud success before replacing local data.
   window.qPokoyCloudRestoreBackup=function(records){
     if(cloudUser&&cloudReady&&!cloudBusy){
       const userId=cloudUser.id;
@@ -576,6 +583,8 @@
     });
   }
 
+  // Legacy cloud hooks consumed by IncomeStore/backup/clear-data/hero-overlap.
+  // Preserve names and return semantics (not all hooks return a success boolean).
   window.qPokoyCloudReplace=function(){
     if(window.qPokoyNotice)window.qPokoyNotice('Действие недоступно','Полная замена данных пока не поддерживается сервером.','error');
     return Promise.resolve(false);
@@ -728,5 +737,6 @@
     });
   }
 
+  // Public UI API; user/session/journal state stays private. Settings are copies.
   window.qPokoyAuth={client:api,showGate,setMode,getSettings:()=>cloudSettings.map(row=>({...row}))};
 })();

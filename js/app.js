@@ -1,4 +1,11 @@
 
+/* Module contract: docs/frontend-module-contracts.md (app).
+ * Owns local income UI/store, editor, periods, filters, analytics and settings UI.
+ * Public surfaces: IncomeStore, IncomeBackup and documented legacy window hooks.
+ * Calls auth's qPokoyCloud* for writes; does not own tokens or category rows.
+ * Private state/functions stay inside IIFEs. Keep export timing: later scripts
+ * wrap render/store methods. Do not capture those methods into new aliases.
+ */
 (function(){
 "use strict";
 
@@ -484,6 +491,7 @@ const AppState={
   }
 };
 
+// Public local-store boundary; save is local-only, CRUD delegates to cloud hooks.
 window.IncomeStore={
   key:'incomes',
   load(){
@@ -1257,6 +1265,7 @@ function changeSelectedIncomeYear(delta){
   setSelectedIncomePeriod(current.month,year);
   if(typeof window.renderIncomes==='function') window.renderIncomes();
 }
+// Public period bridge for analytics modules; getter returns a detached snapshot.
 window.qPokoyGetSelectedIncomePeriod=()=>({...getSelectedIncomePeriod()});
 window.qPokoyChangeSelectedIncomeMonth=changeSelectedIncomeMonth;
 window.qPokoyChangeSelectedIncomeYear=changeSelectedIncomeYear;
@@ -2235,6 +2244,7 @@ function getAllIncomeRecords(){
     if(typeof window.renderIncomeAnalytics==='function') window.renderIncomeAnalytics();
   }
 
+  // Public backup bridge; import/persist require auth's confirmed cloud replacement.
   window.IncomeBackup={exportData,importData,getAllIncomeRecords,persistRecords};
 
 })();

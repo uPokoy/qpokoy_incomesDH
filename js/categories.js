@@ -1,3 +1,10 @@
+/* Module contract: docs/frontend-module-contracts.md (categories).
+ * Owns private per-user category rows, manager UI and editor category options.
+ * auth calls qPokoyLoadCategories(user, bootstrapRows); omitted rows mean GET.
+ * Public legacy surface: qPokoyLoadCategories, qPokoyGetCategories,
+ * qPokoyCategoryVisual. The getter copies the array, not individual rows.
+ * app owns editor lifecycle; selection is shared through #incomeCategory DOM.
+ */
 (function(){
 let currentUser=null;
 let categories=[];
@@ -309,6 +316,7 @@ renderManager();renderIncomeCategoryOptions();
 if(window.qPokoyConfirm)window.qPokoyConfirm('Удалить категорию?',`Удалить «${cat.name}»? Уже добавленные доходы не будут удалены.`,doRemove);
 else doRemove();
 }
+// Public loading/reading hooks; preserve early availability before DOMContentLoaded.
 window.qPokoyLoadCategories=loadForUser;
 window.qPokoyGetCategories=function(){return sortCategories(categories);};
 function init(){

@@ -1,3 +1,9 @@
+/* Module contract: docs/frontend-module-contracts.md (api-client).
+ * Publishes window.qPokoyApi; CommonJS exposes createApiClient and ApiError.
+ * Owns bearer token/cache and HTTP transport, not UI income state or the journal.
+ * auth.js owns the unauthorized callback; consumers must not write token storage.
+ * Keep publication timing: clear-data.js wraps methods before auth.js starts.
+ */
 (function(root,factory){
   const api=factory();
   if(typeof module==='object'&&module.exports)module.exports=api;
@@ -107,6 +113,8 @@
       setToken(payload.token);
       return payload.user;
     }
+    // Public client surface. setToken/saveSession/cache helpers remain private.
+    // clearToken clears transport credentials/cache, not the app's income views.
     return {
       getToken,clearToken,request,
       setUnauthorizedHandler(handler){unauthorizedHandler=handler;},
