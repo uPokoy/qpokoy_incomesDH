@@ -47,7 +47,7 @@ async function createHarness(options={}){
   w.matchMedia=query=>({media:query,matches:matches(query,options),addEventListener(){},addListener(){},removeEventListener(){}});
   w.innerWidth=options.width||1440;w.innerHeight=options.height||900;
   const users=[userA,userB];
-  const records=new Map(users.map(user=>[user.user_id,[row(user,user===userA?100:700,user.email)]]));
+  const records=new Map(users.map(user=>[user.user_id,options.empty?[]:[row(user,user===userA?100:700,user.email)]]));
   const categories=new Map(users.map(user=>[user.user_id,[{id:randomUUID(),user_id:user.user_id,name:'Зарплата'}]]));
   let current=options.signedOut?null:userA;
   let hold=null;
@@ -84,7 +84,9 @@ async function createHarness(options={}){
   w.qPokoyApi=api;
   const scripts=[...w.document.querySelectorAll('script[src]')].map(node=>node.getAttribute('src').split('?')[0]);
   try{
-    for(const script of scripts){if(script==='js/api-client.js')continue;w.eval(fs.readFileSync(path.join(root,script),'utf8')+'\n//# sourceURL='+script);}
+    // Core workflow tests run without the blocking presentation tour; dedicated
+    // onboarding tests opt in and exercise the real module with the same fixtures.
+    for(const script of scripts){if(script==='js/api-client.js'||(script==='js/onboarding.js'&&!options.onboarding))continue;w.eval(fs.readFileSync(path.join(root,script),'utf8')+'\n//# sourceURL='+script);}
   }catch(error){w.close();throw error;}
   const h={dom,w,api,records,categories,calls,errors,billing,downloads,
     node:id=>w.document.getElementById(id),
