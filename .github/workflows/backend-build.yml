@@ -51,6 +51,7 @@ jobs:
         run: |
           node --check index.js
           node --check app.js
+          node --check category-router.js
           node --check admin-billing.js
           node --check admin-receipt.js
           node --check billing-payments.js
@@ -66,7 +67,7 @@ jobs:
           node --check mail.js
           node --check oauth.js
       - name: Package Cloud Function
-        run: zip -j ../qpokoy-backend.zip index.js app.js admin-billing.js admin-receipt.js billing-payments.js payment-router.js yookassa.js renewals.js precharge-notifications.js precharge-test.js receipt-mail.js ydb.js ydb-core.js security.js mail.js oauth.js package.json package-lock.json
+        run: zip -j ../qpokoy-backend.zip index.js app.js category-router.js admin-billing.js admin-receipt.js billing-payments.js payment-router.js yookassa.js renewals.js precharge-notifications.js precharge-test.js receipt-mail.js ydb.js ydb-core.js security.js mail.js oauth.js package.json package-lock.json
       - name: Upload package
         uses: actions/upload-artifact@v4
         with:

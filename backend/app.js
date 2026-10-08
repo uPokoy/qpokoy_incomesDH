@@ -3,6 +3,7 @@
 const { randomUUID, randomBytes, createHmac, createHash, timingSafeEqual } = require('node:crypto');
 const { hashPassword, verifyPassword, newSession, parseToken, verifySecret, newPasswordResetToken, hashPasswordResetToken, newEmailVerificationToken, parseEmailVerificationToken } = require('./security');
 const { OVERRIDE_KEY, AUDIT_OWNER, adminIds, readGrant, grantFor } = require('./admin-billing');
+const { createCategoryRouter } = require('./category-router');
 const DEFAULT_CATEGORIES = ['Зарплата', 'Подработка', 'Прочее'];
 const MAX_REPLACE_INCOMES = 500;
 const OAUTH_TICKET_SETTING = 'auth.oauth_ticket';
@@ -263,6 +264,8 @@ function createApp(store, options = {}) {
       return false;
     }
   }
+
+  const categoryRouter = createCategoryRouter({ store, requireWriteAccess, requiredString, uuidValue, randomUUID, now, HttpError, response });
 
   async function handle(method, path, body = {}, headers = {}, requestContext = {}) {
     try {
@@ -612,25 +615,8 @@ function createApp(store, options = {}) {
         if (!await store.deleteIncome(userId, id)) throw new HttpError(404, 'not_found', 'Income not found');
         return response(204, null);
       }
-      if (pathname === '/categories' && method === 'GET') return response(200, { data: await store.listCategories(userId) });
-      if (pathname === '/categories' && method === 'POST') {
-        await requireWriteAccess(user);
-        const name = requiredString(body.name, 'name', 80).replace(/\s+/g, ' ');
-        const id = randomUUID();
-        const created = await store.addCategory({ user_id: userId, id, name, created_at: now() });
-        if (!created) throw new HttpError(409, 'category_exists', 'Category already exists');
-        return response(201, { data: await store.getCategory(userId, id) });
-      }
-      const categoryMatch = /^\/categories\/([^/]+)$/.exec(pathname);
-      if (categoryMatch && method === 'DELETE') {
-        await requireWriteAccess(user);
-        const id = uuidValue(categoryMatch[1]);
-        const category = await store.getCategory(userId, id);
-        if (!category) throw new HttpError(404, 'not_found', 'Category not found');
-        if (category.name.toLocaleLowerCase('ru-RU') === 'зарплата') throw new HttpError(403, 'protected_category', 'Salary category cannot be deleted');
-        await store.deleteCategory(userId, id);
-        return response(204, null);
-      }
+      const categoryResult = await categoryRouter.handle(method, pathname, body, user);
+      if (categoryResult) return categoryResult;
       if (pathname === '/settings' && method === 'GET') return response(200, {
         data: (await store.listSettings(userId)).filter(row => !/^(auth|system|rate|billing)\./.test(String(row.setting_key)))
       });
