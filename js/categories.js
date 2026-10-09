@@ -77,7 +77,7 @@ if(!popup||!mobileCategoryPopupMedia.matches||!popup.classList.contains('open'))
 const createRow=popup.querySelector('.category-popup-create');
 if(!createRow)return;
 const opensBelow=popup.style.top&&popup.style.top!=='auto';
-popup.style.setProperty('padding',createRow.classList.contains('is-editing')?'0 10px':'0','important');
+popup.style.setProperty('padding','0 10px','important');
 createRow.style.setProperty('position','sticky','important');
 createRow.style.setProperty('z-index','4','important');
 createRow.style.setProperty('grid-template-columns',createRow.classList.contains('is-editing')?'minmax(0,1fr) 38px':'1fr','important');

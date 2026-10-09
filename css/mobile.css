@@ -3252,10 +3252,6 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     border-radius:9px;
     overflow:hidden;
   }
-  #incomeForm #categoryPopup:has(.category-popup-create:not(.is-editing)) > .category-option{
-    width:calc(100% - 20px) !important;
-    margin-inline:10px;
-  }
   #incomeForm .category-popup-create-trigger:hover,
   #incomeForm .category-popup-create-trigger:active{
     transform:none !important;
