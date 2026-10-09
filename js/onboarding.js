@@ -1,8 +1,11 @@
-/* Desktop onboarding presentation. Demo values never enter IncomeStore/API/storage.
+/* Shared onboarding presentation. Demo values never enter IncomeStore/API/storage.
  * Completion belongs to the authenticated account, not this browser. */
 (function(){
   const desktop=window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)');
-  if(!desktop.matches)return;
+  const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
+  // Temporary manual-test switch: completed mobile accounts repeat on each new launch/login.
+  const MOBILE_ONBOARDING_TEST_MODE=true;
+  if(!desktop.matches&&!mobile.matches)return;
   const byId=id=>document.getElementById(id);
   const texts=[
     'Здесь самое важное: доход за текущий месяц, а также годовой график.',
@@ -13,7 +16,32 @@
   let started=false,finished=false,step=0,demo=false,frame=0,startFrame=0;
   let tourUser=null;
   let target=null,tip=null,focus=null,shades=[],previousFocus=null;
+  let mobileResizeObserver=null;
   const snapshots=new Map(),attributes=[];
+  let mobileState=null;
+  function prepareMobile(){
+    if(!mobile.matches)return;
+    const recent=byId('incomeRecent'),settings=byId('analyticsSettingsToggle');
+    mobileState={collapsed:recent.classList.contains('is-collapsed'),history:recent.classList.contains('is-history-open'),
+      settings:settings.getAttribute('aria-expanded')==='true',tab:document.querySelector('.qp-settings-tab.active')?.dataset.settingsTabTarget,
+      persisted:localStorage.getItem('incomeRecentCollapsed')};
+    if(mobileState.settings)settings.click();
+    if(recent.classList.contains('is-history-open'))byId('incomeRecentHistory').click();
+    if(!recent.classList.contains('is-collapsed'))byId('incomeRecentToggle').click();
+  }
+  function restoreMobile(){
+    if(!mobileState)return;
+    const state=mobileState;mobileState=null;
+    const recent=byId('incomeRecent');
+    if(recent.classList.contains('is-collapsed')!==state.collapsed)byId('incomeRecentToggle').click();
+    if(state.history&&!recent.classList.contains('is-history-open'))byId('incomeRecentHistory').click();
+    if(state.settings){
+      byId('analyticsSettingsToggle').click();
+      window.qPokoySetSettingsTab?.(state.tab);
+    }
+    if(state.persisted===null)localStorage.removeItem('incomeRecentCollapsed');
+    else localStorage.setItem('incomeRecentCollapsed',state.persisted);
+  }
   const money=value=>value.toLocaleString('ru-RU')+' ₽';
   function swap(id,content){
     const node=byId(id);if(!node)return;
@@ -94,6 +122,7 @@
   }
   function removeOverlay(){
     cancelAnimationFrame(frame);frame=0;
+    mobileResizeObserver?.disconnect();mobileResizeObserver=null;
     [tip,focus,...shades].forEach(node=>node?.remove());
     tip=null;focus=null;shades=[];target=null;
   }
@@ -102,11 +131,12 @@
     finished=true;step=0;
     if(completed)window.qPokoyAuth.completeOnboarding().catch(()=>{});
     cancelAnimationFrame(startFrame);startFrame=0;
-    removeOverlay();restoreDemo();
+    removeOverlay();restoreDemo();restoreMobile();
     if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});
   }
   function position(){
     if(!tip||!target?.isConnected)return;
+    if(mobile.matches){positionMobile();return;}
     const rect=target.getBoundingClientRect();
     const w=window.innerWidth,h=window.innerHeight,pad=6;
     let top=Math.max(0,rect.top-pad),bottom=Math.min(h,rect.bottom+pad);
@@ -141,13 +171,64 @@
     }
     Object.assign(tip.style,{left:Math.max(16,x)+'px',top:Math.min(h-box.height-16,Math.max(16,y))+'px'});
   }
+  function mobileBounds(){
+    const view=window.visualViewport,style=getComputedStyle(tip);
+    const left=view?.offsetLeft||0,top=view?.offsetTop||0;
+    return {left:left+12,right:left+(view?.width||innerWidth)-12,
+      top:top+(parseFloat(style.scrollMarginTop)||12),
+      bottom:top+(view?.height||innerHeight)-(parseFloat(style.scrollMarginBottom)||12)};
+  }
+  function positionMobile(){
+    const bounds=mobileBounds(),rect=target.getBoundingClientRect(),pad=6;
+    const left=Math.max(bounds.left-pad,rect.left-pad),right=Math.min(bounds.right+pad,rect.right+pad);
+    const top=Math.max(bounds.top-pad,rect.top-pad),bottom=Math.min(bounds.bottom+pad,rect.bottom+pad);
+    Object.assign(focus.style,{left:left+'px',top:top+'px',width:Math.max(0,right-left)+'px',height:Math.max(0,bottom-top)+'px'});
+    // As on desktop, category choices remain usable; only creation gets an outline.
+    const undimmed=step===4?byId('categoryPopup').getBoundingClientRect():rect;
+    const l=Math.max(0,undimmed.left-pad),r=Math.min(innerWidth,undimmed.right+pad);
+    const t=Math.max(0,undimmed.top-pad),b=Math.min(innerHeight,undimmed.bottom+pad);
+    const boxes=[[0,0,innerWidth,t],[0,b,innerWidth,innerHeight-b],[0,t,l,b-t],[r,t,innerWidth-r,b-t]];
+    shades.forEach((node,i)=>{const [x,y,w,h]=boxes[i];Object.assign(node.style,{left:x+'px',top:y+'px',width:Math.max(0,w)+'px',height:Math.max(0,h)+'px'});});
+    tip.style.maxHeight=Math.max(0,bounds.bottom-bounds.top)+'px';
+    const box=tip.getBoundingClientRect();
+    const x=Math.max(bounds.left,Math.min(bounds.right-box.width,(rect.left+rect.right-box.width)/2));
+    const below=bottom+18,above=top-box.height-18;
+    let y=below+box.height<=bounds.bottom?below:above>=bounds.top?above:Math.max(bounds.top,Math.min(bounds.bottom-box.height,above));
+    Object.assign(tip.style,{left:x+'px',top:y+'px'});
+    tip.dataset.placement=y>=bottom?'below':'above';
+    tip.style.setProperty('--qp-tour-arrow-x',Math.max(20,Math.min(box.width-20,(rect.left+rect.right)/2-x))+'px');
+  }
+  function scrollMobileTarget(){
+    const bounds=mobileBounds(),box=tip.getBoundingClientRect();
+    if(step===1){
+      target=document.querySelector('#income .income-top');
+      if(target.getBoundingClientRect().height+box.height+36>bounds.bottom-bounds.top){
+        target=document.querySelector('#income .income-chart-wrap');
+      }
+    }
+    if(step===2){
+      const cards=document.querySelector('#monthlyAnalytics .monthly-summary-cards');
+      target=cards;
+      if(cards.getBoundingClientRect().height+box.height+36>bounds.bottom-bounds.top){
+        target=cards.querySelector('.monthly-summary-best');
+      }
+      if(target.getBoundingClientRect().height+box.height+36>bounds.bottom-bounds.top){
+        target=document.querySelector('#incomeAnalytics .analytics-mode-tabs');
+      }
+    }
+    tip.dataset.target=target.id||target.classList[0];
+    if(step===3||step===4)return;
+    const rect=target.getBoundingClientRect();
+    window.scrollTo({top:Math.max(0,scrollY+rect.top-bounds.top-6),behavior:'instant'});
+  }
   function schedule(){cancelAnimationFrame(frame);frame=requestAnimationFrame(position);}
+  function resized(){if(mobile.matches&&tip)scrollMobileTarget();schedule();}
   function show(next){
     removeOverlay();step=next;
     if(step===3)restoreDemo();
     target=step===1?document.querySelector('#income .income-top'):step===2?byId('incomeAnalytics'):step===3?byId('openIncomeForm'):byId('categoryPopup')?.querySelector('.category-popup-create');
     if(!target){finish();return;}
-    if(step<4){target.scrollIntoView({block:'center',behavior:'instant'});}
+    if(step<4&&!mobile.matches){target.scrollIntoView({block:'center',behavior:'instant'});}
     shades=Array.from({length:4},()=>{const node=document.createElement('div');node.className='qp-tour-shade';node.setAttribute('aria-hidden','true');document.body.appendChild(node);return node;});
     focus=document.createElement('div');focus.className='qp-tour-focus';focus.setAttribute('aria-hidden','true');document.body.appendChild(focus);
     tip=document.createElement('section');tip.className='qp-tour-tip';tip.id='qpOnboarding';tip.setAttribute('role','dialog');tip.setAttribute('aria-modal',step<3?'true':'false');tip.setAttribute('aria-labelledby','qpTourText');
@@ -156,7 +237,14 @@
     tip.querySelector('[data-tour-skip]').addEventListener('click',()=>finish(true));
     tip.querySelector('[data-tour-next]')?.addEventListener('click',()=>show(step+1));
     document.body.appendChild(tip);
-    if(step===2){
+    if(mobile.matches){
+      tip.classList.add('qp-tour-mobile');scrollMobileTarget();
+      if(typeof ResizeObserver==='function'){
+        mobileResizeObserver=new ResizeObserver(schedule);
+        mobileResizeObserver.observe(target);mobileResizeObserver.observe(tip);
+      }
+    }
+    if(step===2&&!mobile.matches){
       // Reserve space above tall statistics at narrow desktop sizes rather
       // than placing the tooltip over category cards. Do not resize the UI.
       window.scrollTo({top:Math.max(0,window.scrollY+target.getBoundingClientRect().top-tip.getBoundingClientRect().height-40),behavior:'instant'});
@@ -170,17 +258,29 @@
     const user=window.qPokoyAuth?.getUser();
     if(ready()&&user?.id!==tourUser){tourUser=user?.id;started=false;finished=false;}
     if(finished)return;
-    if(!started&&ready()&&desktop.matches){
-      if(window.qPokoyAuth?.getUser()?.onboarding_completed!==false)return;
+    const eligible=()=>window.qPokoyAuth?.getUser()&&(mobile.matches&&MOBILE_ONBOARDING_TEST_MODE||window.qPokoyAuth.getUser().onboarding_completed===false);
+    if(!started&&ready()&&(desktop.matches||mobile.matches)){
+      if(!eligible())return;
       // Let the analytics renderer queued by bootstrap finish its first frame.
       if(!startFrame)startFrame=requestAnimationFrame(()=>{
         startFrame=0;
-        if(finished||!ready()||!desktop.matches||window.qPokoyAuth?.getUser()?.onboarding_completed!==false)return;
-        started=true;previousFocus=document.activeElement;showDemo();show(1);
+        if(finished||!ready()||(!desktop.matches&&!mobile.matches)||!eligible())return;
+        previousFocus=document.activeElement;prepareMobile();started=true;showDemo();show(1);
       });
       return;
     }
-    if(step===-1&&byId('categoryPopup')?.classList.contains('open'))show(4);
+    if(step===-1&&byId('categoryPopup')?.classList.contains('open')){
+      if(!mobile.matches)show(4);
+      else if(!startFrame){
+        // Wait for the real popup's positioning and sticky create-row layout.
+        startFrame=requestAnimationFrame(()=>{
+          startFrame=requestAnimationFrame(()=>{
+            startFrame=0;
+            if(!finished&&step===-1&&byId('categoryPopup')?.classList.contains('open'))show(4);
+          });
+        });
+      }
+    }
     if(step===4&&!byId('categoryPopup')?.classList.contains('open'))finish();
   }
   const observer=new MutationObserver(check);
@@ -215,8 +315,13 @@
   },true);
   window.addEventListener('qpokoy:income-data-rendered',()=>{if(demo)finish();});
   window.addEventListener('scroll',schedule,{capture:true,passive:true});
-  window.addEventListener('resize',schedule,{passive:true});
-  if(typeof desktop.addEventListener==='function')desktop.addEventListener('change',()=>{if(!desktop.matches)finish();});
-  else desktop.addListener(()=>{if(!desktop.matches)finish();});
+  window.addEventListener('resize',resized,{passive:true});
+  const mediaChanged=()=>{if(!desktop.matches&&!mobile.matches)finish();else schedule();};
+  if(typeof desktop.addEventListener==='function')desktop.addEventListener('change',mediaChanged);
+  else desktop.addListener(mediaChanged);
+  if(typeof mobile.addEventListener==='function')mobile.addEventListener('change',mediaChanged);
+  else mobile.addListener(mediaChanged);
+  window.visualViewport?.addEventListener('resize',resized,{passive:true});
+  window.visualViewport?.addEventListener('scroll',schedule,{passive:true});
   check();
 })();

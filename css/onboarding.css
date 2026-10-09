@@ -1,4 +1,4 @@
-/* Desktop tour only; real application layout and mobile styles remain intact. */
+/* Shared tour; mobile geometry is explicitly scoped below. */
 .qp-tour-shade,.qp-tour-focus,.qp-tour-tip{position:fixed;z-index:220010;}
 .qp-tour-shade{background:rgba(3,8,15,.68);}
 .qp-tour-focus{pointer-events:none;border:1px solid #6c9ec8;border-radius:var(--radius-lg,18px);box-shadow:0 0 0 3px rgba(83,145,200,.12),0 0 20px rgba(65,126,182,.18);}
@@ -15,3 +15,16 @@
 .qp-tour-demo-badge{position:absolute;z-index:5;right:70px;top:10px;padding:3px 8px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text-muted);font-size:10px;pointer-events:none;}
 .income-top > .qp-tour-demo-badge{right:18px;}
 @media(prefers-reduced-motion:reduce){.qp-tour-tip{scroll-behavior:auto;}}
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  .qp-tour-mobile{
+    width:360px;max-width:calc(100vw - 24px);overflow:visible;
+    scroll-margin-top:max(12px,env(safe-area-inset-top));
+    scroll-margin-bottom:max(12px,env(safe-area-inset-bottom));
+  }
+  .qp-tour-mobile::before{
+    content:"";position:absolute;left:var(--qp-tour-arrow-x);width:12px;height:12px;
+    background:#102033;border:1px solid #527da6;transform:translateX(-50%) rotate(45deg);
+  }
+  .qp-tour-mobile[data-placement="below"]::before{top:-7px;border-right:0;border-bottom:0;}
+  .qp-tour-mobile[data-placement="above"]::before{bottom:-7px;border-left:0;border-top:0;}
+}

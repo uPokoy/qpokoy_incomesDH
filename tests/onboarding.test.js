@@ -64,8 +64,8 @@ test('Skip persists completion once and restores real UI without storing demo da
   await h.logout();await h.login();assert.equal(tour(h),null);
 });
 
-test('onboarding waits for authenticated bootstrap and never appears on mobile or signed-out screen',async t=>{
-  for(const options of [{signedOut:true},{width:390,height:844,pointer:'coarse'}]){
+test('onboarding waits for authenticated bootstrap and never appears on signed-out screen',async t=>{
+  for(const options of [{signedOut:true},{signedOut:true,width:390,height:844,pointer:'coarse'}]){
     const h=await createHarness({...options,onboarding:true,onboardingCompleted:false});t.after(()=>h.close());
     assert.equal(tour(h),null);assert.equal(h.w.document.querySelector('.qp-tour-demo-badge'),null);
     assert.deepEqual(h.errors,[]);
@@ -74,6 +74,61 @@ test('onboarding waits for authenticated bootstrap and never appears on mobile o
   const h=await createHarness({onboarding:true,onboardingCompleted:false,bootstrapGate});t.after(()=>h.close());
   assert.equal(tour(h),null);release();await h.settle();
   assert.match(tour(h).textContent,/1 из 4/);assert.deepEqual(h.errors,[]);
+});
+
+test('mobile shares all four desktop texts, real targets and transitions; completion preserves data',async t=>{
+  const d=await createHarness({onboarding:true,onboardingCompleted:false});t.after(()=>d.close());
+  const expected=[d.node('qpTourText').textContent];next(d);expected.push(d.node('qpTourText').textContent);
+  next(d);expected.push(d.node('qpTourText').textContent);d.node('openIncomeForm').click();d.node('categorySelect').click();await d.settle();
+  expected.push(d.node('qpTourText').textContent);
+  for(const width of [360,390,420]){
+    const h=await createHarness({onboarding:true,onboardingCompleted:false,width,height:844,pointer:'coarse'});t.after(()=>h.close());
+    const before=JSON.stringify([...h.records]),cats=JSON.stringify([...h.categories]);
+    assert.equal(h.node('qpTourText').textContent,expected[0]);
+    assert.equal(tour(h).dataset.target,'income-top');
+    assert.equal(h.node('incomeRecent').classList.contains('is-collapsed'),true);
+    next(h);assert.equal(h.node('qpTourText').textContent,expected[1]);
+    assert.equal(tour(h).dataset.target,'monthly-summary-cards');
+    next(h);assert.equal(h.node('qpTourText').textContent,expected[2]);
+    assert.equal(tour(h).dataset.target,'openIncomeForm');
+    assert.equal(h.node('incomeTotal').textContent,'100 ₽');
+    h.node('openIncomeForm').click();h.node('categorySelect').click();await h.settle();
+    assert.equal(h.node('qpTourText').textContent,expected[3]);
+    assert.equal(tour(h).dataset.target,'category-popup-create');
+    assert.ok(h.node('categoryPopup').querySelector('.category-popup-create-trigger'));
+    h.node('categoryPopup').querySelector('button.category-option').click();await h.settle();
+    assert.equal(tour(h),null);assert.equal(h.w.qPokoyAuth.getUser().onboarding_completed,true);
+    assert.equal(h.calls.filter(c=>c==='completeOnboarding').length,1);
+    assert.equal(JSON.stringify([...h.records]),before);assert.equal(JSON.stringify([...h.categories]),cats);
+    assert.deepEqual(h.errors,[]);
+  }
+});
+
+test('temporary mobile test mode repeats completed accounts on fresh launch and login, not desktop',async t=>{
+  for(let launch=0;launch<3;launch++){
+    const h=await createHarness({onboarding:true,onboardingCompleted:true,width:390,height:844,pointer:'coarse'});t.after(()=>h.close());
+    assert.equal(h.node('qpTourText').textContent,'Здесь самое важное: доход за текущий месяц, а также годовой график.');
+    tour(h).querySelector('[data-tour-skip]').click();await h.settle();
+    assert.equal(tour(h),null);assert.equal(h.calls.includes('completeOnboarding'),false);
+    assert.equal(h.w.document.querySelector('.qp-tour-demo-badge'),null);
+    await h.logout();await h.login();assert.ok(tour(h));
+    assert.deepEqual(h.errors,[]);
+  }
+  const desktop=await createHarness({onboarding:true,onboardingCompleted:true});t.after(()=>desktop.close());
+  assert.equal(tour(desktop),null);await desktop.logout();await desktop.login();assert.equal(tour(desktop),null);
+});
+
+test('mobile skip saves normal completion and restores the prior recent/history state',async t=>{
+  const h=await createHarness({width:390,height:844,pointer:'coarse',onboardingCompleted:false});t.after(()=>h.close());
+  h.node('incomeRecentToggle').click();h.node('incomeRecentHistory').click();
+  await h.settle();
+  const prior=storage(h);
+  h.w.eval(require('node:fs').readFileSync(require('node:path').join(__dirname,'../js/onboarding.js'),'utf8'));
+  await h.settle();assert.equal(h.node('incomeRecent').classList.contains('is-history-open'),false);
+  tour(h).querySelector('[data-tour-skip]').click();await h.settle();
+  assert.equal(h.node('incomeRecent').classList.contains('is-history-open'),true);
+  assert.equal(storage(h),prior);assert.equal(h.calls.filter(c=>c==='completeOnboarding').length,1);
+  assert.deepEqual(h.errors,[]);
 });
 
 test('real data render cancels presentation rather than retaining stale demo values',async t=>{
