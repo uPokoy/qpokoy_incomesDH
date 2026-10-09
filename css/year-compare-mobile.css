@@ -325,3 +325,29 @@
     background-color:color-mix(in srgb,var(--danger) 16%,var(--qp-mobile-card)) !important;
   }
 }
+
+/* DEV385: mobile-only spacing and controls; retain the approved palette. */
+@media (max-width:900px) and (pointer:coarse),
+       (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #income #incomeRecent .income-recent-controls{position:relative;top:3px;}
+  #income #incomeRecent.is-collapsed .income-recent-controls{top:8.5px;}
+  #income #incomeRecent .income-recent-bottom-actions{position:relative;top:5.5px;}
+  #income #incomeRecent.is-history-open #incomeRecentHistory{
+    width:100% !important;justify-content:center !important;
+  }
+  #income #incomeRecentHistory .income-history-collapse-icon{
+    display:block;width:20px;height:20px;transform:rotate(180deg);
+    fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+  }
+  #income #settings #qpBillingPurchase{border-style:solid !important;}
+  #income #settings :is(#qpAccountCard,#qpDataCard) > .settings-title{display:none !important;}
+  #income #settings #qpAccountCard .qp-account-row,
+  #income #settings #qpDataCard > div[style]{margin-top:0 !important;}
+  #income #settings #qpAppearanceCard .settings-row{
+    border-bottom:0 !important;padding-bottom:0 !important;
+  }
+  #income #settings #qpBackgroundHelp{font-size:13.6px !important;}
+  #income #settings .qp-settings-label-desktop{display:none !important;}
+  #income #settings .qp-settings-label-mobile{display:inline !important;}
+  #income #openIncomeForm{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 10px) !important;}
+}

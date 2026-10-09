@@ -9,7 +9,7 @@
 (function(){
 "use strict";
 
-const qPokoyDevVersion='dev-2026.10.03.183';
+const qPokoyDevVersion='dev-2026.10.09.385';
 
 /* Android: scope the smaller footer reserve without affecting iPhone. */
 if(/Android/i.test(navigator.userAgent||'')) document.documentElement.classList.add('qp-android');
@@ -180,11 +180,18 @@ function setIncomeRecentCollapsed(collapsed,persist=true){
   if(persist)localStorage.setItem('incomeRecentCollapsed',next?'1':'0');
 }
 
-function setIncomeRecentHistoryOpen(open){
+function setIncomeRecentHistoryOpen(open,scrollOnClose=true){
   if(!incomeRecent||!incomeRecentHistory||!incomeRecentHistoryPanel)return;
   const next=!!open;
   incomeRecent.classList.toggle('is-history-open',next);
   incomeRecentHistory.textContent=next?'Последние доходы':'Вся история';
+  incomeRecentHistory.removeAttribute('aria-label');
+  if(next&&mobileInlineHistoryMedia.matches){
+    const chevron=incomeRecentToggle.querySelector('svg').cloneNode(true);
+    chevron.classList.add('income-history-collapse-icon');
+    incomeRecentHistory.replaceChildren(chevron);
+    incomeRecentHistory.setAttribute('aria-label','Свернуть всю историю до последних доходов');
+  }
   incomeRecentHistory.setAttribute('aria-pressed',next?'true':'false');
 
   if(next){
@@ -207,7 +214,7 @@ function setIncomeRecentHistoryOpen(open){
     }
   }else{
     syncIncomeRecentBody();
-    if(mobileInlineHistoryMedia.matches){
+    if(scrollOnClose&&mobileInlineHistoryMedia.matches){
       const incomeTop=document.querySelector('#income .income-top');
       if(incomeTop){
         requestAnimationFrame(()=>{
@@ -217,7 +224,7 @@ function setIncomeRecentHistoryOpen(open){
         });
       }
     }
-    if(window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches){
+    if(scrollOnClose&&window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)').matches){
       const incomeTop=document.querySelector('#income .income-top');
       if(incomeTop){
         requestAnimationFrame(()=>{
@@ -2007,6 +2014,10 @@ document.addEventListener('mouseup',()=>{
   function setOpen(open,scrollOnClose=true){
     const next=!!open&&inlineSettings();
     const mobileInline=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches;
+    if(next&&mobileInline&&incomeRecent?.classList.contains('is-history-open')){
+      setIncomeRecentHistoryOpen(false,false);
+      setIncomeRecentCollapsed(false,false);
+    }
 
     // Settings must always open over the compact analytics shell.
     // Collapse expanded category panels first so their temporary height
