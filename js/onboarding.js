@@ -4,7 +4,7 @@
   const desktop=window.matchMedia('(hover:hover) and (pointer:fine), (pointer:coarse) and (min-width:901px) and (max-width:1200px)');
   const mobile=window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)');
   // Temporary manual-test switch: completed mobile accounts repeat on each new launch/login.
-  const MOBILE_ONBOARDING_TEST_MODE=true;
+  const MOBILE_ONBOARDING_TEST_MODE=false;
   if(!desktop.matches&&!mobile.matches)return;
   const byId=id=>document.getElementById(id);
   const texts=[
