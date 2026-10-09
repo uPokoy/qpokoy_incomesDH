@@ -10,11 +10,23 @@ test('prototype uses only HTTPS production origin, separate identity/version and
   const config=JSON.parse(fs.readFileSync(path.join(root,'capacitor.config.json')));
   assert.equal(config.appId,'ru.qpokoy.app');assert.equal(config.server.url,'https://qpokoy.ru/');
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
+  assert.equal(config.plugins.SystemBars.insetsHandling,'disable');
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.1-dev"/);assert.match(gradle,/versionCode 2/);
+  assert.match(gradle,/versionName "0.1.2-dev"/);assert.match(gradle,/versionCode 3/);
   assert.doesNotMatch(gradle,/signingConfigs|storePassword|keyPassword/);
   const manifest=fs.readFileSync(path.join(root,'android/app/src/main/AndroidManifest.xml'),'utf8');
   assert.match(manifest,/allowBackup="false"/);assert.match(manifest,/windowSoftInputMode="adjustResize"/);
+});
+test('content top inset preserves existing padding and does not accumulate',t=>{
+  const dom=new JSDOM('<head><style>body{padding-top:7px}#qpAuthGate{padding-top:14px}</style></head><body><div id="qpAuthGate"></div></body>',{url:'https://qpokoy.ru/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const w=dom.window;w.qPokoyAndroid={postMessage(){}};w.eval(adapter);
+  const root=w.document.documentElement;
+  w.qPokoyAndroidSetTopInset(48);w.qPokoyAndroidSetTopInset(48);
+  assert.equal(root.style.getPropertyValue('--qp-android-top'),'48px');
+  assert.equal(root.style.getPropertyValue('--qp-android-page-top'),'7px');
+  assert.equal(root.style.getPropertyValue('--qp-android-auth-top'),'14px');
+  w.eval(adapter);assert.equal(w.document.querySelectorAll('#qpAndroidSafeArea').length,1);
+  w.qPokoyAndroidSetTopInset(0);assert.equal(root.style.getPropertyValue('--qp-android-top'),'0px');
 });
 test('Android Back closes real controls in order without changing website handlers',t=>{
   const dom=new JSDOM('<div id="qpConfirmOverlay"><button data-confirm-cancel></button></div><div id="categoryPopup" class="open"></div><button id="categorySelect"></button><div id="incomeForm"><button id="cancelIncome"></button></div>',{url:'https://qpokoy.ru/',runScripts:'outside-only'});t.after(()=>dom.window.close());

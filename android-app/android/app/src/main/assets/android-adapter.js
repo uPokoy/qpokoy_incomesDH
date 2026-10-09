@@ -4,6 +4,34 @@
   if(window.qPokoyAndroidAdapter||!window.qPokoyAndroid)return;
   window.qPokoyAndroidAdapter=true;
   const send=message=>window.qPokoyAndroid.postMessage(JSON.stringify(message));
+  // Android-only content inset: leave backgrounds and the WebView at y=0.
+  // Native handling zeroes env(safe-area-inset-top), preventing a second inset.
+  if(document.body){
+    const root=document.documentElement;
+    root.style.setProperty('--qp-android-page-top',getComputedStyle(document.body).paddingTop);
+    const style=document.createElement('style');
+    style.id='qpAndroidSafeArea';
+    style.textContent='body{padding-top:calc(var(--qp-android-page-top) + var(--qp-android-top,0px)) !important}'
+      +'#qpAuthGate{padding-top:calc(var(--qp-android-auth-top,0px) + var(--qp-android-top,0px)) !important}';
+    const captureAuth=()=>{
+      if(!document)return;
+      const gate=document.getElementById('qpAuthGate');
+      if(gate&&!gate.dataset.qpAndroidInset){
+        // Disable our rule briefly to read the current site's own spacing.
+        style.disabled=true;
+        root.style.setProperty('--qp-android-auth-top',getComputedStyle(gate).paddingTop);
+        style.disabled=false;gate.dataset.qpAndroidInset='true';
+      }
+    };
+    captureAuth();document.head.appendChild(style);
+    const authObserver=new MutationObserver(captureAuth);
+    authObserver.observe(document.body,{childList:true,subtree:true});
+    window.addEventListener('pagehide',()=>authObserver.disconnect(),{once:true});
+    window.qPokoyAndroidSetTopInset=top=>{
+      root.style.setProperty('--qp-android-top',`${Number.isFinite(top)?Math.max(0,top):0}px`);
+      captureAuth();
+    };
+  }
   window.addEventListener('beforeinstallprompt',event=>event.preventDefault());
   window.print=()=>send({kind:'print'});
   const originalOpen=window.open.bind(window);

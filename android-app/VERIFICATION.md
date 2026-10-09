@@ -106,3 +106,31 @@ The APK and local toolchains are not committed.
 - The temporary tall-cutout overlay was disabled after verification.
 - Artifact: artifacts/qPokoy-0.1.1-dev-debug.apk.
   SHA256: 89c59e4896589d415329c4e15867e504ae7e445130b6385ef11e2ca288cdedbb.
+
+## 0.1.2-dev / code 3 — content inset, edge-to-edge background
+
+Supersedes the 0.1.1 approach: padding android.R.id.content exposed the native
+background above the WebView on Samsung. That padding has been removed.
+
+- MainActivity is the sole inset owner (SystemBars insetsHandling=disable).
+  WebView/decor have zero top padding. The status bar is transparent and display
+  cutout layout is allowed. Native bottom navigation/IME padding is retained.
+- The max of real status-bar/display-cutout top is converted from device pixels
+  to CSS pixels and sent to the packaged adapter after navigation and inset events.
+- Adapter-only CSS adds this value to the site's existing body/auth padding,
+  keeping page and fixed background layers full-screen. Values are replaced,
+  not accumulated. Handled native safe-area insets are zeroed, preventing env()
+  from applying them twice. No production HTML/CSS/JS was edited.
+- assembleDebug passed. Same debug signature; emulator updated without clearing data.
+- Native test passed 1/1 via adb instrumentation (no Gradle uninstall); smoke
+  passed 4/4, adapter syntax and diff checks passed.
+- Android 16 / WebView 133, tall cutout: native WebView global y=0, compared with
+  y=136 in 0.1.1. Main, settings, pricing, service and login were inspected;
+  backgrounds painted underneath clock/Wi-Fi/battery without a separate native
+  strip. Initial actionable content remained below the top system area.
+- Back service -> pricing -> main worked. Ordinary test-account logout opened
+  the login screen. No financial data or payment was created/changed.
+- Cutout overlay disabled after verification. A real Samsung confirmation of
+  this APK is still needed; emulator results are not a Samsung certification.
+- Artifact: artifacts/qPokoy-0.1.2-dev-debug.apk.
+  SHA256: 93b3972b932c84fe1a5451fb7eb264d663f966f230200a67095ed0740d4f15c9.

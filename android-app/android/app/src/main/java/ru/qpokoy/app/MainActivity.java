@@ -3,8 +3,10 @@ package ru.qpokoy.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Build;
 import android.print.PrintManager;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -15,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
@@ -30,6 +33,7 @@ import org.json.JSONObject;
 /** Temporary HTTPS frontend prototype. No app token, OAuth secret or release key. */
 public class MainActivity extends BridgeActivity {
     private String adapter;
+    private int topSafeInset;
     private WebView reportView;
     private AlertDialog reportDialog;
     private byte[] pendingDownload;
@@ -60,7 +64,7 @@ public class MainActivity extends BridgeActivity {
         view.setWebViewClient(new BridgeWebViewClient(bridge){
             @Override public void onPageFinished(WebView web,String url) {
                 super.onPageFinished(web,url);
-                if(isInternal(Uri.parse(url)))web.evaluateJavascript(adapter,null);
+                if(isInternal(Uri.parse(url)))web.evaluateJavascript(adapter+";"+topInsetScript(),null);
             }
             @Override public boolean shouldOverrideUrlLoading(WebView web,WebResourceRequest request) {
                 if(!request.isForMainFrame())return super.shouldOverrideUrlLoading(web,request);
@@ -86,25 +90,36 @@ public class MainActivity extends BridgeActivity {
             }
         });
     }
+    @SuppressWarnings("deprecation")
     private void installTopSafeArea(){
-        // SystemBars can pass insets through on modern WebView + viewport-fit=cover.
-        // Handle only the remaining top inset below its decor listener. Older
-        // WebViews already get decor padding and send zero here: no double inset.
-        View content=findViewById(android.R.id.content);
-        int left=content.getPaddingLeft(),top=content.getPaddingTop();
-        int right=content.getPaddingRight(),bottom=content.getPaddingBottom();
-        ViewCompat.setOnApplyWindowInsetsListener(content,(view,insets)->{
-            Insets status=insets.getInsets(WindowInsetsCompat.Type.statusBars());
-            Insets cutout=insets.getInsets(WindowInsetsCompat.Type.displayCutout());
-            view.setPadding(left,top+Math.max(status.top,cutout.top),right,bottom);
-            // Notify WebView with a zero handled top inset, rather than CONSUMED.
-            // Leave navigation, side and IME insets to the existing SystemBars path.
+        WindowCompat.setDecorFitsSystemWindows(getWindow(),false);
+        getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
+        if(Build.VERSION.SDK_INT>=28){
+            WindowManager.LayoutParams attributes=getWindow().getAttributes();
+            attributes.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            getWindow().setAttributes(attributes);
+        }
+        View decor=getWindow().getDecorView();
+        // Sole inset owner (SystemBars insetsHandling is disabled). The page
+        // paints behind status bar/camera; only its content gets the top inset.
+        ViewCompat.setOnApplyWindowInsetsListener(decor,(view,insets)->{
+            Insets bars=insets.getInsets(WindowInsetsCompat.Type.systemBars()|WindowInsetsCompat.Type.displayCutout());
+            Insets ime=insets.getInsets(WindowInsetsCompat.Type.ime());
+            topSafeInset=bars.top;
+            view.setPadding(bars.left,0,bars.right,Math.max(bars.bottom,ime.bottom));
+            WebView web=bridge.getWebView();
+            if(isInternal(Uri.parse(web.getUrl()==null?"":web.getUrl())))web.evaluateJavascript(topInsetScript(),null);
+            // Zero handled safe areas so env() cannot add the same inset again.
+            // Keep notifications/IME alive instead of returning CONSUMED.
             return new WindowInsetsCompat.Builder(insets)
-                .setInsets(WindowInsetsCompat.Type.statusBars(),Insets.of(status.left,0,status.right,status.bottom))
-                .setInsets(WindowInsetsCompat.Type.displayCutout(),Insets.of(cutout.left,0,cutout.right,cutout.bottom))
+                .setInsets(WindowInsetsCompat.Type.systemBars()|WindowInsetsCompat.Type.displayCutout(),Insets.NONE)
                 .build();
         });
-        ViewCompat.requestApplyInsets(content);
+        ViewCompat.requestApplyInsets(decor);
+    }
+    private String topInsetScript(){
+        float cssTop=topSafeInset/getResources().getDisplayMetrics().density;
+        return "window.qPokoyAndroidSetTopInset && window.qPokoyAndroidSetTopInset("+Float.toString(cssTop)+")";
     }
     private boolean isInternal(Uri uri){
         return "https".equals(uri.getScheme())&&"qpokoy.ru".equals(uri.getHost())&&(uri.getPort()==-1||uri.getPort()==443);

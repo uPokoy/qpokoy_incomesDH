@@ -12,10 +12,10 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
 public class TopSafeAreaTest {
-    @Test public void remainingTopIsAppliedOnceWithoutChangingNavigationOrKeyboard(){
+    @Test public void topNeverPadsNativeContainerAndKeyboardStillResizes(){
         try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
             scenario.onActivity(activity->{
-                View content=activity.findViewById(android.R.id.content);
+                View content=activity.getWindow().getDecorView();
                 WindowInsetsCompat empty=new WindowInsetsCompat.Builder().build();
                 ViewCompat.dispatchApplyWindowInsets(content,empty);
                 int baseTop=content.getPaddingTop();
@@ -26,13 +26,14 @@ public class TopSafeAreaTest {
                     .setInsets(WindowInsetsCompat.Type.ime(),Insets.of(0,0,0,300))
                     .build();
                 WindowInsetsCompat forwarded=ViewCompat.dispatchApplyWindowInsets(content,incoming);
-                assertEquals(baseTop+48,content.getPaddingTop());
+                assertEquals(0,content.getPaddingTop());
                 assertEquals(0,forwarded.getInsets(WindowInsetsCompat.Type.statusBars()).top);
                 assertEquals(0,forwarded.getInsets(WindowInsetsCompat.Type.displayCutout()).top);
-                assertEquals(32,forwarded.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom);
+                assertEquals(0,forwarded.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom);
+                assertEquals(300,content.getPaddingBottom());
                 assertEquals(300,forwarded.getInsets(WindowInsetsCompat.Type.ime()).bottom);
                 ViewCompat.dispatchApplyWindowInsets(content,incoming);
-                assertEquals(baseTop+48,content.getPaddingTop());
+                assertEquals(0,content.getPaddingTop());
                 ViewCompat.dispatchApplyWindowInsets(content,empty);
                 assertEquals(baseTop,content.getPaddingTop());
                 ViewCompat.requestApplyInsets(content);
