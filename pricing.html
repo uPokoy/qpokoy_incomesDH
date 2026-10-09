@@ -55,6 +55,7 @@ h1{font-size:clamp(34px,5vw,53px);letter-spacing:-.052em;line-height:1.13;margin
 @media(pointer:coarse){a,button,summary{-webkit-tap-highlight-color:transparent}a:focus,a:focus-visible{outline:none}.disclosure>summary:focus,.disclosure>summary:focus-visible{outline:none}}
 @media(max-width:900px){.plans{grid-template-columns:1fr;max-width:520px;margin:auto}.plan{padding:23px}.price{margin-top:17px}.line{margin:16px 0}}
 @media(max-width:460px){.wrap{width:calc(100% - 28px)}.head{padding:18px 0}.logo{font-size:24px}.back{padding:8px 10px;font-size:12px}main{padding:25px 0 48px}h1{font-size:35px}.intro{margin-bottom:27px}.section{margin-top:42px}.subscription-actions{display:grid}.subscription-action,.subscription-login{width:100%}.disclosure>summary{font-size:18px;padding:18px}.disclosure-content{padding:0 18px 18px}.notice{font-size:14px}}
+@supports (-webkit-touch-callout:none){@media(max-width:900px){.head{padding-top:calc(23px + env(safe-area-inset-top))}}@media(max-width:460px){.head{padding-top:calc(18px + env(safe-area-inset-top))}}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.disclosure-toggle,.disclosure-toggle:before{transition:none}}
 </style>
 </head>
