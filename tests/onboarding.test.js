@@ -76,7 +76,7 @@ test('onboarding waits for authenticated bootstrap and never appears on signed-o
   assert.match(tour(h).textContent,/1 из 4/);assert.deepEqual(h.errors,[]);
 });
 
-test('mobile shares all four desktop texts, real targets and transitions; completion preserves data',async t=>{
+test('mobile has three unchanged texts and indicators, completes at plus and never shows a category step',async t=>{
   const d=await createHarness({onboarding:true,onboardingCompleted:false});t.after(()=>d.close());
   const expected=[d.node('qpTourText').textContent];next(d);expected.push(d.node('qpTourText').textContent);
   next(d);expected.push(d.node('qpTourText').textContent);d.node('openIncomeForm').click();d.node('categorySelect').click();await d.settle();
@@ -84,17 +84,21 @@ test('mobile shares all four desktop texts, real targets and transitions; comple
   for(const width of [360,390,420]){
     const h=await createHarness({onboarding:true,onboardingCompleted:false,width,height:844,pointer:'coarse'});t.after(()=>h.close());
     const before=JSON.stringify([...h.records]),cats=JSON.stringify([...h.categories]);
+    assert.match(tour(h).textContent,/1 из 3/);
     assert.equal(h.node('qpTourText').textContent,expected[0]);
     assert.equal(tour(h).dataset.target,'income-top');
     assert.equal(h.node('incomeRecent').classList.contains('is-collapsed'),true);
     next(h);assert.equal(h.node('qpTourText').textContent,expected[1]);
-    assert.equal(tour(h).dataset.target,'monthly-summary-cards');
+    assert.match(tour(h).textContent,/2 из 3/);
+    assert.equal(tour(h).dataset.target,'monthly-statistics');
+    assert.equal(h.node('qpTourText').textContent,'А здесь — статистика и анализ ваших доходов.');
     next(h);assert.equal(h.node('qpTourText').textContent,expected[2]);
+    assert.match(tour(h).textContent,/3 из 3/);
     assert.equal(tour(h).dataset.target,'openIncomeForm');
     assert.equal(h.node('incomeTotal').textContent,'100 ₽');
     h.node('openIncomeForm').click();h.node('categorySelect').click();await h.settle();
-    assert.equal(h.node('qpTourText').textContent,expected[3]);
-    assert.equal(tour(h).dataset.target,'category-popup-create');
+    assert.equal(tour(h),null);
+    assert.equal(h.node('incomeForm').hidden,false);
     assert.ok(h.node('categoryPopup').querySelector('.category-popup-create-trigger'));
     h.node('categoryPopup').querySelector('button.category-option').click();await h.settle();
     assert.equal(tour(h),null);assert.equal(h.w.qPokoyAuth.getUser().onboarding_completed,true);
@@ -102,6 +106,45 @@ test('mobile shares all four desktop texts, real targets and transitions; comple
     assert.equal(JSON.stringify([...h.records]),before);assert.equal(JSON.stringify([...h.categories]),cats);
     assert.deepEqual(h.errors,[]);
   }
+});
+
+test('mobile statistics outline unions exactly four zones, including on short screens and resize',async t=>{
+  const h=await createHarness({onboarding:true,onboardingCompleted:false,width:390,height:500,pointer:'coarse'});t.after(()=>h.close());
+  const selectors=['#monthlyAnalytics .monthly-summary-best','#monthlyGrowthCard','#monthlyAnalytics .monthly-summary-average','#monthlyTotalCard'];
+  const rects=[{left:20,top:100,right:200,bottom:316},{left:208,top:100,right:370,bottom:204},{left:208,top:212,right:370,bottom:316},{left:20,top:324,right:370,bottom:562}];
+  selectors.forEach((selector,i)=>{h.w.document.querySelector(selector).getBoundingClientRect=()=>({...rects[i],width:rects[i].right-rects[i].left,height:rects[i].bottom-rects[i].top});});
+  h.node('monthlyYearGrowthCard').getBoundingClientRect=()=>({left:0,top:570,right:390,bottom:900,height:330});
+  h.node('monthlyAnalyticsCategories').getBoundingClientRect=()=>({left:0,top:910,right:390,bottom:1200,height:290});
+  // Model native scrolling: client rectangles move, card dimensions do not.
+  h.w.scrollTo=({top})=>{const delta=top-(h.w.scrollY||0);Object.defineProperty(h.w,'scrollY',{value:top,configurable:true});rects.forEach(rect=>{rect.top-=delta;rect.bottom-=delta;});};
+  next(h);await h.settle();
+  const outline=h.w.document.querySelector('.qp-tour-focus');
+  assert.equal(tour(h).dataset.target,'monthly-statistics');
+  assert.equal(parseFloat(outline.style.left),14);
+  assert.equal(parseFloat(outline.style.width),362);
+  assert.equal(parseFloat(outline.style.top)+parseFloat(outline.style.height),rects[3].bottom+6);
+  assert.ok(parseFloat(tour(h).style.top)>rects[3].bottom+6);
+  assert.equal(tour(h).dataset.placement,'below');
+  assert.equal(rects[3].bottom-rects[0].top,462);
+  rects[3].bottom+=20;h.w.dispatchEvent(new h.w.Event('resize'));await h.settle();
+  assert.equal(parseFloat(outline.style.top)+parseFloat(outline.style.height),rects[3].bottom+6);
+  assert.equal(tour(h).dataset.placement,'below');assert.deepEqual(h.errors,[]);
+});
+
+test('mobile category trigger opens the existing editor and creates/selects without another tour',async t=>{
+  const h=await createHarness({onboarding:true,onboardingCompleted:false,width:390,height:844,pointer:'coarse'});t.after(()=>h.close());
+  next(h);next(h);h.node('openIncomeForm').click();h.node('categorySelect').click();await h.settle();
+  const popup=h.node('categoryPopup');
+  popup.querySelector('.category-popup-create-trigger').click();
+  popup.querySelector('.category-popup-create-input').value='Mobile category test';
+  popup.querySelector('.category-popup-create-btn').click();await h.settle();
+  assert.equal(h.node('incomeCategory').value,'Mobile category test');
+  assert.equal(h.calls.filter(c=>c==='addCategory').length,1);
+  assert.equal(popup.classList.contains('open'),false);assert.equal(tour(h),null);
+  h.node('categorySelect').click();await h.settle();
+  popup.querySelector('button.category-option').click();
+  assert.equal(h.node('incomeCategory').value,'Зарплата');assert.equal(tour(h),null);
+  assert.deepEqual(h.errors,[]);
 });
 
 test('temporary mobile test mode repeats completed accounts on fresh launch and login, not desktop',async t=>{

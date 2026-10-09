@@ -3246,4 +3246,14 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   html.qp-android .app .content{
     padding-bottom:calc(56px + env(safe-area-inset-bottom)) !important;
   }
+  /* The sticky background belongs to the row, not its transparent trigger.
+     Round that actual surface so it cannot leave square blue edges. */
+  #incomeForm .category-popup-create:not(.is-editing){
+    border-radius:9px;
+    overflow:hidden;
+  }
+  #incomeForm .category-popup-create-trigger:hover,
+  #incomeForm .category-popup-create-trigger:active{
+    transform:none !important;
+  }
 }

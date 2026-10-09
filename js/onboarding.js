@@ -178,8 +178,23 @@
       top:top+(parseFloat(style.scrollMarginTop)||12),
       bottom:top+(view?.height||innerHeight)-(parseFloat(style.scrollMarginBottom)||12)};
   }
+  function mobileStatistics(){
+    return ['#monthlyAnalytics .monthly-summary-best','#monthlyGrowthCard',
+      '#monthlyAnalytics .monthly-summary-average','#monthlyTotalCard'].map(selector=>document.querySelector(selector));
+  }
+  function mobileTargetRect(){
+    if(step!==2)return target.getBoundingClientRect();
+    const rects=mobileStatistics().map(node=>node.getBoundingClientRect());
+    const left=Math.min(...rects.map(rect=>rect.left)),right=Math.max(...rects.map(rect=>rect.right));
+    const top=Math.min(...rects.map(rect=>rect.top)),bottom=Math.max(...rects.map(rect=>rect.bottom));
+    return {left,right,top,bottom,width:right-left,height:bottom-top};
+  }
   function positionMobile(){
-    const bounds=mobileBounds(),rect=target.getBoundingClientRect(),pad=6;
+    const bounds=mobileBounds(),pad=6;
+    let rect=mobileTargetRect();
+    if(step===2&&(rect.bottom+pad+18+tip.getBoundingClientRect().height>bounds.bottom+1||rect.bottom+pad+18<bounds.top)){
+      scrollMobileTarget();rect=mobileTargetRect();
+    }
     const left=Math.max(bounds.left-pad,rect.left-pad),right=Math.min(bounds.right+pad,rect.right+pad);
     const top=Math.max(bounds.top-pad,rect.top-pad),bottom=Math.min(bounds.bottom+pad,rect.bottom+pad);
     Object.assign(focus.style,{left:left+'px',top:top+'px',width:Math.max(0,right-left)+'px',height:Math.max(0,bottom-top)+'px'});
@@ -193,7 +208,7 @@
     const box=tip.getBoundingClientRect();
     const x=Math.max(bounds.left,Math.min(bounds.right-box.width,(rect.left+rect.right-box.width)/2));
     const below=bottom+18,above=top-box.height-18;
-    let y=below+box.height<=bounds.bottom?below:above>=bounds.top?above:Math.max(bounds.top,Math.min(bounds.bottom-box.height,above));
+    let y=step===2?below:below+box.height<=bounds.bottom?below:above>=bounds.top?above:Math.max(bounds.top,Math.min(bounds.bottom-box.height,above));
     Object.assign(tip.style,{left:x+'px',top:y+'px'});
     tip.dataset.placement=y>=bottom?'below':'above';
     tip.style.setProperty('--qp-tour-arrow-x',Math.max(20,Math.min(box.width-20,(rect.left+rect.right)/2-x))+'px');
@@ -207,19 +222,15 @@
       }
     }
     if(step===2){
-      const cards=document.querySelector('#monthlyAnalytics .monthly-summary-cards');
-      target=cards;
-      if(cards.getBoundingClientRect().height+box.height+36>bounds.bottom-bounds.top){
-        target=cards.querySelector('.monthly-summary-best');
-      }
-      if(target.getBoundingClientRect().height+box.height+36>bounds.bottom-bounds.top){
-        target=document.querySelector('#incomeAnalytics .analytics-mode-tabs');
-      }
+      target=byId('monthlyAnalytics');
     }
-    tip.dataset.target=target.id||target.classList[0];
+    tip.dataset.target=step===2?'monthly-statistics':target.id||target.classList[0];
     if(step===3||step===4)return;
-    const rect=target.getBoundingClientRect();
-    window.scrollTo({top:Math.max(0,scrollY+rect.top-bounds.top-6),behavior:'instant'});
+    const rect=mobileTargetRect();
+    // Keep the full four-card group even on short screens: align its bottom
+    // above the tooltip instead of substituting a smaller target.
+    const desiredTop=step===2?Math.min(bounds.top+6,bounds.bottom-box.height-24-rect.height):bounds.top+6;
+    window.scrollTo({top:Math.max(0,scrollY+rect.top-desiredTop),behavior:'instant'});
   }
   function schedule(){cancelAnimationFrame(frame);frame=requestAnimationFrame(position);}
   function resized(){if(mobile.matches&&tip)scrollMobileTarget();schedule();}
@@ -232,7 +243,7 @@
     shades=Array.from({length:4},()=>{const node=document.createElement('div');node.className='qp-tour-shade';node.setAttribute('aria-hidden','true');document.body.appendChild(node);return node;});
     focus=document.createElement('div');focus.className='qp-tour-focus';focus.setAttribute('aria-hidden','true');document.body.appendChild(focus);
     tip=document.createElement('section');tip.className='qp-tour-tip';tip.id='qpOnboarding';tip.setAttribute('role','dialog');tip.setAttribute('aria-modal',step<3?'true':'false');tip.setAttribute('aria-labelledby','qpTourText');
-    tip.innerHTML='<div class="qp-tour-heading"><span class="qp-tour-number" aria-hidden="true">'+step+'</span><p id="qpTourText"></p></div><div class="qp-tour-footer"><span class="qp-tour-progress">'+step+' из 4</span><button type="button" data-tour-skip>Пропустить</button>'+(step>=3?'':'<button type="button" class="qp-tour-next" data-tour-next>Далее →</button>')+'</div>';
+    tip.innerHTML='<div class="qp-tour-heading"><span class="qp-tour-number" aria-hidden="true">'+step+'</span><p id="qpTourText"></p></div><div class="qp-tour-footer"><span class="qp-tour-progress">'+step+' из '+(mobile.matches?3:4)+'</span><button type="button" data-tour-skip>Пропустить</button>'+(step>=3?'':'<button type="button" class="qp-tour-next" data-tour-next>Далее →</button>')+'</div>';
     tip.querySelector('p').textContent=texts[step-1];
     tip.querySelector('[data-tour-skip]').addEventListener('click',()=>finish(true));
     tip.querySelector('[data-tour-next]')?.addEventListener('click',()=>show(step+1));
@@ -241,7 +252,7 @@
       tip.classList.add('qp-tour-mobile');scrollMobileTarget();
       if(typeof ResizeObserver==='function'){
         mobileResizeObserver=new ResizeObserver(schedule);
-        mobileResizeObserver.observe(target);mobileResizeObserver.observe(tip);
+        (step===2?mobileStatistics():[target]).forEach(node=>mobileResizeObserver.observe(node));mobileResizeObserver.observe(tip);
       }
     }
     if(step===2&&!mobile.matches){
@@ -269,18 +280,7 @@
       });
       return;
     }
-    if(step===-1&&byId('categoryPopup')?.classList.contains('open')){
-      if(!mobile.matches)show(4);
-      else if(!startFrame){
-        // Wait for the real popup's positioning and sticky create-row layout.
-        startFrame=requestAnimationFrame(()=>{
-          startFrame=requestAnimationFrame(()=>{
-            startFrame=0;
-            if(!finished&&step===-1&&byId('categoryPopup')?.classList.contains('open'))show(4);
-          });
-        });
-      }
-    }
+    if(!mobile.matches&&step===-1&&byId('categoryPopup')?.classList.contains('open'))show(4);
     if(step===4&&!byId('categoryPopup')?.classList.contains('open'))finish();
   }
   const observer=new MutationObserver(check);
@@ -292,7 +292,11 @@
       return;
     }
     if(event.target.closest('#qpOnboarding'))return;
-    if(step===3&&event.target.closest('#openIncomeForm')){removeOverlay();step=-1;return;}
+    if(step===3&&event.target.closest('#openIncomeForm')){
+      if(mobile.matches)finish(true);
+      else {removeOverlay();step=-1;}
+      return;
+    }
     if(step===4&&event.target.closest('#categoryPopup')){
       if(event.target.closest('button.category-option,.category-popup-create'))finish(true);
       return;
