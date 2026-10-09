@@ -351,3 +351,23 @@
   #income #settings .qp-settings-label-mobile{display:inline !important;}
   #income #openIncomeForm{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 10px) !important;}
 }
+
+/* Mobile: make add/edit income use the same approved navy material as the other cards. */
+@media (max-width:900px) and (pointer:coarse),
+       (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html[data-theme="dark"] #income #incomeForm.income-form,
+  html[data-theme="dark"] #income #history > #incomeForm.income-form{
+    background:linear-gradient(145deg,var(--qp-mobile-card),var(--qp-mobile-card-deep)) !important;
+    border-color:var(--qp-mobile-edge) !important;
+  }
+}
+
+/* iPhone/iPad Safari: keep the background edge-to-edge, but start page content below the real top safe area. */
+@supports (-webkit-touch-callout:none){
+  @media (max-width:900px) and (pointer:coarse),
+         (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+    main{
+      padding-top:calc(12px + env(safe-area-inset-top)) !important;
+    }
+  }
+}
