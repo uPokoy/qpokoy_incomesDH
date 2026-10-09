@@ -73,3 +73,36 @@ Ignored local artifact: `artifacts/qPokoy-0.1.0-dev-debug.apk`.
 Version `0.1.0-dev`, code `1`, application ID `ru.qpokoy.app`.
 SHA256: `5455999d2e7677ed42a7375ec65cac8006807feac005fa0c1511b1eeab84e125`.
 The APK and local toolchains are not committed.
+
+## 0.1.1-dev / code 2 — top safe area
+
+- Capacitor 8.5.3 SystemBars switches to passthrough on WebView >=140 with
+  viewport-fit=cover, even for its native configuration. MainActivity now pads
+  the content container by max(remaining status-bar top, remaining cutout top).
+  When decor has already padded these areas, the remaining inset is zero.
+- Only handled top values are zeroed before forwarding the inset notification;
+  navigation/side/IME values and existing web padding are unchanged. No CSS,
+  viewport metadata, manifest, themes or web adapter modifications were needed.
+- assembleDebug succeeded; the APK was signed with the same local debug
+  certificate as 0.1.0-dev and installed successfully as an update.
+- :app:connectedDebugAndroidTest passed 1/1. The test exercises passthrough
+  status/cutout values, repeated dispatch, zero reset, and unchanged navigation/IME.
+- Android smoke checks passed 3/3; adapter syntax and git diff checks passed.
+- A broad unqualified connectedDebugAndroidTest also attempted generated
+  Cordova library tests and failed there with pre-existing duplicate Kotlin
+  dependencies. The targeted app test passed; library dependencies were not changed.
+- Android 16 emulator / WebView 133 with tall-cutout overlay: display cutout
+  top 126 physical px, status-bar top 136 px. Native hierarchy places the WebView
+  at global y=136 (not 272): the existing native fallback is not double padded.
+- Login screen remains fully below the status bar. Real Samsung / modern-WebView
+  passthrough end-to-end verification remains a device follow-up; synthetic
+  passthrough dispatch was verified by the instrumented test.
+- After manual test-account login, main, settings, pricing.html and service.html
+  were inspected with the tall cutout enabled. Their top content remained below
+  the system area. Pricing hierarchy also starts the WebView at y=136.
+- Focusing the empty income description opened the keyboard without covering
+  the field. Back closed the keyboard, then the unsaved form. Back from service
+  returned to pricing and then main. No test income or payment was submitted.
+- The temporary tall-cutout overlay was disabled after verification.
+- Artifact: artifacts/qPokoy-0.1.1-dev-debug.apk.
+  SHA256: 89c59e4896589d415329c4e15867e504ae7e445130b6385ef11e2ca288cdedbb.

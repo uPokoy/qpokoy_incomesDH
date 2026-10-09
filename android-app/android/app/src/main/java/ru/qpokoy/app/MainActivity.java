@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.print.PrintManager;
+import android.view.View;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -12,6 +13,9 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
 import com.getcapacitor.BridgeActivity;
@@ -35,6 +39,7 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(state);
         // Native inset strips use the app's existing dark background.
         getWindow().getDecorView().setBackgroundColor(android.graphics.Color.rgb(7,12,20));
+        installTopSafeArea();
         try (InputStream input=getAssets().open("android-adapter.js")) {
             ByteArrayOutputStream output=new ByteArrayOutputStream();
             byte[] buffer=new byte[4096];int count;
@@ -80,6 +85,26 @@ public class MainActivity extends BridgeActivity {
                 });
             }
         });
+    }
+    private void installTopSafeArea(){
+        // SystemBars can pass insets through on modern WebView + viewport-fit=cover.
+        // Handle only the remaining top inset below its decor listener. Older
+        // WebViews already get decor padding and send zero here: no double inset.
+        View content=findViewById(android.R.id.content);
+        int left=content.getPaddingLeft(),top=content.getPaddingTop();
+        int right=content.getPaddingRight(),bottom=content.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(content,(view,insets)->{
+            Insets status=insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            Insets cutout=insets.getInsets(WindowInsetsCompat.Type.displayCutout());
+            view.setPadding(left,top+Math.max(status.top,cutout.top),right,bottom);
+            // Notify WebView with a zero handled top inset, rather than CONSUMED.
+            // Leave navigation, side and IME insets to the existing SystemBars path.
+            return new WindowInsetsCompat.Builder(insets)
+                .setInsets(WindowInsetsCompat.Type.statusBars(),Insets.of(status.left,0,status.right,status.bottom))
+                .setInsets(WindowInsetsCompat.Type.displayCutout(),Insets.of(cutout.left,0,cutout.right,cutout.bottom))
+                .build();
+        });
+        ViewCompat.requestApplyInsets(content);
     }
     private boolean isInternal(Uri uri){
         return "https".equals(uri.getScheme())&&"qpokoy.ru".equals(uri.getHost())&&(uri.getPort()==-1||uri.getPort()==443);

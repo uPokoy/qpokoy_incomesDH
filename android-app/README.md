@@ -2,7 +2,7 @@
 
 **Temporary remote production frontend**, not a bundled/offline release.
 Base web commit: `e80af88504b216c3ef5f1fbe6d9c72fc52274cd4` (DEV386).
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.0-dev`, `versionCode=1`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.1-dev`, `versionCode=2`.
 
 Everything for Android lives in this directory. The website, backend, API,
 YDB, payments and deployment workflow are unchanged. The app loads the current
@@ -34,7 +34,11 @@ debug APK is for Samsung testing, not RuStore publication.
 ## Android-only behavior
 
 - Capacitor SystemBars native insets plus `adjustResize`; website geometry/CSS
-  stay unchanged. The installed Android System WebView must be up to date.
+  stay unchanged. MainActivity handles any remaining status-bar/display-cutout
+  top inset on the native content container, because modern WebView can receive
+  passthrough insets despite the Capacitor `native` option. Already handled top
+  insets are zero, so padding is not duplicated. Navigation/IME handling stays
+  with SystemBars. The installed Android System WebView must be up to date.
 - Back first dismisses a report or the existing confirmation/category/calendar/
   income/settings/history UI, then navigates page history. At the root it asks
   before closing. Keyboard Back remains handled by Android IME.

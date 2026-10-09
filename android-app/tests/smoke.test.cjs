@@ -11,7 +11,7 @@ test('prototype uses only HTTPS production origin, separate identity/version and
   assert.equal(config.appId,'ru.qpokoy.app');assert.equal(config.server.url,'https://qpokoy.ru/');
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.0-dev"/);assert.match(gradle,/versionCode 1/);
+  assert.match(gradle,/versionName "0.1.1-dev"/);assert.match(gradle,/versionCode 2/);
   assert.doesNotMatch(gradle,/signingConfigs|storePassword|keyPassword/);
   const manifest=fs.readFileSync(path.join(root,'android/app/src/main/AndroidManifest.xml'),'utf8');
   assert.match(manifest,/allowBackup="false"/);assert.match(manifest,/windowSoftInputMode="adjustResize"/);
