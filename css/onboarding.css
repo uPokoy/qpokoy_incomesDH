@@ -49,7 +49,8 @@
   }
 
   html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best::after{
-    background:color-mix(in srgb,var(--success) 12%,var(--qp-mobile-cloud)) !important;
+    content:none !important;
+    display:none !important;
   }
   html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-worst::after{
     background:color-mix(in srgb,var(--danger) 12%,var(--qp-mobile-cloud)) !important;
@@ -98,5 +99,47 @@
   #incomeAnalytics:not(.is-monthly) :is(.annual-month-share,.annual-year-compare-percent,.analytics-category-panel-share){
     position:relative;
     z-index:3 !important;
+  }
+}
+
+/* Mobile monthly statistics: use the same compact bubble treatment as Year,
+   except the "Best category" summary card, which intentionally stays clean. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-card::after{
+    content:"" !important;
+    display:block !important;
+    position:absolute !important;
+    z-index:0 !important;
+    width:84px !important;
+    height:84px !important;
+    right:-28px !important;
+    bottom:-48px !important;
+    border-radius:50% !important;
+    background:var(--qp-mobile-cloud) !important;
+    background-image:none !important;
+    opacity:1 !important;
+    pointer-events:none !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-best::after{
+    content:none !important;
+    display:none !important;
+  }
+  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-average::after{
+    background:color-mix(in srgb,#4d9cff 12%,var(--qp-mobile-cloud)) !important;
+  }
+  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-growth.positive::after{
+    background:color-mix(in srgb,var(--success) 12%,var(--qp-mobile-cloud)) !important;
+  }
+  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-growth.negative::after{
+    background:color-mix(in srgb,var(--danger) 12%,var(--qp-mobile-cloud)) !important;
+  }
+  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-growth.neutral::after{
+    background:var(--qp-mobile-cloud) !important;
+  }
+
+  #incomeAnalytics.is-monthly :is(.monthly-corner-percent,.monthly-summary-card-body,.monthly-summary-card-icon){
+    position:relative;
+    z-index:2 !important;
   }
 }
