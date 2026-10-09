@@ -83,6 +83,7 @@ createRow.style.setProperty('z-index','4','important');
 createRow.style.setProperty('grid-template-columns',createRow.classList.contains('is-editing')?'minmax(0,1fr) 38px':'1fr','important');
 createRow.style.setProperty('gap',createRow.classList.contains('is-editing')?'4px':'0','important');
 createRow.style.setProperty('background','var(--panel)','important');
+createRow.style.setProperty('box-shadow','-10px 0 0 var(--panel), 10px 0 0 var(--panel)','important');
 if(opensBelow){
 if(createRow!==popup.lastElementChild)popup.appendChild(createRow);
 createRow.style.setProperty('top','auto','important');
