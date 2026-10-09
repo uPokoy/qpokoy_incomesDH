@@ -261,3 +261,67 @@
     border-color:color-mix(in srgb,var(--primary) 40%,var(--qp-mobile-edge)) !important;
   }
 }
+
+/* DEV384: extend the approved DEV383 material to history and settings.
+   Reuse the dashboard's scoped palette; no geometry, typography or semantic ink changes. */
+@media (max-width:900px) and (pointer:coarse),
+       (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html[data-theme="dark"] #income #incomeAnalytics.is-settings-open{
+    background:linear-gradient(145deg,var(--qp-mobile-card),var(--qp-mobile-card-deep)) !important;
+    border-color:var(--qp-mobile-edge) !important;
+  }
+
+  html[data-theme="dark"] #income #history .income-table-section,
+  html[data-theme="dark"] #income #history #incomeList > .history-swipe-row .history-card-surface,
+  html[data-theme="dark"] #income #incomeAnalytics #settings :is(.settings-card,.qp-category-item,.qp-background-option){
+    background-color:var(--qp-mobile-card) !important;
+    border-color:var(--qp-mobile-edge) !important;
+  }
+
+  html[data-theme="dark"] #income #history #historySearch,
+  html[data-theme="dark"] #income #incomeAnalytics #settings :is(.qp-settings-tabs,.qp-category-add input,.qp-account-email,#qpBillingTerm){
+    background-color:var(--qp-mobile-card-deep) !important;
+    border-color:var(--qp-mobile-edge) !important;
+  }
+
+  html[data-theme="dark"] #income #history #incomeList > .history-swipe-row .history-card-surface > div:nth-child(3){
+    background-color:var(--qp-mobile-cloud) !important;
+    border-color:var(--qp-mobile-edge) !important;
+  }
+
+  html[data-theme="dark"] #income #history .income-history-report-btn,
+  html[data-theme="dark"] #income #history #incomeList > .history-swipe-row .edit-income,
+  html[data-theme="dark"] #income #incomeAnalytics #settings .btn-secondary:not(#clearIncomeDataBtn):not(#qpAuthDeleteAccountBtn),
+  html[data-theme="dark"] #income #incomeAnalytics #settings #qpBillingPurchase,
+  html[data-theme="dark"] #income #incomeAnalytics #settings .qp-category-add button,
+  html[data-theme="dark"] #income #incomeAnalytics #settings .qp-settings-tab.active{
+    background-color:color-mix(in srgb,var(--primary) 18%,var(--qp-mobile-card)) !important;
+    border-color:color-mix(in srgb,var(--primary) 40%,var(--qp-mobile-edge)) !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics #settings .qp-settings-tab:not(.active){
+    background-color:var(--qp-mobile-card-deep) !important;
+  }
+
+  html[data-theme="dark"] #income #history #historySearch:focus,
+  html[data-theme="dark"] #income #incomeAnalytics #settings .qp-category-add input:focus,
+  html[data-theme="dark"] #income #incomeAnalytics #settings .qp-background-option.active{
+    border-color:color-mix(in srgb,var(--primary) 40%,var(--qp-mobile-edge)) !important;
+  }
+
+  html[data-theme="dark"] #income #history .income-history-report-btn:is(:hover,:active),
+  html[data-theme="dark"] #income #incomeAnalytics #settings .btn-secondary:not(#clearIncomeDataBtn):not(#qpAuthDeleteAccountBtn):is(:hover,:active),
+  html[data-theme="dark"] #income #incomeAnalytics #settings .qp-category-add button:is(:hover,:active){
+    background-color:color-mix(in srgb,var(--primary) 24%,var(--qp-mobile-card)) !important;
+    border-color:color-mix(in srgb,var(--primary) 40%,var(--qp-mobile-edge)) !important;
+  }
+
+  /* Danger remains red; category icons, swatches and image previews are deliberately untouched. */
+  html[data-theme="dark"] #income #incomeAnalytics #settings :is(#clearIncomeDataBtn,#qpAuthDeleteAccountBtn){
+    background-color:color-mix(in srgb,var(--danger) 10%,var(--qp-mobile-card)) !important;
+    border-color:color-mix(in srgb,var(--danger) 42%,var(--qp-mobile-edge)) !important;
+  }
+  html[data-theme="dark"] #income #incomeAnalytics #settings :is(#clearIncomeDataBtn,#qpAuthDeleteAccountBtn):is(:hover,:active){
+    background-color:color-mix(in srgb,var(--danger) 16%,var(--qp-mobile-card)) !important;
+  }
+}
