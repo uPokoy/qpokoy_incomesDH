@@ -30,9 +30,10 @@
 }
 
 /* Mobile annual statistics compatibility override.
-   This stylesheet is loaded last, so it restores compact bubbles after older mobile rules. */
+   This stylesheet is loaded last, so it restores compact bubbles after older mobile rules.
+   Never apply decorative bubble rules while the auth/loading skeleton is active. */
 @media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::after{
     content:"" !important;
     display:block !important;
     position:absolute !important;
@@ -48,38 +49,38 @@
     pointer-events:none !important;
   }
 
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best::after{
     content:none !important;
     display:none !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-worst::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-worst::after{
     background:color-mix(in srgb,var(--danger) 12%,var(--qp-mobile-cloud)) !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average::after{
     background:color-mix(in srgb,#4d9cff 12%,var(--qp-mobile-cloud)) !important;
   }
 
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card::after{
     width:58px !important;
     height:58px !important;
     right:-20px !important;
     bottom:-32px !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.positive::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.positive::after{
     background:color-mix(in srgb,var(--success) 12%,var(--qp-mobile-cloud)) !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.negative::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.negative::after{
     background:color-mix(in srgb,var(--danger) 12%,var(--qp-mobile-cloud)) !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.neutral::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.neutral::after{
     background:var(--qp-mobile-cloud) !important;
   }
-  #incomeAnalytics:not(.is-monthly) .annual-year-compare-body{
+  body:not(.qp-auth-checking) #incomeAnalytics:not(.is-monthly) .annual-year-compare-body{
     position:relative !important;
     z-index:1 !important;
   }
 
-  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
     content:"" !important;
     display:block !important;
     position:absolute !important;
@@ -96,16 +97,17 @@
     pointer-events:none !important;
   }
 
-  #incomeAnalytics:not(.is-monthly) :is(.annual-month-share,.annual-year-compare-percent,.analytics-category-panel-share){
+  body:not(.qp-auth-checking) #incomeAnalytics:not(.is-monthly) :is(.annual-month-share,.annual-year-compare-percent,.analytics-category-panel-share){
     position:relative;
     z-index:3 !important;
   }
 }
 
 /* Mobile monthly statistics: use the same compact bubble treatment as Year,
-   except the "Best category" summary card, which intentionally stays clean. */
+   except the "Best category" summary card, which intentionally stays clean.
+   Loading skeleton owns ::after while qp-auth-checking is present. */
 @media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
-  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-card::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics.is-monthly .monthly-summary-card::after{
     content:"" !important;
     display:block !important;
     position:absolute !important;
@@ -121,29 +123,29 @@
     pointer-events:none !important;
   }
 
-  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-best::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics.is-monthly .monthly-summary-best::after{
     content:none !important;
     display:none !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-average::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics.is-monthly .monthly-summary-average::after{
     background:color-mix(in srgb,#4d9cff 12%,var(--qp-mobile-cloud)) !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-growth.positive::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics.is-monthly .monthly-summary-growth.positive::after{
     background:color-mix(in srgb,var(--success) 12%,var(--qp-mobile-cloud)) !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-growth.negative::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics.is-monthly .monthly-summary-growth.negative::after{
     background:color-mix(in srgb,var(--danger) 12%,var(--qp-mobile-cloud)) !important;
   }
-  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-summary-growth.neutral::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics.is-monthly .monthly-summary-growth.neutral::after{
     background:var(--qp-mobile-cloud) !important;
   }
 
-  #incomeAnalytics.is-monthly :is(.monthly-corner-percent,.monthly-summary-card-body,.monthly-summary-card-icon){
+  body:not(.qp-auth-checking) #incomeAnalytics.is-monthly :is(.monthly-corner-percent,.monthly-summary-card-body,.monthly-summary-card-icon){
     position:relative;
     z-index:2 !important;
   }
 
-  html[data-theme="dark"] #income #incomeAnalytics.is-monthly .monthly-category-card::after{
+  html[data-theme="dark"] body:not(.qp-auth-checking) #income #incomeAnalytics.is-monthly .monthly-category-card::after{
     content:"" !important;
     display:block !important;
     position:absolute !important;
@@ -160,7 +162,7 @@
     pointer-events:none !important;
   }
 
-  #incomeAnalytics.is-monthly :is(.monthly-category-icon,.monthly-category-name,.monthly-category-value,.monthly-category-share){
+  body:not(.qp-auth-checking) #incomeAnalytics.is-monthly :is(.monthly-category-icon,.monthly-category-name,.monthly-category-value,.monthly-category-share){
     position:relative;
     z-index:2 !important;
   }
