@@ -149,3 +149,64 @@
     margin-bottom:4px !important;
   }
 }
+
+/* Mobile annual statistics: make the decorative bubbles visible like Month,
+   but keep them compact so corner percentages remain unobstructed. */
+@media (max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card::after{
+    width:92px !important;
+    height:92px !important;
+    right:-30px !important;
+    bottom:-44px !important;
+    border-radius:50% !important;
+    background:var(--qp-mobile-cloud) !important;
+    opacity:1 !important;
+    pointer-events:none !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-best::after{
+    background:color-mix(in srgb,var(--success) 12%,var(--qp-mobile-cloud)) !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-worst::after{
+    background:color-mix(in srgb,var(--danger) 12%,var(--qp-mobile-cloud)) !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .analytics-card-average::after{
+    background:color-mix(in srgb,#4d9cff 12%,var(--qp-mobile-cloud)) !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card::after{
+    width:72px !important;
+    height:72px !important;
+    right:-24px !important;
+    bottom:-35px !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.positive::after{
+    background:color-mix(in srgb,var(--success) 12%,var(--qp-mobile-cloud)) !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.negative::after{
+    background:color-mix(in srgb,var(--danger) 12%,var(--qp-mobile-cloud)) !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) > .analytics-cards > .annual-year-compare-card.neutral::after{
+    background:var(--qp-mobile-cloud) !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-monthly) .analytics-category-panel::after{
+    width:86px !important;
+    height:86px !important;
+    right:-28px !important;
+    bottom:-42px !important;
+    border-radius:50% !important;
+    background:color-mix(in srgb,var(--category,#739bce) 11%,var(--qp-mobile-cloud)) !important;
+    opacity:1 !important;
+    pointer-events:none !important;
+  }
+
+  #incomeAnalytics:not(.is-monthly) :is(.annual-month-share,.annual-year-compare-percent,.analytics-category-panel-share){
+    z-index:3 !important;
+  }
+}
