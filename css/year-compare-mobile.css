@@ -213,3 +213,51 @@
     border-color:color-mix(in srgb,var(--primary) 28%,var(--border)) !important;
   }
 }
+
+/* Trial v2: one navy material for touch/mobile dashboard surfaces.
+   Color-only overrides: existing geometry, type, chart and semantic ink stay intact. */
+@media (max-width:900px) and (pointer:coarse),
+       (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  html[data-theme="dark"] #income{
+    --qp-mobile-card:#0c192b;
+    --qp-mobile-card-deep:#091321;
+    --qp-mobile-blue:#739bce;
+    --qp-mobile-edge:color-mix(in srgb,var(--border) 72%,var(--qp-mobile-blue));
+    --qp-mobile-cloud:color-mix(in srgb,var(--qp-mobile-blue) 16%,transparent);
+  }
+
+  html[data-theme="dark"] #income .income-top,
+  html[data-theme="dark"] #income #incomeAnalytics:not(.is-settings-open){
+    background:linear-gradient(145deg,var(--qp-mobile-card),var(--qp-mobile-card-deep)) !important;
+    border-color:var(--qp-mobile-edge) !important;
+  }
+
+  html[data-theme="dark"] #income .income-recent-card,
+  html[data-theme="dark"] #income #incomeAnalytics :is(.analytics-card,.annual-total-card,.monthly-total-card,.monthly-summary-card,.monthly-category-card,.analytics-category-panel){
+    background-color:var(--qp-mobile-card) !important;
+    border-color:var(--qp-mobile-edge) !important;
+  }
+
+  html[data-theme="dark"] #income .income-recent-card::after,
+  html[data-theme="dark"] #income #incomeAnalytics :is(.analytics-card,.monthly-summary-card,.monthly-category-card,.analytics-category-panel)::after{
+    background-color:var(--qp-mobile-cloud) !important;
+  }
+
+  /* Keep green/red meaning in the text and icons, soften only the decorative clouds. */
+  html[data-theme="dark"] #income #incomeAnalytics .analytics-card-best::after{
+    background-color:color-mix(in srgb,var(--success) 5%,var(--qp-mobile-cloud)) !important;
+  }
+  html[data-theme="dark"] #income #incomeAnalytics .analytics-card-worst::after{
+    background-color:color-mix(in srgb,var(--danger) 5%,var(--qp-mobile-cloud)) !important;
+  }
+
+  html[data-theme="dark"] #income #incomeAnalytics .analytics-mode-tabs,
+  html[data-theme="dark"] #income #incomeAnalytics #analyticsSettingsToggle{
+    background-color:var(--qp-mobile-card-deep) !important;
+    border-color:var(--qp-mobile-edge) !important;
+  }
+  html[data-theme="dark"] #income #incomeAnalytics .analytics-mode-tab.active{
+    background-color:color-mix(in srgb,var(--primary) 18%,var(--qp-mobile-card)) !important;
+    border-color:color-mix(in srgb,var(--primary) 40%,var(--qp-mobile-edge)) !important;
+  }
+}
