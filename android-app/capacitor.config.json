@@ -1,0 +1,20 @@
+{
+  "appId": "ru.qpokoy.app",
+  "appName": "qPokoy",
+  "webDir": "www",
+  "loggingBehavior": "debug",
+  "server": {
+    "url": "https://qpokoy.ru/",
+    "cleartext": false,
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "native",
+      "style": "DARK"
+    }
+  }
+}

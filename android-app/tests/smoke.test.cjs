@@ -1,0 +1,39 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {JSDOM}=require('jsdom');
+const root=path.join(__dirname,'..');
+const adapter=fs.readFileSync(path.join(root,'android/app/src/main/assets/android-adapter.js'),'utf8');
+test('prototype uses only HTTPS production origin, separate identity/version and no release signing',()=>{
+  const config=JSON.parse(fs.readFileSync(path.join(root,'capacitor.config.json')));
+  assert.equal(config.appId,'ru.qpokoy.app');assert.equal(config.server.url,'https://qpokoy.ru/');
+  assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
+  const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
+  assert.match(gradle,/versionName "0.1.0-dev"/);assert.match(gradle,/versionCode 1/);
+  assert.doesNotMatch(gradle,/signingConfigs|storePassword|keyPassword/);
+  const manifest=fs.readFileSync(path.join(root,'android/app/src/main/AndroidManifest.xml'),'utf8');
+  assert.match(manifest,/allowBackup="false"/);assert.match(manifest,/windowSoftInputMode="adjustResize"/);
+});
+test('Android Back closes real controls in order without changing website handlers',t=>{
+  const dom=new JSDOM('<div id="qpConfirmOverlay"><button data-confirm-cancel></button></div><div id="categoryPopup" class="open"></div><button id="categorySelect"></button><div id="incomeForm"><button id="cancelIncome"></button></div>',{url:'https://qpokoy.ru/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const w=dom.window;w.qPokoyAndroid={postMessage(){}};
+  w.document.querySelector('[data-confirm-cancel]').onclick=()=>w.document.querySelector('#qpConfirmOverlay').remove();
+  w.document.querySelector('#categorySelect').onclick=()=>w.document.querySelector('#categoryPopup').classList.remove('open');
+  w.document.querySelector('#cancelIncome').onclick=()=>{w.document.querySelector('#incomeForm').hidden=true;};
+  w.eval(adapter);
+  assert.equal(w.qPokoyAndroidBack(),true);assert.equal(w.document.querySelector('#qpConfirmOverlay'),null);
+  assert.equal(w.qPokoyAndroidBack(),true);assert.equal(w.document.querySelector('#categoryPopup').classList.contains('open'),false);
+  assert.equal(w.qPokoyAndroidBack(),true);assert.equal(w.document.querySelector('#incomeForm').hidden,true);
+  assert.equal(w.qPokoyAndroidBack(),false);
+});
+test('native print/report transport and PWA suppression are Android-local and installed only once',async t=>{
+  const dom=new JSDOM('',{url:'https://qpokoy.ru/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const w=dom.window,messages=[];w.qPokoyAndroid={postMessage:value=>messages.push(JSON.parse(value))};
+  w.fetch=async()=>({text:async()=>'<table><tr><td>123 ₽</td></tr></table>'});
+  w.eval(adapter);w.eval(adapter);w.print();assert.deepEqual(messages,[{kind:'print'}]);
+  const prompt=new w.Event('beforeinstallprompt',{cancelable:true});w.dispatchEvent(prompt);assert.equal(prompt.defaultPrevented,true);
+  w.open('blob:https://qpokoy.ru/report');await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(messages[1].kind,'report');assert.match(messages[1].html,/<table>/);
+});
