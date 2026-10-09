@@ -83,21 +83,21 @@ createRow.style.setProperty('z-index','4','important');
 createRow.style.setProperty('grid-template-columns',createRow.classList.contains('is-editing')?'minmax(0,1fr) 38px':'1fr','important');
 createRow.style.setProperty('gap',createRow.classList.contains('is-editing')?'4px':'0','important');
 createRow.style.setProperty('background','var(--panel)','important');
-createRow.style.setProperty('box-shadow','-10px 0 0 var(--panel), 10px 0 0 var(--panel)','important');
+createRow.style.setProperty('box-shadow','none','important');
 if(opensBelow){
 if(createRow!==popup.lastElementChild)popup.appendChild(createRow);
 createRow.style.setProperty('top','auto','important');
 createRow.style.setProperty('bottom','0','important');
-createRow.style.setProperty('margin','0','important');
-createRow.style.setProperty('padding','4px 0','important');
+createRow.style.setProperty('margin','0 -10px','important');
+createRow.style.setProperty('padding','4px 10px','important');
 createRow.style.setProperty('border-top','1px solid var(--border)','important');
 createRow.style.setProperty('border-bottom','0','important');
 }else{
 if(createRow!==popup.firstElementChild)popup.insertBefore(createRow,popup.firstChild);
 createRow.style.setProperty('top','0','important');
 createRow.style.setProperty('bottom','auto','important');
-createRow.style.setProperty('margin','0','important');
-createRow.style.setProperty('padding','4px 0','important');
+createRow.style.setProperty('margin','0 -10px','important');
+createRow.style.setProperty('padding','4px 10px','important');
 createRow.style.setProperty('border-top','0','important');
 createRow.style.setProperty('border-bottom','1px solid var(--border)','important');
 }
