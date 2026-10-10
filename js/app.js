@@ -654,7 +654,7 @@ function getVisibleIncomes(source=incomes){
 
 const RECENT_INCOME_PAGE_SIZE=4;
 function getRecentIncomePageSize(){
-  return window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches?2:RECENT_INCOME_PAGE_SIZE;
+  return window.matchMedia('(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse)').matches?1:RECENT_INCOME_PAGE_SIZE;
 }
 let recentIncomePage=0;
 let recentIncomePeriodKey='';
