@@ -227,3 +227,22 @@ Files changed by this offline patch (all paths relative to android-app/):
 - android/app/src/main/res/values/styles.xml
 - android/app/src/test/java/ru/qpokoy/app/InitialLoadStateTest.java
 - android/app/src/androidTest/java/ru/qpokoy/app/OfflineGuardTest.java
+
+## 0.1.4-dev: offline fallback only (2026-10-10)
+
+- Ordinary initial loading and retry loading hide the native overlay. Its XML
+  defaults to GONE before attachment; only an initial failure/offline state shows
+  it. Loaded documents remain visible after connectivity loss.
+- Removed offline_loading and offline_loading_detail strings. The 20-second
+  initial timeout and main-frame error callbacks are unchanged.
+- Dark Activity/window theme remains #070C14; rendering an uncommitted WebView
+  into a bitmap confirmed the same dark pixel color, with no loading UI.
+- API 36 emulator: normal and repeated online startup, cold offline, Retry with
+  no network, automatic recovery, and loss/restoration after page commit passed.
+  Pending/slow first load was simulated with a WebView without a document commit;
+  real carrier throttling and physical Samsung startup were not tested.
+- Smoke 4/4; InitialLoadState unit 6/6; OfflineGuard UI 5/5; Gradle assembleDebug
+  and diff whitespace checks passed. UI waits require document commit, rather than
+  assuming that a hidden overlay means the remote page finished loading.
+- APK: artifacts/qPokoy-0.1.4-dev-debug.apk (versionCode 5).
+- Website, main, backups, backend, icons and signing configuration unchanged.

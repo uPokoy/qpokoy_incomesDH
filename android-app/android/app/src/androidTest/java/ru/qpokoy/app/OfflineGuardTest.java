@@ -53,11 +53,63 @@ public class OfflineGuardTest {
         AtomicBoolean matched = new AtomicBoolean();
         while(System.currentTimeMillis()<end) {
             scenario.onActivity(activity -> matched.set(
-                (activity.findViewById(R.id.qpokoyOfflineOverlay).getVisibility()==View.VISIBLE)==visible));
+                (activity.findViewById(R.id.qpokoyOfflineOverlay).getVisibility()==View.VISIBLE)==visible
+                && (visible || !guard(activity).blocksPage())));
             if(matched.get()) return;
             Thread.sleep(100);
         }
         fail("Native offline overlay visibility did not become "+visible);
+    }
+    private OfflineGuard guard(MainActivity activity) {
+        try {
+            java.lang.reflect.Field field=MainActivity.class.getDeclaredField("offline");
+            field.setAccessible(true);return (OfflineGuard)field.get(activity);
+        } catch(Exception error) { throw new AssertionError(error); }
+    }
+    @Test public void pendingOnlineLoadStaysDarkWithoutOverlayUntilFailure() throws Exception {
+        network(true);
+        try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)) {
+            scenario.onActivity(activity -> {
+                android.webkit.WebView web=new android.webkit.WebView(activity);
+                OfflineGuard pending=new OfflineGuard(activity,web,"https://qpokoy.ru/");
+                View overlay=activity.findViewById(android.R.id.content);
+                overlay=((android.view.ViewGroup)overlay).getChildAt(((android.view.ViewGroup)overlay).getChildCount()-1);
+                try {
+                    assertEquals(View.GONE,overlay.getVisibility());
+                    pending.started(); // No document has committed: slow first load.
+                    assertEquals(View.GONE,overlay.getVisibility());
+                    android.graphics.Bitmap pixels=android.graphics.Bitmap.createBitmap(64,64,android.graphics.Bitmap.Config.ARGB_8888);
+                    web.layout(0,0,64,64);
+                    web.draw(new android.graphics.Canvas(pixels));
+                    assertEquals(android.graphics.Color.rgb(7,12,20),pixels.getPixel(32,32));
+                    pixels.recycle();
+                    pending.failFirstLoad(); // Same path used by timeout / main-frame errors.
+                    assertEquals(View.VISIBLE,overlay.getVisibility());
+                    assertEquals("Нет подключения к интернету",((TextView)overlay.findViewById(R.id.offlineMessage)).getText().toString());
+                } finally {
+                    pending.destroy();
+                    ((android.view.ViewGroup)overlay.getParent()).removeView(overlay);
+                    web.destroy();
+                }
+            });
+        }
+    }
+    @Test public void normalAndRepeatedStartupNeverShowOfflineOverlay() throws Exception {
+        network(true);
+        for(int launch=0;launch<2;launch++) {
+            try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)) {
+                AtomicBoolean loaded=new AtomicBoolean();
+                long end=System.currentTimeMillis()+25000;
+                while(!loaded.get() && System.currentTimeMillis()<end) {
+                    scenario.onActivity(activity -> {
+                        assertEquals(View.GONE,activity.findViewById(R.id.qpokoyOfflineOverlay).getVisibility());
+                        loaded.set(!guard(activity).blocksPage());
+                    });
+                    Thread.sleep(50);
+                }
+                assertTrue("Online document never committed",loaded.get());
+            }
+        }
     }
     @Test public void coldOfflineAndRetry() throws Exception {
         network(false);
@@ -84,11 +136,7 @@ public class OfflineGuardTest {
             scenario.onActivity(activity -> {
                 android.webkit.WebView web=activity.getBridge().getWebView();
                 String url=web.getUrl();
-                OfflineGuard guard;
-                try {
-                    java.lang.reflect.Field field=MainActivity.class.getDeclaredField("offline");
-                    field.setAccessible(true);guard=(OfflineGuard)field.get(activity);
-                } catch(Exception error) { throw new AssertionError(error); }
+                OfflineGuard guard=guard(activity);
                 guard.failFirstLoad(); // No clear, errorPath load or blocking overlay after success.
                 same.set(url.equals(web.getUrl()));
                 assertFalse(guard.blocksPage());

@@ -4,11 +4,25 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class InitialLoadStateTest {
+    @Test public void overlayIsOnlyForFailureNotLoadingOrSuccess() {
+        InitialLoadState state = new InitialLoadState();
+        assertTrue(state.isLoading());
+        assertFalse(state.showsOverlay());
+        state.networkChanged(true); state.started();
+        assertFalse(state.showsOverlay());
+        state.failed();
+        assertTrue(state.showsOverlay());
+        assertTrue(state.retry());
+        assertFalse(state.showsOverlay());
+        assertTrue(state.committed());
+        assertFalse(state.showsOverlay());
+    }
     @Test public void coldOfflineCannotRetryUntilNetworkReturns() {
         InitialLoadState state = new InitialLoadState();
         state.failed();
         assertFalse(state.retry());
         assertTrue(state.hasFailed());
+        assertTrue(state.showsOverlay());
         assertTrue(state.networkChanged(true));
         assertTrue(state.retry());
         assertTrue(state.isLoading());

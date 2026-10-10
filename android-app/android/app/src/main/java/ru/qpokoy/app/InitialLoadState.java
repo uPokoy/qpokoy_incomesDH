@@ -10,6 +10,7 @@ final class InitialLoadState {
     boolean isLoaded() { return loaded; }
     boolean isLoading() { return loading; }
     boolean hasFailed() { return failed; }
+    boolean showsOverlay() { return !loaded && failed; }
     boolean isConnected() { return connected; }
 
     void started() {

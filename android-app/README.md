@@ -2,7 +2,7 @@
 
 **Temporary remote production frontend**, not a bundled/offline release.
 Base web commit: `e80af88504b216c3ef5f1fbe6d9c72fc52274cd4` (DEV386).
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.3-dev`, `versionCode=4`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.4-dev`, `versionCode=5`.
 
 Everything for Android lives in this directory. The website, backend, API,
 YDB, payments and deployment workflow are unchanged. The app loads the current
@@ -31,12 +31,12 @@ Install: `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
 No release key is created/committed. Gradle uses ordinary local debug signing;
 debug APK is for Samsung testing, not RuStore publication.
 
-## Offline startup (0.1.3-dev)
+## Offline startup (0.1.4-dev)
 
-A native dark overlay covers the initial WebView until the first successful main
-frame becomes visible. Main-frame network/HTTP/TLS failure or a 20-second initial
-load timeout keeps the offline screen visible. Retry checks connectivity and loads
-https://qpokoy.ru/; a transition back to validated connectivity retries once.
+Normal initial loading shows only the dark WebView background (#070C14), with no
+native loading screen. No connectivity at startup, main-frame network/HTTP/TLS
+failure or a 20-second initial load timeout shows the offline screen. Retry hides
+it while loading https://qpokoy.ru/; validated connectivity recovery retries once.
 There is no polling or endless reload. Errors in secondary resources do not activate
 this screen. The packaged offline HTML is a secondary, dark fallback.
 

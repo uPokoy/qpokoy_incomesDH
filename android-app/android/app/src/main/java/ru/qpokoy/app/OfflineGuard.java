@@ -104,12 +104,10 @@ final class OfflineGuard {
         handler.postDelayed(timeout,20000);
     }
     private void render() {
-        if (state.isLoaded()) return;
-        overlay.setVisibility(View.VISIBLE);
-        boolean loading = state.isLoading();
-        message.setText(loading ? R.string.offline_loading : R.string.offline_message);
-        detail.setText(loading ? R.string.offline_loading_detail : R.string.offline_detail);
-        retry.setEnabled(!loading);
+        overlay.setVisibility(state.showsOverlay() ? View.VISIBLE : View.GONE);
+        message.setText(R.string.offline_message);
+        detail.setText(R.string.offline_detail);
+        retry.setEnabled(state.showsOverlay());
     }
     private void showNotice() {
         if (notice != null) notice.cancel();
