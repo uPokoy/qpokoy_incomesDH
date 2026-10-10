@@ -1,0 +1,129 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+const {create,snapshot,incomeValue}=require('../android/app/src/main/assets/android-read-cache.js');
+const clone=x=>structuredClone(x),failure=status=>Object.assign(new Error('Test response'),{status});
+function fixture(){
+  let uid='A',token='session-A',online=true,fault=null,lost=false,stale=false,posts=[],ui=[];
+  const snapshots=new Map(),queue=new Map(),server=new Map();
+  const data=()=>({user:{user_id:uid,email:uid+'@test.invalid',onboarding_completed:true},incomes:[...server.values()].filter(row=>row.user_id===uid),categories:[{id:'category-'+uid,user_id:uid,name:'Category '+uid}],settings:[]});
+  const listed=(hash,id)=>[...queue.values()].filter(row=>row.hash===hash&&row.user_id===id).map(({hash,...row})=>clone(row));
+  const db={
+    read:async({sessionHash:hash})=>{const s=snapshots.get(hash);return {snapshot:s?clone(s):null,pending:s?listed(hash,s.user.user_id):[]};},
+    write:async({sessionHash:hash,snapshot:s})=>{
+      const ids=new Set(s.incomes.map(row=>row.id));snapshots.clear();snapshots.set(hash,clone(s));
+      for(const [key,row] of queue)if(row.user_id===s.user.user_id){if(ids.has(row.income_id))queue.delete(key);else row.hash=hash;}
+      return {pending:listed(hash,s.user.user_id)};
+    },
+    clear:async()=>snapshots.clear(),
+    enqueue:async({sessionHash:hash,userId:id,income:row})=>{
+      assert.equal(snapshots.get(hash).user.user_id,id);
+      assert.equal([...queue.values()].some(r=>r.income_id===row.income_id&&r.user_id===id),false);
+      queue.set(row.operation_id,{...clone(row),user_id:id,hash,status:'pending',attempts:0,next_attempt_at:0,error_code:''});
+      return {pending:listed(hash,id)};
+    },
+    pendingState:async({sessionHash:hash,userId:id,operationId:key,status,nextAttempt,code})=>{
+      const row=queue.get(key);if(row?.hash===hash&&row.user_id===id)Object.assign(row,{status,next_attempt_at:nextAttempt,error_code:code,attempts:row.attempts+1});
+    },
+    pendingCount:async({sessionHash:hash})=>({count:[...queue.values()].filter(row=>row.hash===hash).length})
+  };
+  const api={getToken:()=>token,clearToken:()=>{token=null;},
+    bootstrap:async()=>token?clone({...data(),...(stale?{incomes:[]}:{})}):null,
+    login:async who=>{uid=who;token='new-session-'+who;return data().user;},register:async()=>{},exchangeOAuthTicket:async()=>{},
+    logout:async()=>{token=null;},deleteAccount:async()=>{token=null;},
+    listIncomes:async()=>clone(data().incomes),
+    addIncome:async row=>{
+      posts.push({uid,...clone(row)});
+      if(fault){if(fault===401)api.clearToken();throw failure(fault);}
+      const key=uid+':'+row.id;
+      if(!server.has(key))server.set(key,{id:row.id,user_id:uid,...incomeValue(row)});
+      if(lost){lost=false;throw failure(0);}
+      return clone(server.get(key));
+    },updateIncome:async()=>{throw new Error('Unexpected edit');},deleteIncome:async()=>{throw new Error('Unexpected delete');},
+    deleteAllIncomes:async()=>{throw new Error('Unexpected bulk');},replaceIncomes:async()=>{throw new Error('Unexpected import');}
+  };
+  const view={IncomeStore:{load:()=>ui,save:rows=>ui=rows},document:{addEventListener:()=>{},visibilityState:'visible'},addEventListener:()=>{},setTimeout:()=>{},qPokoyNotice:()=>{}};
+  const originalApi={...api};
+  function coordinator(){Object.assign(api,originalApi);const c=create({api,db,fingerprint:async value=>'hash-'+value,online:()=>online});c.install(view);return c;}
+  let cache=coordinator();
+  const hydrate=async payload=>view.IncomeStore.save(payload?payload.incomes.map(row=>({...row,date:'10.10.26'})):[]);
+  return {api,db,server,queue,posts,view,hydrate,get cache(){return cache;},get ui(){return ui;},
+    setOnline:value=>online=value,setFault:value=>fault=value,setLost:value=>lost=value,setStale:value=>stale=value,
+    freshCoordinator:()=>{cache=coordinator();},
+    expireRetries:()=>{for(const row of queue.values())row.next_attempt_at=0;},
+    start:()=>cache.start(hydrate),add:amount=>view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount,category:'Category '+uid,description:'Offline '+amount})};
+}
+
+test('A/B: offline add commits durable queue before UI and survives a new coordinator/storage reader',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(123);
+  assert.equal(f.queue.size,1);assert.equal(f.ui.length,1);assert.equal(f.ui[0].amount,123);assert.equal(f.cache.snapshot.incomes.length,0);
+  assert.equal(f.cache.pendingLabel(f.ui[0].id),'Ожидает синхронизации');
+  f.freshCoordinator();await f.start();assert.equal(f.ui.length,1);assert.equal(f.ui[0].amount,123);assert.equal(f.queue.size,1);
+  f.setOnline(true);await f.cache.refresh();assert.equal(f.server.size,1);assert.equal(f.queue.size,0);
+});
+test('C/E: reconnect sequentially acknowledges three rows, preserves IDs and clears pending without duplicates',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);
+  for(const amount of [1,2,3])await f.add(amount);const ids=f.ui.map(row=>row.id);
+  f.setOnline(true);await f.cache.refresh();assert.equal(f.queue.size,0);assert.equal(f.server.size,3);assert.equal(f.ui.length,3);
+  assert.deepEqual(new Set(f.ui.map(row=>row.id)),new Set(ids));assert.deepEqual(f.posts.map(row=>row.amount),[1,2,3]);
+  await f.cache.refresh();assert.equal(f.server.size,3);assert.equal(f.cache.pending.length,0);
+});
+test('D: lost response keeps pending; UUID retry/reconciliation produces exactly one server income',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(4);
+  f.setOnline(true);f.setLost(true);await f.cache.refresh();assert.equal(f.server.size,1);assert.equal(f.queue.size,1);
+  // A full bootstrap already contains the same authoritative UUID: no second POST.
+  await f.cache.refresh();assert.equal(f.queue.size,0);assert.equal(f.ui.length,1);assert.equal(f.server.size,1);assert.equal(f.posts.length,1);
+});
+test('F: 5xx preserves pending across restart and confirmed snapshot remains unmodified',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(5);
+  f.setOnline(true);f.setFault(503);await f.cache.refresh();assert.equal(f.queue.size,1);assert.equal(f.cache.snapshot.incomes.length,0);
+  assert.equal([...f.queue.values()][0].error_code,'http_503');
+  f.setOnline(false);f.freshCoordinator();await f.start();assert.equal(f.ui.length,1);assert.equal(f.queue.size,1);
+});
+test('lost response followed by an actual POST retry reuses the same UUID',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(41);
+  f.setOnline(true);f.setLost(true);await f.cache.refresh();assert.equal(f.server.size,1);assert.equal(f.queue.size,1);
+  f.expireRetries();f.freshCoordinator();
+  // Emulate a stale bootstrap before retry; original server create remains committed.
+  f.setStale(true);
+  await f.start();assert.equal(f.queue.size,0);assert.equal(f.server.size,1);assert.equal(f.ui.length,1);
+  assert.equal(f.posts.length,2);assert.equal(f.posts[0].id,f.posts[1].id);assert.equal(f.posts[0].client_mutation_id,f.posts[1].client_mutation_id);
+});
+test('SQLite enqueue failure cannot display a successful offline income',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);
+  f.db.enqueue=async()=>{throw new Error('disk full');};await assert.rejects(f.add(42),/disk full/);
+  assert.equal(f.ui.length,0);assert.equal(f.queue.size,0);assert.equal(f.posts.length,0);
+});
+test('G/I: 401 retains A; B never displays or posts A; verified re-login A resumes the same UUID',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(6);const id=f.ui[0].id;
+  f.setOnline(true);f.setFault(401);await f.cache.refresh();assert.equal(f.queue.size,1);assert.equal(f.ui.length,0);
+  f.setFault(null);await f.api.login('B');await f.start();assert.equal(f.ui.length,0);assert.equal(f.queue.size,1);assert.equal(f.posts.filter(row=>row.uid==='B').length,0);
+  await f.api.login('A');await f.start();assert.equal(f.queue.size,0);assert.equal(f.ui.length,1);assert.equal(f.ui[0].id,id);assert.equal(f.server.size,1);
+});
+test('H: pending blocks logout/deletion/bulk replacement, without token or data loss',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(7);
+  await assert.rejects(f.api.logout(),e=>e.code==='android_pending_logout');assert.equal(f.api.getToken(),'session-A');assert.equal(f.queue.size,1);assert.equal(f.ui.length,1);
+  f.setOnline(true);await assert.rejects(f.api.deleteAccount(),e=>e.code==='android_pending_logout');
+  await assert.rejects(f.api.deleteAllIncomes(),e=>e.code==='android_pending_logout');assert.equal(f.queue.size,1);
+});
+test('permanent 4xx persists error row and does not retry forever',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(8);f.setOnline(true);f.setFault(400);
+  await f.cache.refresh();await f.cache.refresh();assert.equal(f.posts.length,1);assert.equal(f.queue.size,1);assert.equal(f.ui.length,1);
+  assert.equal(f.cache.pending[0].status,'error');assert.match(f.cache.pendingLabel(f.ui[0].id),/ошибка/);
+});
+test('J: normal online create uses server ACK and does not enter pending queue',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();await f.add(9);
+  assert.equal(f.posts.length,1);assert.equal(f.queue.size,0);assert.equal(f.ui.length,1);assert.equal(f.cache.snapshot.incomes.length,1);
+});
+test('offline edits/deletes/import and unknown categories remain denied',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(10);
+  await assert.rejects(f.view.IncomeStore.update(f.ui[0].id,f.ui[0]),/Нет подключения/);
+  await assert.rejects(f.view.IncomeStore.remove(f.ui[0].id),/Нет подключения/);
+  await assert.rejects(f.view.IncomeStore.addMany([f.ui[0]]),/Нет подключения/);
+  await assert.rejects(f.view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount:1,category:'Unknown',description:''}),/категорию/);
+  assert.equal(f.queue.size,1);assert.equal(f.posts.length,0);
+});
+test('offline validation matches server rules for dates, integer rubles and length limits',()=>{
+  const valid={income_date:'2026-10-10',amount:'1 250,75',category:' A ',description:' B '};
+  assert.deepEqual(incomeValue(valid),{income_date:'2026-10-10',amount:1250,category:'A',description:'B'});
+  for(const bad of [{amount:0},{amount:1e12+1},{amount:Infinity},{income_date:'2026-02-30'},{category:'x'.repeat(81)},{description:'x'.repeat(5001)}])assert.throws(()=>incomeValue({...valid,...bad}));
+});

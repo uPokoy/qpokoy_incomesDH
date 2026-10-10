@@ -1,5 +1,110 @@
 # Prototype verification — 2026-10-09
 
+## Offline income creation — 2026-10-10, 0.1.7-dev / versionCode 8
+
+Work started at Android branch HEAD `51791aab18efdffb5d380a3f2cf2ef5eeaead453`.
+Bundled frontend source remains `a1b167a21b18aa7634517cbd79cca6faa492f1a9`
+(DEV400). Production frontend files and web DEV were not edited. Changes are
+Android-local except the explicitly permitted opt-in backend route and its test.
+
+Changed files in this task:
+
+```text
+android-app/README.md
+android-app/VERIFICATION.md
+android-app/android/app/build.gradle
+android-app/android/app/src/androidTest/java/ru/qpokoy/app/BundledFrontendTest.java
+android-app/android/app/src/androidTest/java/ru/qpokoy/app/OutboxDatabaseTest.java
+android-app/android/app/src/androidTest/java/ru/qpokoy/app/ReadCacheDatabaseTest.java
+android-app/android/app/src/main/assets/android-read-cache.js
+android-app/android/app/src/main/java/ru/qpokoy/app/ReadCacheDatabase.java
+android-app/android/app/src/main/java/ru/qpokoy/app/ReadCachePlugin.java
+android-app/package-lock.json
+android-app/package.json
+android-app/scripts/bundle.cjs
+android-app/tests/outbox.test.cjs
+android-app/tests/read-cache.test.cjs
+android-app/tests/smoke.test.cjs
+backend/app.js
+backend/test/routes.test.js
+```
+
+### Current results
+
+- Android Node tests: 29/29. Twelve outbox scenarios cover A–J, actual same-UUID
+  POST retry after a lost response, 503/restart, 401/same-user re-login/different
+  user isolation, permanent 4xx/no endless retry, enqueue failure/no success UI,
+  logout/deletion/bulk guards, online ACK and denial of offline edit/delete/import.
+- Backend: 127/127, including concurrent opt-in retries (201 then 200), payload
+  conflict (409), malformed mutation identifier (400), same UUID in another
+  account and ordinary web CRUD contracts. No backend deployment.
+- Existing frontend suite: 111/112. The unchanged
+  `temporary mobile test mode repeats completed accounts on fresh launch and login, not desktop`
+  test in `tests/onboarding.test.js:150` expects test mode enabled, but the
+  unchanged production `js/onboarding.js` has `MOBILE_ONBOARDING_TEST_MODE=false`.
+  This pre-existing failure is not reported as a green suite or fixed in this task.
+- Project syntax/structure: passed (19 frontend JS, 20 CSS, 7 HTML).
+  Android adapter/bundle/backend JS syntax and `git diff --check`: passed.
+- Gradle `test` (2 debug + 2 release unit cases), `assembleDebug`,
+  `assembleDebugAndroidTest`: successful, ordinary debug signing only.
+- Real Android API 36 emulator, SQLite instrumentation: 9/9. Separate fixture
+  database validates v1→v2 migration, reopen/FIFO, snapshot clear/corruption with
+  retained outbox, verified user/session binding, atomic ACK, date/category
+  validation and duplicate UUID rejection. Actual account database not reset.
+- Existing WebView runner with explicit authenticated/cache flags: no failures;
+  six applicable checks ran (session restore, normal form CRUD/reload, read-cache
+  offline/CRUD, local offline pages, network recovery/CORS, bundled PDF).
+  Five unrelated opt-in/account-changing checks were skipped; not claimed passed.
+- `durableOfflineCreates`, authorized test account: prepare / verify after host
+  `am force-stop` / verify after real emulator reboot / sync: all passed.
+  Three rows (711, 712, 713 ₽) created using the existing form with radios off;
+  visible immediately, absent from confirmed snapshot, pending in real SQLite.
+  Logout blocked without token loss. Restart/reboot retained all three, history
+  status labels and month/year source. Reconnect resulted in exactly three cloud
+  UUIDs, total 2136 ₽, empty queue and no pending labels. Only the uniquely named
+  test rows/category were deleted; count returned to baseline, reload verified.
+- `offlineLostResponseReconcilesCloudUuid`: passed using the real API. An
+  instrumentation-only fetch shim is installed before API initialization, sends
+  the POST and discards its successful response. Pending remains with network
+  status; cloud list contains one account-scoped UUID; bootstrap atomically
+  reconciles it, UI still has exactly one row. Temporary data cleaned up.
+  Initial after-load fetch substitution did not reach the captured API fetcher;
+  the corrected pre-initialization test is the reported result.
+
+### Storage and deployment boundaries
+
+`pending_adds` is durable app-private SQLite with user ID/session digest, operation
+UUID, stable income UUID used as client_mutation_id, income fields and bounded
+retry metadata. Snapshot and pending are separate; ACK writes snapshot and removes
+pending in one transaction. Cache clear never deletes pending. Rebinding requires
+a server-verified snapshot for the same user. No password/token is stored in the
+queue or printed to logs. Android backups remain disabled.
+
+Start/foreground/online/verified bootstrap sync sequentially. Transient errors
+retain rows and back off; 401 stops and retains them for same-account verification;
+permanent 4xx retains a visible error without automatic repeated POSTs. Pending
+blocks logout/account deletion/bulk replacement. Offline edit/delete/category
+CRUD/import/settings/payment writes are not added. A killed app performs no sync;
+SQLite persists and sync resumes on launch. Uninstall/clear app storage destroys
+unsynced data, like other private app storage.
+
+Backend change: only optional `client_mutation_id === id` handling in
+`POST /incomes`. Existing `(user_id,id)` INSERT uniqueness is reused, with no
+YDB schema or migration. Ordinary web requests keep their old behavior. Android
+also reconciles legacy 409 by an authoritative account-scoped UUID, not fields.
+**For full verification of the new 200-on-retry contract, the backend change in
+the resulting commit must be deployed separately. It is not deployed here.**
+The emulator tested production UUID uniqueness/reconciliation, not an undeployed
+production contract. Mocked 401/5xx and two-account queue isolation are automated;
+not claimed as manual production account/session-error tests.
+
+APK: `android-app/artifacts/qPokoy-0.1.7-dev-debug.apk`. Physical Samsung and
+API 24 UI were not available for this task. Native validation avoids java.time
+so it does not raise the existing minimum SDK. No release keys, merge, main push,
+backup changes, frontend/backend deployment or production web edits.
+
+The following sections are historical verification of earlier APKs.
+
 Base: `e80af88504b216c3ef5f1fbe6d9c72fc52274cd4`, expected web DEV386.
 The public production HTML actually advertised `dev-2026.10.09.390` during
 verification. The remote prototype loads the live deployment, not pinned assets.

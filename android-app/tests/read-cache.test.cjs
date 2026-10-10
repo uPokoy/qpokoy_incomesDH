@@ -25,7 +25,7 @@ test('first load fills cache; next load displays cache before a held network res
   await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(events,['cache']);assert.equal(second.canWrite,false);
   release(data('A',20));await job;assert.deepEqual(events,['cache','server']);assert.equal(second.snapshot.incomes[0].amount,20);
 });
-test('offline cache displays history/analytics source and all writes are denied; no unknown identity fallback',async()=>{
+test('offline cache displays history/analytics source and server writes are denied; no unknown identity fallback',async()=>{
   const f=fixture();await f.cache.start(async()=>{});f.setOnline(false);
   await f.cache.start(async(payload,cached)=>{assert.equal(cached,true);assert.equal(payload.incomes.length,1);});
   assert.throws(()=>f.cache.requireWrite(),/Нет подключения/);

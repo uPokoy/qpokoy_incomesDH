@@ -1,13 +1,14 @@
 # qPokoy Android — first technical prototype
 
-**Bundled frontend**, remote Yandex Cloud API, Android-only SQLite read snapshots.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.6-dev`, `versionCode=7`.
+**Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create-only outbox.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.7-dev`, `versionCode=8`.
 
-Everything for Android lives in this directory. The website, backend, API,
-YDB, payments and deployment workflow are unchanged. The app starts at
+Android UI/storage adaptations live in this directory. An opt-in idempotent
+POST /incomes extension is kept in this branch only; it has not been deployed.
+The website, YDB schema, payments and deployment workflow are unchanged. The app starts at
 `https://localhost/`, served by Capacitor from assets physically inside the APK.
-Website deployments do not update an installed APK. All data writes need internet
-and server confirmation; previously verified data can be viewed offline.
+Website deployments do not update an installed APK. Previously verified data can
+be viewed offline; only creation of incomes can be durably queued offline.
 
 ## Build / Android Studio
 
@@ -57,8 +58,9 @@ background. OfflineGuard, InitialLoadState, their fullscreen overlay, retry/time
 machinery and remote offline HTML are removed. API fetch failures have an Android-only
 network message; reconnect triggers one background refresh without restarting.
 The Android adaptation replaces optimistic income writes with awaited server writes
-and disables the website write journal in the generated copy. There is no offline
-editor, write queue or conflict resolution. The source website remains unchanged.
+and disables the website write journal in the generated copy. Offline creation
+uses the SQLite outbox described below. Offline edit/delete remain forbidden.
+The source website remains unchanged.
 The production gateway currently returns `Access-Control-Allow-Origin: *` for
 https://localhost, including preflight and actual responses. No backend deploy was
 needed; CORS must be rechecked if gateway/backend policy changes.
@@ -98,7 +100,7 @@ needed; CORS must be rechecked if gateway/backend policy changes.
 
 `ReadCachePlugin` uses Android framework `SQLiteOpenHelper`, with no third-party
 database dependency. SQL, compression and native validation run on one serial
-background executor, shared across Activity instances. Database/schema version 1:
+background executor, shared across Activity instances. Database version 2, snapshot format 1:
 `/data/user/0/ru.qpokoy.app/databases/qpokoy-read-cache.db` (Android may expose
 the equivalent `/data/data/ru.qpokoy.app/databases/` path). This is private app
 storage, not Downloads. Backup remains disabled with existing transfer exclusions.
@@ -112,14 +114,15 @@ confirmed by bootstrap; an unknown/different session cannot read the old snapsho
 This is account isolation, not encryption against a compromised/rooted device.
 
 On launch, `android-read-cache.js` validates and displays that session's snapshot
-before the normal bootstrap finishes. Cache display unlocks viewing only; writes
-wait for fresh server verification. Identical responses update the sync timestamp
+before the normal bootstrap finishes. Offline creation requires a previously
+verified, session-bound snapshot; online mutations wait for fresh verification.
+Identical responses update the sync timestamp
 without rehydrating the UI; changed responses win. Successful mutations persist
 only server-confirmed values, then refresh the shown UI. Failed writes do not
-produce a successful snapshot. Offline operations are rejected with the existing
-notice. Online/visible events each request one refresh, without a retry loop.
+produce a successful snapshot. Offline mutations other than income creation are
+rejected with the existing notice. Online/visible events request a refresh and outbox sync.
 
-Logout/account deletion clear snapshots and pending generations. Incompatible
+Logout/account deletion clear snapshots and invalidate pending callbacks. Incompatible
 schema, mixed ownership, damaged payload or checksum mismatch discards the cache
 and falls back to the server. No raw token is stored in SQLite or cache logs;
 Capacitor payload logging is disabled to avoid logging financial snapshots.
@@ -131,6 +134,50 @@ Run `node --test tests/*.test.cjs`, Gradle `testDebugUnitTest`, and instrumentat
 test account. `processColdReadCache` uses `coldCachePhase=prepare`, host `adb shell
 am force-stop ru.qpokoy.app`, radio disable, then `coldCachePhase=verify`; verify
 restores network and deletes only its named temporary income/category.
+
+## Durable offline creation (0.1.7-dev)
+
+`pending_adds` is a separate SQLite table, never part of the confirmed snapshot.
+It stores operation UUID, stable income UUID (also `client_mutation_id`), user ID,
+session digest, normal income fields, creation order and retry/error metadata.
+SQLite commit completes before the form shows success. UI hydration combines
+confirmed rows with pending rows, using the existing history and analytics.
+Only snapshot categories can be selected offline. A small Android-only status
+label disappears after confirmation. No new CSS or second income interface.
+
+Version 1 → 2 migration retains the snapshot. Cache reset/corruption/logout never
+delete unconfirmed additions. A verified server snapshot rebinds only that user’s
+queue to their new session; another user cannot read or send it. Pending data
+blocks logout/account deletion/bulk replacement with a notice. A 401 clears the
+visible account/session but retains the outbox until verified login to the same user.
+
+Start, foreground, verified bootstrap and `online` trigger sequential sync. Transient
+network/timeout/408/429/5xx errors retain rows with 5-second exponential backoff,
+capped at five minutes while the app is foregrounded. A 30-second request timeout
+does not undo a late server commit; retries always retain the same UUID. Permanent
+4xx errors retain a visible error row and stop automatic retries for that operation.
+No background worker while the app is killed; SQLite survives and sync resumes on start.
+
+Server confirmation and removal of its pending UUID happen in one SQLite transaction.
+Bootstrap containing the same account-scoped UUID reconciles a lost response.
+The existing backend `(user_id,id)` INSERT uniqueness prevents duplicates. The
+opt-in POST /incomes extension returns the saved row with HTTP 200 on repeated
+`id === client_mutation_id`, or 409 for a different payload. Ordinary web requests
+retain their existing 201/409 behavior. No new endpoint or YDB schema/migration.
+Compatibility reconciliation can resolve an old backend’s 409 by account-scoped
+UUID, never by comparing amount/date/category/description.
+
+**For full verification of the new idempotent server contract, deploy the backend
+commit accompanying this Android change separately. No deployment is performed
+here, and the production endpoint is not claimed to have the new 200 behavior.**
+
+Automated coordinator scenarios A–J are in `tests/outbox.test.cjs`; real SQLite
+migration/reopen/isolation/ACK tests are in `OutboxDatabaseTest`. Opt-in
+`BundledFrontendTest#durableOfflineCreates` has `outboxPhase=prepare`, `verify`
+and `sync`; host force-stop/reboot between phases verifies persistence, then
+deletes only the test’s uniquely named incomes/category. Never run on a main account.
+Clearing Android app storage or uninstalling removes unsynced data; no cloud or
+device-transfer backup is enabled. Authentication secrets are never put in the outbox.
 
 ## Known limits / next stage
 

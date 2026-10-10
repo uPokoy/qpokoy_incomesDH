@@ -21,26 +21,42 @@ public class ReadCachePlugin extends Plugin {
         long epoch=generation.get();worker.execute(()->{
             try{
                 JSONObject snapshot=database.read(call.getString("sessionHash"));
-                JSObject result=new JSObject();result.put("snapshot",epoch==generation.get()&&snapshot!=null?snapshot:JSONObject.NULL);call.resolve(result);
+                JSObject result=new JSObject();boolean valid=epoch==generation.get()&&snapshot!=null;
+                result.put("snapshot",valid?snapshot:JSONObject.NULL);
+                result.put("pending",valid?database.pending(call.getString("sessionHash"),snapshot.getJSONObject("user").getString("user_id")):new org.json.JSONArray());call.resolve(result);
             }catch(Exception error){call.reject("Read cache unavailable");}
         });
     }
     @PluginMethod public void write(PluginCall call){
         long epoch=generation.get();worker.execute(()->{
             try{
-                if(epoch==generation.get())database.write(call.getString("sessionHash"),call.getObject("snapshot"));
-                call.resolve();
+                if(epoch!=generation.get()){call.reject("Session changed");return;}
+                database.write(call.getString("sessionHash"),call.getObject("snapshot"));
+                JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getObject("snapshot").getJSONObject("user").getString("user_id")));call.resolve(result);
             }catch(Exception error){call.reject("Cannot save read cache");}
         });
     }
     @PluginMethod public void clear(PluginCall call){
         generation.incrementAndGet();worker.execute(()->{
-            try{database.clear();call.resolve();}catch(Exception error){
-                database.close();
-                if(getContext().deleteDatabase(ReadCacheDatabase.NAME)){database=new ReadCacheDatabase(getContext());call.resolve();}
-                else call.reject("Cannot clear read cache");
-            }
+            // Never delete the database: it may contain unconfirmed offline additions.
+            try{database.clear();call.resolve();}catch(Exception error){call.reject("Cannot clear read cache");}
         });
     }
+    @PluginMethod public void enqueue(PluginCall call){
+        long epoch=generation.get();worker.execute(()->{
+            try{if(epoch!=generation.get())throw new IllegalStateException("Session changed");
+                database.enqueue(call.getString("sessionHash"),call.getString("userId"),call.getObject("income"));
+                JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getString("userId")));call.resolve(result);
+            }catch(Exception error){call.reject("Cannot save offline income");}
+        });
+    }
+    @PluginMethod public void pendingState(PluginCall call){worker.execute(()->{
+        try{database.pendingState(call.getString("sessionHash"),call.getString("userId"),call.getString("operationId"),call.getString("status"),call.getLong("nextAttempt",0L),call.getString("code",""));call.resolve();}
+        catch(Exception error){call.reject("Cannot update pending status");}
+    });}
+    @PluginMethod public void pendingCount(PluginCall call){worker.execute(()->{
+        try{JSObject result=new JSObject();result.put("count",database.pendingCount(call.getString("sessionHash")));call.resolve(result);}
+        catch(Exception error){call.reject("Cannot check pending incomes");}
+    });}
     @Override protected void handleOnDestroy(){worker.execute(()->database.close());}
 }

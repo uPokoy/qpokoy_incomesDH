@@ -595,9 +595,18 @@ function createApp(store, options = {}) {
         await requireWriteAccess(user);
         const value = incomeValue(body);
         const id = body.id === undefined ? randomUUID() : uuidValue(body.id);
+        // Opt-in Android create retries use the income UUID as their immutable key.
+        // The existing (user_id,id) primary key/INSERT provides atomic uniqueness.
+        const retry = body.client_mutation_id !== undefined;
+        if (retry && uuidValue(body.client_mutation_id) !== id) bad('Mutation id must equal income id');
         const created = await store.addIncome({ user_id: userId, id, ...value, created_at: now(), updated_at: now() });
-        if (!created) throw new HttpError(409, 'income_exists', 'Income already exists');
-        return response(201, { data: await store.getIncome(userId, id) });
+        if (!created && !retry) throw new HttpError(409, 'income_exists', 'Income already exists');
+        const saved = await store.getIncome(userId, id);
+        if (!created) {
+          if (retry && saved && Object.keys(value).every(key => saved[key] === value[key])) return response(200, { data: saved });
+          throw new HttpError(409, 'income_exists', 'Income already exists');
+        }
+        return response(201, { data: saved });
       }
       if (pathname === '/incomes/replace' && method === 'POST') {
         await requireWriteAccess(user);

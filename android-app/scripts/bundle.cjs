@@ -40,6 +40,11 @@ function adapt(name,text){
     const old="  if(editingIncomeId!==null){\n    IncomeStore.update(editingIncomeId,record);\n  }else{\n    IncomeStore.add(record);\n  }";
     if(!text.includes(old))throw new Error('Android confirmed-save adaptation needs review');
     text=text.replace(old,"  if(saveBtn.disabled)return;\n  saveBtn.disabled=true;\n  try{\n    if(editingIncomeId!==null)await IncomeStore.update(editingIncomeId,record);\n    else await IncomeStore.add(record);\n  }catch(error){window.qPokoyNotice?.('Не удалось сохранить доход',error.message,'error');return;}\n  finally{saveBtn.disabled=false;}");
+    const recent='${escapeHtml(formatDateShort(item.date))}</div>\n      <button class="income-recent-edit"';
+    const history="${escapeHtml(item.description||'')}</div>`;";
+    if(!text.includes(recent)||!text.includes(history))throw new Error('Android pending status markup needs review');
+    text=text.replace(recent,'${escapeHtml(formatDateShort(item.date))}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||\'\'}</div>\n      <button class="income-recent-edit"');
+    text=text.replace(history,"${escapeHtml(item.description||'')}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||''}</div>`;");
   }
   if(name==='js/auth.js'){
     const needle='const url=await api.startOAuth(provider);';
@@ -54,7 +59,10 @@ function adapt(name,text){
     sync=sync.replaceAll('showGate(true,true);','if(!window.qPokoyAndroidCache.displayed)showGate(true,true);');
     sync=sync.replace('    }else{\n      cloudUser=null;',"    }else{\n      void window.qPokoyAndroidCache.purge().catch(()=>{});\n      cloudUser=null;");
     text=text.slice(0,start)+sync+text.slice(end);
-    // Android has no offline/optimistic write journal. The store uses server ACKs.
+    const logoutCatch="cloudError('Не удалось выйти из аккаунта.',error);\n            await sync(null);";
+    if(!text.includes(logoutCatch))throw new Error('Android pending logout guard needs review');
+    text=text.replace(logoutCatch,"cloudError('Не удалось выйти из аккаунта.',error);\n            if(error.code!=='android_pending_logout')await sync(null);");
+    // Disable the website journal; Android has its own durable create-only SQLite outbox.
     text=text.replace(/function readPendingCloudWrites\(\)\{[\s\S]*?\n  function savePendingCloudWrites/, 'function readPendingCloudWrites(){return [];}\n  function savePendingCloudWrites');
     text=text.replace(/function enqueuePendingCloudWrite\(userId,record,kind\)\{[\s\S]*?\n  function toIsoDate/,"function enqueuePendingCloudWrite(){throw new Error('Android требует подтверждение сервера.');}\n\n  function toIsoDate");
   }

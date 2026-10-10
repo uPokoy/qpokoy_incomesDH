@@ -523,6 +523,19 @@ test('password reset request keeps generic success even if Postbox fails', async
   assert.equal(errors.length, 1);
 });
 
+test('opt-in offline create is idempotent after lost response and concurrent retries, isolated by account', async () => {
+  const app=make(),a=(await register(app,'offline-a@example.com')).body,b=(await register(app,'offline-b@example.com')).body;
+  const id=randomUUID(),row={id,client_mutation_id:id,income_date:'2026-10-10',category:'Зарплата',description:'offline',amount:123};
+  const first=await app.handle('POST','/incomes',row,auth(a.token));assert.equal(first.status,201);
+  const retries=await Promise.all(Array.from({length:3},()=>app.handle('POST','/incomes',row,auth(a.token))));
+  for(const result of retries){assert.equal(result.status,200);assert.deepEqual(result.body.data,first.body.data);}
+  assert.equal((await app.handle('GET','/incomes',{},auth(a.token))).body.data.length,1);
+  assert.equal((await app.handle('POST','/incomes',{...row,amount:124},auth(a.token))).status,409);
+  assert.equal((await app.handle('POST','/incomes',{...row,client_mutation_id:randomUUID()},auth(a.token))).status,400);
+  assert.equal((await app.handle('POST','/incomes',row,auth(b.token))).status,201);
+  assert.equal((await app.handle('GET','/incomes',{},auth(b.token))).body.data.length,1);
+});
+
 test('income CRUD is bound to the verified session, never client user_id', async () => {
   const app = make();
   const alice = (await register(app, 'alice@example.com')).body;
