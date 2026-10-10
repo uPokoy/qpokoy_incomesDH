@@ -129,6 +129,8 @@ function buildAdminUsersData(snapshot = {}, _unused = '', current = new Date()) 
 }
 
 async function handler(event = {}) {
+  const started = performance.now();
+  const firstStoreRequest = !store;
   try {
     const method = String(event.httpMethod || event.requestContext?.http?.method || 'GET').toUpperCase();
     const pathOnly = event.path || event.rawPath || '/';
@@ -160,6 +162,8 @@ async function handler(event = {}) {
       onError: () => console.error('Payment API error: internal_error')
     });
     app ||= createApp(store, {
+      onBootstrapTiming: process.env.QPOKOY_STARTUP_TIMINGS === '1'
+        ? timings => console.info('qPokoy bootstrap timings', timings) : undefined,
       onError: (error) => console.error('API error', error),
       passwordResetBaseUrl: appBaseUrl,
       emailVerificationBaseUrl: appBaseUrl,
@@ -297,6 +301,11 @@ async function handler(event = {}) {
   } catch (error) {
     console.error('API bootstrap error', error);
     return json(500, { error: { code: 'internal_error', message: 'Internal server error' } });
+  } finally {
+    if (process.env.QPOKOY_STARTUP_TIMINGS === '1' &&
+        String(event.path || event.rawPath || '').split('?')[0] === '/bootstrap') {
+      console.info('qPokoy bootstrap handler timing', { first_store_request: firstStoreRequest, handler_ms: performance.now() - started });
+    }
   }
 }
 

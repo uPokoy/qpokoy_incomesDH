@@ -116,13 +116,16 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
         }
       }
     },
-    // Each request authenticates in a single AUTO_TX, with point predicates and
-    // no JOIN. Unchanged cache hits never open an explicit transaction.
-    async loadBootstrap(sessionId, validate, knownRevision = '') {
+    // Point predicates, no JOIN. Unchanged cache hits use AUTO_TX; full loads
+    // validate before data reads in an explicit serializable snapshot.
+    async loadBootstrap(sessionId, validate, knownRevision = '', timings = {}) {
+      const readyStarted = performance.now();
       await ready();
+      timings.ready_ms = performance.now() - readyStarted;
       return withResourceRetry(() => driver.tableClient.withSession(async (session) => {
         const rows = (result, index) => result.resultSets?.[index] ? TypedData.createNativeObjects(result.resultSets[index]) : [];
         const readAuth = async (control) => {
+          const started = performance.now();
           const result = await session.executeQuery(`DECLARE $id AS Utf8; DECLARE $revisionKey AS Utf8;
             $session = SELECT session_id,user_id,secret_hash,created_at,expires_at,last_seen_at,revoked_at
               FROM \`sessions\` WHERE session_id=$id;
@@ -133,15 +136,21 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
           { $id: U(sessionId), $revisionKey: U(REVISION_KEY) }, control);
           const auth = { session: rows(result, 0)[0] || null, user: rows(result, 1)[0] || null };
           validate(auth); // Never read the full bundle before bearer/user validation.
+          timings.auth_ms = (timings.auth_ms || 0) + performance.now() - started;
           return { ...auth, revision: rows(result, 2)[0]?.setting_value || '' };
         };
-        const checked = await readAuth();
-        if (checked.revision && knownRevision === checked.revision) {
-          return { user: checked.user, revision: checked.revision, not_modified: true };
+        // With no revision there can be no cache hit: authenticate directly in
+        // the bundle transaction. Stale-cache requests still revalidate inside
+        // that snapshot; reusing preflight auth/revision would introduce a race.
+        if (knownRevision) {
+          const checked = await readAuth();
+          if (checked.revision && knownRevision === checked.revision) {
+            return { user: checked.user, revision: checked.revision, not_modified: true };
+          }
         }
 
-        // A miss re-reads auth/revision inside the bundle's snapshot. Using the
-        // preflight revision here would race a mutation between the two queries.
+        // A stale-cache miss re-reads auth/revision inside the bundle's snapshot.
+        const bundleStarted = performance.now();
         const meta = await session.beginTransaction({ serializableReadWrite: {} });
         const control = { txId: meta.id };
         try {
@@ -159,6 +168,7 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
             $revisionKey: U(REVISION_KEY), $revision: U(revision), $revisionTime: T(new Date())
           } : {}) }, control);
           await session.commitTransaction(control);
+          timings.bundle_ms = performance.now() - bundleStarted;
           return { user: auth.user, revision, not_modified: false, incomes: rows(result, 0), categories: rows(result, 1), settings: rows(result, 2) };
         } catch (error) {
           try { await session.rollbackTransaction(control); } catch (_) { /* Preserve the original failure. */ }
@@ -166,6 +176,11 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
         }
       }));
     },
+    // Only called after bootstrap has validated bearer + active user. These
+    // rows stay server-side, even on not_modified responses.
+    getBootstrapAccessSettings: uid => query(`DECLARE $uid AS Utf8;
+      SELECT user_id,setting_key,setting_value FROM \`settings\` WHERE user_id=$uid
+      AND setting_key IN ("auth.onboarding_completed","billing.admin_override","billing.access");`, { $uid: U(uid) }),
     health: async () => { await query('SELECT 1 AS ok;'); },
     async consumeRateLimit(bucketKey, limit, windowMs, when) {
       const uid = '__rate_limit__';

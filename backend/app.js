@@ -103,11 +103,11 @@ function createApp(store, options = {}) {
   const now = options.now || (() => new Date());
   // Account-scoped flag in the existing settings table. Only explicit false
   // starts the tour; absent/null legacy records are already completed.
-  async function publicUser(user, includeOnboarding = true) {
+  async function publicUser(user, includeOnboarding = true, settings = null) {
     const result = { user_id: user.user_id, email: user.email, status: user.status,
       created_at: user.created_at, trial_ends_at: user.trial_ends_at };
     if (includeOnboarding) {
-      const flag = await store.getSetting(user.user_id, 'auth.onboarding_completed');
+      const flag = settings ? settings.get('auth.onboarding_completed') : await store.getSetting(user.user_id, 'auth.onboarding_completed');
       result.onboarding_completed = flag?.setting_value !== 'false';
     }
     return result;
@@ -139,7 +139,8 @@ function createApp(store, options = {}) {
     const parsed = value instanceof Date ? new Date(value) : new Date(String(value));
     return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : null;
   };
-  async function billingAccess(user) {
+  async function billingAccess(user, settings = null) {
+    const getSetting = key => settings ? settings.get(key) : store.getSetting(user.user_id, key);
     const current = now();
     const currentMs = current.getTime();
     let trialEndsAt = isoDate(user?.trial_ends_at);
@@ -153,7 +154,7 @@ function createApp(store, options = {}) {
       can_write: true, auto_renew: false, paid_until: null, grace_until: null,
       trial_ends_at: trialEndsAt
     };
-    const manual = readGrant(await store.getSetting(user.user_id, OVERRIDE_KEY));
+    const manual = readGrant(await getSetting(OVERRIDE_KEY));
     if (manual) {
       const paid = isoDate(manual.paid_until), grace = isoDate(manual.grace_until);
       const common = { ...base, plan: manual.plan, source: 'admin', auto_renew: manual.auto_renew,
@@ -168,7 +169,7 @@ function createApp(store, options = {}) {
     }
     let saved = null;
     try {
-      const row = await store.getSetting(user.user_id, BILLING_ACCESS_SETTING);
+      const row = await getSetting(BILLING_ACCESS_SETTING);
       saved = row?.setting_value ? JSON.parse(row.setting_value) : null;
     } catch (_) { saved = null; }
     const plan = ['monthly', 'yearly', 'lifetime'].includes(saved?.plan) ? saved.plan : null;
@@ -508,19 +509,32 @@ function createApp(store, options = {}) {
         if (!token) throw new HttpError(401, 'unauthorized', 'Authentication required');
         const revision = url.searchParams.get('revision') || '';
         if (revision.length > 128) bad('Invalid revision');
+        const started = performance.now();
+        const timings = {};
         const startup = await store.loadBootstrap(token.sessionId, ({ session, user }) => {
           validateSession(session, token);
           validateUser(user);
-        }, revision);
+        }, revision, timings);
+        const accessStarted = performance.now();
+        // Full loads reuse the authenticated snapshot; cache hits read only
+        // access flags after validation. Internal rows never enter the payload.
+        const accessRows = startup.not_modified && store.getBootstrapAccessSettings
+          ? await store.getBootstrapAccessSettings(startup.user.user_id) : startup.settings;
+        const settings = accessRows ? new Map(accessRows.map(row => [row.setting_key, row])) : null;
+        const user = await publicUser(startup.user, true, settings);
+        const billing = await billingAccess(startup.user, settings);
+        timings.access_ms = performance.now() - accessStarted;
+        timings.total_ms = performance.now() - started;
+        // Optional, numeric-only diagnostics must not affect the response.
+        try { options.onBootstrapTiming?.({ ...timings }); } catch (_) { /* Diagnostics only. */ }
         if (startup.not_modified) return response(200, {
-          user: await publicUser(startup.user), revision: startup.revision, not_modified: true,
-          billing: await billingAccess(startup.user)
+          user, revision: startup.revision, not_modified: true, billing
         });
         return response(200, {
           revision: startup.revision, not_modified: false,
-          user: await publicUser(startup.user), incomes: startup.incomes, categories: startup.categories,
+          user, incomes: startup.incomes, categories: startup.categories,
           settings: startup.settings.filter((row) => !/^(auth|system|rate|billing)\./.test(String(row.setting_key))),
-          billing: await billingAccess(startup.user)
+          billing
         });
       }
       const { user, session } = await authenticate(headers);

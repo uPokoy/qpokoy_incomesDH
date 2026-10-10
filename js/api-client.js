@@ -144,6 +144,8 @@
       async completeOnboarding(){return request('PUT','/settings/onboarding_completed',{setting_value:'true'});},
       async bootstrap(){
         if(!getToken())return null;
+        let timingStart;
+        try{timingStart=globalThis.performance?.now?.();}catch(_){}
         const token=getToken();
         const cache=readBootstrapCache();
         try{
@@ -165,6 +167,15 @@
           saveBootstrapCache(payload);
           return payload;
         }catch(error){if(error.status===401)return null;throw error;}
+        finally{
+          // Bounded, numeric-only User Timing; no session or payload is recorded.
+          try{
+            if(Number.isFinite(timingStart)){
+              performance.clearMeasures('qp.bootstrap');
+              performance.measure('qp.bootstrap',{start:timingStart,end:performance.now()});
+            }
+          }catch(_){}
+        }
       },
       async logout(){try{await request('POST','/auth/logout');}finally{clearToken();}},
       async deleteAccount(){await request('DELETE','/auth/me');clearToken();},

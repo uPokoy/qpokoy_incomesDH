@@ -20,6 +20,25 @@ const user={user_id:'user-1',email:'тест@example.com'};
 const cachedRow={id:'income-1',user_id:user.user_id,income_date:'2026-09-15',category:'Зарплата',description:'Кэш',amount:123};
 const bundle=(revision='revision-a')=>({user,revision,not_modified:false,incomes:[cachedRow],categories:[{id:'c1',name:'Зарплата'}],settings:[]});
 
+test('unsupported timing diagnostics never interrupt bootstrap or record payload data',async()=>{
+  const original=Object.getOwnPropertyDescriptor(globalThis,'performance');
+  try{
+    for(const broken of [true,false]){
+      const measured=[];
+      Object.defineProperty(globalThis,'performance',{configurable:true,value:{
+        now(){if(broken)throw new Error('unsupported');return 10;},
+        clearMeasures:name=>measured.push(name),measure:(name,options)=>measured.push({name,...options})
+      }});
+      const h=harness([ok(bundle())]);h.values.set(TOKEN_KEY,'fixture.secret');
+      assert.deepEqual(await h.api.bootstrap(),bundle());
+      assert.deepEqual(measured,broken?[]:['qp.bootstrap',{name:'qp.bootstrap',start:10,end:10}]);
+    }
+  }finally{
+    if(original)Object.defineProperty(globalThis,'performance',original);
+    else delete globalThis.performance;
+  }
+});
+
 test('delayed bootstrap response from the old session cannot replace a new user cache',async()=>{
   const values=new Map([[TOKEN_KEY,'old-session.secret']]);
   const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};

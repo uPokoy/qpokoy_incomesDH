@@ -657,6 +657,8 @@
       startup=startup||await api.bootstrap();
       if(runId!==authSyncRun)return;
       if(!startup){await sync(null);return;}
+      let hydrationStarted;
+      try{hydrationStarted=performance.now();}catch(_){}
       session={user:apiUser(startup.user)};
       const nextUserId=String(session.user.id||'');
       let previousOwner='';
@@ -686,7 +688,15 @@
       if(runId!==authSyncRun)return;
       cloudSettings=startup.settings.map(row=>({...row}));
       const pendingFlush=flushPendingCloudRecords();
-      if(runId===authSyncRun&&cloudUser&&String(cloudUser.id||'')===nextUserId&&cloudReady) showGate(false);
+      if(runId===authSyncRun&&cloudUser&&String(cloudUser.id||'')===nextUserId&&cloudReady){
+        showGate(false);
+        try{
+          if(Number.isFinite(hydrationStarted)){
+            performance.clearMeasures('qp.hydration');
+            performance.measure('qp.hydration',{start:hydrationStarted,end:performance.now()});
+          }
+        }catch(_){}
+      }
       await pendingFlush;
     }else{
       cloudUser=null; cloudReady=false;

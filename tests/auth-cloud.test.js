@@ -48,7 +48,7 @@ function setup(overrides={},options={}){
   const win={qPokoyApi:api,qPokoyLoadCategories:async(user,rows)=>{categoryLoads++;calls.push({categories:rows});},renderIncomes:()=>calls.push('renderIncomes'),qPokoyNotice:(...args)=>notices.push(args),qPokoyConfirm:(title,message,callback)=>{confirmation=callback;},qPokoyConfirmPhrase:(title,message,phrase,callback)=>{confirmation=callback;},addEventListener(){}};
   const store={load:()=>records,save(next){records=next;saves.push(next);storage.setItem('incomes',JSON.stringify(next));}};
   vm.runInNewContext(source,{window:win,document,localStorage:storage,IncomeStore:store,console:{error(){}},Date,Promise,
-    URLSearchParams,URL,location:{search:options.search||'',href:'https://qpokoy.ru/'+(options.search||'')},history:{replaceState(){}}});
+    URLSearchParams,URL,performance:options.performance,location:{search:options.search||'',href:'https://qpokoy.ru/'+(options.search||'')},history:{replaceState(){}}});
   return {win,api,values,nodes,notices,calls,saves,get checking(){return bodyClasses.has('qp-auth-checking');},get records(){return records;},get categoryLoads(){return categoryLoads;},confirm:()=>confirmation()};
 }
 async function ready(h){
@@ -57,6 +57,15 @@ async function ready(h){
   assert.equal(h.checking,false);
   assert.equal(h.nodes.get('qpAuthGate').hidden,true);
 }
+
+test('hydration timing is numeric-only and diagnostics cannot keep the auth gate locked', async()=>{
+  const calls=[];
+  const h=setup({}, {performance:{now:()=>10,clearMeasures:name=>calls.push(name),measure:(name,timing)=>calls.push({name,...timing})}});
+  await ready(h);
+  assert.deepEqual(calls,['qp.hydration',{name:'qp.hydration',start:10,end:10}]);
+  const broken=setup({}, {performance:{now(){throw new Error('unsupported');}}});
+  await ready(broken);
+});
 
 test('startup consumes bootstrap data with no legacy GETs and exposes settings',async()=>{
   const settings=[{setting_key:'theme',setting_value:'dark'}];
