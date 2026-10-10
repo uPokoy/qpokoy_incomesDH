@@ -778,6 +778,7 @@ function renderRecentIncomes(period=getSelectedIncomePeriod()){
       <div class="income-recent-amount">${formatMoney(Number(item.amount||0))}</div>
       <div class="income-recent-category">${escapeHtml(item.category||'—')}</div>
       <div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}</div>
+      ${getRecentIncomePageSize()===1?`<div class="income-recent-description">${escapeHtml(item.description||'')}</div>`:''}
       <button class="income-recent-edit" data-id="${escapeHtml(item.id)}" type="button" title="Редактировать" aria-label="Редактировать">
         ${desktopIncomeActionsMedia.matches?desktopIncomeEditIcon:'<span class="history-action-pencil" aria-hidden="true">✎</span>'}
       </button>

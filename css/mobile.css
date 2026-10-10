@@ -3257,3 +3257,62 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     transform:none !important;
   }
 }
+
+/* Mobile recent cards use the same content layout as full history. */
+@media(max-width:900px) and (pointer:coarse), (orientation:landscape) and (max-height:560px) and (pointer:coarse){
+  #income .income-recent.qp-mobile-recent-stack .income-recent-card{
+    min-height:88px !important;
+    padding:11px 13px !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:"amount category" "date category" "description description" !important;
+    column-gap:8px !important;
+    row-gap:5px !important;
+    border:1px solid var(--border) !important;
+    border-radius:15px !important;
+    background:var(--panel) !important;
+    box-shadow:none !important;
+  }
+  #income .income-recent.qp-mobile-recent-stack .income-recent-card .income-recent-amount{
+    margin-left:0 !important;
+    text-align:left !important;
+    transform:none !important;
+    font-size:22px !important;
+    line-height:1 !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  #income .income-recent.qp-mobile-recent-stack .income-recent-card .income-recent-category{
+    align-self:start !important;
+    max-width:104px !important;
+    padding:4px 7px !important;
+    font-size:10px !important;
+  }
+  #income .income-recent.qp-mobile-recent-stack .income-recent-card .income-recent-date{
+    margin-left:0 !important;
+    transform:none !important;
+    text-align:left !important;
+    font-size:12px !important;
+    line-height:1.15 !important;
+    white-space:normal !important;
+    overflow:visible !important;
+  }
+  #income .income-recent-card [data-android-pending]{
+    display:block;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  #income .income-recent-description{
+    grid-area:description;
+    min-width:0;
+    padding-top:1px;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    overflow:hidden;
+    overflow-wrap:anywhere;
+    color:color-mix(in srgb,var(--text) 82%,var(--text-muted));
+    font-size:13px;
+    line-height:1.25;
+  }
+  #income .income-recent-description:empty{display:none;}
+}
