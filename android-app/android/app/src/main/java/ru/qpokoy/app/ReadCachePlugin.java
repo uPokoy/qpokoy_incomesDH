@@ -89,6 +89,14 @@ public class ReadCachePlugin extends Plugin {
             }catch(Exception error){call.reject("Cannot save offline income");}
         });
     }
+    @PluginMethod public void enqueueEdit(PluginCall call){
+        long epoch=generation.get();worker.execute(()->{
+            try{if(epoch!=generation.get())throw new IllegalStateException("Session changed");
+                database.enqueueEdit(call.getString("sessionHash"),call.getString("userId"),call.getObject("income"));
+                JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getString("userId")));call.resolve(result);
+            }catch(Exception error){call.reject("Cannot save local income edit");}
+        });
+    }
     @PluginMethod public void pendingState(PluginCall call){worker.execute(()->{
         try{database.pendingState(call.getString("sessionHash"),call.getString("userId"),call.getString("operationId"),call.getString("status"),call.getLong("nextAttempt",0L),call.getString("code",""));call.resolve();}
         catch(Exception error){call.reject("Cannot update pending status");}

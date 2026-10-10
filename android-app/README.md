@@ -1,14 +1,14 @@
 # qPokoy Android — first technical prototype
 
-**Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create-only outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.12-dev`, `versionCode=13`.
+**Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create/update outbox.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.13-dev`, `versionCode=14`.
 
 Android UI/storage adaptations live in this directory. The user has separately
 deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
 The website, YDB schema, payments and deployment workflow are unchanged. The app starts at
 `https://localhost/`, served by Capacitor from assets physically inside the APK.
 Website deployments do not update an installed APK. Previously verified data can
-be viewed offline; only creation of incomes can be durably queued offline.
+be viewed offline; creation and editing of incomes can be durably queued offline.
 
 ## Build / Android Studio
 
@@ -33,7 +33,7 @@ debug APK is for Samsung testing, not RuStore publication.
 
 ## Updating the bundled frontend
 
-APK 0.1.12-dev uses main DEV403, source
+APK 0.1.13-dev uses main DEV403, source
 `48e6b501cc6aa33fef6720c74dc6e7986cc78ed2`. Recent mobile cards now share the
 full-history layout, including description. Android pending status remains under
 the date. Every Android create commits to SQLite before background synchronization. To reproduce this source, use
@@ -46,7 +46,7 @@ CREATE never waits for a connectivity probe, bootstrap or POST. It validates the
 record and account-bound snapshot, persists the permanent UUID in `pending_adds`,
 awaits SQLite commit and paints the pending income. A later event-loop task starts
 background sync (or server validation first when required); the form continuation
-can close before that task. Edit/delete/category permissions are unchanged.
+can close before that task. In 0.1.13 EDIT uses the same durability; delete/category permissions remain unchanged.
 The 30-second transport/sync timeout remains in the background only.
 
 Retries reuse the same income UUID. Permanent 4xx keeps a local error row; 401 and
@@ -56,6 +56,34 @@ Instrumentation observes actual Save click and form closure, asserts under 1s,
 and checks that no POST starts before commit/form closure. Its explicit
 `localFirst=true` scenario holds the background POST for 35s, then verifies two
 unique cloud rows and removes only its own test records.
+
+### 0.1.13 durable local-first UPDATE
+
+Database v2 -> v3 adds `kind` (default `add`) to the existing `pending_adds`;
+no database/table reset, token or snapshot replacement is required for migration.
+Both kinds retain account/session binding. `enqueueEdit` transactionally replaces
+one row per income with its latest desired payload and a new operation UUID.
+Income UUID and pending ADD creation order never change. Unsent ADD edits remain
+ADD; edits of confirmed rows become UPDATE. No DELETE outbox is introduced.
+
+Combined view is snapshot + pending ADD + pending UPDATE overlay. SQLite snapshot
+writes compare date/amount/category/description, not only ID, before removing a
+pending row. A confirmed ADD with older fields is converted to UPDATE of the same
+UUID. An in-flight older response cannot acknowledge or mark a newer operation
+as failed: local edits invalidate its coordinator epoch, and status writes target
+its old operation UUID. Bootstrap/restart always retains the latest local overlay.
+
+UPDATE uses the existing PUT endpoint, sends only the latest offline payload and
+runs after local commit/form closure. The edit wrapper updates the UI store once,
+and the Android-only generated save handler closes the form before its next-frame
+chart/history redraw. CREATE retains its existing rendering path. Safe timing is
+available in `metrics.editStarted` / `metrics.sqliteCommit`; test logs contain only
+elapsed times, never account IDs/tokens/income data.
+
+Opt-in WebView tests: `durableOfflineEdits` with `editPhase=prepare`, host force-stop
+and restart, `verify`, then `sync`; `onlineSlowLostAndInFlightEdits` with
+`localFirstEdits=true`. These hold PUT for 35s, lose a real PUT response, edit while
+ADD response is held, verify the same cloud IDs and remove only their own fixtures.
 
 ### Previous 0.1.11 offline-save regression check
 
@@ -106,9 +134,9 @@ The local UI and internal pages load without internet, over a dark #070C14 nativ
 background. OfflineGuard, InitialLoadState, their fullscreen overlay, retry/timeout
 machinery and remote offline HTML are removed. API fetch failures have an Android-only
 network message; reconnect triggers one background refresh without restarting.
-The Android adaptation replaces optimistic income writes with awaited server writes
-and disables the website write journal in the generated copy. Offline creation
-uses the SQLite outbox described below. Offline edit/delete remain forbidden.
+The Android adaptation awaits durable SQLite CREATE/UPDATE commits and disables
+the website write journal in the generated copy. Offline DELETE and category
+creation remain forbidden. Network timeouts never block income Save.
 The source website remains unchanged.
 The production gateway currently returns `Access-Control-Allow-Origin: *` for
 https://localhost, including preflight and actual responses. No backend deploy was
@@ -149,7 +177,7 @@ needed; CORS must be rechecked if gateway/backend policy changes.
 
 `ReadCachePlugin` uses Android framework `SQLiteOpenHelper`, with no third-party
 database dependency. SQL, compression and native validation run on one serial
-background executor, shared across Activity instances. Database version 2, snapshot format 1:
+background executor, shared across Activity instances. Database version 3, snapshot format 1:
 `/data/user/0/ru.qpokoy.app/databases/qpokoy-read-cache.db` (Android may expose
 the equivalent `/data/data/ru.qpokoy.app/databases/` path). This is private app
 storage, not Downloads. Backup remains disabled with existing transfer exclusions.
@@ -163,12 +191,12 @@ confirmed by bootstrap; an unknown/different session cannot read the old snapsho
 This is account isolation, not encryption against a compromised/rooted device.
 
 On launch, `android-read-cache.js` validates and displays that session's snapshot
-before the normal bootstrap finishes. Offline creation requires a previously
-verified, session-bound snapshot; online mutations wait for fresh verification.
+before the normal bootstrap finishes. Local CREATE/UPDATE requires a previously
+verified, session-bound snapshot; other mutations require fresh server verification.
 Identical responses update the sync timestamp
-without rehydrating the UI; changed responses win. Successful mutations persist
+without rehydrating the UI; pending desired values overlay server responses. Successful mutations persist
 only server-confirmed values, then refresh the shown UI. Failed writes do not
-produce a successful snapshot. Offline mutations other than income creation are
+produce a successful snapshot. Offline mutations other than income creation/editing are
 rejected with the existing notice. Online/visible events request a refresh and outbox sync.
 
 Logout/account deletion clear snapshots and invalidate pending callbacks. Incompatible
@@ -208,7 +236,7 @@ does not undo a late server commit; retries always retain the same UUID. Permane
 No background worker while the app is killed; SQLite survives and sync resumes on start.
 
 Server confirmation and removal of its pending UUID happen in one SQLite transaction.
-Bootstrap containing the same account-scoped UUID reconciles a lost response.
+Bootstrap with the same account-scoped UUID and desired payload reconciles a lost response; an older payload preserves the pending edit.
 The existing backend `(user_id,id)` INSERT uniqueness prevents duplicates. The
 opt-in POST /incomes extension returns the saved row with HTTP 200 on repeated
 `id === client_mutation_id`, or 409 for a different payload. Ordinary web requests

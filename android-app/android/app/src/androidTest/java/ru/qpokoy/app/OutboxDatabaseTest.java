@@ -69,7 +69,7 @@ public class OutboxDatabaseTest {
             db.write(a,snapshot("A"));SQLiteDatabase sql=db.getWritableDatabase();sql.execSQL("DROP TABLE pending_adds");sql.setVersion(1);
         }
         try(ReadCacheDatabase db=db()){
-            assertNotNull(db.read(a));assertEquals(2,db.getWritableDatabase().getVersion());db.enqueue(a,"A",income(9));assertEquals(1,db.pendingCount(a));
+            assertNotNull(db.read(a));assertEquals(3,db.getWritableDatabase().getVersion());db.enqueue(a,"A",income(9));assertEquals(1,db.pendingCount(a));
         }finally{context.deleteDatabase(name);}
     }
     @Test public void invalidDatesCategoriesAndDuplicateIdsAreRejectedBeforeCommit() throws Exception {
@@ -85,4 +85,40 @@ public class OutboxDatabaseTest {
             assertEquals(1,db.pendingCount(a));
         }finally{context.deleteDatabase(name);}
     }
+    @Test public void versionTwoMigrationPreservesSnapshotAndPendingAdd() throws Exception {
+        context.deleteDatabase(name);JSONObject row=income(1000);
+        try(ReadCacheDatabase db=db()){
+            db.write(a,snapshot("A"));db.enqueue(a,"A",row);
+            SQLiteDatabase sql=db.getWritableDatabase();sql.execSQL("ALTER TABLE pending_adds DROP COLUMN kind");sql.setVersion(2);
+        }
+        try(ReadCacheDatabase db=db()){
+            assertEquals(3,db.getWritableDatabase().getVersion());assertNotNull(db.read(a));
+            JSONObject pending=db.pending(a,"A").getJSONObject(0);assertEquals(row.getString("income_id"),pending.getString("income_id"));assertEquals("add",pending.getString("kind"));
+        }finally{context.deleteDatabase(name);}
+    }
+    @Test public void editCoalescesDurablyAndStaleAckDoesNotEraseDesiredPayload() throws Exception {
+        context.deleteDatabase(name);JSONObject row=income(1000);
+        JSONObject server=new JSONObject(row.toString()).put("id",row.getString("income_id")).put("user_id","A");
+        JSONObject original=snapshot("A");original.getJSONArray("incomes").put(server);
+        try(ReadCacheDatabase db=db()){
+            db.write(a,original);
+            for(int amount:new int[]{1200,1500,1800})db.enqueueEdit(a,"A",new JSONObject(row.toString()).put("operation_id",UUID.randomUUID().toString()).put("amount",amount));
+            db.write(a,original);assertEquals(1,db.pendingCount(a));assertEquals(1800,db.pending(a,"A").getJSONObject(0).getInt("amount"));
+        }
+        try(ReadCacheDatabase db=db()){
+            assertEquals("update",db.pending(a,"A").getJSONObject(0).getString("kind"));
+            server.put("amount",1800);db.write(a,original);assertEquals(0,db.pendingCount(a));
+        }finally{context.deleteDatabase(name);}
+    }
+    @Test public void pendingAddEditAndOldAddAckConvertToUpdateWithoutLosingLatestEdit() throws Exception {
+        context.deleteDatabase(name);JSONObject row=income(1000),edit=new JSONObject(row.toString()).put("operation_id",UUID.randomUUID().toString()).put("amount",2000);
+        try(ReadCacheDatabase db=db()){
+            db.write(a,snapshot("A"));db.enqueue(a,"A",row);db.enqueueEdit(a,"A",edit);
+            assertEquals(1,db.pendingCount(a));assertEquals("add",db.pending(a,"A").getJSONObject(0).getString("kind"));
+            db.pendingState(a,"A",row.getString("operation_id"),"error",0,"http_400");assertEquals("pending",db.pending(a,"A").getJSONObject(0).getString("status"));
+            JSONObject old=snapshot("A");old.getJSONArray("incomes").put(new JSONObject(row.toString()).put("id",row.getString("income_id")).put("user_id","A"));db.write(a,old);
+            JSONObject pending=db.pending(a,"A").getJSONObject(0);assertEquals("update",pending.getString("kind"));assertEquals(2000,pending.getInt("amount"));assertEquals(row.getString("income_id"),pending.getString("income_id"));
+        }finally{context.deleteDatabase(name);}
+    }
+
 }

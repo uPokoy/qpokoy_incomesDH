@@ -1,10 +1,10 @@
-/* Android-only confirmed SQLite snapshots and durable create-only outbox. Credentials stay in api-client. */
+/* Android-only confirmed SQLite snapshots and durable create/update outbox. Credentials stay in api-client. */
 (function(root,factory){
   const exported=factory();
   if(typeof module==='object'&&module.exports)module.exports=exported;
   if(root?.qPokoyApi&&root.Capacitor){
     const native=method=>options=>root.Capacitor.nativePromise('QPokoyReadCache',method,options||{});
-    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
+    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
       fingerprint:async token=>Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))).map(b=>b.toString(16).padStart(2,'0')).join(''),
       online:()=>root.qPokoyAndroidNetwork.available,networkState:options=>root.qPokoyAndroidNetwork.read(options),clock:()=>Date.now(),notify:()=>root.qPokoyNotice?.('Нет подключения к интернету','Дождитесь подключения и завершения синхронизации.','error')});
     root.qPokoyAndroidCache=cache;
@@ -43,7 +43,7 @@
   }
   function create({api,db,fingerprint,online,networkState=async()=>{},clock=Date.now,notify=()=>{},uuid=()=>globalThis.crypto.randomUUID()}){
     const bootstrap=api.bootstrap.bind(api);
-    const sendAdd=api.addIncome?.bind(api);
+    const sendAdd=api.addIncome?.bind(api),sendUpdate=api.updateIncome?.bind(api);
     let epoch=0,current=null,binding=null,validatedToken=null,displayed=false,renderedSignature=null,hydrate=null,refreshJob=null,refreshEpoch=0,clearJob=Promise.resolve(),mutations=0,view=null;
     let pending=[],syncJob=null,retryTimer=null;
     const metrics={};
@@ -57,8 +57,12 @@
     }
     function combined(){
       if(!current)return null;
-      const ids=new Set(current.incomes.map(row=>row.id));
-      const rows=[...current.incomes,...pending.filter(row=>!ids.has(row.income_id)).map(row=>({id:row.income_id,user_id:row.user_id,...incomeValue(row),created_at:new Date(row.created_at).toISOString()}))];
+      const rowsById=new Map(current.incomes.map(row=>[row.id,row]));
+      for(const row of pending){
+        const old=rowsById.get(row.income_id);
+        rowsById.set(row.income_id,{...old,id:row.income_id,user_id:row.user_id,...incomeValue(row),created_at:old?.created_at||new Date(row.created_at).toISOString()});
+      }
+      const rows=[...rowsById.values()];
       // Same date/creation ordering as cloud history; pending status is not a sort key.
       rows.sort((a,b)=>b.income_date.localeCompare(a.income_date)||(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0));
       return {...current,incomes:rows};
@@ -155,22 +159,30 @@
       await refresh();
       if(!online()&&!displayed)throw new Error('Нет подключения к интернету');
     }
-    async function enqueue(record){
+    async function enqueue(record,edit=false){
       diagnostic.stage='account-binding';
       const token=api.getToken(),uid=current?.user.user_id,hash=binding;
       const digest=await identity(token);
-      if(!db.enqueue||!current||!hash||!token||hash!==digest||token!==api.getToken()||uid!==current.user.user_id||binding!==hash)throw new Error('Локальное добавление недоступно: сначала войдите и загрузите данные с сервера.');
+      if(!(edit?db.enqueueEdit:db.enqueue)||!current||!hash||!token||hash!==digest||token!==api.getToken()||uid!==current.user.user_id||binding!==hash)throw new Error('Локальное добавление недоступно: сначала войдите и загрузите данные с сервера.');
       const value=incomeValue(record),id=record.id||uuid();
-      if(!uuidPattern.test(id)||current.incomes.some(row=>row.id===id)||pending.some(row=>row.income_id===id))throw new Error('Некорректный или повторный ID дохода');
+      if(!uuidPattern.test(id)||(!edit&&(current.incomes.some(row=>row.id===id)||pending.some(row=>row.income_id===id))))throw new Error('Некорректный или повторный ID дохода');
+      if(edit&&!combined().incomes.some(row=>row.id===id))throw new Error('Доход недоступен локально');
       if(!current.categories.some(row=>row.name===value.category))throw new Error('Выберите ранее загруженную категорию.');
       const run=++epoch;
       diagnostic.stage='sqlite-enqueue';
-      const result=await db.enqueue({sessionHash:hash,userId:uid,income:{operation_id:uuid(),income_id:id,...value,created_at:clock()}});
+      const result=await (edit?db.enqueueEdit:db.enqueue)({sessionHash:hash,userId:uid,income:{operation_id:uuid(),income_id:id,...value,created_at:clock()}});
       metrics.sqliteCommit=performance.now();
       // SQLite commit precedes any success UI. An interrupted UI can reload this row.
       if(run!==epoch||token!==api.getToken())return;
       diagnostic.stage='render-after-commit';
-      setPending(result.pending,uid);await paint(true);scheduleRetry();
+      setPending(result.pending,uid);
+      if(edit&&view){
+        // The save handler renders after this promise. Avoid re-running full
+        // Auth/category/settings hydration for a local edit, and rendering twice.
+        view.IncomeStore.save(combined().incomes.map(row=>({id:row.id,date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description})));
+        displayed=true;renderedSignature=shownSignature();
+      }else await paint(true);
+      scheduleRetry();
       diagnostic.stage='committed';
       // Leave the submit continuation free to close the form first. The network
       // is only used in this later task; even a hung POST cannot delay CREATE.
@@ -197,18 +209,18 @@
             const payload={id:operation.income_id,client_mutation_id:operation.income_id,...incomeValue(operation)};
             let saved;
             try{
-              saved=await Promise.race([sendAdd(payload),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
+              saved=await Promise.race([operation.kind==='update'?sendUpdate(operation.income_id,incomeValue(operation)):sendAdd(payload),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
             }catch(error){
               // Existing deployments return 409 for duplicate UUIDs. Reconcile by
               // authoritative account-scoped ID, never by amount/date/description.
-              if(error.status!==409)throw error;
+              if(error.status!==409||operation.kind==='update')throw error;
               saved=(await api.listIncomes()).find(row=>row.id===operation.income_id&&row.user_id===uid);
               if(!saved)throw error;
             }finally{clearTimeout(timeout);}
             if(run!==epoch||token!==api.getToken())break;
             if(!saved||saved.id!==operation.income_id||saved.user_id!==uid)throw new Error('invalid_server_response');
             const value={...current,incomes:[...current.incomes.filter(row=>row.id!==saved.id),saved]};
-            // SQLite atomically stores confirmed row and removes its pending UUID.
+            // SQLite confirms only a matching desired payload; newer edits survive.
             if(!await save(snapshot(value,clock()),token,run))break;
             await paint();
           }catch(error){
@@ -265,29 +277,23 @@
           finally{mutations--;if(!failedTransport)w.setTimeout(()=>{if(!mutations)void (refreshJob||Promise.resolve()).catch(()=>{}).then(()=>refresh()).catch(()=>{});},0);}
         };
       }
-      // Every Android CREATE awaits SQLite only; edits still await server ACK.
+      // Android CREATE and UPDATE both await SQLite only.
       const store=w.IncomeStore;
-      const rowToUi=row=>({id:String(row.id),date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description});
       const uiToRow=record=>{const parts=record.date.split('.');return {...record,income_date:(parts[2].length===2?'20'+parts[2]:parts[2])+'-'+parts[1]+'-'+parts[0]};};
       for(const name of ['add','update'])store[name]=async(...args)=>{
         diagnostic.stage='network-state';diagnostic.code=null;
         try{
         const record=name==='add'?args[0]:args[1];
-        const row=uiToRow(record),token=api.getToken();
+        const row=uiToRow(record);
         if(name==='add'){
           metrics.createStarted=performance.now();
           row.id=row.id||uuid();if(!uuidPattern.test(row.id))throw new Error('Некорректный ID дохода');
           Object.assign(row,incomeValue(row));row.client_mutation_id=row.id;
           await enqueue(row);return store.load();
         }
-        await networkState();
-        diagnostic.stage='write-validation';
-        requireWrite();
-        if(name==='update'&&pending.some(row=>row.income_id===String(args[0])))throw new Error('Дождитесь синхронизации дохода.');
-        const saved=await api.updateIncome(args[0],row);
-        if(token!==api.getToken())throw new Error('Сессия изменилась');
-        const rows=store.load().filter(row=>String(row.id)!==String(saved.id));
-        return store.save([rowToUi(saved),...rows].sort((a,b)=>uiToRow(b).income_date.localeCompare(uiToRow(a).income_date)));
+        metrics.editStarted=performance.now();
+        row.id=String(args[0]);
+        await enqueue(row,true);return store.load();
         }catch(error){
           diagnostic.code=typeof error.code==='string'?error.code:'android_save_failed';
           console.warn('[qPokoy Android save]',JSON.stringify(diagnostic));
@@ -296,7 +302,7 @@
       };
       store.remove=async id=>{requireWrite();if(pending.some(row=>row.income_id===String(id)))throw new Error('Дождитесь синхронизации дохода.');const token=api.getToken();await api.deleteIncome(id);if(token!==api.getToken())return null;const rows=store.save(store.load().filter(row=>String(row.id)!==String(id)));w.applyIncomeHeaderFilters?.();w.renderIncomeAnalytics?.();return rows;};
       store.addMany=async records=>{requireWrite();for(const record of records)await store.add(record);return store.load();};
-      const blocked='.edit-income,.delete-income,.income-recent-edit,.income-recent-delete,.income-recent-mobile-edit,.income-recent-mobile-delete,#qpCategoryAdd,.qp-category-delete,.category-popup-create-btn,#clearIncomeDataBtn,#qpAuthDeleteAccountBtn';
+      const blocked='.delete-income,.income-recent-delete,.income-recent-mobile-delete,#qpCategoryAdd,.qp-category-delete,.category-popup-create-btn,#clearIncomeDataBtn,#qpAuthDeleteAccountBtn';
       w.document.addEventListener('click',event=>{
         const target=event.target.closest?.(blocked),id=target?.getAttribute('data-id');
         if(target&&(!canWrite()||pending.some(row=>row.income_id===id))){event.preventDefault();event.stopImmediatePropagation();notify();}

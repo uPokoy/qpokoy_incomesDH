@@ -44,6 +44,11 @@ function adapt(name,text){
     const old="  if(editingIncomeId!==null){\n    IncomeStore.update(editingIncomeId,record);\n  }else{\n    IncomeStore.add(record);\n  }";
     if(!text.includes(old))throw new Error('Android confirmed-save adaptation needs review');
     text=text.replace(old,"  if(saveBtn.disabled)return;\n  saveBtn.disabled=true;\n  try{\n    if(editingIncomeId!==null)await IncomeStore.update(editingIncomeId,record);\n    else await IncomeStore.add(record);\n  }catch(error){window.qPokoyNotice?.('Не удалось сохранить доход',error.message,'error');return;}\n  finally{saveBtn.disabled=false;}");
+    const editRender="  renderIncomes();\n  closeIncomeEditor();";
+    if(!text.includes(editRender))throw new Error('Android edit render order needs review');
+    // Commit and the local store update are already awaited. Close EDIT before
+    // expensive chart/history redraw; CREATE retains its established path.
+    text=text.replace(editRender,"  if(wasEditing){\n    closeIncomeEditor();\n    requestAnimationFrame(()=>renderIncomes());\n  }else{\n    renderIncomes();\n    closeIncomeEditor();\n  }");
     const recent='<div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}</div>';
     const history="${escapeHtml(item.description||'')}</div>`;";
     if(!text.includes(recent)||!text.includes(history))throw new Error('Android pending status markup needs review');
