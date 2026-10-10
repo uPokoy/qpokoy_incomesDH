@@ -18,7 +18,7 @@
             </aapt:attr>
         </path>
         <path android:fillColor="#608DB6" android:pathData="M175,155 H322 A13,13 0,0 1,322 181 H175 A13,13 0,0 1,175 155 Z M175,218 H276 A13,13 0,0 1,276 244 H175 A13,13 0,0 1,175 218 Z M175,281 H228 A13,13 0,0 1,228 307 H175 A13,13 0,0 1,175 281 Z"/>
-        <group android:pivotX="350" android:pivotY="351" android:scaleX="0.75" android:scaleY="0.75" android:translateX="-13" android:translateY="-4">
+        <group android:pivotX="350" android:pivotY="351" android:scaleX="0.75" android:scaleY="0.75" android:translateX="-13" android:translateY="4">
         <path android:pathData="M350,267 A84,84 0,1 0,350 435 A84,84 0,1 0,350 267 Z">
             <aapt:attr name="android:fillColor">
                 <gradient android:type="linear" android:startX="292" android:startY="288" android:endX="411" android:endY="414">
