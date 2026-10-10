@@ -33,6 +33,10 @@ function adapt(name,text){
   if(name==='index.html')text=text.replace(/(<strong id="qPokoyDevVersion">)dev-\d{4}\.\d{2}\.\d{2}\.\d+(<\/strong>)/,'$1'+sourceVersion+'$2');
   if(name==='index.html')text=text.replace('<script id="qPokoyAuth"','<script src="/android-read-cache.js"></script>\n<script id="qPokoyAuth"');
   if(name==='js/app.js'){
+    // Mobile web patch is kept on this branch until separately approved for main.
+    const pageSize=".matches?2:RECENT_INCOME_PAGE_SIZE";
+    if(!text.includes(pageSize)&&!text.includes('.matches?1:RECENT_INCOME_PAGE_SIZE'))throw new Error('Mobile recent pagination adaptation needs review');
+    text=text.replace(pageSize,'.matches?1:RECENT_INCOME_PAGE_SIZE');
     const pattern=/const qPokoyDevVersion='dev-\d{4}\.\d{2}\.\d{2}\.\d+';/;
     if(!pattern.test(text))throw new Error('DEV adaptation needs review');
     text=text.replace(pattern,"const qPokoyDevVersion='"+sourceVersion+"';");
@@ -65,6 +69,12 @@ function adapt(name,text){
     // Disable the website journal; Android has its own durable create-only SQLite outbox.
     text=text.replace(/function readPendingCloudWrites\(\)\{[\s\S]*?\n  function savePendingCloudWrites/, 'function readPendingCloudWrites(){return [];}\n  function savePendingCloudWrites');
     text=text.replace(/function enqueuePendingCloudWrite\(userId,record,kind\)\{[\s\S]*?\n  function toIsoDate/,"function enqueuePendingCloudWrite(){throw new Error('Android требует подтверждение сервера.');}\n\n  function toIsoDate");
+  }
+  if(name==='css/mobile.css'){
+    const grid='/* Exactly one row with two recent-income cards. */\n  #income .income-recent.qp-mobile-recent-stack .income-recent-grid{\n    grid-template-columns:repeat(2,minmax(0,1fr)) !important;';
+    const single='/* One full-width recent-income card per mobile page. */\n  #income .income-recent.qp-mobile-recent-stack .income-recent-grid{\n    grid-template-columns:minmax(0,1fr) !important;';
+    if(!text.includes(grid)&&!text.includes(single))throw new Error('Mobile recent grid adaptation needs review');
+    text=text.replace(grid,single);
   }
   if(name==='css/oauth-brand.css')text=text.replace('https://upload.wikimedia.org/wikipedia/commons/8/81/Yandex_ID_icon.svg','/vendor/yandex-id.svg');
   if(name==='js/report-print.js'){

@@ -6,7 +6,7 @@
     const native=method=>options=>root.Capacitor.nativePromise('QPokoyReadCache',method,options||{});
     const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
       fingerprint:async token=>Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))).map(b=>b.toString(16).padStart(2,'0')).join(''),
-      online:()=>root.qPokoyAndroidNetwork.available,networkState:()=>root.qPokoyAndroidNetwork.read(),clock:()=>Date.now(),notify:()=>root.qPokoyNotice?.('Нет подключения к интернету','Дождитесь подключения и завершения синхронизации.','error')});
+      online:()=>root.qPokoyAndroidNetwork.available,networkState:options=>root.qPokoyAndroidNetwork.read(options),clock:()=>Date.now(),notify:()=>root.qPokoyNotice?.('Нет подключения к интернету','Дождитесь подключения и завершения синхронизации.','error')});
     root.qPokoyAndroidCache=cache;
     cache.install(root);
   }
@@ -19,7 +19,7 @@
     const own=row=>{if(!row||row.user_id!==uid)throw new Error('Cross-account cache row');};
     const incomes=data.incomes.map(row=>{
       own(row);if(typeof row.id!=='string'||typeof row.income_date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(row.income_date)||typeof row.category!=='string'||typeof row.description!=='string'||!Number.isFinite(row.amount)||row.amount<=0)throw new Error('Invalid income');
-      return {id:row.id,user_id:uid,income_date:row.income_date,category:row.category,description:row.description,amount:row.amount};
+      return {id:row.id,user_id:uid,income_date:row.income_date,category:row.category,description:row.description,amount:row.amount,...(typeof row.created_at==='string'&&Number.isFinite(Date.parse(row.created_at))?{created_at:row.created_at}:{})};
     });
     const categories=data.categories.map(row=>{own(row);if(typeof row.id!=='string'||typeof row.name!=='string')throw new Error('Invalid category');return {id:row.id,user_id:uid,name:row.name};});
     const settings=data.settings.filter(row=>! /^(auth|system|billing|rate)\./.test(row.setting_key)).map(row=>{own(row);if(typeof row.setting_key!=='string'||typeof row.setting_value!=='string')throw new Error('Invalid setting');return {user_id:uid,setting_key:row.setting_key,setting_value:row.setting_value};});
@@ -56,7 +56,10 @@
     function combined(){
       if(!current)return null;
       const ids=new Set(current.incomes.map(row=>row.id));
-      return {...current,incomes:[...current.incomes,...pending.filter(row=>!ids.has(row.income_id)).map(row=>({id:row.income_id,user_id:row.user_id,...incomeValue(row)}))]};
+      const rows=[...current.incomes,...pending.filter(row=>!ids.has(row.income_id)).map(row=>({id:row.income_id,user_id:row.user_id,...incomeValue(row),created_at:new Date(row.created_at).toISOString()}))];
+      // Same date/creation ordering as cloud history; pending status is not a sort key.
+      rows.sort((a,b)=>b.income_date.localeCompare(a.income_date)||(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0));
+      return {...current,incomes:rows};
     }
     const shownSignature=()=>current?signature(combined())+JSON.stringify(pending.map(row=>[row.income_id,row.status,row.error_code])):null;
     async function paint(cached=false){
@@ -105,7 +108,7 @@
       return {data:combined(),value,changed:old!==shownSignature()};
     }
     async function refresh(){
-      await networkState();
+      await networkState({fresh:true});
       if(refreshJob){
         const job=refreshJob,run=refreshEpoch;await job;
         if(run!==epoch)return refresh();
@@ -257,13 +260,13 @@
       const rowToUi=row=>({id:String(row.id),date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description});
       const uiToRow=record=>{const parts=record.date.split('.');return {...record,income_date:(parts[2].length===2?'20'+parts[2]:parts[2])+'-'+parts[1]+'-'+parts[0]};};
       for(const name of ['add','update'])store[name]=async(...args)=>{
-        await networkState();
+        const network=await networkState();
         const record=name==='add'?args[0]:args[1];
         const row=uiToRow(record),token=api.getToken(),uid=current?.user.user_id;
         if(name==='add'){
           row.id=row.id||uuid();if(!uuidPattern.test(row.id))throw new Error('Некорректный ID дохода');
           Object.assign(row,incomeValue(row));row.client_mutation_id=row.id;
-          if(!online()){await enqueue(row);return store.load();}
+          if(!online()||network?.state==='unknown'){await enqueue(row,network?.state==='unknown');return store.load();}
         }
         requireWrite();
         if(name==='update'&&pending.some(row=>row.income_id===String(args[0])))throw new Error('Дождитесь синхронизации дохода.');
@@ -275,7 +278,8 @@
           await enqueue(row,true);return store.load();
         }
         if(token!==api.getToken())throw new Error('Сессия изменилась');
-        const rows=store.load().filter(row=>String(row.id)!==String(saved.id));return store.save([rowToUi(saved),...rows]);
+        const rows=store.load().filter(row=>String(row.id)!==String(saved.id));
+        return store.save([rowToUi(saved),...rows].sort((a,b)=>uiToRow(b).income_date.localeCompare(uiToRow(a).income_date)));
       };
       store.remove=async id=>{requireWrite();if(pending.some(row=>row.income_id===String(id)))throw new Error('Дождитесь синхронизации дохода.');const token=api.getToken();await api.deleteIncome(id);if(token!==api.getToken())return null;const rows=store.save(store.load().filter(row=>String(row.id)!==String(id)));w.applyIncomeHeaderFilters?.();w.renderIncomeAnalytics?.();return rows;};
       store.addMany=async records=>{requireWrite();for(const record of records)await store.add(record);return store.load();};
@@ -299,7 +303,7 @@
         });
       }
     }
-    const pendingMarkup=id=>{const label=pendingLabel(id);return label?'<small data-android-pending style="display:block;opacity:.7">'+label+'</small>':'';};
+    const pendingMarkup=id=>{const label=pendingLabel(id);return label?'<small data-android-pending style="display:block;opacity:.7;white-space:normal;overflow-wrap:anywhere;line-height:1.2">'+label+'</small>':'';};
     return {start,refresh,purge,install,requireWrite,enqueue,syncPending,pendingLabel,pendingMarkup,metrics,get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
   }
   return {create,snapshot,incomeValue,transportError,schemaVersion};

@@ -23,13 +23,14 @@
     },milliseconds);});
     return Promise.race([promise,timeout]).finally(()=>window.clearTimeout(timer));
   }
-  async function readNetwork(){
+  async function readNetwork({fresh=false}={}){
+    if(!fresh&&state!=='unknown')return {state};
     if(readJob)return readJob;
     const run=revision;
     const job=(async()=>{
       try{
         if(!window.Capacitor?.nativePromise)return {state};
-        const result=await deadline(window.Capacitor.nativePromise('QPokoyReadCache','getNetworkState',{}),2000);
+        const result=await deadline(window.Capacitor.nativePromise('QPokoyReadCache','getNetworkState',{}),150);
         if(run===revision)accept(result);
       }catch(_){if(run===revision)accept({state:'unknown'});}
       return {state};

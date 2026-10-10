@@ -1,7 +1,7 @@
 # qPokoy Android — first technical prototype
 
 **Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create-only outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.8-dev`, `versionCode=9`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.9-dev`, `versionCode=10`.
 
 Android UI/storage adaptations live in this directory. The user has separately
 deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
@@ -204,6 +204,26 @@ preserved even if reading its body subsequently fails or times out.
 Native network callbacks may report reachability without guaranteeing this API
 is reachable; transport fallback covers that distinction. OS network details,
 SSID and IP are neither collected nor logged. See [Android network state](https://developer.android.com/develop/connectivity/network-ops/reading-network-state).
+
+## Offline UX and mobile recent pagination (0.1.9-dev)
+
+Known native state is read from the callback-updated cache without another bridge
+probe. Unknown state has a 150ms bound; if still unknown, create-only adds use the
+existing verified SQLite binding instead of waiting for an API timeout. Background
+refresh explicitly requests a fresh network reading. SQLite commit still precedes
+UI success; transport fallback and stable UUID retry remain unchanged.
+
+Combined confirmed/pending history is sorted by income_date descending, then
+created_at descending, following cloud ordering. Pending status is never a sort
+key. Old snapshots without creation timestamps remain readable. Normal online
+ACK keeps date ordering too. Pending labels can wrap within their available width.
+
+Coarse mobile recent pages contain one full-width card; fine-pointer desktop
+retains four. The isolated web patch is css/mobile.css + js/app.js with regression
+coverage in tests/mobile-recent-pagination.test.js. It is NOT merged or deployed
+to main. The Android bundle script applies those same two minimal substitutions
+to origin/main during asset generation; it accepts either old or already-updated
+source, and otherwise fails for review. No wholesale stale website copy is used.
 
 ## Known limits / next stage
 

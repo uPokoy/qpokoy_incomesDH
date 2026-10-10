@@ -55,3 +55,14 @@ test('new native callback beats a stale in-flight query, and concurrent reads sh
   const a=f.w.qPokoyAndroidNetwork.read(),b=f.w.qPokoyAndroidNetwork.read();f.w.qPokoyAndroidNetwork.accept({state:'offline'});
   release({state:'online'});await Promise.all([a,b]);assert.equal(reads,1);assert.equal(f.w.qPokoyAndroidNetwork.state,'offline');
 });
+test('known native offline returns immediately without another slow bridge probe',async t=>{
+  const f=fixture(t);f.w.qPokoyAndroidNetwork.accept({state:'offline'});
+  f.w.Capacitor.nativePromise=()=>{throw new Error('Unexpected blocking probe');};
+  assert.equal((await f.w.qPokoyAndroidNetwork.read()).state,'offline');assert.equal(f.reads,0);
+});
+test('unknown native probe is bounded to 150ms and leaves unknown distinct',async t=>{
+  const f=fixture(t,{manualTimers:true});f.w.Capacitor.nativePromise=()=>new Promise(()=>{});
+  const read=f.w.qPokoyAndroidNetwork.read();await Promise.resolve();
+  const timer=[...f.timers.values()].find(value=>value.ms===150);assert.ok(timer);timer.callback();
+  assert.equal((await read).state,'unknown');assert.equal(f.timers.size,0);
+});

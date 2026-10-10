@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),{randomUUID
 const {create,snapshot,incomeValue}=require('../android/app/src/main/assets/android-read-cache.js');
 const clone=x=>structuredClone(x),failure=status=>Object.assign(new Error('Test response'),{status});
 function fixture(){
-  let uid='A',token='session-A',online=true,nativeState='unknown',observedState='unknown',fault=null,lost=false,stale=false,posts=[],ui=[];
+  let uid='A',token='session-A',online=true,nativeState='online',observedState='unknown',fault=null,lost=false,stale=false,posts=[],ui=[];
   const snapshots=new Map(),queue=new Map(),server=new Map();
   const data=()=>({user:{user_id:uid,email:uid+'@test.invalid',onboarding_completed:true},incomes:[...server.values()].filter(row=>row.user_id===uid),categories:[{id:'category-'+uid,user_id:uid,name:'Category '+uid}],settings:[]});
   const listed=(hash,id)=>[...queue.values()].filter(row=>row.hash===hash&&row.user_id===id).map(({hash,...row})=>clone(row));
@@ -44,11 +44,11 @@ function fixture(){
   const view={IncomeStore:{load:()=>ui,save:rows=>ui=rows},document:{addEventListener:()=>{},visibilityState:'visible'},addEventListener:()=>{},setTimeout:()=>{},qPokoyNotice:()=>{}};
   const originalApi={...api};
   function coordinator(){Object.assign(api,originalApi);observedState='unknown';const c=create({api,db,fingerprint:async value=>'hash-'+value,
-    online:()=>observedState==='online'||observedState==='unknown'&&online,networkState:async()=>{observedState=nativeState;}});c.install(view);return c;}
+    online:()=>observedState==='online'||observedState==='unknown'&&online,networkState:async()=>{observedState=nativeState;return {state:nativeState};}});c.install(view);return c;}
   let cache=coordinator();
-  const hydrate=async payload=>view.IncomeStore.save(payload?payload.incomes.map(row=>({...row,date:'10.10.26'})):[]);
+  const hydrate=async payload=>view.IncomeStore.save(payload?payload.incomes.map(row=>({...row,date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4)})):[]);
   return {api,db,server,queue,posts,view,hydrate,get cache(){return cache;},get ui(){return ui;},
-    setOnline:value=>online=value,setNative:value=>nativeState=value,setFault:value=>fault=value,setLost:value=>lost=value,setStale:value=>stale=value,
+    setOnline:value=>{online=value;nativeState=observedState=value?'online':'offline';},setNative:value=>nativeState=value,setFault:value=>fault=value,setLost:value=>lost=value,setStale:value=>stale=value,
     freshCoordinator:()=>{cache=coordinator();},
     expireRetries:()=>{for(const row of queue.values())row.next_attempt_at=0;},
     start:()=>cache.start(hydrate),add:amount=>view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount,category:'Category '+uid,description:'Offline '+amount})};
@@ -166,4 +166,45 @@ test('Samsung M: account switch during failed POST cannot enqueue the old accoun
   f.setFault(Object.assign(new TypeError('Failed to fetch'),{name:'TypeError'}));
   const original=f.api.addIncome;f.api.addIncome=async row=>{try{return await original(row);}finally{await f.api.login('B');await f.start();}};
   await assert.rejects(f.add(58),/Сессия/);assert.equal(f.queue.size,0);assert.equal(f.ui.length,0);
+});
+test('unknown state queues locally without POST or transport timeout',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setNative('unknown');
+  await f.add(59);assert.equal(f.posts.length,0);assert.equal(f.queue.size,1);assert.equal(f.ui.length,1);
+});
+test('slow SQLite commit cannot publish a successful local income prematurely',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);
+  let release,entered;const ready=new Promise(resolve=>entered=resolve),held=new Promise(resolve=>release=resolve),enqueue=f.db.enqueue;
+  f.db.enqueue=async value=>{entered();await held;return enqueue(value);};
+  const save=f.add(60);await ready;assert.equal(f.ui.length,0);assert.equal(f.queue.size,0);
+  release();await save;assert.equal(f.ui.length,1);assert.equal(f.queue.size,1);
+});
+test('confirmed and pending use date order across restart and sync, never pending status',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();
+  const add=date=>f.view.IncomeStore.add({date,amount:61,category:'Category A',description:date});
+  await add('01.10.26');f.setOnline(false);await add('10.10.26');await add('05.10.26');await add('12.10.26');
+  const expected=['12.10.26','10.10.26','05.10.26','01.10.26'];assert.deepEqual(f.ui.map(row=>row.date),expected);
+  f.freshCoordinator();await f.start();assert.deepEqual(f.ui.map(row=>row.date),expected);
+  f.setOnline(true);await f.cache.refresh();assert.deepEqual(f.ui.map(row=>row.date),expected);assert.equal(f.queue.size,0);assert.equal(f.server.size,4);
+});
+test('actual bundled submit keeps form open until held SQLite commit, then closes and renders one card',async t=>{
+  const {createHarness}=require('../../tests/helpers/frontend-harness');
+  const fs=require('node:fs'),path=require('node:path');
+  const html=fs.readFileSync(path.join(__dirname,'../../index.html'),'utf8').replace('src="js/app.js','src="android-app/www/js/app.js');
+  const h=await createHarness({html,width:390,pointer:'coarse',empty:true});
+  const f=fixture(),hash='hash-'+h.api.getToken();
+  h.api.clearToken=()=>{};
+  h.api.register=h.api.exchangeOAuthTicket=async()=>{};
+  h.api.deleteAccount=async()=>{};
+  await f.db.write({sessionHash:hash,snapshot:snapshot(await h.api.bootstrap(),Date.now())});
+  const cache=create({api:h.api,db:f.db,fingerprint:async token=>'hash-'+token,online:()=>false,networkState:async()=>({state:'offline'})});
+  t.after(async()=>{await cache.purge();h.close();});h.w.qPokoyAndroidCache=cache;cache.install(h.w);
+  await cache.start(async data=>{h.w.IncomeStore.save(data.incomes.map(row=>({...row,date:'07.10.26'})));h.w.applyIncomeHeaderFilters();});
+  let release,entered;const ready=new Promise(resolve=>entered=resolve),held=new Promise(resolve=>release=resolve),enqueue=f.db.enqueue;
+  f.db.enqueue=async value=>{entered();await held;return enqueue(value);};
+  h.add(62,'Commit gate');await ready;
+  assert.equal(h.node('incomeForm').hidden,false);assert.equal(cache.pending.length,0);assert.equal(h.node('saveIncome').disabled,true);
+  release();await h.settle();assert.equal(h.node('incomeForm').hidden,true);assert.equal(cache.pending.length,1);
+  assert.equal(h.calls.filter(call=>call==='addIncome').length,0);
+  assert.equal(h.node('incomeRecentGrid').querySelectorAll('.income-recent-card').length,1);
+  assert.equal(h.node('incomeRecentGrid').querySelector('[data-android-pending]').textContent,'Ожидает синхронизации');
 });

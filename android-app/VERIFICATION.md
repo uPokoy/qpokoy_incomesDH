@@ -1,5 +1,71 @@
 # Prototype verification — 2026-10-09
 
+## Offline UX, ordering, single mobile card — 2026-10-10, 0.1.9-dev / code 10
+
+Starting Android HEAD: `47fd49511e6ff3780ff45dc6b2806ea908578959`.
+origin/main remains `a1b167a21b18aa7634517cbd79cca6faa492f1a9` (DEV400).
+No backend edits/deployment, main merge/push or backup changes.
+
+### Three scoped changes
+
+1. Cached known native state avoids another blocking probe at add. Unknown probe
+   is bounded to 150ms; unresolved unknown uses verified create-only SQLite queue,
+   not a 30-second POST wait. Refresh still requests a fresh reading. Existing
+   transport/lost-response UUID fallback and account binding remain. SQLite ACK
+   always precedes success UI; delayed-commit tests use the actual bundled handler.
+2. Combined confirmed/pending data sorts by income_date DESC, created_at DESC,
+   matching cloud ordering. Optional creation timestamps retained in snapshots;
+   old snapshots remain supported. Pending status is never a sort key. Online
+   ACK return also preserves date ordering. Pending text wraps without clipping.
+3. Mobile coarse-pointer recent grid/page size changes 2→1. Fine-pointer desktop
+   retains four cards and its layout. Arrow controls, page counter and full-history
+   action are unchanged. Transferable web patch: js/app.js + css/mobile.css;
+   test: tests/mobile-recent-pagination.test.js. It remains on the Android branch
+   and requires separate approval/transfer to main. Android asset generation
+   applies the identical tiny edits to origin/main source without importing other
+   older branch web differences; already-updated source is accepted idempotently.
+
+### Verification
+
+- Android Node 60/60: cached offline skips bridge, unknown probe 150ms, no POST
+  when offline/unknown, held SQLite commit/actual bundled form gating, ordering
+  of 01/05/10/12 October across restart and sync, previous transport/HTTP/lost
+  response/isolation guards and existing adapter smoke.
+- Relevant frontend 36/36: mobile one-card pagination for 1/2/3 records at
+  320/360/375/390/412/430; 1/3→2/3→3/3→2/3; fine-pointer desktop four-per-page
+  at 320/900/1024/1440; desktop actions/responsive/core DOM regressions.
+- Gradle test/assembleDebug/assembleDebugAndroidTest successful: six JVM cases,
+  no failures. Project syntax/structure/CSS parsing passed (19 JS/20 CSS/7 HTML),
+  Android adapters and build-script syntax passed, git diff --check passed.
+- Real API36 emulator, radios OFF and stale navigator.onLine=true: ordinary
+  form creates three records dated 05/10/12 October. First SQLite invocation held
+  deliberately: form remains open/disabled, no pending/UI success until release.
+  Zero network probes/POSTs during saves. Final commit-release/save-to-closed
+  observations [289,185,218] ms, including test polling overhead; earlier
+  successful save measurements [235,219,210] ms. Not a Samsung latency promise.
+- Android WebView at exact 320/360/375/390/412/430 CSS widths: one recent card,
+  long fixture category safely contained, pending label inside its text region,
+  no document horizontal overflow. Long category keeps the existing ellipsis
+  style; no font/category design change. Width rounding in the test was corrected
+  (rounding dp→physical pixels had produced 391 instead of 390).
+- Force-stop/restart verification passed: all three pending UUIDs and date order
+  retained. Restoring network synced exactly three cloud records (2136 RUB total),
+  emptied the journal and preserved order. Own fixture records/category removed;
+  baseline and absence after reload confirmed. Normal online CRUD, session restore
+  and lost-response/idempotency instrumentation also passed (3/3).
+- Initial software-GPU emulator launches exited/failed cold WebView evaluation;
+  the hardware-GPU run completed the above test. Only test evaluation callback
+  allowance changed 5→15 seconds; product loading/lifecycle was not changed.
+
+APK `android-app/artifacts/qPokoy-0.1.9-dev-debug.apk`: versionCode 10,
+versionName 0.1.9-dev; packaged platform/cache/app/mobile CSS equal synced assets.
+Physical Samsung and a separately deployed mobile website were not tested.
+The shared mobile CSS runs in real Android WebView; production main stays untouched.
+
+Files: Android platform/cache adapters, bundle.cjs, BundledFrontendTest.java,
+version files, network/outbox/smoke tests, README/VERIFICATION; transferable web
+js/app.js, css/mobile.css and tests/mobile-recent-pagination.test.js only.
+
 ## Samsung stale network / transport fallback — 2026-10-10, 0.1.8-dev / versionCode 9
 
 Starting Android HEAD: `a28519aac6e250ae83a563218c312ad688e1cf3d`.
