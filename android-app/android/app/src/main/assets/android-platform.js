@@ -23,8 +23,10 @@
     },milliseconds);});
     return Promise.race([promise,timeout]).finally(()=>window.clearTimeout(timer));
   }
-  async function readNetwork({fresh=false}={}){
-    if(!fresh&&state!=='unknown')return {state};
+  async function readNetwork({fresh=false,forWrite=false}={}){
+    // A cached online callback can outlive connectivity after resume. Recheck
+    // before a create; known offline still reaches SQLite without a probe.
+    if(!fresh&&state!=='unknown'&&!(forWrite&&state==='online'))return {state};
     if(readJob)return readJob;
     const run=revision;
     const job=(async()=>{

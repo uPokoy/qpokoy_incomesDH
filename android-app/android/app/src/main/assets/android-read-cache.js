@@ -47,6 +47,8 @@
     let epoch=0,current=null,binding=null,validatedToken=null,displayed=false,renderedSignature=null,hydrate=null,refreshJob=null,refreshEpoch=0,clearJob=Promise.resolve(),mutations=0,view=null;
     let pending=[],syncJob=null,retryTimer=null;
     const metrics={};
+    // Safe stage-only diagnostics: never log account IDs, tokens or income data.
+    const diagnostic={stage:'idle',code:null};
     const pendingWarning='Есть доходы, которые ещё не синхронизированы. Подключитесь к интернету и дождитесь синхронизации перед выходом.';
     function setPending(rows,uid){
       if(!Array.isArray(rows))return;
@@ -154,6 +156,7 @@
       if(!online()&&!displayed)throw new Error('Нет подключения к интернету');
     }
     async function enqueue(record,failedTransport=false){
+      diagnostic.stage='account-binding';
       const token=api.getToken(),uid=current?.user.user_id,hash=binding;
       const digest=await identity(token);
       if((online()&&!failedTransport)||!db.enqueue||!current||!hash||!token||hash!==digest||token!==api.getToken()||uid!==current.user.user_id||binding!==hash)throw new Error('Офлайн-добавление недоступно: сначала войдите и загрузите данные с сервера.');
@@ -161,10 +164,13 @@
       if(!uuidPattern.test(id)||current.incomes.some(row=>row.id===id)||pending.some(row=>row.income_id===id))throw new Error('Некорректный или повторный ID дохода');
       if(!current.categories.some(row=>row.name===value.category))throw new Error('Выберите ранее загруженную категорию.');
       const run=++epoch;
+      diagnostic.stage='sqlite-enqueue';
       const result=await db.enqueue({sessionHash:hash,userId:uid,income:{operation_id:uuid(),income_id:id,...value,created_at:clock()}});
       // SQLite commit precedes any success UI. An interrupted UI can reload this row.
       if(run!==epoch||token!==api.getToken())return;
+      diagnostic.stage='render-after-commit';
       setPending(result.pending,uid);await paint(true);scheduleRetry();
+      diagnostic.stage='committed';
     }
     function scheduleRetry(){
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
@@ -260,7 +266,9 @@
       const rowToUi=row=>({id:String(row.id),date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description});
       const uiToRow=record=>{const parts=record.date.split('.');return {...record,income_date:(parts[2].length===2?'20'+parts[2]:parts[2])+'-'+parts[1]+'-'+parts[0]};};
       for(const name of ['add','update'])store[name]=async(...args)=>{
-        const network=await networkState();
+        diagnostic.stage='network-state';diagnostic.code=null;
+        try{
+        const network=await networkState({forWrite:name==='add'});
         const record=name==='add'?args[0]:args[1];
         const row=uiToRow(record),token=api.getToken(),uid=current?.user.user_id;
         if(name==='add'){
@@ -268,6 +276,7 @@
           Object.assign(row,incomeValue(row));row.client_mutation_id=row.id;
           if(!online()||network?.state==='unknown'){await enqueue(row,network?.state==='unknown');return store.load();}
         }
+        diagnostic.stage='write-validation';
         requireWrite();
         if(name==='update'&&pending.some(row=>row.income_id===String(args[0])))throw new Error('Дождитесь синхронизации дохода.');
         let saved;
@@ -280,6 +289,11 @@
         if(token!==api.getToken())throw new Error('Сессия изменилась');
         const rows=store.load().filter(row=>String(row.id)!==String(saved.id));
         return store.save([rowToUi(saved),...rows].sort((a,b)=>uiToRow(b).income_date.localeCompare(uiToRow(a).income_date)));
+        }catch(error){
+          diagnostic.code=typeof error.code==='string'?error.code:'android_save_failed';
+          console.warn('[qPokoy Android save]',JSON.stringify(diagnostic));
+          throw error;
+        }
       };
       store.remove=async id=>{requireWrite();if(pending.some(row=>row.income_id===String(id)))throw new Error('Дождитесь синхронизации дохода.');const token=api.getToken();await api.deleteIncome(id);if(token!==api.getToken())return null;const rows=store.save(store.load().filter(row=>String(row.id)!==String(id)));w.applyIncomeHeaderFilters?.();w.renderIncomeAnalytics?.();return rows;};
       store.addMany=async records=>{requireWrite();for(const record of records)await store.add(record);return store.load();};
@@ -304,7 +318,7 @@
       }
     }
     const pendingMarkup=id=>{const label=pendingLabel(id);return label?'<small data-android-pending style="display:block;opacity:.7;white-space:normal;overflow-wrap:anywhere;line-height:1.2">'+label+'</small>':'';};
-    return {start,refresh,purge,install,requireWrite,enqueue,syncPending,pendingLabel,pendingMarkup,metrics,get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
+    return {start,refresh,purge,install,requireWrite,enqueue,syncPending,pendingLabel,pendingMarkup,metrics,get diagnostic(){return {...diagnostic};},get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
   }
   return {create,snapshot,incomeValue,transportError,schemaVersion};
 });

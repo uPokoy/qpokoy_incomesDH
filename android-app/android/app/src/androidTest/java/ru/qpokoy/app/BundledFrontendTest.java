@@ -384,6 +384,44 @@ public class BundledFrontendTest {
             assertEquals("false",js(web,"IncomeStore.load().some(r=>r.description==="+literal+")"));meta.edit().clear().commit();
         }
     }
+    @Test public void coldOfflineAdd() throws Exception {
+        String phase=InstrumentationRegistry.getArguments().getString("coldAddPhase");
+        org.junit.Assume.assumeTrue("Explicit permitted test-account cold add phase required",phase!=null);
+        android.content.SharedPreferences meta=instrumentation.getTargetContext().getSharedPreferences("cold-add-test",0);
+        network("prepare".equals(phase)||"sync".equals(phase));
+        try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+            WebView web=web(scenario);
+            if("prepare".equals(phase)){
+                await(web,"qPokoyAndroidCache?.canWrite");fresh(web);
+                String label="ANDROID_COLD_ADD_"+System.currentTimeMillis();String literal=org.json.JSONObject.quote(label);
+                meta.edit().putString("label",label).putInt("baseline",Integer.parseInt(js(web,"IncomeStore.load().length"))).commit();
+                js(web,"window.__ready=false;(async()=>{await qPokoyApi.addCategory("+literal+");await qPokoyLoadCategories(qPokoyAuth.getUser());await qPokoyAndroidCache.refresh();window.__ready=true;})()");await(web,"window.__ready");
+                network(false);return;
+            }
+            String literal=org.json.JSONObject.quote(meta.getString("label",null));
+            await(web,"qPokoyAndroidCache?.metrics.cachedDisplay && qPokoyAuth.getUser() && !document.body.classList.contains('qp-auth-locked')");
+            if("known".equals(phase)||"unknown".equals(phase)||"stale".equals(phase)){
+                js(web,"window.__posts=0;const add=qPokoyApi.addIncome;qPokoyApi.addIncome=(...a)=>{window.__posts++;return add(...a);};Object.defineProperty(navigator,'onLine',{value:true,configurable:true});");
+                if("stale".equals(phase))js(web,"qPokoyAndroidNetwork.accept({state:'online'});");
+                if("unknown".equals(phase))js(web,"qPokoyAndroidNetwork.accept({state:'unknown'});const native=Capacitor.nativePromise;Capacitor.nativePromise=function(p,m,a){return m==='getNetworkState'?Promise.resolve({state:'unknown'}):native.call(this,p,m,a);};");
+                js(web,"document.querySelector('.add-income-btn').click();incomeDate.value='10.10.26';incomeAmount.value='821';incomeCategory.value="+literal+";incomeDescription.value="+literal+";saveIncome.click()");
+                await(web,"document.getElementById('incomeForm').hidden || document.querySelector('.qp-notice-message')");
+                System.out.println("COLD_ADD_DIAGNOSTIC="+js(web,"JSON.stringify({phase:"+org.json.JSONObject.quote(phase)+",state:qPokoyAndroidNetwork.state,pending:qPokoyAndroidCache.pending.length,displayed:qPokoyAndroidCache.displayed,error:document.querySelector('.qp-notice-message')?.textContent||'',diagnostic:qPokoyAndroidCache.diagnostic||null})"));
+                assertEquals("true",js(web,"document.getElementById('incomeForm').hidden"));
+                assertEquals("0",js(web,"window.__posts"));
+                assertEquals("true",js(web,"qPokoyAndroidCache.pending.some(r=>r.description==="+literal+") && IncomeStore.load().some(r=>r.description==="+literal+")"));
+                js(web,"window.__beforeColdReload=true");
+                instrumentation.runOnMainSync(web::reload);await(web,"window.__beforeColdReload===undefined && window.qPokoyAndroidCache?.metrics.cachedDisplay && window.qPokoyAuth?.getUser()");
+                assertEquals("true",js(web,"IncomeStore.load().some(r=>r.description==="+literal+")"));return;
+            }
+            if("verify".equals(phase)){
+                assertEquals("true",js(web,"qPokoyAndroidCache.pending.length===3 && IncomeStore.load().filter(r=>r.description==="+literal+").length===3"));return;
+            }
+            await(web,"qPokoyAndroidCache.canWrite && qPokoyAndroidCache.pending.length===0");
+            js(web,"window.__clean=false;(async()=>{const rows=(await qPokoyApi.listIncomes()).filter(r=>r.description==="+literal+");window.__unique=rows.length===3&&new Set(rows.map(r=>r.id)).size===3;for(const r of rows)await qPokoyApi.deleteIncome(r.id);for(const c of await qPokoyApi.listCategories())if(c.name==="+literal+")await qPokoyApi.deleteCategory(c.id);await qPokoyAndroidCache.refresh();window.__clean=true;})()");await(web,"window.__clean");
+            assertEquals("true",js(web,"window.__unique"));assertEquals(String.valueOf(meta.getInt("baseline",0)),js(web,"IncomeStore.load().length"));meta.edit().clear().commit();
+        }
+    }
     @Test public void nativeNetworkStateAndLifecycle() throws Exception {
         network(true);
         try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){

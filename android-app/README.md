@@ -1,7 +1,7 @@
 # qPokoy Android — first technical prototype
 
 **Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create-only outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.10-dev`, `versionCode=11`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.11-dev`, `versionCode=12`.
 
 Android UI/storage adaptations live in this directory. The user has separately
 deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
@@ -33,12 +33,38 @@ debug APK is for Samsung testing, not RuStore publication.
 
 ## Updating the bundled frontend
 
-APK 0.1.10-dev uses main DEV402, source
-`6fe773d1ec56983889ef9878919d3d1dfc2f2648`. Recent mobile cards now share the
+APK 0.1.11-dev uses main DEV403, source
+`48e6b501cc6aa33fef6720c74dc6e7986cc78ed2`. Recent mobile cards now share the
 full-history layout, including description. Android pending status remains under
-the date. Offline adapters are unchanged. To reproduce this source, use
-`npm run bundle -- --source-ref 6fe773d1ec56983889ef9878919d3d1dfc2f2648`, then
+the date. Before a create, cached online is rechecked against native connectivity; known offline skips the probe. To reproduce this source, use
+`npm run bundle -- --source-ref 48e6b501cc6aa33fef6720c74dc6e7986cc78ed2`, then
 `npx cap sync android` and the normal Gradle build.
+
+### 0.1.11 offline-save regression check
+
+The reported message is raised by `requireWrite`, before SQLite enqueue. A cold
+cached session has not yet been server-validated. With a stale native `online`
+callback it incorrectly takes the online write-validation path. Before creating
+an income, `forWrite` now refreshes cached online connectivity; known offline
+still skips the bridge probe. Unknown still queues against the verified snapshot.
+The 150 ms probe deadline and all HTTP error/idempotency rules are unchanged.
+
+Instrumentation reproduced the exact message on the original 0.1.10 APK by
+injecting stale online state while the emulator radios were physically disabled.
+The same scenario passed on 0.1.11, including a WebView reload and cloud cleanup.
+This identifies a reproducible failure path, not a captured Samsung native trace;
+the adapters themselves were unchanged between 0.1.9 and 0.1.10.
+
+Safe diagnostics are available at `qPokoyAndroidCache.diagnostic` and in the
+`[qPokoy Android save]` console warning: stage/code only, no token, account ID or
+income payload. Stages distinguish network lookup, write validation, account
+binding, SQLite enqueue and rendering after commit.
+
+`BundledFrontendTest#coldOfflineAdd` is opt-in, test-account only. Run with
+`coldAddPhase=prepare`, then `known`, `stale`, `unknown`, `verify`, `sync`; force-stop
+between offline phases. `stale` injects only the stale cached online state;
+`unknown` injects an unknown native response while radios remain disabled.
+`sync` verifies three unique server rows and removes only its own fixture data.
 
 After fetching the desired `origin/main`, run **`npm run sync`** in `android-app`.
 It builds `www` and runs `cap sync android`. `scripts/bundle.cjs` reads committed

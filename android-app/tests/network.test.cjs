@@ -60,6 +60,22 @@ test('known native offline returns immediately without another slow bridge probe
   f.w.Capacitor.nativePromise=()=>{throw new Error('Unexpected blocking probe');};
   assert.equal((await f.w.qPokoyAndroidNetwork.read()).state,'offline');assert.equal(f.reads,0);
 });
+test('create rechecks cached online against native offline instead of using stale availability',async t=>{
+  const f=fixture(t,{native:'offline'});
+  f.w.qPokoyAndroidNetwork.accept({state:'online'});
+  assert.equal((await f.w.qPokoyAndroidNetwork.read()).state,'online');
+  assert.equal(f.reads,0);
+  assert.equal((await f.w.qPokoyAndroidNetwork.read({forWrite:true})).state,'offline');
+  assert.equal(f.reads,1);
+  await assert.rejects(f.w.fetch(apiUrl),e=>e.code==='android_transport');
+  assert.equal(f.calls,0);
+});
+test('create with known offline skips the native probe',async t=>{
+  const f=fixture(t);f.w.qPokoyAndroidNetwork.accept({state:'offline'});
+  f.w.Capacitor.nativePromise=()=>{throw new Error('Unexpected probe');};
+  assert.equal((await f.w.qPokoyAndroidNetwork.read({forWrite:true})).state,'offline');
+  assert.equal(f.reads,0);
+});
 test('unknown native probe is bounded to 150ms and leaves unknown distinct',async t=>{
   const f=fixture(t,{manualTimers:true});f.w.Capacitor.nativePromise=()=>new Promise(()=>{});
   const read=f.w.qPokoyAndroidNetwork.read();await Promise.resolve();

@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),{randomUUID
 const {create,snapshot,incomeValue}=require('../android/app/src/main/assets/android-read-cache.js');
 const clone=x=>structuredClone(x),failure=status=>Object.assign(new Error('Test response'),{status});
 function fixture(){
-  let uid='A',token='session-A',online=true,nativeState='online',observedState='unknown',fault=null,lost=false,stale=false,posts=[],ui=[];
+  let uid='A',token='session-A',online=true,nativeState='online',observedState='unknown',fault=null,lost=false,stale=false,staleNetwork=false,posts=[],ui=[];
   const snapshots=new Map(),queue=new Map(),server=new Map();
   const data=()=>({user:{user_id:uid,email:uid+'@test.invalid',onboarding_completed:true},incomes:[...server.values()].filter(row=>row.user_id===uid),categories:[{id:'category-'+uid,user_id:uid,name:'Category '+uid}],settings:[]});
   const listed=(hash,id)=>[...queue.values()].filter(row=>row.hash===hash&&row.user_id===id).map(({hash,...row})=>clone(row));
@@ -44,11 +44,11 @@ function fixture(){
   const view={IncomeStore:{load:()=>ui,save:rows=>ui=rows},document:{addEventListener:()=>{},visibilityState:'visible'},addEventListener:()=>{},setTimeout:()=>{},qPokoyNotice:()=>{}};
   const originalApi={...api};
   function coordinator(){Object.assign(api,originalApi);observedState='unknown';const c=create({api,db,fingerprint:async value=>'hash-'+value,
-    online:()=>observedState==='online'||observedState==='unknown'&&online,networkState:async()=>{observedState=nativeState;return {state:nativeState};}});c.install(view);return c;}
+    online:()=>observedState==='online'||observedState==='unknown'&&online,networkState:async(options={})=>{observedState=staleNetwork&&!options.fresh&&!options.forWrite?'online':nativeState;return {state:observedState};}});c.install(view);return c;}
   let cache=coordinator();
   const hydrate=async payload=>view.IncomeStore.save(payload?payload.incomes.map(row=>({...row,date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4)})):[]);
   return {api,db,server,queue,posts,view,hydrate,get cache(){return cache;},get ui(){return ui;},
-    setOnline:value=>{online=value;nativeState=observedState=value?'online':'offline';},setNative:value=>nativeState=value,setFault:value=>fault=value,setLost:value=>lost=value,setStale:value=>stale=value,
+    setOnline:value=>{online=value;nativeState=observedState=value?'online':'offline';},setNative:value=>nativeState=value,setFault:value=>fault=value,setLost:value=>lost=value,setStale:value=>stale=value,setStaleNetwork:value=>staleNetwork=value,
     freshCoordinator:()=>{cache=coordinator();},
     expireRetries:()=>{for(const row of queue.values())row.next_attempt_at=0;},
     start:()=>cache.start(hydrate),add:amount=>view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount,category:'Category '+uid,description:'Offline '+amount})};
@@ -127,6 +127,12 @@ test('offline validation matches server rules for dates, integer rubles and leng
   const valid={income_date:'2026-10-10',amount:'1 250,75',category:' A ',description:' B '};
   assert.deepEqual(incomeValue(valid),{income_date:'2026-10-10',amount:1250,category:'A',description:'B'});
   for(const bad of [{amount:0},{amount:1e12+1},{amount:Infinity},{income_date:'2026-02-30'},{category:'x'.repeat(81)},{description:'x'.repeat(5001)}])assert.throws(()=>incomeValue({...valid,...bad}));
+});
+test('cold cached session with stale online callback rechecks native state before write validation',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setNative('offline');f.freshCoordinator();await f.start();
+  assert.equal(f.cache.canWrite,false);f.setStaleNetwork(true);
+  await f.add(50);assert.equal(f.posts.length,0);assert.equal(f.queue.size,1);assert.equal(f.ui[0].amount,50);
+  assert.equal(f.cache.diagnostic.stage,'committed');
 });
 test('Samsung A/J: stale onLine=true and native offline commits without a POST',async t=>{
   const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setNative('offline');await f.add(51);
