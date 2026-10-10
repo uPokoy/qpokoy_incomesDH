@@ -55,7 +55,11 @@ debug APK is for Samsung testing, not RuStore publication.
   unchanged website cleanup. Clearing app data removes the session.
 - No service-worker registration exists in the inspected web source; the PWA
   install prompt is also suppressed in the Android adapter. No second PWA shell.
-- Launcher icons reuse the existing `icons/pwa-192.png` and `pwa-512.png`.
+- Launcher icons retain the existing PWA document/plus mark as Android-only vector
+  foreground, with a separate dark background and a 66dp safe zone. Android 13+
+  has a monochrome resource. Legacy PNGs are exported from the same Android vector;
+  the website's original PWA icons are unchanged. `LauncherIconTest` also exports
+  mask previews and legacy assets using Android's renderer.
 
 ## Known limits / next stage
 

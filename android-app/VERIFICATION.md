@@ -134,3 +134,44 @@ background above the WebView on Samsung. That padding has been removed.
   this APK is still needed; emulator results are not a Samsung certification.
 - Artifact: artifacts/qPokoy-0.1.2-dev-debug.apk.
   SHA256: 93b3972b932c84fe1a5451fb7eb264d663f966f230200a67095ed0740d4f15c9.
+
+## Adaptive launcher icon safe-zone fix (0.1.2-dev / code 3 unchanged)
+
+- Cause: v26 adaptive XML used density PNG foregrounds containing the entire
+  square PWA tile, including its background and pre-rounded corners. Adaptive
+  overscan enlarged that image under the launcher mask. The unrelated default
+  Android robot vector was not referenced by those XMLs.
+- The existing document, three blue lines and green plus badge have been
+  vectorized in the Android resource only. Background remains the existing
+  `ic_launcher_background` color #070C14. No outer tile/corners are drawn in
+  the foreground; Android owns the mask. Website PWA PNGs are unchanged.
+- Foreground viewport: 108x108dp, source-coordinate scale 0.135 with centered
+  translation. Visible composition is approximately 44x47dp, about 65% of the
+  72dp mask viewport. Layer padding is at least 30dp (~12dp after overscan).
+  Every nontransparent pixel fits inside the 66dp safe circle, including the
+  document border, badge and monochrome details.
+- Added API 33 adaptive XMLs with a monochrome document/plus silhouette and
+  transparent line/plus details; the ordinary colored foreground stays primary.
+- Removed all five obsolete raster foregrounds. Re-exported the ten legacy
+  normal/round PNGs (48,72,96,144,192px) from the same vector using Android's
+  renderer. `LauncherIconTest` produces these assets in its icon-review folder.
+- Android Emulator API 36: installed the final APK with `adb install -r`, same
+  debug certificate as 0.1.2, no uninstall/data clearing. Actual launcher icon
+  inspected: document and plus are compact and uncropped.
+- Instrumentation passed 1/1: colored and monochrome alpha pixels checked against
+  the safe circle; circle, rounded-square, squircle and One UI-like preview rendered.
+  The One UI shape is an approximation, NOT a test of Samsung's proprietary mask
+  or a physical Samsung launcher. Real Samsung confirmation remains outstanding.
+- Native debug assemble passed without a project signing/dependency change.
+  Targeted app AndroidTest assemble also passed. A broad initial AndroidTest build
+  hit a duplicate Kotlin dependency in an unrelated Capacitor library test target;
+  no production dependencies were changed. The final targeted build needs no workaround.
+- Android smoke: 4/4. Icon XML parsing, all ten legacy PNG dimensions and
+  `git diff --check` passed. No Capacitor sync needed for native resources only.
+- Version/application ID/name/signing configuration unchanged. Only android-app
+  resources, icon instrumentation and Android documentation changed. No website,
+  backend, main, backup branch or user financial data was changed.
+- Artifact: `artifacts/qPokoy-0.1.2-dev-icon-fix-debug.apk`.
+  SHA256: 56ff80bf927792481fef4557dd91aeee4ae203c305d3abd9b6a53a290cc9113d.
+- Local previews: `artifacts/adaptive-icon-masks.png`,
+  `artifacts/adaptive-icon-monochrome.png`, `artifacts/icon-launcher.png`.
