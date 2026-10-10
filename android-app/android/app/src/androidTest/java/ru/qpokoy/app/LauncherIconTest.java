@@ -50,7 +50,9 @@ public class LauncherIconTest {
         Bitmap image = Bitmap.createBitmap(size,size,Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(image);
         canvas.clipPath(mask(kind,size));
-        canvas.drawColor(context.getColor(R.color.ic_launcher_background));
+        Drawable background = context.getDrawable(R.drawable.ic_launcher_background);
+        background.setBounds(0,0,size,size);
+        background.draw(canvas);
         // Adaptive layers are 108dp; the mask viewport is 72dp (18dp overscan).
         Drawable mark = context.getDrawable(R.drawable.ic_launcher_foreground);
         int extra = size/4;
