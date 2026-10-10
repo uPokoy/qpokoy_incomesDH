@@ -155,22 +155,26 @@
       await refresh();
       if(!online()&&!displayed)throw new Error('Нет подключения к интернету');
     }
-    async function enqueue(record,failedTransport=false){
+    async function enqueue(record){
       diagnostic.stage='account-binding';
       const token=api.getToken(),uid=current?.user.user_id,hash=binding;
       const digest=await identity(token);
-      if((online()&&!failedTransport)||!db.enqueue||!current||!hash||!token||hash!==digest||token!==api.getToken()||uid!==current.user.user_id||binding!==hash)throw new Error('Офлайн-добавление недоступно: сначала войдите и загрузите данные с сервера.');
+      if(!db.enqueue||!current||!hash||!token||hash!==digest||token!==api.getToken()||uid!==current.user.user_id||binding!==hash)throw new Error('Локальное добавление недоступно: сначала войдите и загрузите данные с сервера.');
       const value=incomeValue(record),id=record.id||uuid();
       if(!uuidPattern.test(id)||current.incomes.some(row=>row.id===id)||pending.some(row=>row.income_id===id))throw new Error('Некорректный или повторный ID дохода');
       if(!current.categories.some(row=>row.name===value.category))throw new Error('Выберите ранее загруженную категорию.');
       const run=++epoch;
       diagnostic.stage='sqlite-enqueue';
       const result=await db.enqueue({sessionHash:hash,userId:uid,income:{operation_id:uuid(),income_id:id,...value,created_at:clock()}});
+      metrics.sqliteCommit=performance.now();
       // SQLite commit precedes any success UI. An interrupted UI can reload this row.
       if(run!==epoch||token!==api.getToken())return;
       diagnostic.stage='render-after-commit';
       setPending(result.pending,uid);await paint(true);scheduleRetry();
       diagnostic.stage='committed';
+      // Leave the submit continuation free to close the form first. The network
+      // is only used in this later task; even a hung POST cannot delay CREATE.
+      view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
     }
     function scheduleRetry(){
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
@@ -261,31 +265,26 @@
           finally{mutations--;if(!failedTransport)w.setTimeout(()=>{if(!mutations)void (refreshJob||Promise.resolve()).catch(()=>{}).then(()=>refresh()).catch(()=>{});},0);}
         };
       }
-      // Online writes await server ACK; offline creation awaits its SQLite commit.
+      // Every Android CREATE awaits SQLite only; edits still await server ACK.
       const store=w.IncomeStore;
       const rowToUi=row=>({id:String(row.id),date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description});
       const uiToRow=record=>{const parts=record.date.split('.');return {...record,income_date:(parts[2].length===2?'20'+parts[2]:parts[2])+'-'+parts[1]+'-'+parts[0]};};
       for(const name of ['add','update'])store[name]=async(...args)=>{
         diagnostic.stage='network-state';diagnostic.code=null;
         try{
-        const network=await networkState({forWrite:name==='add'});
         const record=name==='add'?args[0]:args[1];
-        const row=uiToRow(record),token=api.getToken(),uid=current?.user.user_id;
+        const row=uiToRow(record),token=api.getToken();
         if(name==='add'){
+          metrics.createStarted=performance.now();
           row.id=row.id||uuid();if(!uuidPattern.test(row.id))throw new Error('Некорректный ID дохода');
           Object.assign(row,incomeValue(row));row.client_mutation_id=row.id;
-          if(!online()||network?.state==='unknown'){await enqueue(row,network?.state==='unknown');return store.load();}
+          await enqueue(row);return store.load();
         }
+        await networkState();
         diagnostic.stage='write-validation';
         requireWrite();
         if(name==='update'&&pending.some(row=>row.income_id===String(args[0])))throw new Error('Дождитесь синхронизации дохода.');
-        let saved;
-        try{saved=await (name==='add'?api.addIncome(row):api.updateIncome(args[0],row));}
-        catch(error){
-          if(name!=='add'||!transportError(error))throw error;
-          if(token!==api.getToken()||uid!==current?.user.user_id)throw new Error('Сессия изменилась');
-          await enqueue(row,true);return store.load();
-        }
+        const saved=await api.updateIncome(args[0],row);
         if(token!==api.getToken())throw new Error('Сессия изменилась');
         const rows=store.load().filter(row=>String(row.id)!==String(saved.id));
         return store.save([rowToUi(saved),...rows].sort((a,b)=>uiToRow(b).income_date.localeCompare(uiToRow(a).income_date)));
