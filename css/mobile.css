@@ -3315,4 +3315,7 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
     line-height:1.25;
   }
   #income .income-recent-description:empty{display:none;}
+  html[data-theme="dark"] #income .income-recent.qp-mobile-recent-stack .income-recent-card{
+    background-color:var(--qp-mobile-card) !important;
+  }
 }
