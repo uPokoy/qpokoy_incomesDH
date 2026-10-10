@@ -44,6 +44,7 @@ public class MainActivity extends BridgeActivity {
     static final String APP_ORIGIN=AppOrigin.VALUE;
 
     @Override public void onCreate(Bundle state) {
+        registerPlugin(ReadCachePlugin.class);
         super.onCreate(state);
         // Native inset strips use the app's existing dark background.
         getWindow().getDecorView().setBackgroundColor(android.graphics.Color.rgb(7,12,20));

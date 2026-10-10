@@ -31,15 +31,32 @@ function adapt(name,text){
     text=text.replace(/<\/body>/i,'<script src="/android-adapter.js"></script>\n</body>');
   }
   if(name==='index.html')text=text.replace(/(<strong id="qPokoyDevVersion">)dev-\d{4}\.\d{2}\.\d{2}\.\d+(<\/strong>)/,'$1'+sourceVersion+'$2');
+  if(name==='index.html')text=text.replace('<script id="qPokoyAuth"','<script src="/android-read-cache.js"></script>\n<script id="qPokoyAuth"');
   if(name==='js/app.js'){
     const pattern=/const qPokoyDevVersion='dev-\d{4}\.\d{2}\.\d{2}\.\d+';/;
     if(!pattern.test(text))throw new Error('DEV adaptation needs review');
     text=text.replace(pattern,"const qPokoyDevVersion='"+sourceVersion+"';");
+    text=text.replace("saveBtn.addEventListener('click',(e)=>{","saveBtn.addEventListener('click',async(e)=>{");
+    const old="  if(editingIncomeId!==null){\n    IncomeStore.update(editingIncomeId,record);\n  }else{\n    IncomeStore.add(record);\n  }";
+    if(!text.includes(old))throw new Error('Android confirmed-save adaptation needs review');
+    text=text.replace(old,"  if(saveBtn.disabled)return;\n  saveBtn.disabled=true;\n  try{\n    if(editingIncomeId!==null)await IncomeStore.update(editingIncomeId,record);\n    else await IncomeStore.add(record);\n  }catch(error){window.qPokoyNotice?.('Не удалось сохранить доход',error.message,'error');return;}\n  finally{saveBtn.disabled=false;}");
   }
   if(name==='js/auth.js'){
     const needle='const url=await api.startOAuth(provider);';
     if(!text.includes(needle))throw new Error('OAuth adaptation needs review');
     text=text.replace(needle,'const url=await window.qPokoyAndroidStartOAuth(provider);');
+    const startup="api.bootstrap().then(startup=>sync(startup?{user:apiUser(startup.user)}:null,startup))";
+    if(!text.includes(startup))throw new Error('Android cache hydration adaptation needs review');
+    text=text.replace(startup,"window.qPokoyAndroidCache.start((startup,cached)=>sync(startup?{user:apiUser(startup.user)}:null,startup,cached))");
+    const start=text.indexOf('  async function sync(session,startup=null){'),end=text.indexOf('  api.setUnauthorizedHandler',start);
+    if(start<0||end<0)throw new Error('Android auth sync adaptation needs review');
+    let sync=text.slice(start,end).replace('sync(session,startup=null)','sync(session,startup=null,cached=false)');
+    sync=sync.replaceAll('showGate(true,true);','if(!window.qPokoyAndroidCache.displayed)showGate(true,true);');
+    sync=sync.replace('    }else{\n      cloudUser=null;',"    }else{\n      void window.qPokoyAndroidCache.purge().catch(()=>{});\n      cloudUser=null;");
+    text=text.slice(0,start)+sync+text.slice(end);
+    // Android has no offline/optimistic write journal. The store uses server ACKs.
+    text=text.replace(/function readPendingCloudWrites\(\)\{[\s\S]*?\n  function savePendingCloudWrites/, 'function readPendingCloudWrites(){return [];}\n  function savePendingCloudWrites');
+    text=text.replace(/function enqueuePendingCloudWrite\(userId,record,kind\)\{[\s\S]*?\n  function toIsoDate/,"function enqueuePendingCloudWrite(){throw new Error('Android требует подтверждение сервера.');}\n\n  function toIsoDate");
   }
   if(name==='css/oauth-brand.css')text=text.replace('https://upload.wikimedia.org/wikipedia/commons/8/81/Yandex_ID_icon.svg','/vendor/yandex-id.svg');
   if(name==='js/report-print.js'){
@@ -80,7 +97,7 @@ if(path.resolve(out)!==path.join(repo,'android-app','www'))throw new Error('Inva
 fs.rmSync(out,{recursive:true,force:true});
 fs.mkdirSync(out,{recursive:true});
 for(const [name,data] of outputs){const dest=path.join(out,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,data);}
-for(const name of ['android-platform.js','android-adapter.js'])fs.copyFileSync(path.join(root,'android/app/src/main/assets',name),path.join(out,name));
+for(const name of ['android-platform.js','android-adapter.js','android-read-cache.js'])fs.copyFileSync(path.join(root,'android/app/src/main/assets',name),path.join(out,name));
 fs.mkdirSync(path.join(out,'vendor'),{recursive:true});
 fs.copyFileSync(require.resolve('html2pdf.js/dist/html2pdf.bundle.min.js'),path.join(out,'vendor/html2pdf.bundle.min.js'));
 fs.copyFileSync(path.join(root,'android/app/src/main/assets/vendor/yandex-id.svg'),path.join(out,'vendor/yandex-id.svg'));

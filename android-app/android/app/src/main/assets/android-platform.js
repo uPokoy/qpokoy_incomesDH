@@ -2,6 +2,8 @@
 (function(){
   'use strict';
   window.qPokoyAndroidBundled=true;
+  // Legacy UI storage is only a working buffer; never display it before identity.
+  for(const key of ['incomes','qPokoyIncomeOwnerId','qPokoyIncomeWriteJournalV1'])localStorage.removeItem(key);
   window.addEventListener('beforeinstallprompt',event=>event.preventDefault());
   // Do not create a second cache/offline layer on the Capacitor asset server.
   if(navigator.serviceWorker){

@@ -1,6 +1,6 @@
 {
   "name": "qpokoy-android-prototype",
-  "version": "0.1.5-dev",
+  "version": "0.1.6-dev",
   "private": true,
   "description": "Isolated Android Capacitor prototype; does not build or modify the website",
   "scripts": {

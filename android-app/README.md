@@ -1,12 +1,13 @@
 # qPokoy Android — first technical prototype
 
-**Bundled frontend**, remote Yandex Cloud API. No local database or new backend.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.5-dev`, `versionCode=6`.
+**Bundled frontend**, remote Yandex Cloud API, Android-only SQLite read snapshots.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.6-dev`, `versionCode=7`.
 
 Everything for Android lives in this directory. The website, backend, API,
 YDB, payments and deployment workflow are unchanged. The app starts at
 `https://localhost/`, served by Capacitor from assets physically inside the APK.
-Website deployments do not update an installed APK. Data operations need internet.
+Website deployments do not update an installed APK. All data writes need internet
+and server confirmation; previously verified data can be viewed offline.
 
 ## Build / Android Studio
 
@@ -54,8 +55,10 @@ OAuth/PDF source markers are checked so a changed frontend fails the build for r
 The local UI and internal pages load without internet, over a dark #070C14 native
 background. OfflineGuard, InitialLoadState, their fullscreen overlay, retry/timeout
 machinery and remote offline HTML are removed. API fetch failures have an Android-only
-network message; reconnect and retry the action without restarting. Existing account
-cache/journal behavior is retained; no new offline editor/cache/database is introduced.
+network message; reconnect triggers one background refresh without restarting.
+The Android adaptation replaces optimistic income writes with awaited server writes
+and disables the website write journal in the generated copy. There is no offline
+editor, write queue or conflict resolution. The source website remains unchanged.
 The production gateway currently returns `Access-Control-Allow-Origin: *` for
 https://localhost, including preflight and actual responses. No backend deploy was
 needed; CORS must be rechecked if gateway/backend policy changes.
@@ -79,15 +82,55 @@ needed; CORS must be rechecked if gateway/backend policy changes.
   report HTML, Android printing, and Blob export downloads. Files are saved
   through the Android document picker, not broad storage permissions.
   Messages accept only the trusted origin and main frame, with size limits.
-- Existing bearer session/localStorage/journal remain in WebView private data.
-  Android backup is disabled; no tokens/secrets are embedded. Logout uses the
-  unchanged website cleanup. Clearing app data removes the session.
+- Existing bearer session stays in WebView private localStorage, separate from
+  read snapshots. Legacy income buffers/journal are removed before site scripts
+  start. Android backup is disabled; no tokens/secrets are embedded. Logout clears
+  SQLite snapshots and the existing website session state. Clearing app data
+  removes both the session and cache.
 - No service-worker registration exists in the inspected web source; the PWA
   install prompt is also suppressed in the Android adapter. No second PWA shell.
 - Launcher icons retain the accepted exact PWA image and existing adaptive padding.
   Android 13+ retains its monochrome resource. Existing legacy PNGs are unchanged;
   the website's original PWA icons are unchanged. `LauncherIconTest` also exports
   mask previews and legacy assets using Android's renderer.
+
+## Android read cache
+
+`ReadCachePlugin` uses Android framework `SQLiteOpenHelper`, with no third-party
+database dependency. SQL, compression and native validation run on one serial
+background executor, shared across Activity instances. Database/schema version 1:
+`/data/user/0/ru.qpokoy.app/databases/qpokoy-read-cache.db` (Android may expose
+the equivalent `/data/data/ru.qpokoy.app/databases/` path). This is private app
+storage, not Downloads. Backup remains disabled with existing transfer exclusions.
+
+One atomic, compressed snapshot contains incomes, categories, UI settings, stable
+server user ID, minimal user display fields and last successful sync timestamp.
+History/month/year analytics use the same incomes, without duplicate aggregates.
+Password, raw bearer token, OAuth/payment secrets and internal auth/billing settings
+are excluded. The existing session is bound by its SHA-256 digest to the user ID
+confirmed by bootstrap; an unknown/different session cannot read the old snapshot.
+This is account isolation, not encryption against a compromised/rooted device.
+
+On launch, `android-read-cache.js` validates and displays that session's snapshot
+before the normal bootstrap finishes. Cache display unlocks viewing only; writes
+wait for fresh server verification. Identical responses update the sync timestamp
+without rehydrating the UI; changed responses win. Successful mutations persist
+only server-confirmed values, then refresh the shown UI. Failed writes do not
+produce a successful snapshot. Offline operations are rejected with the existing
+notice. Online/visible events each request one refresh, without a retry loop.
+
+Logout/account deletion clear snapshots and pending generations. Incompatible
+schema, mixed ownership, damaged payload or checksum mismatch discards the cache
+and falls back to the server. No raw token is stored in SQLite or cache logs;
+Capacitor payload logging is disabled to avoid logging financial snapshots.
+
+Build integration is in `scripts/bundle.cjs`; do not edit generated `www`.
+Source markers deliberately fail the bundle build if auth/save structure changes.
+Run `node --test tests/*.test.cjs`, Gradle `testDebugUnitTest`, and instrumentation
+`ReadCacheDatabaseTest`. Account UI tests are opt-in and require an authorized
+test account. `processColdReadCache` uses `coldCachePhase=prepare`, host `adb shell
+am force-stop ru.qpokoy.app`, radio disable, then `coldCachePhase=verify`; verify
+restores network and deletes only its named temporary income/category.
 
 ## Known limits / next stage
 

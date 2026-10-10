@@ -332,3 +332,134 @@ prepared bundled DEV400 (`2026.10.10.400`). VersionName 0.1.5-dev, versionCode 6
 - APK: `android-app/artifacts/qPokoy-0.1.5-dev-debug.apk`.
 - main (local and remote), backups, website/PWA/launcher icons, backend/YDB/API,
   payments, release signing and deployment workflow were not changed.
+
+## 0.1.6-dev / versionCode 7 — Android SQLite read cache (2026-10-10)
+
+Base Android commit: `b3e39505e9cb2d085589ffd2fe7f86ca8a452f10`.
+Bundled frontend remains DEV400, source `a1b167a21b18aa7634517cbd79cca6faa492f1a9`.
+Only `android-app/` is changed. Server/API/YDB and production website are unchanged.
+
+### Storage and account boundary
+
+- Framework SQLiteOpenHelper + small own Capacitor plugin; no extra database SDK.
+- Private `/data/user/0/ru.qpokoy.app/databases/qpokoy-read-cache.db`, schema 1.
+- One GZIP/checksummed snapshot: incomes, categories, UI settings, minimal user
+  identity, successful sync timestamp. History and analytics reuse incomes.
+- Raw token/password/OAuth/payment secrets are not copied. Auth token remains in
+  its existing private WebView storage. Session SHA-256 binds the snapshot to the
+  immutable server user ID from a successful bootstrap; every record owner is checked.
+- Unknown sessions never get an account fallback. A transaction replaces the
+  whole snapshot. Logout/successful deletion purge it; stale response generations
+  cannot recreate it. Damaged payload/schema/owner mismatch is discarded.
+- SQL/compression/native validation run on a shared serial background executor,
+  not the Android UI thread. Capacitor payload logging is disabled.
+- Existing `allowBackup=false` and cloud/device-transfer exclusions remain.
+  Cache is not exported/shared. This is private storage, not database encryption
+  against a rooted/compromised phone.
+
+### Behaviour and measured tests
+
+| Scenario | Result |
+|---|---|
+| No cache / first verified bootstrap | Automated test fills the cache from server data; normal loading remains |
+| Saved session / cached UI before delayed bootstrap | Real API36 WebView test, three reloads, cached income/category visible before response; no duplicate |
+| Process cold start offline | Prepare real temporary server income/category, host force-stop, disable wifi/data, launch a new process: cached rows visible, no crash |
+| Offline history/month/year | Opened from cache; attempted income write rejected, no fake row or journal |
+| Network restored | Same Activity refreshes from API; no restart or retry loop |
+| Add/edit/delete + category | Server-confirmed real test rows saved into snapshots; UI CRUD also passed; all own rows/categories deleted afterward |
+| No data change | Timestamp refreshed, UI hydration not repeated (coordinator test) |
+| Mutation failure / transient 5xx | No false successful snapshot; old verified display retained (coordinator test) |
+| Concurrent mutation/old bootstrap | Obsolete response ignored; requested refresh waits for fresh data (coordinator test) |
+| A logout → B | JS coordinator and actual SQLite automatic tests: A not readable under B, A removed; no two real credential sessions used |
+| Logout via settings + cold process | Token/bootstrap cache/IncomeStore removed; native read of old session hash returns null; new process opens auth |
+| Account deletion | Successful/failed deletion cleanup paths covered by automatic coordinator tests; no real account destroyed in this task |
+| Old/corrupt cache | Native API36 + API26: incompatible database version, old row version, corrupt GZIP; discarded without crash; JS falls back to server |
+| Back/insets/icons | Existing API36 TopSafeAreaTest/LauncherIconTest and smoke Back tests passed; resources/geometry unchanged |
+| Settings/history/analytics | Real test-account UI: settings tabs, Back, history, month previous/next and Year/Month switches passed |
+| Login/session/keyboard | Existing test-account session restored; real auth 401 validation and touchscreen IME/Back test run after logout |
+| Internal pages/PDF | All packaged legal/service/pricing pages open offline; native report WebView generates nonempty PDF using bundled library |
+
+Latest passing delayed-network measurements (about 188 original test-account
+incomes plus one temporary row; Android emulator, not physical Samsung):
+
+| Run | Reload → cached data | Reload → server refresh |
+|---|---:|---:|
+| 1 | 435 ms | 3975 ms |
+| 2 | 396 ms | 2484 ms |
+| 3 | 521 ms | 2385 ms |
+
+Bootstrap was intentionally delayed by 1500 ms through a test WebViewClient.
+Numbers include document reload/render and test polling, not APK installation.
+Separate successful process cold/offline run: 632 ms from cache-start coordinator
+to completed cached hydration; there is no server refresh until network returns.
+
+### Scale
+
+SQLite native write/read synthetic benchmark (ms; write includes fixture generation;
+JIT/emulator warming explains nonmonotonic timing):
+
+| Records | API36 write/read | API26 write/read |
+|---:|---:|---:|
+| 100 | 32 / 14 | 24 / 15 |
+| 1000 | 139 / 130 | 73 / 38 |
+| 5000 | 411 / 40 | 74 / 68 |
+| 10000 | 89 / 80 | 99 / 102 |
+
+Additional real API36 WebView test injected disposable LOCAL synthetic snapshots
+only (no synthetic API writes), reloaded offline, checked exact counts/read-only,
+then restored the original snapshot and revalidated against the server:
+
+| Records | Reload → shown | Cache coordinator → hydrated |
+|---:|---:|---:|
+| 100 | 469 ms | 109 ms |
+| 1000 | 580 ms | 295 ms |
+| 5000 | 2012 ms | 1210 ms |
+| 10000 | 3962 ms | 2945 ms |
+
+There is no small record-count cap. **Instant UI for 10000 rows is not claimed**:
+the existing frontend hydration/render still takes seconds at that scale, even
+though SQLite IO is off the UI thread. A separate frontend performance stage and
+physical Samsung measurements are needed before promising large-dataset latency.
+
+### Coverage, reproducibility and limits
+
+- Android Node smoke 6/6 + cache coordinator 11/11; JVM unit 3/3.
+- API36 general instrumentation reported OK (16 registered tests, ten active,
+  six account-dependent skips at that run). Explicit account cache/CRUD/session
+  tests: 3/3; cold prepare and verify: each 1/1; scale benchmark: 1/1.
+- Final API36 general rerun after logout: OK (17 registered tests, eleven active,
+  six explicit-account/benchmark skips). Explicit UI logout + fresh-process auth
+  validation/keyboard: each 1/1.
+- Native SQLite API36 and API26: 4/4 on each, with a separate private test database.
+- Gradle debug APK/test APK/unit build, Node syntax and diff checks passed.
+- `npm run sync` copies the Android-only adapter reproducibly; no manual `www`
+  edits. Source SHA/DEV stays fixed. Debug APK:
+  `android-app/artifacts/qPokoy-0.1.6-dev-debug.apk`.
+- Physical Samsung unavailable. API26 has old WebView69, so **full modern UI is
+  not claimed there**; native storage/size/schema/account tests passed.
+- Actual account deletion, second real account login, physical printer and file
+  picker save were not exercised. Automatic deletion/A→B tests and existing native
+  transport smoke cover code paths, not those external/manual end-to-end flows.
+- OAuth App Link return, payment return/RuStore Pay, release publication/signing,
+  offline mutations and conflict resolution remain outside this stage.
+- During development, tests found (and this stage fixed) a PRAGMA API misuse,
+  UI comparison against an already-updated cache, and a refresh coalescing race
+  after mutation. A test-only WebViewClient UI-thread access and an early cached
+  baseline assertion were also corrected. Final relevant reruns passed.
+
+### Changed files
+
+- `android/app/src/main/java/ru/qpokoy/app/ReadCacheDatabase.java`
+- `android/app/src/main/java/ru/qpokoy/app/ReadCachePlugin.java`
+- `android/app/src/main/java/ru/qpokoy/app/MainActivity.java` (plugin registration)
+- `android/app/src/main/assets/android-read-cache.js`
+- `android/app/src/main/assets/android-platform.js`
+- `scripts/bundle.cjs`, `capacitor.config.json`
+- `android/app/build.gradle`, `package.json`, `package-lock.json` (Android version)
+- `tests/read-cache.test.cjs`, `tests/smoke.test.cjs`
+- `android/app/src/androidTest/java/ru/qpokoy/app/ReadCacheDatabaseTest.java`
+- `android/app/src/androidTest/java/ru/qpokoy/app/BundledFrontendTest.java`
+- `README.md`, `VERIFICATION.md`
+
+main, all backup refs, production web/PWA assets, backend/API/YDB, release signing
+and deployment workflows are untouched. No offline mutation queue was introduced.

@@ -2,7 +2,7 @@
   "appId": "ru.qpokoy.app",
   "appName": "qPokoy",
   "webDir": "www",
-  "loggingBehavior": "debug",
+  "loggingBehavior": "none",
   "server": {
     "hostname": "localhost",
     "androidScheme": "https",
