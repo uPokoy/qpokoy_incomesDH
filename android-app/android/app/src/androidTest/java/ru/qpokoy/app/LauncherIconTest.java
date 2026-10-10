@@ -2,6 +2,7 @@ package ru.qpokoy.app;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -16,7 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import static org.junit.Assert.*;
 
-/** Uses Android's actual vector renderer, without opening WebView or user data. */
+/** Uses Android's actual drawable renderer, without opening WebView or user data. */
 @RunWith(AndroidJUnit4.class)
 public class LauncherIconTest {
     private final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -75,16 +76,29 @@ public class LauncherIconTest {
             Bitmap fg = foreground(resource,432);
             int count = 0;
             for (int y=0;y<432;y++) for (int x=0;x<432;x++) {
-                if (Color.alpha(fg.getPixel(x,y)) > 0) {
+                int pixel = fg.getPixel(x,y);
+                // The color foreground now contains the original dark PWA tile too.
+                // Check the significant document/plus pixels, not its background.
+                boolean significant = resource == R.drawable.ic_launcher_monochrome
+                    || Color.green(pixel) >= 110;
+                if (Color.alpha(pixel) > 0 && significant) {
                     count++;
                     double dx=x+.5-216,dy=y+.5-216;
-                    assertTrue("Mark outside 66dp safe circle",dx*dx+dy*dy <= 132*132);
+                    assertTrue("Mark outside 66dp safe circle: resource="+resource+", x="+x+", y="+y+", color="+Integer.toHexString(pixel),dx*dx+dy*dy <= 132*132);
                 }
             }
             assertTrue(count > 1000);
         }
         File folder = new File(context.getExternalFilesDir(null),"icon-review");
         assertTrue(folder.isDirectory() || folder.mkdirs());
+        Bitmap source = BitmapFactory.decodeResource(context.getResources(),R.drawable.qpokoy_pwa_launcher);
+        Bitmap rendered = icon("rounded-square",512);
+        // At original resolution, the complete document/plus area must be pixel-identical.
+        for (int y=80;y<450;y++) for (int x=100;x<450;x++) {
+            assertEquals("PWA artwork moved or altered at "+x+","+y,source.getPixel(x,y),rendered.getPixel(x,y));
+        }
+        save(folder,"pwa-reference.png",source);
+        save(folder,"android-exact-artwork.png",rendered);
         String[] names = {"circle","rounded-square","squircle","one-ui-like"};
         Bitmap sheet = Bitmap.createBitmap(1280,360,Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(sheet);
