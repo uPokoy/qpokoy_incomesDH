@@ -286,8 +286,6 @@ public class BundledFrontendTest {
             int baseline=Integer.parseInt(js(web,"IncomeStore.load().length"));
             String literal=org.json.JSONObject.quote("ANDROID_LOST_REPLY_"+System.currentTimeMillis());
             js(web,"window.__lossReady=false;(async()=>{await qPokoyApi.addCategory("+literal+");await qPokoyLoadCategories(qPokoyAuth.getUser());await qPokoyAndroidCache.refresh();window.__lossReady=true;})()");await(web,"window.__lossReady");
-            network(false);await(web,"!navigator.onLine");
-            js(web,"window.__lossAdded=false;IncomeStore.add({id:crypto.randomUUID(),date:'10.10.26',amount:719,category:"+literal+",description:"+literal+"}).then(()=>window.__lossAdded=true)");await(web,"window.__lossAdded");
             AtomicReference<android.webkit.WebViewClient> originalClient=new AtomicReference<>();
             instrumentation.runOnMainSync(()->originalClient.set(web.getWebViewClient()));
             android.webkit.WebViewClient delegate=originalClient.get();
@@ -296,7 +294,7 @@ public class BundledFrontendTest {
                     if(MainActivity.APP_ORIGIN.equals(request.getUrl().getScheme()+"://"+request.getUrl().getHost()) && "/js/api-client.js".equals(request.getUrl().getPath())){
                         try(java.io.InputStream input=instrumentation.getTargetContext().getAssets().open("public/js/api-client.js")){
                             java.io.ByteArrayOutputStream output=new java.io.ByteArrayOutputStream();byte[] bytes=new byte[8192];int count;while((count=input.read(bytes))!=-1)output.write(bytes,0,count);
-                            String shim="window.__originalFetch=window.fetch;window.__lostResponse=false;window.fetch=async(...args)=>{const response=await window.__originalFetch(...args);if(!window.__lostResponse && new URL(String(args[0]),location.href).pathname==='/incomes' && args[1]?.method==='POST' && response.ok){window.__lostResponse=true;throw new TypeError('TEST_LOST_RESPONSE');}return response;};\n";
+                            String shim="window.__originalFetch=window.fetch;window.__lostResponse=false;window.fetch=async(...args)=>{const response=await window.__originalFetch(...args);if(new URL(String(args[0]),location.href).pathname==='/incomes' && args[1]?.method==='POST' && response.ok){if(!window.__lostResponse){window.__firstIncomeId=JSON.parse(args[1].body).id;window.__lostResponse=true;throw new TypeError('Failed to fetch');}window.__retryStatus=response.status;}return response;};\n";
                             return new android.webkit.WebResourceResponse("application/javascript","UTF-8",new java.io.ByteArrayInputStream((shim+output.toString("UTF-8")).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
                         }catch(Exception error){throw new AssertionError(error);}
                     }
@@ -304,11 +302,15 @@ public class BundledFrontendTest {
                 }
                 @Override public void onPageFinished(WebView view,String url){delegate.onPageFinished(view,url);}
             }));
-            instrumentation.runOnMainSync(web::reload);await(web,"qPokoyAndroidCache?.displayed && qPokoyAndroidCache.pending.length===1 && !document.body.classList.contains('qp-auth-checking')");
+            js(web,"window.__beforeLossReload=true");
+            instrumentation.runOnMainSync(web::reload);await(web,"!window.__beforeLossReload && window.__originalFetch && qPokoyAndroidCache?.canWrite && !document.body.classList.contains('qp-auth-checking')");
             try{
-                network(true);await(web,"window.__lostResponse && qPokoyAndroidCache.pending.length===1 && qPokoyAndroidCache.pending[0].error_code==='network'");
-                js(web,"window.fetch=window.__originalFetch;window.__cloudOne=false;(async()=>{const id=qPokoyAndroidCache.pending[0].income_id;const rows=await qPokoyApi.listIncomes();window.__cloudOne=rows.filter(r=>r.id===id && r.description==="+literal+").length===1;await qPokoyAndroidCache.refresh();})()");
+                js(web,"document.querySelector('.add-income-btn').click();document.getElementById('incomeDate').value='10.10.26';document.getElementById('incomeAmount').value='719';document.getElementById('incomeCategory').value="+literal+";document.getElementById('incomeDescription').value="+literal+";document.getElementById('saveIncome').click()");
+                await(web,"window.__lostResponse && qPokoyAndroidCache.pending.length===1 && document.getElementById('incomeForm').hidden");
+                assertEquals("true",js(web,"qPokoyAndroidCache.pending[0].income_id===window.__firstIncomeId && IncomeStore.load().some(r=>r.id===window.__firstIncomeId)"));
+                js(web,"window.__cloudOne=false;(async()=>{const id=window.__firstIncomeId;const rows=await qPokoyApi.listIncomes();window.__cloudOne=rows.filter(r=>r.id===id && r.description==="+literal+").length===1;const saved=rows.find(r=>r.id===id);await qPokoyApi.addIncome({...saved,client_mutation_id:id});await qPokoyAndroidCache.refresh();})()");
                 await(web,"window.__cloudOne && qPokoyAndroidCache.pending.length===0");
+                assertEquals("200",js(web,"window.__retryStatus"));
                 assertEquals("1",js(web,"IncomeStore.load().filter(r=>r.description==="+literal+").length"));
             }finally{
                 instrumentation.runOnMainSync(()->web.setWebViewClient(delegate));
@@ -332,12 +334,15 @@ public class BundledFrontendTest {
                 int baseline=Integer.parseInt(js(web,"IncomeStore.load().length"));
                 js(web,"window.__outboxReady=false;(async()=>{const c=await qPokoyApi.addCategory("+literal+");await qPokoyLoadCategories(qPokoyAuth.getUser());await qPokoyAndroidCache.refresh();window.__outboxReady=true;})()");await(web,"window.__outboxReady");
                 assertTrue(meta.edit().putString("label",label).putInt("baseline",baseline).commit());
-                network(false);await(web,"!navigator.onLine");
+                network(false);
+                js(web,"Object.defineProperty(navigator,'onLine',{value:true,configurable:true});window.__offlinePosts=0;const originalAdd=qPokoyApi.addIncome;qPokoyApi.addIncome=(...args)=>{window.__offlinePosts++;return originalAdd(...args);};window.__nativeOffline=false;Capacitor.nativePromise('QPokoyReadCache','getNetworkState',{}).then(s=>window.__nativeOffline=s.state==='offline')");
+                await(web,"window.__nativeOffline");assertEquals("true",js(web,"navigator.onLine"));
                 for(int i=1;i<=3;i++){
                     js(web,"document.querySelector('.add-income-btn').click();document.getElementById('incomeDate').value='10.10.26';document.getElementById('incomeAmount').value='"+(710+i)+"';document.getElementById('incomeCategory').value="+literal+";document.getElementById('incomeDescription').value="+literal+";document.getElementById('saveIncome').click()");
                     await(web,"qPokoyAndroidCache.pending.length==="+i+" && document.getElementById('incomeForm').hidden");
                 }
                 assertEquals(String.valueOf(baseline+3),js(web,"IncomeStore.load().length"));
+                assertEquals("0",js(web,"window.__offlinePosts"));
                 assertEquals("true",js(web,"IncomeStore.load().filter(r=>r.description==="+literal+").reduce((s,r)=>s+r.amount,0)===2136 && !qPokoyAndroidCache.snapshot.incomes.some(r=>r.description==="+literal+")"));
                 js(web,"window.__logoutBlocked=false;qPokoyApi.logout().catch(e=>window.__logoutBlocked=e.code==='android_pending_logout')");await(web,"window.__logoutBlocked");
                 assertEquals("true",js(web,"Boolean(qPokoyApi.getToken())"));
@@ -360,6 +365,35 @@ public class BundledFrontendTest {
             instrumentation.runOnMainSync(web::reload);await(web,"qPokoyAndroidCache?.canWrite");
             assertEquals("false",js(web,"IncomeStore.load().some(r=>r.description==="+literal+")"));meta.edit().clear().commit();
         }
+    }
+    @Test public void nativeNetworkStateAndLifecycle() throws Exception {
+        network(true);
+        try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+            WebView web=web(scenario);await(web,"window.qPokoyAndroidNetwork && window.qPokoyAndroidCache");
+            AtomicReference<ReadCachePlugin> plugin=new AtomicReference<>();
+            scenario.onActivity(activity->plugin.set((ReadCachePlugin)activity.getBridge().getPlugin("QPokoyReadCache").getInstance()));
+            java.lang.reflect.Field callback=ReadCachePlugin.class.getDeclaredField("networkCallback");callback.setAccessible(true);
+            assertNotNull(callback.get(plugin.get()));
+            network(false);
+            js(web,"Object.defineProperty(navigator,'onLine',{value:true,configurable:true});window.__networkReady=false;qPokoyAndroidNetwork.read().then(s=>window.__networkReady=s.state==='offline')");
+            await(web,"window.__networkReady");assertEquals("false",js(web,"qPokoyAndroidNetwork.available"));
+            network(true);
+            js(web,"Object.defineProperty(navigator,'onLine',{value:false,configurable:true});window.__networkReady=false;qPokoyAndroidNetwork.read().then(s=>window.__networkReady=s.state==='online')");
+            await(web,"window.__networkReady");assertEquals("true",js(web,"qPokoyAndroidNetwork.available"));
+            java.lang.reflect.Field listeners=com.getcapacitor.Plugin.class.getDeclaredField("eventListeners");listeners.setAccessible(true);
+            for(int i=0;i<3;i++){
+                await(web,"Boolean(document.getElementById('qPokoyAuth')) && Boolean(qPokoyAndroidCache)");
+                long deadline=System.currentTimeMillis()+5000;int count=0;
+                do{java.util.Map<?,?> map=(java.util.Map<?,?>)listeners.get(plugin.get());Object list=map.get("networkStateChange");count=list==null?0:((java.util.List<?>)list).size();if(count==1)break;Thread.sleep(100);}while(System.currentTimeMillis()<deadline);
+                assertEquals("Only one JS listener per document",1,count);
+                js(web,"window.__networkReloadMarker=true");
+                instrumentation.runOnMainSync(web::reload);await(web,"!window.__networkReloadMarker && window.qPokoyAndroidCache && window.qPokoyAndroidNetwork");
+            }
+            scenario.moveToState(androidx.lifecycle.Lifecycle.State.CREATED);assertNull(callback.get(plugin.get()));
+            scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED);assertNotNull(callback.get(plugin.get()));
+            ReadCachePlugin old=plugin.get();scenario.recreate();assertNull(callback.get(old));
+            assertTrue(((java.util.Map<?,?>)listeners.get(old)).isEmpty());
+        }finally{network(true);}
     }
     @Test public void coldOfflineLoadsLocalUiAndAllInternalPages() throws Exception {
         network(false);

@@ -1,10 +1,10 @@
 # qPokoy Android — first technical prototype
 
 **Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create-only outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.7-dev`, `versionCode=8`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.8-dev`, `versionCode=9`.
 
-Android UI/storage adaptations live in this directory. An opt-in idempotent
-POST /incomes extension is kept in this branch only; it has not been deployed.
+Android UI/storage adaptations live in this directory. The user has separately
+deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
 The website, YDB schema, payments and deployment workflow are unchanged. The app starts at
 `https://localhost/`, served by Capacitor from assets physically inside the APK.
 Website deployments do not update an installed APK. Previously verified data can
@@ -167,9 +167,8 @@ retain their existing 201/409 behavior. No new endpoint or YDB schema/migration.
 Compatibility reconciliation can resolve an old backend’s 409 by account-scoped
 UUID, never by comparing amount/date/category/description.
 
-**For full verification of the new idempotent server contract, deploy the backend
-commit accompanying this Android change separately. No deployment is performed
-here, and the production endpoint is not claimed to have the new 200 behavior.**
+The idempotent contract was deployed separately by the user. No backend editing
+or deployment is performed by the Android 0.1.8 network fix.
 
 Automated coordinator scenarios A–J are in `tests/outbox.test.cjs`; real SQLite
 migration/reopen/isolation/ACK tests are in `OutboxDatabaseTest`. Opt-in
@@ -178,6 +177,33 @@ and `sync`; host force-stop/reboot between phases verifies persistence, then
 deletes only the test’s uniquely named incomes/category. Never run on a main account.
 Clearing Android app storage or uninstalling removes unsynced data; no cloud or
 device-transfer backup is enabled. Authentication secrets are never put in the outbox.
+
+## Android network detection and transport fallback (0.1.8-dev)
+
+`QPokoyReadCache.getNetworkState()` uses ConnectivityManager's active network
+and NetworkCapabilities: no network/no INTERNET is offline, INTERNET+VALIDATED
+is online, transitional/unavailable capabilities are unknown. Native state wins
+over WebView's stale `navigator.onLine`; onLine is only an unknown-state hint.
+One default-network callback is registered per resumed plugin, removed on pause
+and destroy. One JS listener per document is removed on pagehide; native events
+and existing online/visibility events request the coalesced refresh/outbox sync.
+
+IncomeStore.add generates the income UUID before its first POST and sends it as
+client_mutation_id. Explicit native offline goes straight to SQLite without POST.
+Only transport failure (fetch/network/DNS/socket/30-second timeout or lost
+successful response body) falls back to enqueue with that same UUID. Local
+success is displayed only after SQLite commit, using the existing pending label.
+The verified snapshot/session/account/category checks remain required; no other
+offline mutations are enabled. Normal online server ACK does not create pending.
+
+Real HTTP errors, including 400/401/402/403/404/409 and 5xx, business/validation
+errors and invalid JSON responses are not newly queued. Existing already-pending
+operations retain their existing retry policy. Received error HTTP status is
+preserved even if reading its body subsequently fails or times out.
+
+Native network callbacks may report reachability without guaranteeing this API
+is reachable; transport fallback covers that distinction. OS network details,
+SSID and IP are neither collected nor logged. See [Android network state](https://developer.android.com/develop/connectivity/network-ops/reading-network-state).
 
 ## Known limits / next stage
 

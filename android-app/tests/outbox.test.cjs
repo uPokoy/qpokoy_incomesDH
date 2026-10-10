@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),{randomUUID
 const {create,snapshot,incomeValue}=require('../android/app/src/main/assets/android-read-cache.js');
 const clone=x=>structuredClone(x),failure=status=>Object.assign(new Error('Test response'),{status});
 function fixture(){
-  let uid='A',token='session-A',online=true,fault=null,lost=false,stale=false,posts=[],ui=[];
+  let uid='A',token='session-A',online=true,nativeState='unknown',observedState='unknown',fault=null,lost=false,stale=false,posts=[],ui=[];
   const snapshots=new Map(),queue=new Map(),server=new Map();
   const data=()=>({user:{user_id:uid,email:uid+'@test.invalid',onboarding_completed:true},incomes:[...server.values()].filter(row=>row.user_id===uid),categories:[{id:'category-'+uid,user_id:uid,name:'Category '+uid}],settings:[]});
   const listed=(hash,id)=>[...queue.values()].filter(row=>row.hash===hash&&row.user_id===id).map(({hash,...row})=>clone(row));
@@ -33,21 +33,22 @@ function fixture(){
     listIncomes:async()=>clone(data().incomes),
     addIncome:async row=>{
       posts.push({uid,...clone(row)});
-      if(fault){if(fault===401)api.clearToken();throw failure(fault);}
+      if(fault){if(fault===401)api.clearToken();throw typeof fault==='number'?failure(fault):fault;}
       const key=uid+':'+row.id;
       if(!server.has(key))server.set(key,{id:row.id,user_id:uid,...incomeValue(row)});
-      if(lost){lost=false;throw failure(0);}
+      if(lost){lost=false;throw Object.assign(failure(0),{code:'android_transport'});}
       return clone(server.get(key));
     },updateIncome:async()=>{throw new Error('Unexpected edit');},deleteIncome:async()=>{throw new Error('Unexpected delete');},
     deleteAllIncomes:async()=>{throw new Error('Unexpected bulk');},replaceIncomes:async()=>{throw new Error('Unexpected import');}
   };
   const view={IncomeStore:{load:()=>ui,save:rows=>ui=rows},document:{addEventListener:()=>{},visibilityState:'visible'},addEventListener:()=>{},setTimeout:()=>{},qPokoyNotice:()=>{}};
   const originalApi={...api};
-  function coordinator(){Object.assign(api,originalApi);const c=create({api,db,fingerprint:async value=>'hash-'+value,online:()=>online});c.install(view);return c;}
+  function coordinator(){Object.assign(api,originalApi);observedState='unknown';const c=create({api,db,fingerprint:async value=>'hash-'+value,
+    online:()=>observedState==='online'||observedState==='unknown'&&online,networkState:async()=>{observedState=nativeState;}});c.install(view);return c;}
   let cache=coordinator();
   const hydrate=async payload=>view.IncomeStore.save(payload?payload.incomes.map(row=>({...row,date:'10.10.26'})):[]);
   return {api,db,server,queue,posts,view,hydrate,get cache(){return cache;},get ui(){return ui;},
-    setOnline:value=>online=value,setFault:value=>fault=value,setLost:value=>lost=value,setStale:value=>stale=value,
+    setOnline:value=>online=value,setNative:value=>nativeState=value,setFault:value=>fault=value,setLost:value=>lost=value,setStale:value=>stale=value,
     freshCoordinator:()=>{cache=coordinator();},
     expireRetries:()=>{for(const row of queue.values())row.next_attempt_at=0;},
     start:()=>cache.start(hydrate),add:amount=>view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount,category:'Category '+uid,description:'Offline '+amount})};
@@ -126,4 +127,43 @@ test('offline validation matches server rules for dates, integer rubles and leng
   const valid={income_date:'2026-10-10',amount:'1 250,75',category:' A ',description:' B '};
   assert.deepEqual(incomeValue(valid),{income_date:'2026-10-10',amount:1250,category:'A',description:'B'});
   for(const bad of [{amount:0},{amount:1e12+1},{amount:Infinity},{income_date:'2026-02-30'},{category:'x'.repeat(81)},{description:'x'.repeat(5001)}])assert.throws(()=>incomeValue({...valid,...bad}));
+});
+test('Samsung A/J: stale onLine=true and native offline commits without a POST',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setNative('offline');await f.add(51);
+  assert.equal(f.posts.length,0);assert.equal(f.queue.size,1);assert.equal(f.ui[0].amount,51);
+});
+test('Samsung B/K/L: native online but connection failure falls back, survives restart and reconnects once',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setNative('online');f.setFault(new TypeError('Failed to fetch'));
+  await f.add(52);const id=f.posts[0].id;assert.equal(f.queue.size,1);assert.equal(f.ui[0].id,id);assert.equal(f.cache.pendingLabel(id),'Ожидает синхронизации');
+  f.setNative('offline');f.freshCoordinator();await f.start();assert.equal(f.ui[0].id,id);
+  f.setFault(null);f.setNative('online');await f.cache.refresh();assert.equal(f.queue.size,0);assert.equal(f.server.size,1);assert.equal(f.ui[0].id,id);
+});
+test('Samsung C: online server commit with lost response queues the original UUID and reconciles one row',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setLost(true);await f.add(53);
+  const id=f.posts[0].id;assert.equal(f.posts[0].client_mutation_id,id);assert.equal(f.cache.pending[0].income_id,id);assert.equal(f.server.size,1);
+  await f.cache.refresh();assert.equal(f.queue.size,0);assert.equal(f.server.size,1);assert.equal(f.ui.length,1);assert.equal(f.ui[0].id,id);
+});
+test('Samsung D: timeout falls back using the original POST UUID',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setFault(Object.assign(new Error('Timeout'),{code:'android_transport',status:0}));
+  await f.add(54);assert.equal(f.cache.pending[0].income_id,f.posts[0].id);assert.equal(f.ui[0].id,f.posts[0].id);
+});
+for(const status of [400,401,402,403,404,409,500,502,503,504])test('Samsung HTTP '+status+' is not converted into a new offline income',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setFault(status);
+  await assert.rejects(f.add(55),e=>e.status===status);assert.equal(f.queue.size,0);assert.equal(f.ui.length,0);
+});
+test('Samsung: validation/business/runtime errors do not become offline success',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();
+  for(const error of [new Error('Business error'),Object.assign(new Error('Bad session payload'),{status:0,code:'invalid_response'}),new TypeError('Cannot read properties of undefined')]){
+    f.setFault(error);await assert.rejects(f.add(56));assert.equal(f.queue.size,0);assert.equal(f.ui.length,0);
+  }
+});
+test('Samsung: transport fallback with SQLite failure rejects instead of showing success',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setFault(new TypeError('Failed to fetch'));
+  f.db.enqueue=async()=>{throw new Error('disk full');};await assert.rejects(f.add(57),/disk full/);assert.equal(f.ui.length,0);assert.equal(f.queue.size,0);
+});
+test('Samsung M: account switch during failed POST cannot enqueue the old account into the new one',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();
+  f.setFault(Object.assign(new TypeError('Failed to fetch'),{name:'TypeError'}));
+  const original=f.api.addIncome;f.api.addIncome=async row=>{try{return await original(row);}finally{await f.api.login('B');await f.start();}};
+  await assert.rejects(f.add(58),/Сессия/);assert.equal(f.queue.size,0);assert.equal(f.ui.length,0);
 });

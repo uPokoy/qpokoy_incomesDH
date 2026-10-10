@@ -1,5 +1,69 @@
 # Prototype verification — 2026-10-09
 
+## Samsung stale network / transport fallback — 2026-10-10, 0.1.8-dev / versionCode 9
+
+Starting Android HEAD: `a28519aac6e250ae83a563218c312ad688e1cf3d`.
+Frontend bundle source remains `a1b167a21b18aa7634517cbd79cca6faa492f1a9`
+(DEV400). All changes for this task are inside android-app. The backend contract
+was deployed separately by the user; no backend edits, tests or deploy in this task.
+
+### Fix and boundaries
+
+- Native ConnectivityManager active-network/INTERNET/VALIDATED state is exposed
+  as offline/online/unknown. It takes priority over stale navigator.onLine;
+  unknown can use onLine as an additional hint. No SSID/IP details are collected.
+- One OS callback per resumed plugin; unregister on pause/destroy. Stale callback
+  identity is checked. One document JS subscription removed on pagehide. Native
+  events request the existing coalesced refresh/sequential outbox sync. Queries
+  share one in-flight native call and cannot overwrite a newer callback result.
+- Add creates one stable UUID before POST, sends client_mutation_id with that UUID.
+  Explicit offline: no POST. Transport failure/lost successful response/30-second
+  timeout: enqueue that same UUID; SQLite commit precedes success UI. Verified
+  account/session/snapshot/category binding, pending labels and other write guards
+  remain. Normal server ACK creates no pending operation.
+- HTTP 400/401/402/403/404/409/500/502/503/504, validation/business/invalid-response
+  errors never create a new offline operation. Error HTTP status survives body
+  failure/timeout. Already-pending operations keep their prior retry policy.
+
+### Checks performed
+
+- Android Node tests 54/54: A–M (including fallback persistence/reconnect/account
+  isolation), actual adapter timeout classification, stale browser network state,
+  received HTTP-error body failures, SQLite failures, existing outbox/cache guards.
+- Gradle test: six JVM cases (three debug + three release), no failures.
+  assembleDebug and assembleDebugAndroidTest: successful; ordinary debug signing.
+- Android API36 native instrumentation: network/lifecycle 1/1. Real radio OFF
+  with navigator.onLine=true reports offline; real validated ON with stale false
+  reports online. Three reloads retain one listener; pause unregisters, resume
+  registers, recreation removes old callback/listeners.
+- Real ordinary form offline create with Wi-Fi/data OFF and stale onLine=true:
+  three rows (711/712/713 RUB), zero API add calls, visible pending after SQLite
+  commit, form closed. Force-stop/cold restart retains all three. Reconnect yields
+  exactly three cloud UUIDs/2136 RUB, zero pending labels/queue. prepare/verify/sync
+  each 1/1. Named fixtures deleted; baseline count and absence verified on reload.
+- Online POST commits on real API, instrumentation-only pre-init fetch shim drops
+  its successful response: same UUID becomes pending, form closes successfully,
+  cloud has one row. Explicit retry with same client_mutation_id returns HTTP 200;
+  queue reconciles and UI/cloud contain one UUID. 1/1; own fixtures cleaned.
+  Initial test attempted to act on the old document during reload and timed out;
+  waiting for the new document fixed the test. Final rerun passed.
+- SQLite migration/FIFO/account binding/reopen/atomic ACK: 9/9. Normal online
+  form create/edit/delete/reload and session restore: 2/2; fixtures cleaned.
+- Adapter JS syntax and git diff --check: passed. APK asset equality verified
+  against the synced Android bundle; version metadata 0.1.8-dev/code 9.
+
+Physical Samsung was unavailable. The stale onLine condition is deliberately
+reproduced on a real Android emulator/WebView, not claimed as a Samsung device
+test. Mock HTTP errors/second-account isolation/timeout are automated fixtures,
+not deliberate failures injected into the production backend. No main/backup/web
+DEV/production frontend/backend/YDB/deployment/release signing changes.
+
+Changed resources: AndroidNetworkState.java, ReadCachePlugin.java,
+android-platform.js, android-read-cache.js, BundledFrontendTest.java,
+build.gradle/package.json/package-lock.json (version), network.test.cjs,
+outbox.test.cjs/smoke.test.cjs, README.md and this verification log.
+APK: `android-app/artifacts/qPokoy-0.1.8-dev-debug.apk`.
+
 ## Offline income creation — 2026-10-10, 0.1.7-dev / versionCode 8
 
 Work started at Android branch HEAD `51791aab18efdffb5d380a3f2cf2ef5eeaead453`.

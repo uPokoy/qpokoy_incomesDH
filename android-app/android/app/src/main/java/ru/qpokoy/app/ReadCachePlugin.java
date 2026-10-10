@@ -9,6 +9,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import org.json.JSONObject;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 
 @CapacitorPlugin(name="QPokoyReadCache")
 public class ReadCachePlugin extends Plugin {
@@ -16,7 +20,42 @@ public class ReadCachePlugin extends Plugin {
     private static final ExecutorService worker=Executors.newSingleThreadExecutor();
     private static final AtomicLong generation=new AtomicLong();
     private ReadCacheDatabase database;
-    @Override public void load(){database=new ReadCacheDatabase(getContext());}
+    private ConnectivityManager connectivity;
+    private ConnectivityManager.NetworkCallback networkCallback;
+    private Network defaultNetwork;
+    private String lastNetworkState;
+    @Override public void load(){
+        database=new ReadCacheDatabase(getContext());
+        connectivity=(ConnectivityManager)getContext().getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+    }
+    @PluginMethod public void getNetworkState(PluginCall call){call.resolve(AndroidNetworkState.read(connectivity));}
+    private synchronized void publishNetwork(JSObject state){
+        if(networkCallback==null)return;
+        String value=state.toString();if(value.equals(lastNetworkState))return;
+        lastNetworkState=value;notifyListeners("networkStateChange",state);
+    }
+    private synchronized void startNetworkMonitoring(){
+        if(networkCallback!=null||connectivity==null)return;
+        networkCallback=new ConnectivityManager.NetworkCallback(){
+            @Override public void onAvailable(Network network){
+                synchronized(ReadCachePlugin.this){if(networkCallback!=this)return;defaultNetwork=network;publishNetwork(AndroidNetworkState.unknown());}
+            }
+            @Override public void onCapabilitiesChanged(Network network,NetworkCapabilities caps){
+                synchronized(ReadCachePlugin.this){if(networkCallback==this&&network.equals(defaultNetwork))publishNetwork(AndroidNetworkState.capabilities(true,caps));}
+            }
+            @Override public void onLost(Network network){
+                synchronized(ReadCachePlugin.this){if(networkCallback==this&&network.equals(defaultNetwork)){defaultNetwork=null;publishNetwork(AndroidNetworkState.capabilities(false,null));}}
+            }
+        };
+        try{connectivity.registerDefaultNetworkCallback(networkCallback);publishNetwork(AndroidNetworkState.read(connectivity));}
+        catch(SecurityException|IllegalArgumentException unavailable){networkCallback=null;}
+    }
+    private synchronized void stopNetworkMonitoring(){
+        ConnectivityManager.NetworkCallback callback=networkCallback;networkCallback=null;defaultNetwork=null;lastNetworkState=null;
+        if(callback!=null)try{connectivity.unregisterNetworkCallback(callback);}catch(IllegalArgumentException ignored){}
+    }
+    @Override protected void handleOnResume(){startNetworkMonitoring();}
+    @Override protected void handleOnPause(){stopNetworkMonitoring();}
     @PluginMethod public void read(PluginCall call){
         long epoch=generation.get();worker.execute(()->{
             try{
@@ -58,5 +97,5 @@ public class ReadCachePlugin extends Plugin {
         try{JSObject result=new JSObject();result.put("count",database.pendingCount(call.getString("sessionHash")));call.resolve(result);}
         catch(Exception error){call.reject("Cannot check pending incomes");}
     });}
-    @Override protected void handleOnDestroy(){worker.execute(()->database.close());}
+    @Override protected void handleOnDestroy(){stopNetworkMonitoring();removeAllListeners();worker.execute(()->database.close());}
 }
