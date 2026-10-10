@@ -246,3 +246,89 @@ Files changed by this offline patch (all paths relative to android-app/):
   assuming that a hidden overlay means the remote page finished loading.
 - APK: artifacts/qPokoy-0.1.4-dev-debug.apk (versionCode 5).
 - Website, main, backups, backend, icons and signing configuration unchanged.
+
+## 0.1.5-dev: bundled frontend migration (2026-10-10)
+
+Base Android commit: `90ba81946a90ae897f6be7fdaad5a35232d923a0`.
+Frontend source: `a1b167a21b18aa7634517cbd79cca6faa492f1a9` (origin/main),
+prepared bundled DEV400 (`2026.10.10.400`). VersionName 0.1.5-dev, versionCode 6.
+
+### Architecture and reproducibility
+
+- Removed server.url/errorPath. Capacitor serves APK assets at **https://localhost**.
+  API remains the existing HTTPS Yandex gateway; no new DB/backend or deployment.
+- `npm run sync` builds www from committed origin/main, then cap sync android.
+  `npm run bundle -- --source-ref <SHA>` pins the input. Rebuilding the same SHA
+  reproduced identical hashes for every output file. 35 frontend source files,
+  six pages, Android prelude/adapter and local vendor assets are packaged.
+- Generated www/public assets are ignored. Removed the old tracked placeholder
+  and remote offline page. Production HTML/CSS/JS are untouched; transformations
+  happen only in the generated Android copy. DEV/cache preparation mirrors the
+  frontend workflow without running its deploy steps.
+- AppOrigin accepts only HTTPS localhost, default/443 port, without userinfo.
+  Native bridge requires that origin and the main frame. External HTTPS/mail/tel
+  use Intent; cleartext, mixed content and SSL bypass remain disabled.
+- SW registration and PWA install are disabled by an early Android-only prelude;
+  the manifest is excluded. Existing inspected source has no SW registration.
+- OfflineGuard/InitialLoadState, overlay layout/strings/button and their obsolete
+  tests are removed. Local UI no longer needs remote HTML or a loading overlay.
+
+### Verified on API 36 emulator
+
+| Scenario | Result / actual scope |
+| --- | --- |
+| Online cold start | Local origin/UI loaded; no remote document needed |
+| Cold start with wifi/data disabled | Local UI and all six pages loaded, no fullscreen loading/offline overlay; no app crash |
+| API while offline | Controlled Russian network error, no attempted offline write |
+| Reconnect | Actual API response became readable in the same Activity without restarting |
+| CORS | OPTIONS /auth/login: 204, allowed origin `*`; GET /auth/me without token: 401 readable from local WebView; dummy nonexistent login POST: readable 401 |
+| Email/password login | Human signed into permitted test account twice on local origin |
+| Incomes/categories | Temporary category + income 983 RUB created; edited to 984 RUB using UI; actual API confirmed exactly one matching row at each amount |
+| Cleanup | Own income/category deleted in finally; reload returned to baseline income count; separate cloud list confirmed no ANDROID_BUNDLE_ rows and unique IDs |
+| Main/history/analytics | Month previous/next returned to starting label; Year/Month switch and history opened |
+| Settings | Categories/Appearance/Data tabs and Android Back closing settings passed |
+| Logout | Interface confirmation used; auth gate returned, IncomeStore empty, token and bootstrap cache absent |
+| Session restore | Login survived app update and force-stop/relaunch, plus a document reload; restored cloud count matched local count |
+| Pricing/service/privacy/offer/about | Each loaded locally without internet with non-empty content |
+| PDF/report | Native report WebView loaded bundled html2pdf offline and generated a non-empty `%PDF` document from synthetic table; Back dismissed report |
+| Print/download | Existing Android print and Blob transport smoke passed; actual document-picker file save/physical printer were not tested in this migration |
+| Keyboard | Real touchscreen focus opened IME; Back dismissed it. Gboard hardware-keyboard toolbar initially hid keys for the user, changed emulator settings/Alt+K to show normal keyboard; no app patch for that |
+| Safe area/icons | Existing TopSafeAreaTest and LauncherIconTest passed; icon resources and geometry unchanged |
+
+### Not verified or intentionally deferred
+
+- Full registration with verification email and password-reset round trip were
+  not performed. Signup required-field validation passed; production endpoints
+  and email flows are preserved. Email verification/reset links currently return
+  to the website; user must sign in to Android after completing the web flow.
+- Yandex OAuth is explicitly unavailable in this APK: safe error asks for email
+  login. A verified App Link + secure callback/session exchange is a separate
+  stage. No OAuth secret, token URL or insecure third-party WebView bridge added.
+- YooKassa code/API unchanged; external checkout uses browser. No real payment
+  or successful callback to Android tested. Existing web return URL remains;
+  automatic app return needs the App Link stage. RuStore Pay not implemented.
+- API 26 emulator has outdated WebView 69: optional chaining throws SyntaxError
+  and modern production CSS renders incorrectly. Full UI did **not** pass there.
+  Update System WebView; frontend transpilation/design changes are out of scope.
+  Network restored and old emulator stopped. Physical Samsung unavailable.
+- Existing private token/journal behavior retained, no migration of the old
+  remote-origin localStorage; existing users sign in once on the new origin.
+- html2pdf Android-only dependency pinned at 0.14.0 instead of vulnerable 0.10.1;
+  website dependency unchanged. npm audit reports three moderate existing CLI
+  dependency findings (uuid/xcode), no high/critical findings in this dependency tree.
+
+### Checks / artifact
+
+- Android smoke: 6/6. JVM unit: 3/3 (two trust-boundary tests + existing template).
+- API 36 general instrumentation: seven active tests passed; two account tests
+  skipped by default and passed explicitly after human test-account login.
+  Additional read-only restored-session test checks cloud/local count and IDs.
+- Initial CRUD test incorrectly inspected the old document during reload;
+  corrected test waiting with a document marker, then CRUD/cleanup/reload passed.
+  No product change was made to satisfy that test.
+- Gradle assembleDebug/testDebugUnitTest/assembleDebugAndroidTest passed.
+  Node syntax checks for build script, prelude, adapter, generated auth/report
+  and git diff --check passed. Only android-app tracked changes.
+- APK: `android-app/artifacts/qPokoy-0.1.5-dev-debug.apk`.
+- main (local and remote), backups, website/PWA/launcher icons, backend/YDB/API,
+  payments, release signing and deployment workflow were not changed.

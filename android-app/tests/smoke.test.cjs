@@ -6,19 +6,46 @@ const path=require('node:path');
 const {JSDOM}=require('jsdom');
 const root=path.join(__dirname,'..');
 const adapter=fs.readFileSync(path.join(root,'android/app/src/main/assets/android-adapter.js'),'utf8');
-test('prototype uses only HTTPS production origin, separate identity/version and no release signing',()=>{
+test('bundle has all local references, early platform adaptation and offline PDF assets',()=>{
+  const info=JSON.parse(fs.readFileSync(path.join(root,'www/bundle-info.json')));
+  assert.match(info.sourceCommit,/^[a-f0-9]{40}$/);
+  assert.equal(info.origin,'https://localhost');
+  for(const page of ['index.html','pricing.html','service.html','offer.html','privacy.html','about.html']){
+    const text=fs.readFileSync(path.join(root,'www',page),'utf8');
+    assert.match(text,/<head>\s*<script src="\/android-platform.js">/);
+    assert.doesNotMatch(text,/<link[^>]+rel="manifest"/);
+    assert.match(text,/android-adapter.js/);
+  }
+  for(const name of info.files)assert.equal(fs.existsSync(path.join(root,'www',name)),true,name);
+  assert.match(fs.readFileSync(path.join(root,'www/js/auth.js'),'utf8'),/window.qPokoyAndroidStartOAuth/);
+  assert.match(fs.readFileSync(path.join(root,'www/js/report-print.js'),'utf8'),/https:\/\/localhost\/vendor\/html2pdf/);
+  assert.equal(fs.existsSync(path.join(root,'www/vendor/html2pdf.bundle.min.js')),true);
+});
+test('offline API failures are controlled and OAuth does not start an unsafe WebView flow',async t=>{
+  const dom=new JSDOM('',{url:'https://localhost/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const w=dom.window;let calls=0;w.fetch=async()=>{calls++;return {status:401};};
+  Object.defineProperty(w.navigator,'onLine',{value:false,configurable:true});
+  w.eval(fs.readFileSync(path.join(root,'android/app/src/main/assets/android-platform.js'),'utf8'));
+  await assert.rejects(w.fetch('https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net/auth/me'),/интернет/);
+  assert.equal(calls,0);
+  await assert.rejects(w.qPokoyAndroidStartOAuth('yandex'),/email/);
+  Object.defineProperty(w.navigator,'onLine',{value:true});
+  assert.equal((await w.fetch('https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net/auth/me')).status,401);
+});
+test('bundled HTTPS localhost origin, separate identity/version and no release signing',()=>{
   const config=JSON.parse(fs.readFileSync(path.join(root,'capacitor.config.json')));
-  assert.equal(config.appId,'ru.qpokoy.app');assert.equal(config.server.url,'https://qpokoy.ru/');
+  assert.equal(config.appId,'ru.qpokoy.app');assert.equal(config.server.url,undefined);
+  assert.equal(config.server.hostname,'localhost');assert.equal(config.server.androidScheme,'https');
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
   assert.equal(config.plugins.SystemBars.insetsHandling,'disable');
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.4-dev"/);assert.match(gradle,/versionCode 5/);
+  assert.match(gradle,/versionName "0.1.5-dev"/);assert.match(gradle,/versionCode 6/);
   assert.doesNotMatch(gradle,/signingConfigs|storePassword|keyPassword/);
   const manifest=fs.readFileSync(path.join(root,'android/app/src/main/AndroidManifest.xml'),'utf8');
   assert.match(manifest,/allowBackup="false"/);assert.match(manifest,/windowSoftInputMode="adjustResize"/);
 });
 test('content top inset preserves existing padding and does not accumulate',t=>{
-  const dom=new JSDOM('<head><style>body{padding-top:7px}#qpAuthGate{padding-top:14px}</style></head><body><div id="qpAuthGate"></div></body>',{url:'https://qpokoy.ru/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const dom=new JSDOM('<head><style>body{padding-top:7px}#qpAuthGate{padding-top:14px}</style></head><body><div id="qpAuthGate"></div></body>',{url:'https://localhost/',runScripts:'outside-only'});t.after(()=>dom.window.close());
   const w=dom.window;w.qPokoyAndroid={postMessage(){}};w.eval(adapter);
   const root=w.document.documentElement;
   w.qPokoyAndroidSetTopInset(48);w.qPokoyAndroidSetTopInset(48);
@@ -29,7 +56,7 @@ test('content top inset preserves existing padding and does not accumulate',t=>{
   w.qPokoyAndroidSetTopInset(0);assert.equal(root.style.getPropertyValue('--qp-android-top'),'0px');
 });
 test('Android Back closes real controls in order without changing website handlers',t=>{
-  const dom=new JSDOM('<div id="qpConfirmOverlay"><button data-confirm-cancel></button></div><div id="categoryPopup" class="open"></div><button id="categorySelect"></button><div id="incomeForm"><button id="cancelIncome"></button></div>',{url:'https://qpokoy.ru/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const dom=new JSDOM('<div id="qpConfirmOverlay"><button data-confirm-cancel></button></div><div id="categoryPopup" class="open"></div><button id="categorySelect"></button><div id="incomeForm"><button id="cancelIncome"></button></div>',{url:'https://localhost/',runScripts:'outside-only'});t.after(()=>dom.window.close());
   const w=dom.window;w.qPokoyAndroid={postMessage(){}};
   w.document.querySelector('[data-confirm-cancel]').onclick=()=>w.document.querySelector('#qpConfirmOverlay').remove();
   w.document.querySelector('#categorySelect').onclick=()=>w.document.querySelector('#categoryPopup').classList.remove('open');
@@ -41,11 +68,11 @@ test('Android Back closes real controls in order without changing website handle
   assert.equal(w.qPokoyAndroidBack(),false);
 });
 test('native print/report transport and PWA suppression are Android-local and installed only once',async t=>{
-  const dom=new JSDOM('',{url:'https://qpokoy.ru/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const dom=new JSDOM('',{url:'https://localhost/',runScripts:'outside-only'});t.after(()=>dom.window.close());
   const w=dom.window,messages=[];w.qPokoyAndroid={postMessage:value=>messages.push(JSON.parse(value))};
   w.fetch=async()=>({text:async()=>'<table><tr><td>123 ₽</td></tr></table>'});
   w.eval(adapter);w.eval(adapter);w.print();assert.deepEqual(messages,[{kind:'print'}]);
   const prompt=new w.Event('beforeinstallprompt',{cancelable:true});w.dispatchEvent(prompt);assert.equal(prompt.defaultPrevented,true);
-  w.open('blob:https://qpokoy.ru/report');await new Promise(resolve=>setImmediate(resolve));
+  w.open('blob:https://localhost/report');await new Promise(resolve=>setImmediate(resolve));
   assert.equal(messages[1].kind,'report');assert.match(messages[1].html,/<table>/);
 });

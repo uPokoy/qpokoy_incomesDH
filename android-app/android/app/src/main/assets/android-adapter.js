@@ -1,4 +1,4 @@
-/* Android-only adapter, injected by MainActivity into the trusted qPokoy origin.
+/* Android-only adapter, loaded by bundled pages on the trusted local origin.
  * The production HTML, CSS, auth, CRUD and API client are not modified. */
 (function(){
   if(window.qPokoyAndroidAdapter||!window.qPokoyAndroid)return;
@@ -42,7 +42,8 @@
     }
     if(url){
       const target=new URL(url,location.href);
-      if(target.origin==='https://qpokoy.ru')location.assign(target.href);
+      if(target.origin===location.origin)location.assign(target.href);
+      else if(target.origin==='https://qpokoy.ru'&&/^\/(?:index\.html|pricing\.html|service\.html|offer\.html|privacy\.html|about\.html)?$/.test(target.pathname))location.assign(target.pathname+target.search+target.hash);
       else send({kind:'external',url:target.href});
       return null;
     }

@@ -9,3 +9,4 @@ android/.kotlin/
 *.jks
 *.keystore
 artifacts/
+www/

@@ -1,14 +1,12 @@
 # qPokoy Android — first technical prototype
 
-**Temporary remote production frontend**, not a bundled/offline release.
-Base web commit: `e80af88504b216c3ef5f1fbe6d9c72fc52274cd4` (DEV386).
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.4-dev`, `versionCode=5`.
+**Bundled frontend**, remote Yandex Cloud API. No local database or new backend.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.5-dev`, `versionCode=6`.
 
 Everything for Android lives in this directory. The website, backend, API,
-YDB, payments and deployment workflow are unchanged. The app loads the current
-`https://qpokoy.ru/`; later website deployments will also appear in this prototype.
-It needs internet. A bundled frontend is a separate next stage requiring an
-explicit Android origin in backend CORS and proper OAuth/email-link return routing.
+YDB, payments and deployment workflow are unchanged. The app starts at
+`https://localhost/`, served by Capacitor from assets physically inside the APK.
+Website deployments do not update an installed APK. Data operations need internet.
 
 ## Build / Android Studio
 
@@ -31,21 +29,36 @@ Install: `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
 No release key is created/committed. Gradle uses ordinary local debug signing;
 debug APK is for Samsung testing, not RuStore publication.
 
-## Offline startup (0.1.4-dev)
+## Updating the bundled frontend
 
-Normal initial loading shows only the dark WebView background (#070C14), with no
-native loading screen. No connectivity at startup, main-frame network/HTTP/TLS
-failure or a 20-second initial load timeout shows the offline screen. Retry hides
-it while loading https://qpokoy.ru/; validated connectivity recovery retries once.
-There is no polling or endless reload. Errors in secondary resources do not activate
-this screen. The packaged offline HTML is a secondary, dark fallback.
+After fetching the desired `origin/main`, run **`npm run sync`** in `android-app`.
+It builds `www` and runs `cap sync android`. `scripts/bundle.cjs` reads committed
+frontend assets using Git, follows HTML/CSS asset references, includes six app/legal
+pages, and does not copy backend, tests, admin, secrets or the web manifest.
+Generated `www` and Capacitor public assets are ignored, not manually maintained.
+`www/bundle-info.json` records the exact source SHA; reproduction uses
+`npm run bundle -- --source-ref <SHA>` followed by `npx cap sync android`.
+It also records the frontend DEV derived from that commit using the existing
+deployment workflow's version baseline/count. Only the bundled copy's DEV and
+asset query strings are prepared; this script never invokes deployment.
 
-Once a page has loaded, network loss only shows a short native notification:
-the WebView, session and document are retained, and recovery does not reload them.
-Internal navigation without connectivity is blocked so it cannot replace that
-page with WebView's network error document. This is not offline income editing.
-ACCESS_NETWORK_STATE supports ConnectivityManager; its callback and timeout are
-removed when the Activity is destroyed. No API cache, database or journal is added.
+Android-only adaptations inject the early platform prelude and native adapter,
+remove the manifest, prevent PWA install/SW registration, retain the remote API,
+and route report PDF scripts to a bundled library. html2pdf.js 0.14.0 is pinned
+(the old web 0.10.1 dependency has high/critical audit findings); the website is
+unchanged. Its license and the existing Yandex decorative SVG are included locally.
+OAuth/PDF source markers are checked so a changed frontend fails the build for review.
+
+## Startup and connectivity
+
+The local UI and internal pages load without internet, over a dark #070C14 native
+background. OfflineGuard, InitialLoadState, their fullscreen overlay, retry/timeout
+machinery and remote offline HTML are removed. API fetch failures have an Android-only
+network message; reconnect and retry the action without restarting. Existing account
+cache/journal behavior is retained; no new offline editor/cache/database is introduced.
+The production gateway currently returns `Access-Control-Allow-Origin: *` for
+https://localhost, including preflight and actual responses. No backend deploy was
+needed; CORS must be rechecked if gateway/backend policy changes.
 
 ## Android-only behavior
 
@@ -62,7 +75,7 @@ removed when the Activity is destroyed. No API cache, database or journal is add
 - Same-origin legal/service/pricing pages stay inside the app. External HTTPS,
   mail and phone links open their system app; arbitrary custom schemes and
   cleartext HTTP are not allowed.
-- A small packaged adapter is injected only into `https://qpokoy.ru/`. It bridges
+- A small packaged adapter runs only on trusted `https://localhost/`. It bridges
   report HTML, Android printing, and Blob export downloads. Files are saved
   through the Android document picker, not broad storage permissions.
   Messages accept only the trusted origin and main frame, with size limits.
@@ -71,21 +84,26 @@ removed when the Activity is destroyed. No API cache, database or journal is add
   unchanged website cleanup. Clearing app data removes the session.
 - No service-worker registration exists in the inspected web source; the PWA
   install prompt is also suppressed in the Android adapter. No second PWA shell.
-- Launcher icons retain the existing PWA document/plus mark as Android-only vector
-  foreground, with a separate dark background and a 66dp safe zone. Android 13+
-  has a monochrome resource. Legacy PNGs are exported from the same Android vector;
+- Launcher icons retain the accepted exact PWA image and existing adaptive padding.
+  Android 13+ retains its monochrome resource. Existing legacy PNGs are unchanged;
   the website's original PWA icons are unchanged. `LauncherIconTest` also exports
   mask previews and legacy assets using Android's renderer.
 
 ## Known limits / next stage
 
-- Yandex OAuth opens the system browser. Its existing web callback cannot put
-  the resulting session back into this app. **Not claimed supported.** Add a
+- Yandex OAuth shows an explicit unsupported message instead of starting a flow
+  that cannot return a session to the app. **Not claimed supported.** Add a
   verified Android App Link / secure callback exchange in a dedicated stage;
   never move session tokens into URLs or allow third-party pages onto the native bridge.
 - Registration verification and password-reset email links currently open the
   website/browser. The restored password can be used for email login in the app;
   seamless return is part of the App Link stage.
+- Remote-WebView localStorage is not copied to the new origin. Sign in again once;
+  cloud data is retained. Bearer tokens remain private to the local app origin,
+  without cross-origin cookies, SameSite workarounds or credentials embedded in APK.
+- Payment confirmation opens the external HTTPS browser. The existing return URL
+  remains the website; automatic Android return is not implemented or claimed.
+  Reopen the app and refresh subscription status. No real charge was made for tests.
 - RuStore Pay, billing changes, release signing, store listing and publication
   are deliberately absent. Opening pricing does not mean payment integration
   has been approved or tested.

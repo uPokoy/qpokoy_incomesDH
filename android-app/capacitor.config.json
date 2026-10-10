@@ -4,9 +4,9 @@
   "webDir": "www",
   "loggingBehavior": "debug",
   "server": {
-    "url": "https://qpokoy.ru/",
-    "cleartext": false,
-    "errorPath": "offline.html"
+    "hostname": "localhost",
+    "androidScheme": "https",
+    "cleartext": false
   },
   "android": {
     "allowMixedContent": false
