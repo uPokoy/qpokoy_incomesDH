@@ -175,3 +175,55 @@ background above the WebView on Samsung. That padding has been removed.
   SHA256: 56ff80bf927792481fef4557dd91aeee4ae203c305d3abd9b6a53a290cc9113d.
 - Local previews: `artifacts/adaptive-icon-masks.png`,
   `artifacts/adaptive-icon-monochrome.png`, `artifacts/icon-launcher.png`.
+
+## 0.1.3-dev / code 4 — native first-load offline fallback
+
+- The old errorPath was an unstyled white HTML page, with no native first-load
+  guard or load deadline. The custom link handler also did not recognize its
+  https://localhost/offline.html URL. Exact Samsung-specific behavior is not
+  independently diagnosed here (no physical device connected).
+- Native dark loading/offline overlay; retry is local and network-aware. Main-frame
+  network/HTTP errors and certificate cancellation do not invoke Capacitor's
+  destructive errorPath navigation. A 20-second first-load deadline prevents a
+  permanently blank/loading WebView. Secondary resources do not own offline UI.
+- ConnectivityManager validated network transitions retry a failed initial load
+  once; loaded documents are never reloaded on network loss/recovery. Offline
+  internal navigation is blocked, loss shows a short Toast. Callback, timeout and
+  Toast are cleaned up on Activity destruction. ACCESS_NETWORK_STATE added.
+- API 36 emulator: online cold start, force-stop + cold start with Wi-Fi/data OFF,
+  repeat OFF, automatic recovery without Activity replacement, network loss and
+  recovery retaining the same JavaScript document marker, background/resume,
+  Activity recreation and Android Back passed. Offline portrait and landscape
+  screens visually checked; no white background or clipped controls.
+- Verification of preserved loaded content used the real production login page;
+  no credentials, income operations or user financial data were needed.
+- Automated checks: Android smoke 4/4, InitialLoadState JUnit 5/5,
+  OfflineGuardTest instrumentation 3/3. assembleDebug passes; diff whitespace check
+  passes. Individual DNS/refused/HTTP-server outages were not forced against the
+  production host; their main-frame callbacks share the tested fallback state.
+- API 26 image installed for this task: native cold-offline screen and retry OFF
+  passed with privileged emulator airplane mode; restoring network loaded the
+  remote document automatically with the same process (PID 5458). The automated
+  radio-OFF fixture failed its network precondition on this old image (Wi-Fi
+  remained validated); it is not counted as a successful instrumentation test.
+- API 26's bundled Chrome/System WebView 69 cannot correctly render the current
+  production CSS; full online appearance on that outdated runtime did not pass.
+  This needs an updated System WebView, not a production CSS change in this patch.
+  No physical Samsung/USB device is connected: physical verification remains open.
+- Artifact: artifacts/qPokoy-0.1.3-dev-debug.apk. Website, backend, main, backups,
+  icon resources and signing configuration unchanged.
+
+Files changed by this offline patch (all paths relative to android-app/):
+- README.md; VERIFICATION.md
+- package.json; package-lock.json; tests/smoke.test.cjs
+- www/offline.html (copied into the ignored packaged public assets for this APK)
+- android/app/build.gradle; android/app/src/main/AndroidManifest.xml
+- android/app/src/main/java/ru/qpokoy/app/MainActivity.java
+- android/app/src/main/java/ru/qpokoy/app/OfflineGuard.java
+- android/app/src/main/java/ru/qpokoy/app/InitialLoadState.java
+- android/app/src/main/res/layout/qpokoy_offline.xml
+- android/app/src/main/res/drawable/offline_button.xml
+- android/app/src/main/res/values/offline_strings.xml
+- android/app/src/main/res/values/styles.xml
+- android/app/src/test/java/ru/qpokoy/app/InitialLoadStateTest.java
+- android/app/src/androidTest/java/ru/qpokoy/app/OfflineGuardTest.java

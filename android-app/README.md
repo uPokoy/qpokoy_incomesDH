@@ -2,7 +2,7 @@
 
 **Temporary remote production frontend**, not a bundled/offline release.
 Base web commit: `e80af88504b216c3ef5f1fbe6d9c72fc52274cd4` (DEV386).
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.2-dev`, `versionCode=3`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.3-dev`, `versionCode=4`.
 
 Everything for Android lives in this directory. The website, backend, API,
 YDB, payments and deployment workflow are unchanged. The app loads the current
@@ -30,6 +30,22 @@ APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 Install: `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
 No release key is created/committed. Gradle uses ordinary local debug signing;
 debug APK is for Samsung testing, not RuStore publication.
+
+## Offline startup (0.1.3-dev)
+
+A native dark overlay covers the initial WebView until the first successful main
+frame becomes visible. Main-frame network/HTTP/TLS failure or a 20-second initial
+load timeout keeps the offline screen visible. Retry checks connectivity and loads
+https://qpokoy.ru/; a transition back to validated connectivity retries once.
+There is no polling or endless reload. Errors in secondary resources do not activate
+this screen. The packaged offline HTML is a secondary, dark fallback.
+
+Once a page has loaded, network loss only shows a short native notification:
+the WebView, session and document are retained, and recovery does not reload them.
+Internal navigation without connectivity is blocked so it cannot replace that
+page with WebView's network error document. This is not offline income editing.
+ACCESS_NETWORK_STATE supports ConnectivityManager; its callback and timeout are
+removed when the Activity is destroyed. No API cache, database or journal is added.
 
 ## Android-only behavior
 

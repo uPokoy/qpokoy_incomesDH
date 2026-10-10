@@ -8,6 +8,10 @@ import android.print.PrintManager;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceResponse;
+import android.webkit.SslErrorHandler;
+import android.net.http.SslError;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -38,6 +42,7 @@ public class MainActivity extends BridgeActivity {
     private AlertDialog reportDialog;
     private byte[] pendingDownload;
     private ActivityResultLauncher<Intent> saveDocument;
+    private OfflineGuard offline;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -60,16 +65,44 @@ public class MainActivity extends BridgeActivity {
             } catch (Exception error) { toast("Не удалось сохранить файл"); }
         });
         WebView view=bridge.getWebView();
+        offline=new OfflineGuard(this,view,"https://qpokoy.ru/");
+        offline.setTopInset(topSafeInset);
         installMessages(view);
-        view.setWebViewClient(new BridgeWebViewClient(bridge){
+        bridge.setWebViewClient(new BridgeWebViewClient(bridge){
+            @Override public void onPageStarted(WebView web,String url,android.graphics.Bitmap favicon) {
+                super.onPageStarted(web,url,favicon);
+                if(isInternal(Uri.parse(url)))offline.started();
+            }
+            @Override public void onPageCommitVisible(WebView web,String url) {
+                super.onPageCommitVisible(web,url);
+                if(isInternal(Uri.parse(url)))offline.committed();
+            }
             @Override public void onPageFinished(WebView web,String url) {
                 super.onPageFinished(web,url);
-                if(isInternal(Uri.parse(url)))web.evaluateJavascript(adapter+";"+topInsetScript(),null);
+                if(isInternal(Uri.parse(url))&&!offline.hasInitialFailure())web.evaluateJavascript(adapter+";"+topInsetScript(),null);
+            }
+            @Override public void onReceivedError(WebView web,WebResourceRequest request,WebResourceError error) {
+                if(request.isForMainFrame()) {
+                    // Own main-frame fallback; Capacitor's errorPath navigation would
+                    // replace the current document, including after a successful load.
+                    offline.failFirstLoad();return;
+                }
+                super.onReceivedError(web,request,error);
+            }
+            @Override public void onReceivedHttpError(WebView web,WebResourceRequest request,WebResourceResponse response) {
+                if(request.isForMainFrame()) {offline.failFirstLoad();return;}
+                super.onReceivedHttpError(web,request,response);
+            }
+            @Override public void onReceivedSslError(WebView web,SslErrorHandler handler,SslError error) {
+                handler.cancel(); // Never bypass certificate validation.
+                if(error.getUrl()!=null&&error.getUrl().equals(web.getUrl()))offline.failFirstLoad();
             }
             @Override public boolean shouldOverrideUrlLoading(WebView web,WebResourceRequest request) {
                 if(!request.isForMainFrame())return super.shouldOverrideUrlLoading(web,request);
                 Uri uri=request.getUrl();
-                if(isInternal(uri))return false;
+                if(isInternal(uri))return !offline.allowNavigation();
+                // Retain Capacitor's local error document as a secondary fallback.
+                if(uri.toString().equals(bridge.getErrorUrl()))return false;
                 external(uri);return true;
             }
         });
@@ -81,14 +114,26 @@ public class MainActivity extends BridgeActivity {
         getOnBackPressedDispatcher().addCallback(this,new OnBackPressedCallback(true){
             @Override public void handleOnBackPressed(){
                 if(reportDialog!=null&&reportDialog.isShowing()){reportDialog.dismiss();return;}
+                if(offline.blocksPage()){confirmExit();return;}
                 view.evaluateJavascript("Boolean(window.qPokoyAndroidBack && window.qPokoyAndroidBack())",handled->{
                     if("true".equals(handled))return;
                     if(view.canGoBack())view.goBack();
-                    else new AlertDialog.Builder(MainActivity.this).setMessage("Закрыть qPokoy?")
-                        .setNegativeButton("Остаться",null).setPositiveButton("Закрыть",(dialog,which)->finish()).show();
+                    else confirmExit();
                 });
             }
         });
+    }
+    private void confirmExit(){
+        new AlertDialog.Builder(this).setMessage("Закрыть qPokoy?")
+            .setNegativeButton("Остаться",null).setPositiveButton("Закрыть",(dialog,which)->finish()).show();
+    }
+    @Override public void onResume(){
+        super.onResume();
+        if(offline!=null)offline.refreshNetwork();
+    }
+    @Override public void onDestroy(){
+        if(offline!=null)offline.destroy();
+        super.onDestroy();
     }
     @SuppressWarnings("deprecation")
     private void installTopSafeArea(){
@@ -106,6 +151,7 @@ public class MainActivity extends BridgeActivity {
             Insets bars=insets.getInsets(WindowInsetsCompat.Type.systemBars()|WindowInsetsCompat.Type.displayCutout());
             Insets ime=insets.getInsets(WindowInsetsCompat.Type.ime());
             topSafeInset=bars.top;
+            if(offline!=null)offline.setTopInset(topSafeInset);
             view.setPadding(bars.left,0,bars.right,Math.max(bars.bottom,ime.bottom));
             WebView web=bridge.getWebView();
             if(isInternal(Uri.parse(web.getUrl()==null?"":web.getUrl())))web.evaluateJavascript(topInsetScript(),null);
