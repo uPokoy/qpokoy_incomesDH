@@ -2352,9 +2352,9 @@ html[data-theme="dark"] body.qp-bg-standard > .app{
   /* Tighten the chart-to-collapse spacing. */
   
 
-  /* Exactly one row with two recent-income cards. */
+  /* One full-width recent-income card per mobile page. */
   #income .income-recent.qp-mobile-recent-stack .income-recent-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-columns:minmax(0,1fr) !important;
     grid-template-rows:1fr !important;
     gap:8px !important;
   }
