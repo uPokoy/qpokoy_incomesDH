@@ -77,7 +77,7 @@ public class ReadCachePlugin extends Plugin {
     }
     @PluginMethod public void clear(PluginCall call){
         generation.incrementAndGet();worker.execute(()->{
-            // Never delete the database: it may contain unconfirmed offline additions.
+            // Never delete the database: it may contain unconfirmed offline operations.
             try{database.clear();call.resolve();}catch(Exception error){call.reject("Cannot clear read cache");}
         });
     }
@@ -95,6 +95,14 @@ public class ReadCachePlugin extends Plugin {
                 database.enqueueEdit(call.getString("sessionHash"),call.getString("userId"),call.getObject("income"));
                 JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getString("userId")));call.resolve(result);
             }catch(Exception error){call.reject("Cannot save local income edit");}
+        });
+    }
+    @PluginMethod public void enqueueDelete(PluginCall call){
+        long epoch=generation.get();worker.execute(()->{
+            try{if(epoch!=generation.get())throw new IllegalStateException("Session changed");
+                database.enqueueDelete(call.getString("sessionHash"),call.getString("userId"),call.getString("operationId"),call.getString("incomeId"),call.getLong("createdAt",0L),call.getBoolean("collapseUnsentAdd",false));
+                JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getString("userId")));call.resolve(result);
+            }catch(Exception error){call.reject("Cannot save local income deletion");}
         });
     }
     @PluginMethod public void pendingState(PluginCall call){worker.execute(()->{

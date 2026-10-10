@@ -1,10 +1,10 @@
-/* Android-only confirmed SQLite snapshots and durable create/update outbox. Credentials stay in api-client. */
+/* Android-only confirmed SQLite snapshots and durable create/update/delete outbox. Credentials stay in api-client. */
 (function(root,factory){
   const exported=factory();
   if(typeof module==='object'&&module.exports)module.exports=exported;
   if(root?.qPokoyApi&&root.Capacitor){
     const native=method=>options=>root.Capacitor.nativePromise('QPokoyReadCache',method,options||{});
-    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
+    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),enqueueDelete:native('enqueueDelete'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
       fingerprint:async token=>Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))).map(b=>b.toString(16).padStart(2,'0')).join(''),
       online:()=>root.qPokoyAndroidNetwork.available,networkState:options=>root.qPokoyAndroidNetwork.read(options),clock:()=>Date.now(),notify:()=>root.qPokoyNotice?.('Нет подключения к интернету','Дождитесь подключения и завершения синхронизации.','error')});
     root.qPokoyAndroidCache=cache;
@@ -43,22 +43,24 @@
   }
   function create({api,db,fingerprint,online,networkState=async()=>{},clock=Date.now,notify=()=>{},uuid=()=>globalThis.crypto.randomUUID()}){
     const bootstrap=api.bootstrap.bind(api);
-    const sendAdd=api.addIncome?.bind(api),sendUpdate=api.updateIncome?.bind(api);
+    const sendAdd=api.addIncome?.bind(api),sendUpdate=api.updateIncome?.bind(api),sendDelete=api.deleteIncome?.bind(api);
     let epoch=0,current=null,binding=null,validatedToken=null,displayed=false,renderedSignature=null,hydrate=null,refreshJob=null,refreshEpoch=0,clearJob=Promise.resolve(),mutations=0,view=null;
     let pending=[],syncJob=null,retryTimer=null;
+    const inFlight=new Set();
     const metrics={};
     // Safe stage-only diagnostics: never log account IDs, tokens or income data.
     const diagnostic={stage:'idle',code:null};
     const pendingWarning='Есть доходы, которые ещё не синхронизированы. Подключитесь к интернету и дождитесь синхронизации перед выходом.';
     function setPending(rows,uid){
       if(!Array.isArray(rows))return;
-      if(rows.some(row=>row.user_id!==uid||!uuidPattern.test(row.income_id)||!uuidPattern.test(row.operation_id)))throw new Error('Invalid pending account binding');
+      if(rows.some(row=>row.user_id!==uid||!uuidPattern.test(row.income_id)||!uuidPattern.test(row.operation_id)||!['add','update','delete'].includes(row.kind)))throw new Error('Invalid pending account binding');
       pending=rows;
     }
     function combined(){
       if(!current)return null;
       const rowsById=new Map(current.incomes.map(row=>[row.id,row]));
       for(const row of pending){
+        if(row.kind==='delete'){rowsById.delete(row.income_id);continue;}
         const old=rowsById.get(row.income_id);
         rowsById.set(row.income_id,{...old,id:row.income_id,user_id:row.user_id,...incomeValue(row),created_at:old?.created_at||new Date(row.created_at).toISOString()});
       }
@@ -67,12 +69,15 @@
       rows.sort((a,b)=>b.income_date.localeCompare(a.income_date)||(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0));
       return {...current,incomes:rows};
     }
-    const shownSignature=()=>current?signature(combined())+JSON.stringify(pending.map(row=>[row.income_id,row.status,row.error_code])):null;
+    const shownSignature=()=>current?signature(combined())+JSON.stringify(pending.map(row=>[row.income_id,row.kind,row.status,row.error_code])):null;
     async function paint(cached=false){
       const data=combined();if(!data)return;
       const next=shownSignature();if(!displayed||renderedSignature!==next){await hydrate?.(cached?{...data,user:{...data.user,onboarding_completed:true}}:data,cached);displayed=true;renderedSignature=next;}
     }
-    function pendingLabel(id){const row=pending.find(row=>row.income_id===String(id));return !row?'':row.status==='error'?'Не синхронизирован: ошибка сервера':row.status==='auth_required'?'Требуется вход для синхронизации':'Ожидает синхронизации';}
+    function pendingLabel(id){
+      const row=pending.find(row=>row.income_id===String(id));
+      return !row||row.kind==='delete'?'':row.status==='error'?'Не синхронизирован: ошибка сервера':row.status==='auth_required'?'Требуется вход для синхронизации':'Ожидает синхронизации';
+    }
     async function guardPending(){
       if(pending.length||(binding&&db.pendingCount&&(await db.pendingCount({sessionHash:binding})).count)){
         const error=new Error(pendingWarning);error.code='android_pending_logout';view?.qPokoyNotice?.('Несинхронизированные доходы',pendingWarning,'error');throw error;
@@ -89,7 +94,7 @@
       current=value;binding=hash;setPending(stored?.pending,value.user.user_id);return true;
     }
     function purge(){
-      epoch++;current=null;binding=null;validatedToken=null;displayed=false;renderedSignature=null;pending=[];
+      epoch++;current=null;binding=null;validatedToken=null;displayed=false;renderedSignature=null;pending=[];inFlight.clear();
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
       if(view){
         view.qPokoyAuth?.showGate(true);view.IncomeStore.save([]);void view.qPokoyLoadCategories?.(null);
@@ -185,8 +190,37 @@
       scheduleRetry();
       diagnostic.stage='committed';
       // Leave the submit continuation free to close the form first. The network
-      // is only used in this later task; even a hung POST cannot delay CREATE.
+      // is only used in this later task; even a hung request cannot delay the commit.
       view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
+    }
+    async function enqueueDelete(id){
+      diagnostic.stage='delete-account-binding';diagnostic.code=null;
+      const token=api.getToken(),uid=current?.user.user_id,hash=binding,incomeId=String(id);
+      const digest=await identity(token);
+      if(!db.enqueueDelete)throw new Error('Нет подключения к интернету или локальное удаление недоступно.');
+      if(!current||!hash||!token||hash!==digest||token!==api.getToken()||uid!==current.user.user_id||binding!==hash)throw new Error('Локальное удаление недоступно: сначала войдите и загрузите данные с сервера.');
+      if(!uuidPattern.test(incomeId))throw new Error('Некорректный ID дохода');
+      const existing=pending.find(row=>row.income_id===incomeId);
+      if(existing?.kind==='delete')return view?.IncomeStore.load?.()||[];
+      if(!combined().incomes.some(row=>row.id===incomeId))throw new Error('Доход недоступен локально');
+      // Only a never-attempted ADD that is not currently in-flight is guaranteed
+      // to be absent from the server and may collapse to nothing.
+      const collapseUnsentAdd=existing?.kind==='add'&&(existing.attempts||0)===0&&!inFlight.has(existing.operation_id);
+      const run=++epoch;
+      diagnostic.stage='sqlite-delete';
+      const result=await db.enqueueDelete({sessionHash:hash,userId:uid,operationId:uuid(),incomeId,createdAt:clock(),collapseUnsentAdd});
+      metrics.sqliteCommit=performance.now();
+      if(run!==epoch||token!==api.getToken())return view?.IncomeStore.load?.()||[];
+      setPending(result.pending,uid);
+      const rows=combined().incomes.map(row=>({id:row.id,date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description}));
+      if(view){
+        view.IncomeStore.save(rows);displayed=true;renderedSignature=shownSignature();
+        view.applyIncomeHeaderFilters?.();view.renderIncomeAnalytics?.();
+      }else await paint(true);
+      scheduleRetry();diagnostic.stage='delete-committed';
+      // DELETE is local-first too: never await transport before hiding the row.
+      view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
+      return rows;
     }
     function scheduleRetry(){
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
@@ -198,14 +232,30 @@
     }
     async function syncPending(){
       if(syncJob){const active=syncJob;await active;if(canWrite()&&pending.some(row=>row.status!=='error'&&(row.next_attempt_at||0)<=clock()))return syncPending();return;}
-      if(!canWrite()||!pending.length||!sendAdd||mutations||view?.document.visibilityState==='hidden')return;
+      if(!canWrite()||!pending.length||mutations||view?.document.visibilityState==='hidden')return;
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
       const token=api.getToken(),run=epoch,uid=current.user.user_id,hash=binding;
       const job=(async()=>{
         for(const operation of [...pending]){
           if(run!==epoch||!canWrite()||operation.status==='error'||(operation.next_attempt_at||0)>clock())continue;
+          if(operation.kind==='add'&&!sendAdd||operation.kind==='update'&&!sendUpdate||operation.kind==='delete'&&!sendDelete)continue;
           let timeout;
+          inFlight.add(operation.operation_id);
           try{
+            if(operation.kind==='delete'){
+              try{
+                await Promise.race([sendDelete(operation.income_id),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
+              }catch(error){
+                // The backend returns 404/not_found only when this account-scoped
+                // UUID is already absent, which is the desired final state.
+                if(!(error.status===404&&error.code==='not_found'))throw error;
+              }finally{clearTimeout(timeout);}
+              if(run!==epoch||token!==api.getToken())break;
+              const value={...current,incomes:current.incomes.filter(row=>row.id!==operation.income_id)};
+              if(!await save(snapshot(value,clock()),token,run))break;
+              await paint();
+              continue;
+            }
             const payload={id:operation.income_id,client_mutation_id:operation.income_id,...incomeValue(operation)};
             let saved;
             try{
@@ -233,7 +283,7 @@
               await paint();
             }
             if(auth||!permanent||status===402||status===403)break;
-          }
+          }finally{inFlight.delete(operation.operation_id);}
         }
       })();
       syncJob=job;try{await job;}finally{if(syncJob===job)syncJob=null;scheduleRetry();}
@@ -264,7 +314,7 @@
       const originalDelete=api.deleteAccount.bind(api);
       api.deleteAccount=async(...args)=>{requireWrite();await guardPending();const result=await originalDelete(...args);await purge();return result;};
       api.bootstrap=async()=>{const result=await fetchSnapshot();if(result===undefined)throw new Error('Сессия изменилась');if(result)view?.setTimeout(()=>{void syncPending().catch(()=>{});},0);return result?.data||null;};
-      // Guard every existing server mutation, including direct API callers.
+      // Guard every existing direct server mutation, including direct API callers.
       for(const name of ['addIncome','updateIncome','deleteIncome','deleteAllIncomes','replaceIncomes','addCategory','deleteCategory','putSetting','completeOnboarding','createPayment','setBillingAutoRenew']){
         const original=api[name]?.bind(api);if(!original)continue;
         api[name]=async(...args)=>{
@@ -277,7 +327,7 @@
           finally{mutations--;if(!failedTransport)w.setTimeout(()=>{if(!mutations)void (refreshJob||Promise.resolve()).catch(()=>{}).then(()=>refresh()).catch(()=>{});},0);}
         };
       }
-      // Android CREATE and UPDATE both await SQLite only.
+      // Android CREATE, UPDATE and DELETE all await SQLite only.
       const store=w.IncomeStore;
       const uiToRow=record=>{const parts=record.date.split('.');return {...record,income_date:(parts[2].length===2?'20'+parts[2]:parts[2])+'-'+parts[1]+'-'+parts[0]};};
       for(const name of ['add','update'])store[name]=async(...args)=>{
@@ -300,12 +350,19 @@
           throw error;
         }
       };
-      store.remove=async id=>{requireWrite();if(pending.some(row=>row.income_id===String(id)))throw new Error('Дождитесь синхронизации дохода.');const token=api.getToken();await api.deleteIncome(id);if(token!==api.getToken())return null;const rows=store.save(store.load().filter(row=>String(row.id)!==String(id)));w.applyIncomeHeaderFilters?.();w.renderIncomeAnalytics?.();return rows;};
+      store.remove=async id=>{
+        try{return await enqueueDelete(id);}
+        catch(error){
+          diagnostic.code=typeof error.code==='string'?error.code:'android_delete_failed';
+          console.warn('[qPokoy Android delete]',JSON.stringify(diagnostic));
+          throw error;
+        }
+      };
       store.addMany=async records=>{requireWrite();for(const record of records)await store.add(record);return store.load();};
-      const blocked='.delete-income,.income-recent-delete,.income-recent-mobile-delete,#qpCategoryAdd,.qp-category-delete,.category-popup-create-btn,#clearIncomeDataBtn,#qpAuthDeleteAccountBtn';
+      const blocked='#qpCategoryAdd,.qp-category-delete,.category-popup-create-btn,#clearIncomeDataBtn,#qpAuthDeleteAccountBtn';
       w.document.addEventListener('click',event=>{
-        const target=event.target.closest?.(blocked),id=target?.getAttribute('data-id');
-        if(target&&(!canWrite()||pending.some(row=>row.income_id===id))){event.preventDefault();event.stopImmediatePropagation();notify();}
+        const target=event.target.closest?.(blocked);
+        if(target&&!canWrite()){event.preventDefault();event.stopImmediatePropagation();notify();}
         if(event.target.closest?.('#qpAuthLogoutBtn')&&pending.length){event.preventDefault();event.stopImmediatePropagation();w.qPokoyNotice?.('Несинхронизированные доходы',pendingWarning,'error');}
       },true);
       w.addEventListener('online',()=>{void (refreshJob||Promise.resolve()).catch(()=>{}).then(()=>refresh()).catch(()=>{});});
@@ -323,7 +380,7 @@
       }
     }
     const pendingMarkup=id=>{const label=pendingLabel(id);return label?'<small data-android-pending style="display:block;opacity:.7;white-space:normal;overflow-wrap:anywhere;line-height:1.2">'+label+'</small>':'';};
-    return {start,refresh,purge,install,requireWrite,enqueue,syncPending,pendingLabel,pendingMarkup,metrics,get diagnostic(){return {...diagnostic};},get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
+    return {start,refresh,purge,install,requireWrite,enqueue,enqueueDelete,syncPending,pendingLabel,pendingMarkup,metrics,get diagnostic(){return {...diagnostic};},get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
   }
   return {create,snapshot,incomeValue,transportError,schemaVersion};
 });

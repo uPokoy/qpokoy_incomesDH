@@ -14,7 +14,7 @@ import java.security.MessageDigest;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-/** Confirmed snapshots and a separately durable, account-bound create/update outbox. */
+/** Confirmed snapshots and a separately durable, account-bound create/update/delete outbox. */
 final class ReadCacheDatabase extends SQLiteOpenHelper {
     static final int VERSION=1;
     static final int DATABASE_VERSION=3;
@@ -32,7 +32,7 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
     @Override public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion){if(oldVersion<2)createOutbox(db);
         else if(oldVersion==2)db.execSQL("ALTER TABLE pending_adds ADD COLUMN kind TEXT NOT NULL DEFAULT 'add'");}
     @Override public void onDowngrade(SQLiteDatabase db,int oldVersion,int newVersion){reset(db);}
-    // A disposable snapshot may be reset; unconfirmed user additions must survive.
+    // A disposable snapshot may be reset; unconfirmed user operations must survive.
     private void reset(SQLiteDatabase db){db.execSQL("DROP TABLE IF EXISTS snapshots");onCreate(db);}
     static void checkHash(String hash){if(hash==null||!hash.matches("[a-f0-9]{64}"))throw new IllegalArgumentException("Invalid session binding");}
     static void validate(JSONObject snapshot,String userId) throws Exception {
@@ -60,17 +60,26 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
             ContentValues session=new ContentValues();session.put("session_hash",hash);
             db.update("pending_adds",session,"user_id=?",new String[]{uid});
             JSONArray incomes=snapshot.getJSONArray("incomes");
-            // ID alone is not an ACK: reconcile the latest desired payload,
-            // including edits committed during an older request/response.
+            // Reconcile by immutable UUID. DELETE tombstones win over a server
+            // snapshot until the authoritative row is absent.
             try(Cursor pending=db.query("pending_adds",null,"user_id=?",new String[]{uid},null,null,null)){
-                while(pending.moveToNext())for(int i=0;i<incomes.length();i++){
-                    JSONObject server=incomes.getJSONObject(i);
+                while(pending.moveToNext()){
                     String id=pending.getString(pending.getColumnIndexOrThrow("income_id"));
-                    if(!id.equals(server.getString("id")))continue;
+                    String kind=pending.getString(pending.getColumnIndexOrThrow("kind"));
+                    JSONObject server=null;
+                    for(int i=0;i<incomes.length();i++){
+                        JSONObject candidate=incomes.getJSONObject(i);
+                        if(id.equals(candidate.getString("id"))){server=candidate;break;}
+                    }
+                    if("delete".equals(kind)){
+                        if(server==null)db.delete("pending_adds","user_id=? AND income_id=?",new String[]{uid,id});
+                        continue;
+                    }
+                    if(server==null)continue;
                     boolean equal=server.getDouble("amount")==pending.getDouble(pending.getColumnIndexOrThrow("amount"));
                     for(String key:new String[]{"income_date","category","description"})equal &= server.getString(key).equals(pending.getString(pending.getColumnIndexOrThrow(key)));
                     if(equal)db.delete("pending_adds","user_id=? AND income_id=?",new String[]{uid,id});
-                    else if("add".equals(pending.getString(pending.getColumnIndexOrThrow("kind")))){
+                    else if("add".equals(kind)){
                         ContentValues update=new ContentValues();update.put("kind","update");update.put("status","pending");update.put("next_attempt_at",0);update.put("error_code","");
                         db.update("pending_adds",update,"user_id=? AND income_id=?",new String[]{uid,id});
                     }
@@ -143,9 +152,44 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
                     if(c.moveToFirst()){kind=c.getString(0);values.put("created_at",c.getLong(1));}
                 }
                 if(kind==null&&!exists)throw new IllegalArgumentException("Income unavailable locally");
+                if("delete".equals(kind))throw new IllegalArgumentException("Income is pending deletion");
                 values.put("kind",kind==null?"update":kind);values.put("attempts",0);values.put("next_attempt_at",0);values.put("error_code","");
                 db.delete("pending_adds","session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,row.getString("income_id")});
             }
+            db.insertOrThrow("pending_adds",null,values);db.setTransactionSuccessful();
+        }finally{db.endTransaction();}
+    }
+    void enqueueDelete(String hash,String uid,String operationId,String incomeId,long createdAt,boolean collapseUnsentAdd) throws Exception {
+        bound(hash,uid);uuid(operationId);uuid(incomeId);
+        if(createdAt<=0)throw new IllegalArgumentException("Invalid creation timestamp");
+        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+        try{
+            String oldKind=null,date=null,category=null,description=null;double amount=0;long queueCreated=createdAt;
+            try(Cursor c=db.query("pending_adds",null,"session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,incomeId},null,null,null)){
+                if(c.moveToFirst()){
+                    oldKind=c.getString(c.getColumnIndexOrThrow("kind"));
+                    if("delete".equals(oldKind)){db.setTransactionSuccessful();return;}
+                    if("add".equals(oldKind)&&collapseUnsentAdd){
+                        db.delete("pending_adds","session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,incomeId});
+                        db.setTransactionSuccessful();return;
+                    }
+                    date=c.getString(c.getColumnIndexOrThrow("income_date"));
+                    category=c.getString(c.getColumnIndexOrThrow("category"));
+                    description=c.getString(c.getColumnIndexOrThrow("description"));
+                    amount=c.getDouble(c.getColumnIndexOrThrow("amount"));
+                    queueCreated=c.getLong(c.getColumnIndexOrThrow("created_at"));
+                }
+            }
+            if(oldKind==null){
+                JSONArray confirmed=read(hash).getJSONArray("incomes");JSONObject existing=null;
+                for(int i=0;i<confirmed.length();i++)if(incomeId.equals(confirmed.getJSONObject(i).getString("id"))){existing=confirmed.getJSONObject(i);break;}
+                if(existing==null)throw new IllegalArgumentException("Income unavailable locally");
+                date=existing.getString("income_date");category=existing.getString("category");description=existing.getString("description");amount=existing.getDouble("amount");
+            }
+            ContentValues values=new ContentValues();values.put("operation_id",operationId);values.put("income_id",incomeId);values.put("user_id",uid);values.put("session_hash",hash);
+            values.put("income_date",date);values.put("amount",amount);values.put("category",category);values.put("description",description);values.put("created_at",queueCreated);
+            values.put("status","pending");values.put("attempts",0);values.put("next_attempt_at",0);values.put("error_code","");values.put("kind","delete");
+            db.delete("pending_adds","session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,incomeId});
             db.insertOrThrow("pending_adds",null,values);db.setTransactionSuccessful();
         }finally{db.endTransaction();}
     }
