@@ -1,5 +1,34 @@
 # Prototype verification — 2026-10-09
 
+## DEV402 frontend bundle — 2026-10-10, 0.1.10-dev / code 11
+
+Starting Android HEAD: `2b385c9fd9cbe86cfef642ab93cec7861d697da7`.
+Source main: `6fe773d1ec56983889ef9878919d3d1dfc2f2648`, DEV402.
+No main/backend/backup edits or deployment. Web and offline adapters unchanged.
+
+- Updated package/Gradle version and pending-status build marker: inject into the
+  date element without depending on the following edit button. Main's new mobile
+  description remains intact. Build still reads committed main; mobile.css equals
+  the source file exactly. No desktop CSS or markup adaptations added.
+- Android Node tests: 61/61, including bundled description/pending markup and exact
+  source CSS equality, offline create, held SQLite commit, sync and idempotency.
+- Gradle test and assembleDebug/assembleDebugAndroidTest passed; six JVM tests,
+  zero failures. APK metadata confirms 0.1.10-dev / 11. Packaged bundle-info,
+  app.js, mobile.css, platform/cache adapters match synced files exactly.
+- API36 Android emulator: durable offline prepare passed with long category and
+  description at 320/360/375/390/412/430 CSS px. One card; amount/category do not
+  overlap, date below amount, description below date, pending label fits and no
+  page horizontal overflow. No probes/POSTs during known-offline creation.
+- Force-stop/restart passed; pending records retained. Restored network sync
+  passed: exactly three cloud UUIDs, correct 2136 RUB total, empty pending journal.
+  All own fixture rows/category removed and absence confirmed after reload.
+- Explicit authenticated regression run passed 3/3: online UI CRUD/reload, session
+  restore, lost-response retry with the same UUID. These tests cleaned their own
+  fixtures. No offline production code was changed by this update.
+
+APK: `android-app/artifacts/qPokoy-0.1.10-dev-debug.apk`.
+Physical Samsung not tested; install this new bundled APK to receive DEV402.
+
 ## Offline UX, ordering, single mobile card — 2026-10-10, 0.1.9-dev / code 10
 
 Starting Android HEAD: `47fd49511e6ff3780ff45dc6b2806ea908578959`.

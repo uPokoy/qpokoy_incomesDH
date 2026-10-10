@@ -330,7 +330,7 @@ public class BundledFrontendTest {
             if("prepare".equals(phase)){
                 await(web,"qPokoyAndroidCache?.canWrite && qPokoyAuth.getUser()");fresh(web);
                 assertEquals("0",js(web,"qPokoyAndroidCache.pending.length"));
-                String label="ANDROID_OUTBOX_"+System.currentTimeMillis(),literal=org.json.JSONObject.quote(label);
+                String label="ANDROID_OUTBOX_Длинная категория и описание для проверки переноса_"+System.currentTimeMillis(),literal=org.json.JSONObject.quote(label);
                 int baseline=Integer.parseInt(js(web,"IncomeStore.load().length"));
                 js(web,"window.__outboxReady=false;(async()=>{const c=await qPokoyApi.addCategory("+literal+");await qPokoyLoadCategories(qPokoyAuth.getUser());await qPokoyAndroidCache.refresh();window.__outboxReady=true;})()");await(web,"window.__outboxReady");
                 assertTrue(meta.edit().putString("label",label).putInt("baseline",baseline).commit());
@@ -353,6 +353,7 @@ public class BundledFrontendTest {
                     js(web,"renderRecentIncomes(getSelectedIncomePeriod())");
                     assertEquals("1",js(web,"document.querySelectorAll('#incomeRecentGrid .income-recent-card').length"));
                     assertEquals("true",js(web,"document.documentElement.scrollWidth<=innerWidth"));
+                    assertEquals("true",js(web,"(()=>{const card=document.querySelector('#incomeRecentGrid .income-recent-card'),amount=card.querySelector('.income-recent-amount').getBoundingClientRect(),category=card.querySelector('.income-recent-category').getBoundingClientRect(),date=card.querySelector('.income-recent-date').getBoundingClientRect(),description=card.querySelector('.income-recent-description'),d=description.getBoundingClientRect();return amount.right<=category.left+1 && date.top>=amount.bottom-1 && d.top>=date.bottom-1 && description.textContent==="+literal+";})()"));
                     assertEquals("true",js(web,"(()=>{const label=document.querySelector('#incomeRecentGrid [data-android-pending]');const box=label.getBoundingClientRect(),parent=label.parentElement.getBoundingClientRect();return label.scrollWidth<=label.clientWidth && box.left>=parent.left && box.right<=parent.right+1;})()"));
                 }
                 scenario.onActivity(activity->{android.view.ViewGroup.LayoutParams params=web.getLayoutParams();params.width=android.view.ViewGroup.LayoutParams.MATCH_PARENT;web.setLayoutParams(params);});

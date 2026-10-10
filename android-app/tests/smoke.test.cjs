@@ -32,6 +32,19 @@ test('offline API failures are controlled and OAuth does not start an unsafe Web
   Object.defineProperty(w.navigator,'onLine',{value:true});
   assert.equal((await w.fetch('https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net/auth/me')).status,401);
 });
+
+test('bundle preserves the main recent-card description and Android pending date label',()=>{
+  const info=JSON.parse(fs.readFileSync(path.join(root,'www/bundle-info.json')));
+  const app=fs.readFileSync(path.join(root,'www/js/app.js'),'utf8');
+  const css=fs.readFileSync(path.join(root,'www/css/mobile.css'),'utf8');
+  const {execFileSync}=require('node:child_process');
+  assert.equal(css,execFileSync('git',['show',info.sourceCommit+':css/mobile.css'],{cwd:path.join(root,'..'),encoding:'utf8'}));
+  assert.match(app,/income-recent-description/);
+  assert.match(app,/<div class="income-recent-date">\$\{escapeHtml\(formatDateShort\(item.date\)\)\}\$\{window.qPokoyAndroidCache\?\.pendingMarkup\(item.id\)/);
+  assert.match(app,/\.matches\?1:RECENT_INCOME_PAGE_SIZE/);
+  assert.match(css,/Mobile recent cards use the same content layout as full history/);
+  assert.match(css,/grid-template-areas:"amount category" "date category" "description description"/);
+});
 test('bundled HTTPS localhost origin, separate identity/version and no release signing',()=>{
   const config=JSON.parse(fs.readFileSync(path.join(root,'capacitor.config.json')));
   assert.equal(config.appId,'ru.qpokoy.app');assert.equal(config.server.url,undefined);
@@ -39,7 +52,7 @@ test('bundled HTTPS localhost origin, separate identity/version and no release s
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
   assert.equal(config.plugins.SystemBars.insetsHandling,'disable');
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.9-dev"/);assert.match(gradle,/versionCode 10/);
+  assert.match(gradle,/versionName "0.1.10-dev"/);assert.match(gradle,/versionCode 11/);
   assert.doesNotMatch(gradle,/signingConfigs|storePassword|keyPassword/);
   const manifest=fs.readFileSync(path.join(root,'android/app/src/main/AndroidManifest.xml'),'utf8');
   assert.match(manifest,/allowBackup="false"/);assert.match(manifest,/windowSoftInputMode="adjustResize"/);

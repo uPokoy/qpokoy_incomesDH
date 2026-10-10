@@ -1,7 +1,7 @@
 # qPokoy Android — first technical prototype
 
 **Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create-only outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.9-dev`, `versionCode=10`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.10-dev`, `versionCode=11`.
 
 Android UI/storage adaptations live in this directory. The user has separately
 deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
@@ -32,6 +32,13 @@ No release key is created/committed. Gradle uses ordinary local debug signing;
 debug APK is for Samsung testing, not RuStore publication.
 
 ## Updating the bundled frontend
+
+APK 0.1.10-dev uses main DEV402, source
+`6fe773d1ec56983889ef9878919d3d1dfc2f2648`. Recent mobile cards now share the
+full-history layout, including description. Android pending status remains under
+the date. Offline adapters are unchanged. To reproduce this source, use
+`npm run bundle -- --source-ref 6fe773d1ec56983889ef9878919d3d1dfc2f2648`, then
+`npx cap sync android` and the normal Gradle build.
 
 After fetching the desired `origin/main`, run **`npm run sync`** in `android-app`.
 It builds `www` and runs `cap sync android`. `scripts/bundle.cjs` reads committed

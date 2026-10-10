@@ -33,7 +33,7 @@ function adapt(name,text){
   if(name==='index.html')text=text.replace(/(<strong id="qPokoyDevVersion">)dev-\d{4}\.\d{2}\.\d{2}\.\d+(<\/strong>)/,'$1'+sourceVersion+'$2');
   if(name==='index.html')text=text.replace('<script id="qPokoyAuth"','<script src="/android-read-cache.js"></script>\n<script id="qPokoyAuth"');
   if(name==='js/app.js'){
-    // Mobile web patch is kept on this branch until separately approved for main.
+    // Keep older source refs compatible; current main already uses one card.
     const pageSize=".matches?2:RECENT_INCOME_PAGE_SIZE";
     if(!text.includes(pageSize)&&!text.includes('.matches?1:RECENT_INCOME_PAGE_SIZE'))throw new Error('Mobile recent pagination adaptation needs review');
     text=text.replace(pageSize,'.matches?1:RECENT_INCOME_PAGE_SIZE');
@@ -44,10 +44,10 @@ function adapt(name,text){
     const old="  if(editingIncomeId!==null){\n    IncomeStore.update(editingIncomeId,record);\n  }else{\n    IncomeStore.add(record);\n  }";
     if(!text.includes(old))throw new Error('Android confirmed-save adaptation needs review');
     text=text.replace(old,"  if(saveBtn.disabled)return;\n  saveBtn.disabled=true;\n  try{\n    if(editingIncomeId!==null)await IncomeStore.update(editingIncomeId,record);\n    else await IncomeStore.add(record);\n  }catch(error){window.qPokoyNotice?.('Не удалось сохранить доход',error.message,'error');return;}\n  finally{saveBtn.disabled=false;}");
-    const recent='${escapeHtml(formatDateShort(item.date))}</div>\n      <button class="income-recent-edit"';
+    const recent='<div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}</div>';
     const history="${escapeHtml(item.description||'')}</div>`;";
     if(!text.includes(recent)||!text.includes(history))throw new Error('Android pending status markup needs review');
-    text=text.replace(recent,'${escapeHtml(formatDateShort(item.date))}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||\'\'}</div>\n      <button class="income-recent-edit"');
+    text=text.replace(recent,'<div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||\'\'}</div>');
     text=text.replace(history,"${escapeHtml(item.description||'')}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||''}</div>`;");
   }
   if(name==='js/auth.js'){
