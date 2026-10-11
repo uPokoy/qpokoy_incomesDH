@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createPaymentRouter } = require('../payment-router');
+const { createPaymentRouter, CONSENT_KEY } = require('../payment-router');
 const { newSession } = require('../security');
 const { BILLING_ACCESS_SETTING, BILLING_PAYMENT_METHOD_SETTING, paymentSettingKey } = require('../billing-payments');
 
@@ -130,6 +130,69 @@ test('authenticated user creates payment and successful verified webhook grants 
   });
   assert.equal(second.status, 200);
   assert.equal(parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_ACCESS_SETTING))).paid_until, '2026-11-03T12:01:00.000Z');
+});
+
+test('starting or canceling a new checkout keeps the current auto-renewal unchanged', async () => {
+  const f = fixture();
+  const access = {
+    plan: 'monthly',
+    paid_until: '2026-11-03T12:00:00.000Z',
+    grace_until: null,
+    auto_renew: true,
+    last_payment_id: '1d9f4f11-1111-2222-8333-abcdefabcdef',
+    last_paid_at: '2026-10-03T11:00:00.000Z'
+  };
+  const consent = {
+    enabled: true,
+    plan: 'monthly',
+    version: '9332a5a4-efba-4705-a914-3d6d3053bee2',
+    at: '2026-10-03T11:00:00.000Z'
+  };
+  const method = {
+    payment_method_id: '2e000000-000f-5000-9000-1a2b3c4d5e6f',
+    saved: true,
+    source_payment_id: access.last_payment_id
+  };
+  for (const [settingKey, value] of [
+    [BILLING_ACCESS_SETTING, access],
+    [CONSENT_KEY, consent],
+    [BILLING_PAYMENT_METHOD_SETTING, method]
+  ]) {
+    f.settings.set(f.key(f.user.user_id, settingKey), {
+      user_id: f.user.user_id,
+      setting_key: settingKey,
+      setting_value: JSON.stringify(value)
+    });
+  }
+
+  const created = await f.router.handle(
+    'POST',
+    '/billing/payments',
+    { plan: 'monthly', auto_renew: false, request_id: 'c9119fc2-c825-44b7-ba49-7da50db62b4c' },
+    { Authorization: 'Bearer ' + f.token },
+    { sourceIp: '127.0.0.1' }
+  );
+  assert.equal(created.status, 201);
+  assert.deepEqual(parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_ACCESS_SETTING))), access);
+  assert.deepEqual(parseSetting(f.settings.get(f.key(f.user.user_id, CONSENT_KEY))), consent);
+  assert.deepEqual(parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_PAYMENT_METHOD_SETTING))), method);
+
+  const args = f.getCreatedArgs();
+  f.setVerifiedPayment({
+    id: created.body.data.payment_id,
+    status: 'canceled',
+    paid: false,
+    amount: { value: '149.00', currency: 'RUB' },
+    metadata: args.metadata,
+    created_at: '2026-10-03T12:00:00.000Z'
+  });
+  const canceled = await f.router.handle('POST', '/billing/yookassa/webhook', {
+    type: 'notification', event: 'payment.canceled', object: { id: created.body.data.payment_id }
+  });
+  assert.equal(canceled.status, 200);
+  assert.deepEqual(parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_ACCESS_SETTING))), access);
+  assert.deepEqual(parseSetting(f.settings.get(f.key(f.user.user_id, CONSENT_KEY))), consent);
+  assert.deepEqual(parseSetting(f.settings.get(f.key(f.user.user_id, BILLING_PAYMENT_METHOD_SETTING))), method);
 });
 
 test('webhook is ignored when verified provider state does not match notification', async () => {

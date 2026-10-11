@@ -81,7 +81,10 @@ function createPaymentRouter(store, options = {}) {
       if(payment.status==='succeeded'){
         const current=await t.get(BILLING_ACCESS_SETTING),consent=await t.get(CONSENT_KEY);
         const savedId=payment.payment_method?.saved===true&&methodIdValid(payment.payment_method.id)?payment.payment_method.id:null;
-        const sameConsent=order.consent_version?consent?.version===order.consent_version&&consent.enabled===true:!consent;
+        const hasConsentBaseline=Object.prototype.hasOwnProperty.call(order,'consent_baseline_exists');
+        const sameConsent=hasConsentBaseline
+          ?(order.consent_baseline_exists?consent?.version===order.consent_baseline_version:!consent)
+          :(order.consent_version?consent?.version===order.consent_version&&consent.enabled===true:!consent);
         const auto=order.auto_renew_requested&&order.plan!=='lifetime'&&!!savedId&&sameConsent;
         const captured=Date.parse(payment.captured_at);const paidAt=Number.isFinite(captured)?new Date(captured):timestamp;
         const alreadyApplied=current?.last_payment_id===payment.id;
@@ -91,8 +94,12 @@ function createPaymentRouter(store, options = {}) {
           await t.put(BILLING_ACCESS_SETTING,{...grant,plan:stale?current.plan:grant.plan,
             auto_renew:stale?current.auto_renew===true:auto,last_payment_id:stale?current.last_payment_id:payment.id,
             last_paid_at:stale?current.last_paid_at:paidAt.toISOString()},timestamp);
-          if(auto&&!stale)await t.put(BILLING_PAYMENT_METHOD_SETTING,{payment_method_id:savedId,saved:true,
-            saved_at:timestamp.toISOString(),source_payment_id:payment.id},timestamp);
+          if(!stale){
+            await t.put(CONSENT_KEY,{enabled:auto,plan:['monthly','yearly'].includes(order.plan)?order.plan:null,
+              version:randomUUID(),at:timestamp.toISOString()},timestamp);
+            if(auto)await t.put(BILLING_PAYMENT_METHOD_SETTING,{payment_method_id:savedId,saved:true,
+              saved_at:timestamp.toISOString(),source_payment_id:payment.id},timestamp);
+          }
         }
         record.succeeded_at=paidAt.toISOString();
       }else if(payment.status==='canceled'&&order.renewal){
@@ -146,9 +153,10 @@ function createPaymentRouter(store, options = {}) {
     const order=await tx(user.user_id,async t=>{
       const old=await t.get(ORDER_PREFIX+candidate.order_id);
       if(old){if(old.plan!==candidate.plan||old.auto_renew_requested!==auto)throw new PaymentHttpError(409,'request_conflict','Этот запрос уже используется для другого платежа.');return old;}
-      const consent={enabled:auto,plan:body.plan,version:randomUUID(),at:now().toISOString()};
-      candidate.consent_version=consent.version;
-      await t.put(CONSENT_KEY,consent,now());await t.put(ORDER_PREFIX+candidate.order_id,candidate,now());return candidate;
+      const consent=await t.get(CONSENT_KEY);
+      candidate.consent_baseline_exists=Boolean(consent);
+      candidate.consent_baseline_version=consent?.version||null;
+      await t.put(ORDER_PREFIX+candidate.order_id,candidate,now());return candidate;
     });
     if(!order)throw new PaymentHttpError(401,'unauthorized','Invalid account');
     return response(201,{data:publicPayment(await submitOrder(order))});
