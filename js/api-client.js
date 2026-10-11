@@ -28,6 +28,8 @@
   const API_BASE_URL='https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net';
   const TOKEN_KEY='qPokoyYdbSessionTokenV1';
   const BOOTSTRAP_CACHE_KEY='qPokoyBootstrapCacheV1';
+  const PENDING_PAYMENT_KEY='qPokoyPendingPaymentV1';
+  const PAYMENT_ID_RE=/^[A-Za-z0-9-]{10,80}$/;
   const CACHE_VERSION=1;
 
   class ApiError extends Error{
@@ -36,6 +38,10 @@
   function createApiClient(options={}){
     const baseUrl=(options.baseUrl||API_BASE_URL).replace(/\/$/,'');
     const storage=options.storage||(typeof localStorage!=='undefined'?localStorage:null);
+    const paymentStorage=options.paymentStorage||(typeof sessionStorage!=='undefined'?sessionStorage:null);
+    const locationRef=options.location||(typeof location!=='undefined'?location:null);
+    const historyRef=options.history||(typeof history!=='undefined'?history:null);
+    const delay=options.delay||(ms=>new Promise(resolve=>setTimeout(resolve,ms)));
     const fetcher=options.fetchImpl||(typeof fetch!=='undefined'?fetch.bind(globalThis):null);
     let unauthorizedHandler=null;
     function clearBootstrapCache(){try{storage?.removeItem(BOOTSTRAP_CACHE_KEY);}catch(_){}}
@@ -81,6 +87,58 @@
       storage.setItem(TOKEN_KEY,token);
     }
     function clearToken(){clearBootstrapCache();try{storage?.removeItem(TOKEN_KEY);}catch(_){}}
+    function rememberPendingPayment(payment){
+      const id=String(payment?.payment_id||'');
+      if(!payment?.confirmation_url||!PAYMENT_ID_RE.test(id))return;
+      try{paymentStorage?.setItem(PENDING_PAYMENT_KEY,id);}catch(_){}
+    }
+    function clearPendingPayment(){try{paymentStorage?.removeItem(PENDING_PAYMENT_KEY);}catch(_){}}
+    function pendingPaymentId(){
+      try{
+        const id=String(paymentStorage?.getItem(PENDING_PAYMENT_KEY)||'');
+        return PAYMENT_ID_RE.test(id)?id:'';
+      }catch(_){return '';}
+    }
+    function paymentReturnRequested(){
+      try{return new URLSearchParams(String(locationRef?.search||'')).get('payment')==='return';}
+      catch(_){return false;}
+    }
+    function cleanPaymentReturn(){
+      try{
+        if(!locationRef?.href||typeof historyRef?.replaceState!=='function')return;
+        const url=new URL(locationRef.href);
+        url.searchParams.delete('payment');
+        historyRef.replaceState(null,'',url.pathname+url.search+url.hash);
+      }catch(_){}
+    }
+    async function reconcilePaymentReturn(){
+      if(!paymentReturnRequested()||!getToken())return;
+      const id=pendingPaymentId();
+      if(!id){clearPendingPayment();cleanPaymentReturn();return;}
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          const payment=(await request('GET','/billing/payments/'+encodeURIComponent(id)))?.data;
+          if(['succeeded','canceled'].includes(payment?.status)){
+            clearPendingPayment();
+            clearBootstrapCache();
+            cleanPaymentReturn();
+            return;
+          }
+          if(!['pending','waiting_for_capture'].includes(payment?.status)){
+            clearPendingPayment();
+            cleanPaymentReturn();
+            return;
+          }
+        }catch(error){
+          if(error?.status===401||error?.status===404){
+            clearPendingPayment();
+            cleanPaymentReturn();
+          }
+          return;
+        }
+        if(attempt<2)await delay(700);
+      }
+    }
     async function request(method,path,body,authenticated=true){
       if(!fetcher)throw new Error('Fetch недоступен.');
       const headers={Accept:'application/json'};
@@ -144,6 +202,8 @@
       async completeOnboarding(){return request('PUT','/settings/onboarding_completed',{setting_value:'true'});},
       async bootstrap(){
         if(!getToken())return null;
+        await reconcilePaymentReturn();
+        if(!getToken())return null;
         let timingStart;
         try{timingStart=globalThis.performance?.now?.();}catch(_){}
         const token=getToken();
@@ -186,7 +246,9 @@
       async createPayment(plan,autoRenew=false,requestId){
         const body={plan,auto_renew:!!autoRenew};
         if(requestId!==undefined)body.request_id=requestId;
-        return (await request('POST','/billing/payments',body)).data;
+        const payment=(await request('POST','/billing/payments',body)).data;
+        rememberPendingPayment(payment);
+        return payment;
       },
       async paymentStatus(id){return (await request('GET','/billing/payments/'+encodeURIComponent(id))).data;},
       async setBillingAutoRenew(enabled){return (await request('POST','/billing/auto-renew',{enabled:!!enabled})).data;},
@@ -203,5 +265,5 @@
       async putSetting(key,value){return (await request('PUT',`/settings/${encodeURIComponent(key)}`,{setting_value:value})).data;}
     };
   }
-  return {API_BASE_URL,TOKEN_KEY,BOOTSTRAP_CACHE_KEY,ApiError,createApiClient};
+  return {API_BASE_URL,TOKEN_KEY,BOOTSTRAP_CACHE_KEY,PENDING_PAYMENT_KEY,ApiError,createApiClient};
 });
