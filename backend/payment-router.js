@@ -6,12 +6,18 @@ const { BILLING_ACCESS_SETTING, BILLING_PAYMENT_METHOD_SETTING, BILLING_PLANS,
   parseJsonSetting, buildPaidGrant, paymentSettingKey, verifiedGrant, GRACE_MS } = require('./billing-payments');
 const ORDER_PREFIX = 'billing.order.';
 const CHECKOUT_PREFIX = 'billing.checkout.';
+const REFUND_PREFIX = 'billing.refund.';
 const CONSENT_KEY = 'billing.auto_renew_consent';
 const RETRY_WINDOW_MS = 23 * 60 * 60 * 1000; // Below YooKassa's 24-hour deduplication window.
 const uuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
 const paymentIdValid = value => /^[A-Za-z0-9-]{10,80}$/.test(String(value || ''));
 const methodIdValid = value => /^[A-Za-z0-9-]{10,120}$/.test(String(value || ''));
 const hash = value => createHash('sha256').update(value).digest('hex');
+const refundSettingKey=value=>{const id=String(value||'').trim();if(!paymentIdValid(id))throw new TypeError('Invalid refund id');return REFUND_PREFIX+id;};
+function rubAmount(value){
+  if(value?.currency!=='RUB'||!/^\d+(?:\.\d{1,2})?$/.test(String(value?.value||'')))return NaN;
+  const amount=Number(value.value);return Number.isFinite(amount)?amount:NaN;
+}
 function safeConfirmation(value) {
   if (!value) return null;
   try { const u = new URL(value);return u.protocol === 'https:' && !u.username && !u.password &&
@@ -56,6 +62,11 @@ function createPaymentRouter(store, options = {}) {
     payment.amount?.currency==='RUB'&&payment.amount?.value===Number(order.amount_rub).toFixed(2)&&
     ['pending','waiting_for_capture','succeeded','canceled'].includes(payment.status)&&
     (!order.payment_id||order.payment_id===payment.id);}
+  function refundMatches(refund,payment){
+    const refunded=rubAmount(refund?.amount),paid=rubAmount(payment?.amount);
+    return paymentIdValid(refund?.id)&&refund.status==='succeeded'&&paymentIdValid(refund.payment_id)&&
+      refund.payment_id===payment?.id&&Number.isFinite(refunded)&&refunded>0&&Number.isFinite(paid)&&refunded<=paid;
+  }
   // Only provider-verified snapshots enter here. Status + access + saved method
   // + durable order marker commit together. Duplicate/out-of-order events cannot
   // replay access or re-enable auto-renew after a user canceled consent.
@@ -114,6 +125,41 @@ function createPaymentRouter(store, options = {}) {
       if(orderId)await t.put(ORDER_PREFIX+orderId,{...order,payment_id:payment.id,status:payment.status,
         settled:['succeeded','canceled'].includes(payment.status),updated_at:timestamp.toISOString()},timestamp);
       return record;
+    });
+  }
+  async function applyRefund(refund,payment){
+    if(!refundMatches(refund,payment)||payment.status!=='succeeded'||payment.paid!==true)return null;
+    const uid=payment.metadata?.user_id;if(!uuid(uid))return null;
+    const orderId=payment.metadata?.order_id;
+    if(orderId!==undefined&&!/^[0-9a-f]{64}$/.test(orderId))return null;
+    return tx(uid,async t=>{
+      const refundKey=refundSettingKey(refund.id),previousRefund=await t.get(refundKey);
+      if(previousRefund)return previousRefund;
+      const paymentKey=paymentSettingKey(payment.id),paymentRecord=await t.get(paymentKey);
+      if(!paymentRecord||paymentRecord.status!=='succeeded')return null;
+      if(orderId){
+        const order=await t.get(ORDER_PREFIX+orderId);
+        if(!order||!order.settled||order.status!=='succeeded'||!paymentMatches(payment,order))return null;
+      }else if(!verifiedGrant(payment)||paymentRecord.plan!==payment.metadata?.plan)return null;
+      const originalAmount=rubAmount(payment.amount),currentRefunded=rubAmount(payment.refunded_amount),refundAmount=rubAmount(refund.amount);
+      const fullRefund=refundAmount===originalAmount||(Number.isFinite(currentRefunded)&&currentRefunded>=originalAmount);
+      const timestamp=now();let applied=false;
+      if(fullRefund){
+        const current=await t.get(BILLING_ACCESS_SETTING);
+        if(current?.last_payment_id===payment.id){
+          applied=true;
+          await t.put(BILLING_ACCESS_SETTING,{plan:null,paid_until:null,grace_until:null,auto_renew:false,
+            last_payment_id:payment.id,last_paid_at:current.last_paid_at||payment.captured_at||timestamp.toISOString(),
+            refunded_at:timestamp.toISOString(),refunded_payment_id:payment.id,refund_id:refund.id,
+            refunded_plan:current.plan||paymentRecord.plan},timestamp);
+          await t.put(CONSENT_KEY,{enabled:false,plan:null,version:randomUUID(),at:timestamp.toISOString()},timestamp);
+        }
+        await t.put(paymentKey,{...paymentRecord,fully_refunded:true,refunded_at:timestamp.toISOString(),
+          refund_id:refund.id,refunded_amount_rub:originalAmount,updated_at:timestamp.toISOString()},timestamp);
+      }
+      const record={refund_id:refund.id,payment_id:payment.id,status:'succeeded',amount_rub:refundAmount,
+        full_refund:fullRefund,applied,created_at:refund.created_at||timestamp.toISOString(),updated_at:timestamp.toISOString()};
+      await t.put(refundKey,record,timestamp);return record;
     });
   }
   async function submitOrder(order){
@@ -212,8 +258,16 @@ function createPaymentRouter(store, options = {}) {
     if(!result)throw new PaymentHttpError(401,'unauthorized','Invalid account');return response(200,{data:result});
   }
   async function webhook(body,ip){
-    configured();if(body?.type!=='notification'||!['payment.succeeded','payment.canceled'].includes(body.event)||!paymentIdValid(body.object?.id))return response(200,{ok:true,ignored:true});
+    configured();
+    if(body?.type!=='notification'||!['payment.succeeded','payment.canceled','refund.succeeded'].includes(body.event)||!paymentIdValid(body.object?.id))return response(200,{ok:true,ignored:true});
     await rateLimit('webhookIp',ip);
+    if(body.event==='refund.succeeded'){
+      const refund=await client.getRefund(body.object.id);
+      if(refund?.id!==body.object.id||refund.status!=='succeeded'||!paymentIdValid(refund.payment_id))return response(200,{ok:true,ignored:true});
+      const payment=await client.getPayment(refund.payment_id);
+      if(payment?.id!==refund.payment_id||payment.status!=='succeeded'||payment.paid!==true)return response(200,{ok:true,ignored:true});
+      const result=await applyRefund(refund,payment);return response(200,{ok:true,...(!result?{ignored:true}:{})});
+    }
     const p=await client.getPayment(body.object.id);
     if(p?.id!==body.object.id||p.status!==(body.event==='payment.succeeded'?'succeeded':'canceled'))return response(200,{ok:true,ignored:true});
     const result=await applyPayment(p);return response(200,{ok:true,...(!result?{ignored:true}:{})});

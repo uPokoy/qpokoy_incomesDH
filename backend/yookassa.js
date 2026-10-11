@@ -81,7 +81,13 @@ function createYooKassaClient(options = {}) {
     return request('GET', '/payments/' + encodeURIComponent(id));
   }
 
-  return { isConfigured, createPayment, getPayment };
+  async function getRefund(refundId) {
+    const id = String(refundId || '').trim();
+    if (!/^[A-Za-z0-9-]{10,80}$/.test(id)) throw new TypeError('Invalid refund id');
+    return request('GET', '/refunds/' + encodeURIComponent(id));
+  }
+
+  return { isConfigured, createPayment, getPayment, getRefund };
 }
 
 module.exports = { YooKassaError, createYooKassaClient };

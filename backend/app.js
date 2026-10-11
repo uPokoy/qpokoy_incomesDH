@@ -176,6 +176,9 @@ function createApp(store, options = {}) {
     const paidUntil = isoDate(saved?.paid_until);
     const graceUntil = isoDate(saved?.grace_until);
     const autoRenew = Boolean(saved?.auto_renew && (plan === 'monthly' || plan === 'yearly'));
+    const refundedAt = isoDate(saved?.refunded_at);
+    if (refundedAt) return { ...base, can_write: false, mode: 'expired', status: 'expired', plan: null,
+      source: 'payment', auto_renew: false, refunded_at: refundedAt };
     if (plan === 'lifetime') return { ...base, mode: 'lifetime', status: 'active', plan, source: 'payment' };
     if ((plan === 'monthly' || plan === 'yearly') && paidUntil && new Date(paidUntil).getTime() > currentMs) {
       return { ...base, mode: 'paid', status: 'active', plan, auto_renew: autoRenew, paid_until: paidUntil, grace_until: graceUntil };
