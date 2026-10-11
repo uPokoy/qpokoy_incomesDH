@@ -5,6 +5,7 @@ const { YooKassaError } = require('./yookassa');
 const { BILLING_ACCESS_SETTING, BILLING_PAYMENT_METHOD_SETTING, BILLING_PLANS,
   parseJsonSetting, buildPaidGrant, paymentSettingKey, verifiedGrant, GRACE_MS } = require('./billing-payments');
 const ORDER_PREFIX = 'billing.order.';
+const CHECKOUT_PREFIX = 'billing.checkout.';
 const CONSENT_KEY = 'billing.auto_renew_consent';
 const RETRY_WINDOW_MS = 23 * 60 * 60 * 1000; // Below YooKassa's 24-hour deduplication window.
 const uuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
@@ -153,12 +154,23 @@ function createPaymentRouter(store, options = {}) {
     const order=await tx(user.user_id,async t=>{
       const access=await t.get(BILLING_ACCESS_SETTING),adminOverride=await t.get('billing.admin_override');
       if(access?.plan==='lifetime'||adminOverride?.plan==='lifetime')throw new PaymentHttpError(409,'lifetime_access_exists','Бессрочный доступ уже активен.');
+      const checkoutKey=CHECKOUT_PREFIX+candidate.plan;
+      const checkout=await t.get(checkoutKey);
+      if(checkout?.order_id&&/^[0-9a-f]{64}$/.test(checkout.order_id)){
+        const pending=await t.get(ORDER_PREFIX+checkout.order_id);
+        if(pending&&!pending.settled&&!pending.renewal&&pending.plan===candidate.plan){
+          if(pending.auto_renew_requested!==auto)throw new PaymentHttpError(409,'payment_pending','Предыдущий платёж по этому тарифу ещё обрабатывается.');
+          return pending;
+        }
+      }
       const old=await t.get(ORDER_PREFIX+candidate.order_id);
       if(old){if(old.plan!==candidate.plan||old.auto_renew_requested!==auto)throw new PaymentHttpError(409,'request_conflict','Этот запрос уже используется для другого платежа.');return old;}
       const consent=await t.get(CONSENT_KEY);
       candidate.consent_baseline_exists=Boolean(consent);
       candidate.consent_baseline_version=consent?.version||null;
-      await t.put(ORDER_PREFIX+candidate.order_id,candidate,now());return candidate;
+      await t.put(ORDER_PREFIX+candidate.order_id,candidate,now());
+      await t.put(checkoutKey,{order_id:candidate.order_id},now());
+      return candidate;
     });
     if(!order)throw new PaymentHttpError(401,'unauthorized','Invalid account');
     return response(201,{data:publicPayment(await submitOrder(order))});
