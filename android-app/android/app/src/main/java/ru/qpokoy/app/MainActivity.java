@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Build;
 import android.print.PrintManager;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -36,6 +37,9 @@ import org.json.JSONObject;
 /** Bundled HTTPS localhost frontend. Remote API, no embedded credentials. */
 public class MainActivity extends BridgeActivity {
     private String adapter;
+    private SyncSwipeRefreshLayout pullSync;
+    private boolean pullAllowed;
+    private int pullRequest,pullInset=-1;
     private int topSafeInset;
     private WebView reportView;
     private AlertDialog reportDialog;
@@ -66,8 +70,12 @@ public class MainActivity extends BridgeActivity {
         });
         WebView view=bridge.getWebView();
         view.setBackgroundColor(android.graphics.Color.rgb(7,12,20));
+        installPullSync(view);
         installMessages(view);
         bridge.setWebViewClient(new BridgeWebViewClient(bridge){
+            @Override public void onPageStarted(WebView web,String url,android.graphics.Bitmap icon){
+                super.onPageStarted(web,url,icon);pullAllowed=false;pullRequest++;pullSync.setRefreshing(false);
+            }
             @Override public void onPageFinished(WebView web,String url) {
                 super.onPageFinished(web,url);
                 if(isInternal(Uri.parse(url)))web.evaluateJavascript(adapter+";"+topInsetScript(),null);
@@ -98,6 +106,28 @@ public class MainActivity extends BridgeActivity {
             }
         });
     }
+    private void installPullSync(WebView web){
+        ViewGroup parent=(ViewGroup)web.getParent();int index=parent.indexOfChild(web);ViewGroup.LayoutParams params=web.getLayoutParams();
+        parent.removeView(web);pullSync=new SyncSwipeRefreshLayout(this);
+        parent.addView(pullSync,index,params);pullSync.addView(web,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
+        pullSync.setColorSchemeColors(android.graphics.Color.rgb(138,159,183));
+        pullSync.setProgressBackgroundColorSchemeColor(android.graphics.Color.rgb(17,27,42));
+        pullSync.setOnChildScrollUpCallback((container,child)->!pullAllowed || web.canScrollVertically(-1));
+        pullSync.setOnRefreshListener(this::runPullSync);updatePullInset();
+    }
+    private void updatePullInset(){
+        if(pullSync==null||pullInset==topSafeInset)return;pullInset=topSafeInset;
+        int distance=Math.round(64*getResources().getDisplayMetrics().density);
+        pullSync.setProgressViewOffset(false,topSafeInset,topSafeInset+distance);
+    }
+    private void runPullSync(){
+        WebView web=bridge.getWebView();final int request=++pullRequest;
+        if(!pullAllowed||!isInternal(Uri.parse(web.getUrl()==null?"":web.getUrl()))){pullSync.setRefreshing(false);return;}
+        web.evaluateJavascript("(async()=>{let offline=false;try{offline=(await window.qPokoyAndroidCache?.manualSync())==='offline';}catch(_){}finally{window.qPokoyAndroid?.postMessage(JSON.stringify({kind:'pullSyncFinished',request:"+request+",offline}));}})()",null);
+    }
+    @Override public void onPause(){
+        pullRequest++;if(pullSync!=null)pullSync.setRefreshing(false);super.onPause();
+    }
     private void confirmExit(){
         new AlertDialog.Builder(this).setMessage("Закрыть qPokoy?")
             .setNegativeButton("Остаться",null).setPositiveButton("Закрыть",(dialog,which)->finish()).show();
@@ -118,6 +148,7 @@ public class MainActivity extends BridgeActivity {
             Insets bars=insets.getInsets(WindowInsetsCompat.Type.systemBars()|WindowInsetsCompat.Type.displayCutout());
             Insets ime=insets.getInsets(WindowInsetsCompat.Type.ime());
             topSafeInset=bars.top;
+            updatePullInset();
             view.setPadding(bars.left,0,bars.right,Math.max(bars.bottom,ime.bottom));
             WebView web=bridge.getWebView();
             if(isInternal(Uri.parse(web.getUrl()==null?"":web.getUrl())))web.evaluateJavascript(topInsetScript(),null);
@@ -154,6 +185,10 @@ public class MainActivity extends BridgeActivity {
                 try {
                     JSONObject data=new JSONObject(text);
                     switch(data.optString("kind")){
+                        case "pullSyncState":
+                            if(web==bridge.getWebView())pullAllowed=data.optBoolean("allowed");break;
+                        case "pullSyncFinished":
+                            if(web==bridge.getWebView()&&data.optInt("request")==pullRequest){pullSync.setRefreshing(false);if(data.optBoolean("offline"))toast("Нет подключения к интернету");}break;
                         case "external": external(Uri.parse(data.getString("url")));break;
                         case "print":
                             ((PrintManager)getSystemService(PRINT_SERVICE)).print("qPokoy",web.createPrintDocumentAdapter("qPokoy"),null);break;

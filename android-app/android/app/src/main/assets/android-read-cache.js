@@ -45,7 +45,7 @@
     const bootstrap=api.bootstrap.bind(api);
     const sendAdd=api.addIncome?.bind(api),sendUpdate=api.updateIncome?.bind(api),sendDelete=api.deleteIncome?.bind(api);
     let epoch=0,current=null,binding=null,validatedToken=null,displayed=false,renderedSignature=null,hydrate=null,refreshJob=null,refreshEpoch=0,clearJob=Promise.resolve(),mutations=0,view=null;
-    let pending=[],syncJob=null,retryTimer=null;
+    let pending=[],syncJob=null,manualJob=null,retryTimer=null;
     const inFlight=new Set(),activeWrites=new Map();
     const metrics={};
     // Safe stage-only diagnostics: never log account IDs, tokens or income data.
@@ -76,7 +76,7 @@
     }
     function pendingLabel(id){
       const row=pending.find(row=>row.income_id===String(id));
-      return !row||row.kind==='delete'?'':row.status==='error'?'Не синхронизирован: ошибка сервера':row.status==='auth_required'?'Требуется вход для синхронизации':'Ожидает синхронизации';
+      return !row||row.kind==='delete'?'':row.status==='error'?'Не синхронизирован: ошибка сервера':row.status==='auth_required'?'Требуется вход для синхронизации':'Не синхронизирован';
     }
     async function guardPending(){
       if(pending.length||(binding&&db.pendingCount&&(await db.pendingCount({sessionHash:binding})).count)){
@@ -229,14 +229,14 @@
       retryTimer=setTimeout(()=>{retryTimer=null;void refresh().catch(()=>{});},Math.max(1000,Math.min(300000,due-clock())));
       retryTimer.unref?.();
     }
-    async function syncPending(){
-      if(syncJob){const active=syncJob;await active;if(canWrite()&&pending.some(row=>row.status!=='error'&&(row.next_attempt_at||0)<=clock()&&!(row.kind==='delete'&&activeWrites.has(current.user.user_id+':'+row.income_id))))return syncPending();return;}
+    async function syncPending(force=false){
+      if(syncJob){const active=syncJob;await active;if(force)return;if(canWrite()&&pending.some(row=>row.status!=='error'&&(row.next_attempt_at||0)<=clock()&&!(row.kind==='delete'&&activeWrites.has(current.user.user_id+':'+row.income_id))))return syncPending();return;}
       if(!canWrite()||!pending.length||mutations||view?.document.visibilityState==='hidden')return;
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
       const token=api.getToken(),uid=current.user.user_id,hash=binding;let run=epoch;
       const job=(async()=>{
         for(const operation of [...pending]){
-          if(run!==epoch||!canWrite()||operation.status==='error'||(operation.next_attempt_at||0)>clock())continue;
+          if(run!==epoch||!canWrite()||operation.status==='error'||(!force&&(operation.next_attempt_at||0)>clock()))continue;
           if(operation.kind==='add'&&!sendAdd||operation.kind==='update'&&!sendUpdate||operation.kind==='delete'&&!sendDelete)continue;
           if(operation.kind==='delete'&&activeWrites.has(uid+':'+operation.income_id))continue;
           let timeout;
@@ -266,7 +266,7 @@
               const key=uid+':'+operation.income_id;
               const request=operation.kind==='update'?sendUpdate(operation.income_id,incomeValue(operation)):sendAdd(payload);
               activeWrites.set(key,request);
-              const settled=()=>{if(activeWrites.get(key)===request)activeWrites.delete(key);view?.setTimeout(()=>{if(canWrite())void refresh().catch(()=>{});},0);};
+              const settled=()=>{if(activeWrites.get(key)===request)activeWrites.delete(key);view?.setTimeout(()=>{if(canWrite())void (force?syncPending():refresh()).catch(()=>{});},0);};
               request.then(settled,settled);
               saved=await Promise.race([request,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
             }catch(error){
@@ -296,6 +296,28 @@
         }
       })();
       syncJob=job;try{await job;}finally{if(syncJob===job)syncJob=null;scheduleRetry();}
+    }
+    // Manual pull uses the same outbox, without fetching bootstrap/categories/charts.
+    // A cold cached session is revalidated through the existing /auth/me endpoint.
+    function manualSync(){
+      if(manualJob)return manualJob;
+      const job=(async()=>{
+        const state=await networkState({fresh:true});
+        if(state?.state==='offline'||!online())return 'offline';
+        if(!pending.length)return 'idle';
+        const token=api.getToken(),run=epoch,uid=current?.user.user_id;
+        if(!token||!uid||!binding||mutations)return 'idle';
+        if(validatedToken!==token){
+          const user=await api.restoreSession();
+          if(run!==epoch||token!==api.getToken())return 'idle';
+          if(!user||user.user_id!==uid){await purge();return 'idle';}
+          validatedToken=token;
+        }
+        await syncPending(true); // Ignore transient backoff once; permanent errors stay.
+        return 'done';
+      })();
+      manualJob=job;
+      return job.finally(()=>{if(manualJob===job)manualJob=null;});
     }
     async function confirmed(name,args,result,token,run){
       if(!current||token!==api.getToken()||run!==epoch)return;
@@ -388,8 +410,8 @@
         });
       }
     }
-    const pendingMarkup=id=>{const label=pendingLabel(id);return label?'<small data-android-pending style="display:block;opacity:.7;white-space:normal;overflow-wrap:anywhere;line-height:1.2">'+label+'</small>':'';};
-    return {start,refresh,purge,install,requireWrite,enqueue,enqueueDelete,syncPending,pendingLabel,pendingMarkup,metrics,get diagnostic(){return {...diagnostic};},get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
+    const pendingMarkup=id=>{const label=pendingLabel(id);return label?'<span class="qp-android-pending" data-android-pending role="img" aria-label="'+label+'" title="'+label+'"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7a8 8 0 0 0-13-2L4 8m0-5v5h5M4 17a8 8 0 0 0 13 2l3-3m0 5v-5h-5"/></svg></span>':'';};
+    return {start,refresh,purge,install,requireWrite,enqueue,enqueueDelete,syncPending,manualSync,pendingLabel,pendingMarkup,metrics,get diagnostic(){return {...diagnostic};},get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
   }
   return {create,snapshot,incomeValue,transportError,schemaVersion};
 });

@@ -1,7 +1,7 @@
 # qPokoy Android — first technical prototype
 
 **Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create/update/delete outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.15-dev`, `versionCode=16`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.16-dev`, `versionCode=17`.
 
 Android UI/storage adaptations live in this directory. The user has separately
 deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
@@ -33,12 +33,35 @@ debug APK is for Samsung testing, not RuStore publication.
 
 ## Updating the bundled frontend
 
-APK 0.1.15-dev uses main DEV403, source
+APK 0.1.16-dev uses main DEV403, source
 `48e6b501cc6aa33fef6720c74dc6e7986cc78ed2`. Recent mobile cards now share the
-full-history layout, including description. Android pending status remains under
-the date. Every Android create commits to SQLite before background synchronization. To reproduce this source, use
+full-history layout, including description. Android pending status is a subtle 16px sync icon at the bottom-right
+of recent/history cards. Every Android create commits to SQLite before background synchronization. To reproduce this source, use
 `npm run bundle -- --source-ref 48e6b501cc6aa33fef6720c74dc6e7986cc78ed2`, then
 `npx cap sync android` and the normal Gradle build.
+
+### 0.1.16 pending icons and native manual synchronization
+
+The Android adapter replaces visible pending text with a two-arrow SVG (16px,
+muted gray-blue, 50% opacity). Accessible names remain; successful acknowledgement
+removes the icon through the existing hydration. Error rows retain the icon.
+
+SwipeRefreshLayout wraps the existing WebView without changing its safe area.
+Pulling down at the top of the authenticated page calls `manualSync()`, which
+uses the existing SQLite ADD/UPDATE/DELETE outbox and `syncPending(true)`.
+It bypasses transient retry backoff once, preserves permanent errors and UUIDs,
+and joins any active send. Cold cached sessions use the existing account check;
+manual synchronization does not request bootstrap or reload the WebView.
+Automatic synchronization remains enabled. Offline pulls stop the indicator and
+show only “Нет подключения к интернету”. No success/failure sync dialogs are added.
+Forms, auth, horizontally dragged history and scrolled inner lists are excluded.
+The indicator is positioned below the actual status-bar/cutout inset.
+
+Validation: Android Node 103/103; debug JVM 3/3; targeted native SQLite,
+safe-area, launcher and pull-gesture instrumentation 22/22. Gradle debug APK
+and test APK builds passed. Native gesture tests use isolated HTML; Node queue
+tests use a simulated server. Samsung gestures, force-stop and real cloud sync
+remain a physical-device acceptance check.
 
 ### 0.1.12 durable local-first CREATE
 
@@ -125,7 +148,7 @@ repeat the opt-in suites on a stable emulator or physical test device. The short
 verify reload/host force-stop/reconnect without a long combined runner.
 
 Uninstalling/clearing app storage still loses unconfirmed operations. This stage
-does not add Pull-to-Refresh, offline category creation or backend tombstones.
+did not add Pull-to-Refresh, offline category creation or backend tombstones.
 
 ### Previous 0.1.11 offline-save regression check
 

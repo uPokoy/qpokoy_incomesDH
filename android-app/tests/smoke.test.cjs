@@ -22,7 +22,7 @@ test('bundle has all local references, early platform adaptation and offline PDF
   assert.equal(fs.existsSync(path.join(root,'www/vendor/html2pdf.bundle.min.js')),true);
 });
 test('offline API failures are controlled and OAuth does not start an unsafe WebView flow',async t=>{
-  const dom=new JSDOM('',{url:'https://localhost/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const dom=new JSDOM('',{url:'https://localhost/',runScripts:'outside-only',pretendToBeVisual:true});t.after(()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();});
   const w=dom.window;let calls=0;w.fetch=async()=>{calls++;return {status:401};};
   Object.defineProperty(w.navigator,'onLine',{value:false,configurable:true});
   w.eval(fs.readFileSync(path.join(root,'android/app/src/main/assets/android-platform.js'),'utf8'));
@@ -40,7 +40,8 @@ test('bundle preserves the main recent-card description and Android pending date
   const {execFileSync}=require('node:child_process');
   assert.equal(css,execFileSync('git',['show',info.sourceCommit+':css/mobile.css'],{cwd:path.join(root,'..'),encoding:'utf8'}));
   assert.match(app,/income-recent-description/);
-  assert.match(app,/<div class="income-recent-date">\$\{escapeHtml\(formatDateShort\(item.date\)\)\}\$\{window.qPokoyAndroidCache\?\.pendingMarkup\(item.id\)/);
+  assert.match(app,/pendingMarkup\(item.id\).*\n\s*<\/article>/);
+  assert.match(app,/\$\{cells\}\$\{window.qPokoyAndroidCache\?\.pendingMarkup\(item.id\)/);
   assert.match(app,/\.matches\?1:RECENT_INCOME_PAGE_SIZE/);
   assert.match(css,/Mobile recent cards use the same content layout as full history/);
   assert.match(css,/grid-template-areas:"amount category" "date category" "description description"/);
@@ -52,13 +53,13 @@ test('bundled HTTPS localhost origin, separate identity/version and no release s
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
   assert.equal(config.plugins.SystemBars.insetsHandling,'disable');
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.15-dev"/);assert.match(gradle,/versionCode 16/);
+  assert.match(gradle,/versionName "0.1.16-dev"/);assert.match(gradle,/versionCode 17/);
   assert.doesNotMatch(gradle,/signingConfigs|storePassword|keyPassword/);
   const manifest=fs.readFileSync(path.join(root,'android/app/src/main/AndroidManifest.xml'),'utf8');
   assert.match(manifest,/allowBackup="false"/);assert.match(manifest,/windowSoftInputMode="adjustResize"/);
 });
 test('content top inset preserves existing padding and does not accumulate',t=>{
-  const dom=new JSDOM('<head><style>body{padding-top:7px}#qpAuthGate{padding-top:14px}</style></head><body><div id="qpAuthGate"></div></body>',{url:'https://localhost/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const dom=new JSDOM('<head><style>body{padding-top:7px}#qpAuthGate{padding-top:14px}</style></head><body><div id="qpAuthGate"></div></body>',{url:'https://localhost/',runScripts:'outside-only',pretendToBeVisual:true});t.after(()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();});
   const w=dom.window;w.qPokoyAndroid={postMessage(){}};w.eval(adapter);
   const root=w.document.documentElement;
   w.qPokoyAndroidSetTopInset(48);w.qPokoyAndroidSetTopInset(48);
@@ -69,7 +70,7 @@ test('content top inset preserves existing padding and does not accumulate',t=>{
   w.qPokoyAndroidSetTopInset(0);assert.equal(root.style.getPropertyValue('--qp-android-top'),'0px');
 });
 test('Android Back closes real controls in order without changing website handlers',t=>{
-  const dom=new JSDOM('<div id="qpConfirmOverlay"><button data-confirm-cancel></button></div><div id="categoryPopup" class="open"></div><button id="categorySelect"></button><div id="incomeForm"><button id="cancelIncome"></button></div>',{url:'https://localhost/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const dom=new JSDOM('<div id="qpConfirmOverlay"><button data-confirm-cancel></button></div><div id="categoryPopup" class="open"></div><button id="categorySelect"></button><div id="incomeForm"><button id="cancelIncome"></button></div>',{url:'https://localhost/',runScripts:'outside-only',pretendToBeVisual:true});t.after(()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();});
   const w=dom.window;w.qPokoyAndroid={postMessage(){}};
   w.document.querySelector('[data-confirm-cancel]').onclick=()=>w.document.querySelector('#qpConfirmOverlay').remove();
   w.document.querySelector('#categorySelect').onclick=()=>w.document.querySelector('#categoryPopup').classList.remove('open');
@@ -81,11 +82,25 @@ test('Android Back closes real controls in order without changing website handle
   assert.equal(w.qPokoyAndroidBack(),false);
 });
 test('native print/report transport and PWA suppression are Android-local and installed only once',async t=>{
-  const dom=new JSDOM('',{url:'https://localhost/',runScripts:'outside-only'});t.after(()=>dom.window.close());
+  const dom=new JSDOM('',{url:'https://localhost/',runScripts:'outside-only',pretendToBeVisual:true});t.after(()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();});
   const w=dom.window,messages=[];w.qPokoyAndroid={postMessage:value=>messages.push(JSON.parse(value))};
   w.fetch=async()=>({text:async()=>'<table><tr><td>123 ₽</td></tr></table>'});
-  w.eval(adapter);w.eval(adapter);w.print();assert.deepEqual(messages,[{kind:'print'}]);
+  w.eval(adapter);w.eval(adapter);messages.length=0;w.print();assert.deepEqual(messages,[{kind:'print'}]);
   const prompt=new w.Event('beforeinstallprompt',{cancelable:true});w.dispatchEvent(prompt);assert.equal(prompt.defaultPrevented,true);
   w.open('blob:https://localhost/report');await new Promise(resolve=>setImmediate(resolve));
   assert.equal(messages[1].kind,'report');assert.match(messages[1].html,/<table>/);
+});
+
+
+test('Android pending icon is subtle, direct on surfaces, and pull is gated by dialogs/inner scroll',async t=>{
+  const dom=new JSDOM('<head></head><body><section id="income"><article class="income-recent-card"><div class="income-recent-description">long</div><span class="qp-android-pending" data-android-pending><svg></svg></span></article></section><div id="list"><div id="item"></div></div><div id="incomeForm" hidden></div></body>',{url:'https://localhost/',runScripts:'outside-only',pretendToBeVisual:true});
+  const w=dom.window,messages=[];t.after(()=>{w.dispatchEvent(new w.Event('pagehide'));w.close();});
+  w.qPokoyAndroid={postMessage:v=>messages.push(JSON.parse(v))};w.qPokoyAndroidCache={displayed:true};w.qPokoyAuth={getUser:()=>({})};w.eval(adapter);
+  assert.equal(messages.at(-1).allowed,true);const icon=w.document.querySelector('[data-android-pending]'),style=w.getComputedStyle(icon);
+  assert.equal(style.width,'16px');assert.equal(style.height,'16px');assert.equal(style.opacity,'0.5');assert.equal(style.position,'absolute');assert.equal(icon.textContent,'');
+  w.document.getElementById('list').scrollTop=10;w.document.getElementById('item').dispatchEvent(new w.Event('pointerdown',{bubbles:true}));assert.equal(messages.at(-1).allowed,false);
+  w.document.getElementById('list').scrollTop=0;w.document.getElementById('item').dispatchEvent(new w.Event('pointerdown',{bubbles:true}));assert.equal(messages.at(-1).allowed,true);
+  w.document.getElementById('incomeForm').hidden=false;await new Promise(r=>w.setTimeout(r,40));assert.equal(messages.at(-1).allowed,false);
+  w.document.getElementById('incomeForm').hidden=true;await new Promise(r=>w.setTimeout(r,40));assert.equal(messages.at(-1).allowed,true);
+  w.document.body.classList.add('qp-auth-locked');await new Promise(r=>w.setTimeout(r,40));assert.equal(messages.at(-1).allowed,false);
 });

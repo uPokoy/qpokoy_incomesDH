@@ -49,11 +49,13 @@ function adapt(name,text){
     // Commit and the local store update are already awaited. Close EDIT before
     // expensive chart/history redraw; CREATE retains its established path.
     text=text.replace(editRender,"  if(wasEditing){\n    closeIncomeEditor();\n    requestAnimationFrame(()=>renderIncomes());\n  }else{\n    renderIncomes();\n    closeIncomeEditor();\n  }");
-    const recent='<div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}</div>';
-    const history="${escapeHtml(item.description||'')}</div>`;";
-    if(!text.includes(recent)||!text.includes(history))throw new Error('Android pending status markup needs review');
-    text=text.replace(recent,'<div class="income-recent-date">${escapeHtml(formatDateShort(item.date))}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||\'\'}</div>');
-    text=text.replace(history,"${escapeHtml(item.description||'')}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||''}</div>`;");
+    const recent="    </article>\n  `).join('');";
+    const history='${cells}</div><div class="history-swipe-actions">';
+    const plain='${cells}${actions}</div>`;';
+    if(!text.includes(recent)||!text.includes(history)||!text.includes(plain))throw new Error('Android pending icon markup needs review');
+    text=text.replace(recent,"      ${window.qPokoyAndroidCache?.pendingMarkup(item.id)||''}\n"+recent);
+    text=text.replace(history,"${cells}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||''}</div><div class=\"history-swipe-actions\">");
+    text=text.replace(plain,"${cells}${actions}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||''}</div>`;");
   }
   if(name==='js/auth.js'){
     const needle='const url=await api.startOAuth(provider);';

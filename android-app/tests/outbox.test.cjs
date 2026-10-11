@@ -73,7 +73,7 @@ function fixture(){
 test('A/B: offline add commits durable queue before UI and survives a new coordinator/storage reader',async t=>{
   const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(123);
   assert.equal(f.queue.size,1);assert.equal(f.ui.length,1);assert.equal(f.ui[0].amount,123);assert.equal(f.cache.snapshot.incomes.length,0);
-  assert.equal(f.cache.pendingLabel(f.ui[0].id),'Ожидает синхронизации');
+  assert.equal(f.cache.pendingLabel(f.ui[0].id),'Не синхронизирован');
   f.freshCoordinator();await f.start();assert.equal(f.ui.length,1);assert.equal(f.ui[0].amount,123);assert.equal(f.queue.size,1);
   f.setOnline(true);await f.cache.refresh();assert.equal(f.server.size,1);assert.equal(f.queue.size,0);
 });
@@ -166,7 +166,7 @@ test('Samsung A/J: stale onLine=true and native offline commits without a POST',
 });
 test('Samsung B/K/L: native online with failed background transport retains the UUID across restart/reconnect',async t=>{
   const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setNative('online');f.setFault(new TypeError('Failed to fetch'));
-  await f.add(52);const id=f.ui[0].id;await f.cache.syncPending();assert.equal(f.posts[0].id,id);assert.equal(f.queue.size,1);assert.equal(f.cache.pendingLabel(id),'Ожидает синхронизации');
+  await f.add(52);const id=f.ui[0].id;await f.cache.syncPending();assert.equal(f.posts[0].id,id);assert.equal(f.queue.size,1);assert.equal(f.cache.pendingLabel(id),'Не синхронизирован');
   f.setNative('offline');f.freshCoordinator();await f.start();assert.equal(f.ui[0].id,id);
   f.setFault(null);f.setNative('online');f.expireRetries();await f.cache.refresh();assert.equal(f.queue.size,0);assert.equal(f.server.size,1);assert.equal(f.ui[0].id,id);
 });
@@ -242,7 +242,8 @@ test('actual bundled submit keeps form open until held SQLite commit, then close
   release();await h.settle();assert.equal(h.node('incomeForm').hidden,true);assert.equal(cache.pending.length,1);
   assert.equal(h.calls.filter(call=>call==='addIncome').length,0);
   assert.equal(h.node('incomeRecentGrid').querySelectorAll('.income-recent-card').length,1);
-  assert.equal(h.node('incomeRecentGrid').querySelector('[data-android-pending]').textContent,'Ожидает синхронизации');
+  assert.equal(h.node('incomeRecentGrid').querySelector('[data-android-pending]').textContent,'');
+  assert.equal(h.node('incomeRecentGrid').querySelector('[data-android-pending]').getAttribute('aria-label'),'Не синхронизирован');
   // Use the actual bundled edit handler, held native commit, and pending ADD.
   const id=h.w.IncomeStore.load()[0].id;
   h.node('incomeList').querySelector('.edit-income[data-id="'+id+'"]').click();

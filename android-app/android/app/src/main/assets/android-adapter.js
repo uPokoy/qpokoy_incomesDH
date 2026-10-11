@@ -32,6 +32,36 @@
       captureAuth();
     };
   }
+  // Android-only pending icon; it is a direct child of the card surface.
+  const pendingStyle=document.createElement('style');pendingStyle.id='qpAndroidPendingIcon';
+  pendingStyle.textContent=`
+    .income-recent-card,.history-card-surface,#incomeList>.income-row:not(.history-swipe-row){position:relative}
+    #income .income-recent-card>.qp-android-pending,#incomeList .qp-android-pending{position:absolute;right:12px;bottom:10px;width:16px;height:16px;display:block;opacity:.5;color:#8a9fb7;pointer-events:none;line-height:0}
+    .qp-android-pending>svg{width:16px;height:16px;display:block}
+    .income-recent-card:has(>.qp-android-pending) .income-recent-description,.history-card-surface:has(>.qp-android-pending)>div:nth-child(4){padding-right:24px}
+  `;document.head.appendChild(pendingStyle);
+  // Tell the native refresh container when the page/inner scroll is at its top.
+  // Native code owns the gesture and spinner; JS never moves or reloads the page.
+  const visible=node=>node&&!node.hidden&&getComputedStyle(node).display!=='none';
+  let lastPullAllowed=null,pullFrame=null;
+  function publishPullState(target){
+    if(!window.document||!document.body)return;
+    let allowed=Boolean(window.qPokoyAndroidCache?.displayed && window.qPokoyAuth?.getUser?.() && !document.body.classList.contains('qp-auth-locked') && document.visibilityState!=='hidden');
+    if(!/^\/(?:index\.html)?$/.test(location.pathname)||document.querySelector('#qpConfirmOverlay')||visible(document.getElementById('incomeForm'))||document.querySelector('#categoryPopup.open,#calendarPopup.open'))allowed=false;
+    if(target?.closest?.('input,textarea,select,button,[contenteditable="true"]'))allowed=false;
+    for(let node=target;allowed&&node&&node!==document.body;node=node.parentElement)if(node.scrollTop>0)allowed=false;
+    if(allowed!==lastPullAllowed){lastPullAllowed=allowed;send({kind:'pullSyncState',allowed});}
+  }
+  const schedulePullState=()=>{if(pullFrame===null)pullFrame=requestAnimationFrame(()=>{pullFrame=null;publishPullState();});};
+  document.addEventListener('pointerdown',event=>publishPullState(event.target),true);
+  document.addEventListener('pointerup',schedulePullState,true);
+  document.addEventListener('pointercancel',schedulePullState,true);
+  document.addEventListener('scroll',event=>publishPullState(event.target),true);
+  document.addEventListener('visibilitychange',schedulePullState);
+  const pullObserver=new MutationObserver(schedulePullState);
+  pullObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
+  window.addEventListener('pagehide',()=>{pullObserver.disconnect();if(pullFrame!==null)cancelAnimationFrame(pullFrame);send({kind:'pullSyncState',allowed:false});},{once:true});
+  publishPullState();
   window.addEventListener('beforeinstallprompt',event=>event.preventDefault());
   window.print=()=>send({kind:'print'});
   const originalOpen=window.open.bind(window);

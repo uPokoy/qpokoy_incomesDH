@@ -6,6 +6,7 @@ const failure=(status,code)=>Object.assign(new Error(code||'test failure'),{stat
 
 function fixture(){
   let uid='A',token='session-A',online=true,gate=null,lostDelete=false,fault=null,bootstrapGate=null,ui=[];
+  let bootstraps=0,identities=0;
   const snapshots=new Map(),queue=new Map(),server=new Map(),posts=[],updates=[],deletes=[];
   const data=()=>({user:{user_id:uid,email:'a@test.invalid',onboarding_completed:true},incomes:[...server.values()],categories:[{id:'category-A',user_id:uid,name:'Test'}],settings:[]});
   const listed=(hash,id)=>[...queue.values()].filter(row=>row.hash===hash&&row.user_id===id).map(({hash,...row})=>clone(row));
@@ -51,7 +52,8 @@ function fixture(){
   };
   const api={
     getToken:()=>token,clearToken:()=>{token=null;},
-    bootstrap:async()=>{const value=token?clone(data()):null;if(bootstrapGate)await bootstrapGate;return value;},
+    restoreSession:async()=>{identities++;return token?data().user:null;},
+    bootstrap:async()=>{bootstraps++;const value=token?clone(data()):null;if(bootstrapGate)await bootstrapGate;return value;},
     login:async()=>data().user,register:async()=>{},exchangeOAuthTicket:async()=>{},
     logout:async()=>{token=null;},deleteAccount:async()=>{token=null;},
     listIncomes:async()=>clone([...server.values()]),
@@ -76,7 +78,7 @@ function fixture(){
   let cache;
   function fresh(){Object.assign(api,originals);cache=create({api,db,fingerprint:async()=> 'a'.repeat(64),online:()=>online,networkState:async()=>({state:online?'online':'offline'})});cache.install(view);}
   fresh();
-  return {api,db,server,queue,posts,updates,deletes,view,get cache(){return cache;},get ui(){return ui;},
+  return {api,db,server,queue,posts,updates,deletes,view,get bootstraps(){return bootstraps;},get identities(){return identities;},get cache(){return cache;},get ui(){return ui;},
     setOnline:value=>online=value,setGate:value=>gate=value,setLostDelete:value=>lostDelete=value,setFault:value=>fault=value,setBootstrapGate:value=>bootstrapGate=value,fresh,
     start:()=>cache.start(hydrate),add:amount=>view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount,category:'Test',description:'Fixture'})};
 }
@@ -173,4 +175,38 @@ test('bootstrap started before DELETE ACK cannot restore its stale row',async t=
  let release;f.setBootstrapGate(new Promise(r=>release=r));const old=f.cache.refresh();await new Promise(r=>setImmediate(r));
  await f.view.IncomeStore.remove(id);await f.cache.syncPending();f.setBootstrapGate(null);release();await old;
  assert.equal(f.server.size,0);assert.equal(f.ui.length,0);assert.equal(f.cache.snapshot.incomes.length,0);assert.equal(f.queue.size,0);
+});
+
+
+test('manual pull sends existing ADD UPDATE DELETE after cold offline restore, without bootstrap',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());const edit=randomUUID(),del=randomUUID();
+  for(const id of [edit,del])f.server.set(id,{id,user_id:'A',income_date:'2026-10-10',amount:10,category:'Test',description:'server'});
+  await f.start();f.setOnline(false);await f.add(123);
+  await f.view.IncomeStore.update(edit,{date:'10.10.26',amount:456,category:'Test',description:'edit'});await f.view.IncomeStore.remove(del);
+  const id=f.ui.find(r=>r.amount===123).id;assert.match(f.cache.pendingMarkup(id),/aria-label=/);assert.doesNotMatch(f.cache.pendingMarkup(id),/Ожидает|<small/);
+  f.fresh();await f.start();assert.equal(f.cache.pending.length,3);assert.equal(f.ui.some(r=>r.id===del),false);
+  const callbacks=[];f.view.setTimeout=fn=>callbacks.push(fn);
+  const before=f.bootstraps;f.setOnline(true);await f.cache.manualSync();
+  for(const callback of callbacks.splice(0))callback();await new Promise(r=>setImmediate(r));
+  assert.equal(f.bootstraps,before);assert.equal(f.identities,1);assert.equal(f.posts.length,1);assert.equal(f.updates.length,1);assert.equal(f.deletes.length,1);
+  assert.equal(f.server.has(del),false);assert.equal(f.server.get(edit).amount,456);assert.equal(f.server.get(id).amount,123);assert.equal(f.queue.size,0);assert.equal(f.cache.pendingMarkup(id),'');
+});
+test('manual pull offline leaves durable intents untouched and does not contact API',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(124);const before=f.bootstraps;
+  assert.equal(await f.cache.manualSync(),'offline');assert.equal(f.queue.size,1);assert.equal(f.posts.length,0);assert.equal(f.identities,0);assert.equal(f.bootstraps,before);
+});
+test('manual pull bypasses transient backoff once but preserves permanent DELETE error',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());const id=randomUUID();f.server.set(id,{id,user_id:'A',income_date:'2026-10-10',amount:10,category:'Test',description:'server'});
+  await f.start();f.setOnline(false);await f.view.IncomeStore.remove(id);f.setOnline(true);f.setFault({status:503});await f.cache.syncPending();
+  assert.ok(f.cache.pending[0].next_attempt_at>Date.now());f.setFault({status:403});await f.cache.manualSync();assert.equal(f.deletes.length,2);assert.equal(f.cache.pending[0].status,'error');
+  await f.cache.manualSync();assert.equal(f.deletes.length,2);assert.equal(f.queue.size,1);assert.equal(f.ui.length,0);
+});
+test('concurrent pulls and active automatic send coalesce without duplicate requests',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(125);let release;f.setGate(new Promise(r=>release=r));f.setOnline(true);
+  const auto=f.cache.syncPending();while(!f.posts.length)await new Promise(r=>setImmediate(r));
+  const a=f.cache.manualSync(),b=f.cache.manualSync();release();await Promise.all([auto,a,b]);assert.equal(f.posts.length,1);assert.equal(f.queue.size,0);assert.equal(f.server.size,1);
+});
+test('cold manual account mismatch never sends or discards another account queue',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(126);f.fresh();await f.start();f.setOnline(true);
+  f.api.restoreSession=async()=>({user_id:'B'});assert.equal(await f.cache.manualSync(),'idle');assert.equal(f.posts.length,0);assert.equal(f.queue.size,1);assert.equal(f.ui.length,0);
 });
