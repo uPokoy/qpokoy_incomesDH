@@ -40,7 +40,7 @@ public class OfflineDeleteDatabaseTest {
             db.enqueueDelete(hash,"A",UUID.randomUUID().toString(),id,System.currentTimeMillis(),false);
             assertEquals("delete",db.pending(hash,"A").getJSONObject(0).getString("kind"));
             db.write(hash,stale);assertEquals(1,db.pendingCount(hash));
-            db.write(hash,snapshot("A"));assertEquals(0,db.pendingCount(hash));
+            String ack=db.pending(hash,"A").getJSONObject(0).getString("operation_id");db.write(hash,snapshot("A"));assertEquals(1,db.pendingCount(hash));db.write(hash,snapshot("A"),ack);assertEquals(0,db.pendingCount(hash));
         }finally{context.deleteDatabase(name);}
     }
 
@@ -78,6 +78,40 @@ public class OfflineDeleteDatabaseTest {
         }
         try(ReadCacheDatabase db=db()){
             assertEquals(1,db.pendingCount(hash));assertEquals("delete",db.pending(hash,"A").getJSONObject(0).getString("kind"));
+        }finally{context.deleteDatabase(name);}
+    }
+    @Test public void v3MigrationPreservesSnapshotAddUpdateAndSentIntent() throws Exception {
+        context.deleteDatabase(name);String add=UUID.randomUUID().toString(),update=UUID.randomUUID().toString();
+        try(ReadCacheDatabase db=db()){
+            JSONObject confirmed=snapshot("A");confirmed.getJSONArray("incomes").put(income(update,100));db.write(hash,confirmed);
+            db.enqueue(hash,"A",pending(add,200));db.enqueueEdit(hash,"A",pending(update,150));
+            db.getWritableDatabase().execSQL("ALTER TABLE pending_adds DROP COLUMN sent");db.getWritableDatabase().setVersion(3);
+        }
+        try(ReadCacheDatabase db=db()){
+            assertEquals(4,db.getWritableDatabase().getVersion());assertEquals(2,db.pendingCount(hash));assertEquals(1,db.read(hash).getJSONArray("incomes").length());
+            db.enqueueDelete(hash,"A",UUID.randomUUID().toString(),add,System.currentTimeMillis(),true);
+            assertEquals(2,db.pendingCount(hash));assertEquals("delete",db.pending(hash,"A").getJSONObject(0).getString("kind"));
+        }finally{context.deleteDatabase(name);}
+    }
+    @Test public void durableDispatchPreventsUnsentCollapseAfterRestart() throws Exception {
+        context.deleteDatabase(name);String id=UUID.randomUUID().toString();
+        try(ReadCacheDatabase db=db()){
+            db.write(hash,snapshot("A"));JSONObject row=pending(id,100);db.enqueue(hash,"A",row);
+            assertTrue(db.beginSend(hash,"A",row.getString("operation_id")));db.enqueueEdit(hash,"A",pending(id,120));
+        }
+        try(ReadCacheDatabase db=db()){
+            db.enqueueDelete(hash,"A",UUID.randomUUID().toString(),id,System.currentTimeMillis(),true);
+            assertEquals("delete",db.pending(hash,"A").getJSONObject(0).getString("kind"));db.write(hash,snapshot("A"));assertEquals(1,db.pendingCount(hash));
+        }finally{context.deleteDatabase(name);}
+    }
+    @Test public void tombstoneIsBoundToAccountAndCannotBeAcknowledgedByAnother() throws Exception {
+        context.deleteDatabase(name);String id=UUID.randomUUID().toString(),other="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        try(ReadCacheDatabase db=db()){
+            JSONObject confirmed=snapshot("A");confirmed.getJSONArray("incomes").put(income(id,100));db.write(hash,confirmed);
+            db.enqueueDelete(hash,"A",UUID.randomUUID().toString(),id,System.currentTimeMillis(),false);String op=db.pending(hash,"A").getJSONObject(0).getString("operation_id");
+            db.write(other,snapshot("B"),op);assertEquals(1,db.pendingCount(hash));
+            try{db.beginSend(other,"A",op);fail("Cross-account dispatch allowed");}catch(IllegalArgumentException expected){}
+            db.write(other,confirmed);assertEquals("delete",db.pending(other,"A").getJSONObject(0).getString("kind"));
         }finally{context.deleteDatabase(name);}
     }
 }

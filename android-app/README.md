@@ -1,14 +1,14 @@
 # qPokoy Android — first technical prototype
 
-**Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create/update outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.13-dev`, `versionCode=14`.
+**Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create/update/delete outbox.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.15-dev`, `versionCode=16`.
 
 Android UI/storage adaptations live in this directory. The user has separately
 deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
 The website, YDB schema, payments and deployment workflow are unchanged. The app starts at
 `https://localhost/`, served by Capacitor from assets physically inside the APK.
 Website deployments do not update an installed APK. Previously verified data can
-be viewed offline; creation and editing of incomes can be durably queued offline.
+be viewed offline; creation, editing and deletion of incomes can be durably queued offline.
 
 ## Build / Android Studio
 
@@ -33,7 +33,7 @@ debug APK is for Samsung testing, not RuStore publication.
 
 ## Updating the bundled frontend
 
-APK 0.1.13-dev uses main DEV403, source
+APK 0.1.15-dev uses main DEV403, source
 `48e6b501cc6aa33fef6720c74dc6e7986cc78ed2`. Recent mobile cards now share the
 full-history layout, including description. Android pending status remains under
 the date. Every Android create commits to SQLite before background synchronization. To reproduce this source, use
@@ -64,7 +64,7 @@ no database/table reset, token or snapshot replacement is required for migration
 Both kinds retain account/session binding. `enqueueEdit` transactionally replaces
 one row per income with its latest desired payload and a new operation UUID.
 Income UUID and pending ADD creation order never change. Unsent ADD edits remain
-ADD; edits of confirmed rows become UPDATE. No DELETE outbox is introduced.
+ADD; edits of confirmed rows become UPDATE. DELETE is supported by the later 0.1.15 extension.
 
 Combined view is snapshot + pending ADD + pending UPDATE overlay. SQLite snapshot
 writes compare date/amount/category/description, not only ID, before removing a
@@ -84,6 +84,48 @@ Opt-in WebView tests: `durableOfflineEdits` with `editPhase=prepare`, host force
 and restart, `verify`, then `sync`; `onlineSlowLostAndInFlightEdits` with
 `localFirstEdits=true`. These hold PUT for 35s, lose a real PUT response, edit while
 ADD response is held, verify the same cloud IDs and remove only their own fixtures.
+
+### 0.1.15 durable local-first DELETE
+
+The branch already contained initial DELETE version 0.1.14 when this stage started.
+Database v3 -> v4 adds a durable `sent` flag to the existing outbox with ALTER only.
+Legacy operations are conservatively possibly-sent; newly enqueued operations
+explicitly start at zero, even in an upgraded database. A dispatch commits `sent`
+before transport; local DELETE and dispatch are serialized on the native worker.
+Unsent ADD + DELETE cancels atomically. A possibly-sent ADD, UPDATE or repeated
+DELETE becomes one account-bound tombstone with the same income UUID. Edits retain
+the ADD dispatch flag so resetting retry attempts cannot make an old ADD unsent.
+
+Combined view subtracts tombstones after ADD/UPDATE overlays. Bootstrap absence
+alone never clears a tombstone: an older ADD can still arrive. A DELETE 204 or the
+account-scoped endpoint's exact 404/not_found acknowledges that operation UUID in
+the same SQLite transaction that writes the absent-row snapshot. Other 404/4xx,
+transport failure and 401 retain the hidden intent and existing error/retry rules.
+The coordinator waits for outstanding ADD/PUT promises before DELETE, even when
+its own 30-second retry deadline has elapsed, and invalidates older bootstrap
+responses at DELETE ACK. No backend, API or website changes are made.
+
+Delete confirmation awaits SQLite commit, updates the existing UI store and then
+uses the existing confirm/render handler. No extra screen or styling is added.
+Instrumentation measures confirmation -> SQLite commit ACK -> rendered row absent,
+with a <1s assertion and a 35s held DELETE. `durableOfflineDeletes` uses explicit
+`deletePhase=prepare|verify|sync`; `onlineSlowLostAndRacingDeletes` is opt-in with
+`localFirstDeletes=true`. Run only against an authorized disposable test account.
+Native `OfflineDeleteDatabaseTest` uses its own fixture database for migration,
+dispatch, coalescing, reopen and explicit-ACK tests.
+
+Validation (2026-10-11): Android Node 97/97; JVM 3/3; native SQLite/icon/inset
+instrumentation 21/21 across targeted runs. The combined 43-test instrumentation
+run was interrupted in `onlineSlowLostAndRacingDeletes` by Windows QEMU host
+exception 0xc0000005 (37.2 and an archived 36.x emulator), not a completed green
+suite. Online DELETE and its 35-second hold completed before that interruption.
+Do not treat unfinished race/lost-response/ADD/UPDATE integration cases as PASS;
+repeat the opt-in suites on a stable emulator or physical test device. The shorter
+`singleOfflineDeleteLifecycle` uses `offlineDeletePhase=prepare|verify|sync` to
+verify reload/host force-stop/reconnect without a long combined runner.
+
+Uninstalling/clearing app storage still loses unconfirmed operations. This stage
+does not add Pull-to-Refresh, offline category creation or backend tombstones.
 
 ### Previous 0.1.11 offline-save regression check
 
@@ -134,9 +176,9 @@ The local UI and internal pages load without internet, over a dark #070C14 nativ
 background. OfflineGuard, InitialLoadState, their fullscreen overlay, retry/timeout
 machinery and remote offline HTML are removed. API fetch failures have an Android-only
 network message; reconnect triggers one background refresh without restarting.
-The Android adaptation awaits durable SQLite CREATE/UPDATE commits and disables
-the website write journal in the generated copy. Offline DELETE and category
-creation remain forbidden. Network timeouts never block income Save.
+The Android adaptation awaits durable SQLite CREATE/UPDATE/DELETE commits and disables
+the website write journal in the generated copy. Offline category
+creation remains forbidden. Network timeouts never block income Save.
 The source website remains unchanged.
 The production gateway currently returns `Access-Control-Allow-Origin: *` for
 https://localhost, including preflight and actual responses. No backend deploy was

@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=exported;
   if(root?.qPokoyApi&&root.Capacitor){
     const native=method=>options=>root.Capacitor.nativePromise('QPokoyReadCache',method,options||{});
-    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),enqueueDelete:native('enqueueDelete'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
+    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),enqueueDelete:native('enqueueDelete'),beginSend:native('beginSend'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
       fingerprint:async token=>Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))).map(b=>b.toString(16).padStart(2,'0')).join(''),
       online:()=>root.qPokoyAndroidNetwork.available,networkState:options=>root.qPokoyAndroidNetwork.read(options),clock:()=>Date.now(),notify:()=>root.qPokoyNotice?.('Нет подключения к интернету','Дождитесь подключения и завершения синхронизации.','error')});
     root.qPokoyAndroidCache=cache;
@@ -46,7 +46,7 @@
     const sendAdd=api.addIncome?.bind(api),sendUpdate=api.updateIncome?.bind(api),sendDelete=api.deleteIncome?.bind(api);
     let epoch=0,current=null,binding=null,validatedToken=null,displayed=false,renderedSignature=null,hydrate=null,refreshJob=null,refreshEpoch=0,clearJob=Promise.resolve(),mutations=0,view=null;
     let pending=[],syncJob=null,retryTimer=null;
-    const inFlight=new Set();
+    const inFlight=new Set(),activeWrites=new Map();
     const metrics={};
     // Safe stage-only diagnostics: never log account IDs, tokens or income data.
     const diagnostic={stage:'idle',code:null};
@@ -84,12 +84,12 @@
       }
     }
     async function identity(token){return token?fingerprint(token):null;}
-    async function save(value,token,run){
+    async function save(value,token,run,deleteAck){
       const hash=await identity(token);
       if(run!==epoch||token!==api.getToken())return false;
       await clearJob.catch(()=>{});
       if(run!==epoch||token!==api.getToken())return false;
-      const stored=await db.write({sessionHash:hash,snapshot:value});
+      const stored=await db.write({sessionHash:hash,snapshot:value,deleteAck});
       if(run!==epoch||token!==api.getToken())return false;
       current=value;binding=hash;setPending(stored?.pending,value.user.user_id);return true;
     }
@@ -205,7 +205,7 @@
       if(!combined().incomes.some(row=>row.id===incomeId))throw new Error('Доход недоступен локально');
       // Only a never-attempted ADD that is not currently in-flight is guaranteed
       // to be absent from the server and may collapse to nothing.
-      const collapseUnsentAdd=existing?.kind==='add'&&(existing.attempts||0)===0&&!inFlight.has(existing.operation_id);
+      const collapseUnsentAdd=existing?.kind==='add'&&(existing.attempts||0)===0&&!existing.sent&&!inFlight.has(existing.operation_id);
       const run=++epoch;
       diagnostic.stage='sqlite-delete';
       const result=await db.enqueueDelete({sessionHash:hash,userId:uid,operationId:uuid(),incomeId,createdAt:clock(),collapseUnsentAdd});
@@ -215,7 +215,6 @@
       const rows=combined().incomes.map(row=>({id:row.id,date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description}));
       if(view){
         view.IncomeStore.save(rows);displayed=true;renderedSignature=shownSignature();
-        view.applyIncomeHeaderFilters?.();view.renderIncomeAnalytics?.();
       }else await paint(true);
       scheduleRetry();diagnostic.stage='delete-committed';
       // DELETE is local-first too: never await transport before hiding the row.
@@ -231,17 +230,20 @@
       retryTimer.unref?.();
     }
     async function syncPending(){
-      if(syncJob){const active=syncJob;await active;if(canWrite()&&pending.some(row=>row.status!=='error'&&(row.next_attempt_at||0)<=clock()))return syncPending();return;}
+      if(syncJob){const active=syncJob;await active;if(canWrite()&&pending.some(row=>row.status!=='error'&&(row.next_attempt_at||0)<=clock()&&!(row.kind==='delete'&&activeWrites.has(current.user.user_id+':'+row.income_id))))return syncPending();return;}
       if(!canWrite()||!pending.length||mutations||view?.document.visibilityState==='hidden')return;
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
-      const token=api.getToken(),run=epoch,uid=current.user.user_id,hash=binding;
+      const token=api.getToken(),uid=current.user.user_id,hash=binding;let run=epoch;
       const job=(async()=>{
         for(const operation of [...pending]){
           if(run!==epoch||!canWrite()||operation.status==='error'||(operation.next_attempt_at||0)>clock())continue;
           if(operation.kind==='add'&&!sendAdd||operation.kind==='update'&&!sendUpdate||operation.kind==='delete'&&!sendDelete)continue;
+          if(operation.kind==='delete'&&activeWrites.has(uid+':'+operation.income_id))continue;
           let timeout;
           inFlight.add(operation.operation_id);
           try{
+            if(db.beginSend && !(await db.beginSend({sessionHash:hash,userId:uid,operationId:operation.operation_id})).allowed)continue;
+            if(run!==epoch||token!==api.getToken())break;
             if(operation.kind==='delete'){
               try{
                 await Promise.race([sendDelete(operation.income_id),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
@@ -252,14 +254,21 @@
               }finally{clearTimeout(timeout);}
               if(run!==epoch||token!==api.getToken())break;
               const value={...current,incomes:current.incomes.filter(row=>row.id!==operation.income_id)};
-              if(!await save(snapshot(value,clock()),token,run))break;
+              // Invalidate older bootstrap responses before acknowledging this DELETE.
+              run=++epoch;
+              if(!await save(snapshot(value,clock()),token,run,operation.operation_id))break;
               await paint();
               continue;
             }
             const payload={id:operation.income_id,client_mutation_id:operation.income_id,...incomeValue(operation)};
             let saved;
             try{
-              saved=await Promise.race([operation.kind==='update'?sendUpdate(operation.income_id,incomeValue(operation)):sendAdd(payload),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
+              const key=uid+':'+operation.income_id;
+              const request=operation.kind==='update'?sendUpdate(operation.income_id,incomeValue(operation)):sendAdd(payload);
+              activeWrites.set(key,request);
+              const settled=()=>{if(activeWrites.get(key)===request)activeWrites.delete(key);view?.setTimeout(()=>{if(canWrite())void refresh().catch(()=>{});},0);};
+              request.then(settled,settled);
+              saved=await Promise.race([request,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
             }catch(error){
               // Existing deployments return 409 for duplicate UUIDs. Reconcile by
               // authoritative account-scoped ID, never by amount/date/description.

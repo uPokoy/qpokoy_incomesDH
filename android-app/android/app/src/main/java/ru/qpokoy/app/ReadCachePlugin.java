@@ -70,7 +70,7 @@ public class ReadCachePlugin extends Plugin {
         long epoch=generation.get();worker.execute(()->{
             try{
                 if(epoch!=generation.get()){call.reject("Session changed");return;}
-                database.write(call.getString("sessionHash"),call.getObject("snapshot"));
+                database.write(call.getString("sessionHash"),call.getObject("snapshot"),call.getString("deleteAck"));
                 JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getObject("snapshot").getJSONObject("user").getString("user_id")));call.resolve(result);
             }catch(Exception error){call.reject("Cannot save read cache");}
         });
@@ -103,6 +103,13 @@ public class ReadCachePlugin extends Plugin {
                 database.enqueueDelete(call.getString("sessionHash"),call.getString("userId"),call.getString("operationId"),call.getString("incomeId"),call.getLong("createdAt",0L),call.getBoolean("collapseUnsentAdd",false));
                 JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getString("userId")));call.resolve(result);
             }catch(Exception error){call.reject("Cannot save local income deletion");}
+        });
+    }
+    @PluginMethod public void beginSend(PluginCall call){
+        long epoch=generation.get();worker.execute(()->{
+            try{if(epoch!=generation.get())throw new IllegalStateException("Session changed");
+                JSObject result=new JSObject();result.put("allowed",database.beginSend(call.getString("sessionHash"),call.getString("userId"),call.getString("operationId")));call.resolve(result);
+            }catch(Exception error){call.reject("Cannot dispatch pending income");}
         });
     }
     @PluginMethod public void pendingState(PluginCall call){worker.execute(()->{

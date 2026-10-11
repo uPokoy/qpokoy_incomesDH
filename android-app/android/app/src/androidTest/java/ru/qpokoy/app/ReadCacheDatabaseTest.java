@@ -40,7 +40,7 @@ public class ReadCacheDatabaseTest {
     }
     @Test public void incompatibleDatabaseVersionSafelyRecreatesOnlyCache() throws Exception {
         try(ReadCacheDatabase db=testDatabase()){db.clear();db.write(a,snapshot("A",1));db.getWritableDatabase().setVersion(99);}
-        try(ReadCacheDatabase db=testDatabase()){assertNull(db.read(a));assertEquals(3,db.getWritableDatabase().getVersion());}
+        try(ReadCacheDatabase db=testDatabase()){assertNull(db.read(a));assertEquals(4,db.getWritableDatabase().getVersion());}
     }
     @Test public void snapshotsHaveNoIncomeCountLimitAndStayInPrivateStorage() throws Exception {
         assertTrue(context.getDatabasePath(ReadCacheDatabase.NAME).getCanonicalPath().startsWith(context.getDataDir().getCanonicalPath()+"/"));

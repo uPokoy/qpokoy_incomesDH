@@ -17,7 +17,7 @@ import java.util.zip.GZIPOutputStream;
 /** Confirmed snapshots and a separately durable, account-bound create/update/delete outbox. */
 final class ReadCacheDatabase extends SQLiteOpenHelper {
     static final int VERSION=1;
-    static final int DATABASE_VERSION=3;
+    static final int DATABASE_VERSION=4;
     static final String NAME="qpokoy-read-cache.db";
     ReadCacheDatabase(Context context){this(context,NAME);}
     ReadCacheDatabase(Context context,String name){super(context,name,null,DATABASE_VERSION);}
@@ -26,11 +26,17 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
         createOutbox(db);
     }
     private void createOutbox(SQLiteDatabase db){
-        db.execSQL("CREATE TABLE IF NOT EXISTS pending_adds (operation_id TEXT PRIMARY KEY, income_id TEXT NOT NULL, user_id TEXT NOT NULL, session_hash TEXT NOT NULL, income_date TEXT NOT NULL, amount REAL NOT NULL, category TEXT NOT NULL, description TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL DEFAULT 0, error_code TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL DEFAULT 'add', UNIQUE(user_id,income_id))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS pending_adds (operation_id TEXT PRIMARY KEY, income_id TEXT NOT NULL, user_id TEXT NOT NULL, session_hash TEXT NOT NULL, income_date TEXT NOT NULL, amount REAL NOT NULL, category TEXT NOT NULL, description TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL DEFAULT 0, error_code TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL DEFAULT 'add', sent INTEGER NOT NULL DEFAULT 0, UNIQUE(user_id,income_id))");
     }
     @Override public void onConfigure(SQLiteDatabase db){try(Cursor cursor=db.rawQuery("PRAGMA secure_delete=ON",null)){cursor.moveToFirst();}}
-    @Override public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion){if(oldVersion<2)createOutbox(db);
-        else if(oldVersion==2)db.execSQL("ALTER TABLE pending_adds ADD COLUMN kind TEXT NOT NULL DEFAULT 'add'");}
+    @Override public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion){
+        if(oldVersion<2)createOutbox(db);
+        else {
+            if(oldVersion<3)db.execSQL("ALTER TABLE pending_adds ADD COLUMN kind TEXT NOT NULL DEFAULT 'add'");
+            // Old APKs did not persist dispatch. Treat legacy operations as possibly sent.
+            if(oldVersion<4)db.execSQL("ALTER TABLE pending_adds ADD COLUMN sent INTEGER NOT NULL DEFAULT 1");
+        }
+    }
     @Override public void onDowngrade(SQLiteDatabase db,int oldVersion,int newVersion){reset(db);}
     // A disposable snapshot may be reset; unconfirmed user operations must survive.
     private void reset(SQLiteDatabase db){db.execSQL("DROP TABLE IF EXISTS snapshots");onCreate(db);}
@@ -46,7 +52,8 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
     private static String digest(byte[] bytes) throws Exception {
         StringBuilder result=new StringBuilder();for(byte b:MessageDigest.getInstance("SHA-256").digest(bytes))result.append(String.format("%02x",b&255));return result.toString();
     }
-    void write(String hash,JSONObject snapshot) throws Exception {
+    void write(String hash,JSONObject snapshot) throws Exception {write(hash,snapshot,null);}
+    void write(String hash,JSONObject snapshot,String deleteAck) throws Exception {
         checkHash(hash);String uid=snapshot.getJSONObject("user").getString("user_id");validate(snapshot,uid);
         byte[] bytes=snapshot.toString().getBytes(StandardCharsets.UTF_8);
         ByteArrayOutputStream output=new ByteArrayOutputStream();
@@ -59,9 +66,10 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
             db.delete("snapshots",null,null);db.insertOrThrow("snapshots",null,values);
             ContentValues session=new ContentValues();session.put("session_hash",hash);
             db.update("pending_adds",session,"user_id=?",new String[]{uid});
+            if(deleteAck!=null){uuid(deleteAck);db.delete("pending_adds","session_hash=? AND user_id=? AND operation_id=? AND kind='delete'",new String[]{hash,uid,deleteAck});}
             JSONArray incomes=snapshot.getJSONArray("incomes");
             // Reconcile by immutable UUID. DELETE tombstones win over a server
-            // snapshot until the authoritative row is absent.
+            // snapshot until an explicit account-scoped DELETE ACK.
             try(Cursor pending=db.query("pending_adds",null,"user_id=?",new String[]{uid},null,null,null)){
                 while(pending.moveToNext()){
                     String id=pending.getString(pending.getColumnIndexOrThrow("income_id"));
@@ -72,7 +80,7 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
                         if(id.equals(candidate.getString("id"))){server=candidate;break;}
                     }
                     if("delete".equals(kind)){
-                        if(server==null)db.delete("pending_adds","user_id=? AND income_id=?",new String[]{uid,id});
+                        // Absence alone can precede an in-flight ADD: only an explicit DELETE ACK removes the tombstone.
                         continue;
                     }
                     if(server==null)continue;
@@ -114,7 +122,7 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
             while(c.moveToNext()){
                 JSONObject row=new JSONObject();
                 for(String key:new String[]{"operation_id","income_id","user_id","income_date","category","description","status","error_code","kind"})row.put(key,c.getString(c.getColumnIndexOrThrow(key)));
-                for(String key:new String[]{"created_at","attempts","next_attempt_at"})row.put(key,c.getLong(c.getColumnIndexOrThrow(key)));
+                for(String key:new String[]{"created_at","attempts","next_attempt_at","sent"})row.put(key,c.getLong(c.getColumnIndexOrThrow(key)));
                 row.put("amount",c.getDouble(c.getColumnIndexOrThrow("amount")));row.put("client_mutation_id",row.getString("income_id"));result.put(row);
             }
         }return result;
@@ -143,16 +151,16 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
         if(exists&&!edit)throw new IllegalArgumentException("Income already confirmed");
         if(row.getLong("created_at")<=0)throw new IllegalArgumentException("Invalid creation timestamp");
         ContentValues values=new ContentValues();values.put("operation_id",row.getString("operation_id"));values.put("income_id",row.getString("income_id"));values.put("user_id",uid);values.put("session_hash",hash);
-        values.put("income_date",date);values.put("amount",amount);values.put("category",category);values.put("description",description);values.put("created_at",row.getLong("created_at"));values.put("status","pending");
+        values.put("income_date",date);values.put("amount",amount);values.put("category",category);values.put("description",description);values.put("created_at",row.getLong("created_at"));values.put("status","pending");values.put("sent",0);
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
         try{
             if(edit){
                 String kind=null;
-                try(Cursor c=db.query("pending_adds",new String[]{"kind","created_at"},"session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,row.getString("income_id")},null,null,null)){
-                    if(c.moveToFirst()){kind=c.getString(0);values.put("created_at",c.getLong(1));}
+                try(Cursor c=db.query("pending_adds",new String[]{"kind","created_at","sent"},"session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,row.getString("income_id")},null,null,null)){
+                    if(c.moveToFirst()){kind=c.getString(0);values.put("created_at",c.getLong(1));values.put("sent",c.getInt(2));}
                 }
+                if("delete".equals(kind))throw new IllegalArgumentException("Income deleted locally");
                 if(kind==null&&!exists)throw new IllegalArgumentException("Income unavailable locally");
-                if("delete".equals(kind))throw new IllegalArgumentException("Income is pending deletion");
                 values.put("kind",kind==null?"update":kind);values.put("attempts",0);values.put("next_attempt_at",0);values.put("error_code","");
                 db.delete("pending_adds","session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,row.getString("income_id")});
             }
@@ -169,7 +177,7 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
                 if(c.moveToFirst()){
                     oldKind=c.getString(c.getColumnIndexOrThrow("kind"));
                     if("delete".equals(oldKind)){db.setTransactionSuccessful();return;}
-                    if("add".equals(oldKind)&&collapseUnsentAdd){
+                    if("add".equals(oldKind)&&collapseUnsentAdd&&c.getInt(c.getColumnIndexOrThrow("sent"))==0&&c.getInt(c.getColumnIndexOrThrow("attempts"))==0){
                         db.delete("pending_adds","session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,incomeId});
                         db.setTransactionSuccessful();return;
                     }
@@ -188,10 +196,14 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
             }
             ContentValues values=new ContentValues();values.put("operation_id",operationId);values.put("income_id",incomeId);values.put("user_id",uid);values.put("session_hash",hash);
             values.put("income_date",date);values.put("amount",amount);values.put("category",category);values.put("description",description);values.put("created_at",queueCreated);
-            values.put("status","pending");values.put("attempts",0);values.put("next_attempt_at",0);values.put("error_code","");values.put("kind","delete");
+            values.put("status","pending");values.put("attempts",0);values.put("next_attempt_at",0);values.put("error_code","");values.put("kind","delete");values.put("sent",0);
             db.delete("pending_adds","session_hash=? AND user_id=? AND income_id=?",new String[]{hash,uid,incomeId});
             db.insertOrThrow("pending_adds",null,values);db.setTransactionSuccessful();
         }finally{db.endTransaction();}
+    }
+    boolean beginSend(String hash,String uid,String operationId) throws Exception {
+        bound(hash,uid);uuid(operationId);ContentValues values=new ContentValues();values.put("sent",1);
+        return getWritableDatabase().update("pending_adds",values,"session_hash=? AND user_id=? AND operation_id=?",new String[]{hash,uid,operationId})==1;
     }
     void pendingState(String hash,String uid,String operationId,String status,long next,String code){
         checkHash(hash);uuid(operationId);

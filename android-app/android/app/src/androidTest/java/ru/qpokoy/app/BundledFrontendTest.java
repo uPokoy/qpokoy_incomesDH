@@ -135,7 +135,7 @@ public class BundledFrontendTest {
                 scenario.onActivity(activity->activity.getOnBackPressedDispatcher().onBackPressed());
                 assertEquals("\"false\"",js(web,"document.getElementById('analyticsSettingsToggle').getAttribute('aria-expanded')"));
             } finally {
-                js(web,"window.__auditCleanup=false;window.__auditError='';(async()=>{let error='';try{if(window.__auditIncome && !await IncomeStore.remove(window.__auditIncome))error='Income cleanup failed';}catch(e){error='income:'+e.status+':'+e.message;}try{if(window.__auditCategory)await qPokoyApi.deleteCategory(window.__auditCategory);}catch(e){error+=' category:'+e.status+':'+e.message;}if(error)window.__auditError=error;else window.__auditCleanup=true;})()");
+                js(web,"window.__auditCleanup=false;window.__auditError='';(async()=>{let error='';try{if(window.__auditIncome){if(!await IncomeStore.remove(window.__auditIncome))error='Income cleanup failed';for(let i=0;i<100&&qPokoyAndroidCache.pending.some(r=>r.income_id===window.__auditIncome);i++)await new Promise(r=>setTimeout(r,200));if(qPokoyAndroidCache.pending.some(r=>r.income_id===window.__auditIncome))error='Income cleanup still pending';}}catch(e){error='income:'+e.status+':'+e.message;}try{if(window.__auditCategory)await qPokoyApi.deleteCategory(window.__auditCategory);}catch(e){error+=' category:'+e.status+':'+e.message;}if(error)window.__auditError=error;else window.__auditCleanup=true;})()");
                 await(web,"window.__auditCleanup || window.__auditError");
                 System.out.println("CRUD_CLEANUP_STATE="+js(web,"JSON.stringify({error:window.__auditError,pending:qPokoyAndroidCache.pending.length,canWrite:qPokoyAndroidCache.canWrite,diagnostic:qPokoyAndroidCache.diagnostic})"));
                 assertEquals("true",js(web,"window.__auditCleanup"));
@@ -155,7 +155,7 @@ public class BundledFrontendTest {
         long cutoff=Long.parseLong(since);network(true);
         try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
             WebView web=web(scenario);await(web,"qPokoyAndroidCache?.displayed && qPokoyAuth.getUser()");fresh(web);await(web,"qPokoyAndroidCache.canWrite && qPokoyAndroidCache.pending.length===0");
-            js(web,"window.__abandonedClean=false;(async()=>{const own=name=>/^ANDROID_(BUNDLE|EDIT_ONLINE)_[0-9]+$/.test(name)&&Number(name.slice(name.lastIndexOf('_')+1))>="+cutoff+";for(const r of await qPokoyApi.listIncomes())if(own(r.description))await qPokoyApi.deleteIncome(r.id);for(const c of await qPokoyApi.listCategories())if(own(c.name))await qPokoyApi.deleteCategory(c.id);await qPokoyAndroidCache.refresh();window.__abandonedClean=true;})()");await(web,"window.__abandonedClean");fresh(web);
+            js(web,"window.__abandonedClean=false;(async()=>{const own=name=>{const m=/^ANDROID_(?:BUNDLE|EDIT_ONLINE|EDIT|DELETE_UPGRADE|DELETE_SINGLE|DELETE_ONLINE|DELETE)_([0-9]+)(?:_B| before)?$/.exec(name);return m&&Number(m[1])>="+cutoff+"};for(const r of await qPokoyApi.listIncomes())if(own(r.description))await qPokoyApi.deleteIncome(r.id);for(const c of await qPokoyApi.listCategories())if(own(c.name))await qPokoyApi.deleteCategory(c.id);await qPokoyAndroidCache.refresh();window.__abandonedClean=true;})()");await(web,"window.__abandonedClean");fresh(web);
         }
     }
     private void pollIncome(WebView web,int amount) throws Exception {
@@ -336,7 +336,7 @@ public class BundledFrontendTest {
         String phase=InstrumentationRegistry.getArguments().getString("outboxPhase");
         org.junit.Assume.assumeTrue("Explicit test-account outbox phase required",phase!=null);
         android.content.SharedPreferences meta=instrumentation.getTargetContext().getSharedPreferences("outbox-test",0);
-        network("prepare".equals(phase)||"sync".equals(phase));
+        network(!"verify".equals(phase));
         try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
             WebView web=web(scenario);
             if("prepare".equals(phase)){
@@ -454,7 +454,9 @@ public class BundledFrontendTest {
         }));return delegate;
     }
     private void editSave(WebView web,String id,int amount,String category,String description) throws Exception {
-        js(web,"document.getElementById('incomeRecentHistory').click();document.querySelector('.edit-income[data-id=\"'+"+org.json.JSONObject.quote(id)+"+'\"]').click();incomeDate.value='11.10.26';incomeAmount.value='"+amount+"';incomeCategory.value="+org.json.JSONObject.quote(category)+";incomeDescription.value="+org.json.JSONObject.quote(description)+";window.__editTrace=null;window.__editClick=performance.now();window.__editObserver=new MutationObserver(()=>{if(incomeForm.hidden&&!window.__editTrace){window.__editTrace={commit:Math.round(qPokoyAndroidCache.metrics.sqliteCommit-window.__editClick),closed:Math.round(performance.now()-window.__editClick)};window.__editObserver.disconnect();}});window.__editObserver.observe(incomeForm,{attributes:true,attributeFilter:['hidden']});saveIncome.click()");
+        js(web,"document.getElementById('incomeRecentHistory').click();document.querySelector('.edit-income[data-id=\"'+"+org.json.JSONObject.quote(id)+"+'\"]').click();incomeDate.value='11.10.26';incomeAmount.value='"+amount+"';incomeCategory.value="+org.json.JSONObject.quote(category)+";incomeDescription.value="+org.json.JSONObject.quote(description));
+        js(web,"window.__editorSettled=false;requestAnimationFrame(()=>requestAnimationFrame(()=>window.__editorSettled=true))");await(web,"window.__editorSettled");
+        js(web,"window.__editTrace=null;window.__editClick=performance.now();window.__editObserver=new MutationObserver(()=>{if(incomeForm.hidden&&!window.__editTrace){window.__editTrace={commit:Math.round(qPokoyAndroidCache.metrics.sqliteCommit-window.__editClick),closed:Math.round(performance.now()-window.__editClick)};window.__editObserver.disconnect();}});window.__editObserver.observe(incomeForm,{attributes:true,attributeFilter:['hidden']});saveIncome.click()");
         await(web,"window.__editTrace");System.out.println("EDIT_SAVE_TRACE="+js(web,"JSON.stringify(window.__editTrace)"));
         assertEquals("true",js(web,"window.__editTrace.commit>=0 && window.__editTrace.closed>=window.__editTrace.commit && window.__editTrace.closed<1000"));
         assertEquals(String.valueOf(amount),js(web,"IncomeStore.load().find(r=>r.id==="+org.json.JSONObject.quote(id)+").amount"));
@@ -648,4 +650,119 @@ public class BundledFrontendTest {
             assertEquals("\"https://localhost\"",js(web,"location.origin"));
         } finally{network(true);}
     }
+
+    private void deleteSave(WebView web,String id) throws Exception {
+        String literal=org.json.JSONObject.quote(id);
+        js(web,"qPokoyDeleteIncome("+literal+")");await(web,"document.querySelector('#qpConfirmOverlay [data-confirm-ok]')");
+        js(web,"window.__confirmSettled=false;requestAnimationFrame(()=>requestAnimationFrame(()=>window.__confirmSettled=true))");await(web,"window.__confirmSettled");
+        js(web,"window.__deleteTrace=null;window.__deleteStart=performance.now();qPokoyAndroidCache.metrics.sqliteCommit=0;window.__deleteCheck=()=>{if(!IncomeStore.load().some(r=>r.id==="+literal+")&&!document.querySelector('.edit-income[data-id=\"'+"+literal+"+'\"]'))window.__deleteTrace={commit:qPokoyAndroidCache.metrics.sqliteCommit-window.__deleteStart,hidden:performance.now()-window.__deleteStart};else requestAnimationFrame(window.__deleteCheck)};document.querySelector('#qpConfirmOverlay [data-confirm-ok]').click();requestAnimationFrame(window.__deleteCheck)");
+        await(web,"window.__deleteTrace");org.json.JSONObject trace=new org.json.JSONObject(new org.json.JSONTokener(js(web,"JSON.stringify(window.__deleteTrace)")).nextValue().toString());
+        System.out.println("DELETE_SAVE_TRACE="+trace);assertTrue("DELETE must await SQLite before hiding",trace.getDouble("commit")>0&&trace.getDouble("hidden")>=trace.getDouble("commit"));assertTrue("DELETE UI took >=1s",trace.getDouble("hidden")<1000);
+    }
+    @Test public void durableOfflineDeletes() throws Exception {
+        String phase=InstrumentationRegistry.getArguments().getString("deletePhase");org.junit.Assume.assumeTrue("Explicit DELETE TEST account phases",phase!=null);
+        android.content.SharedPreferences meta=instrumentation.getTargetContext().getSharedPreferences("delete-test-meta",0);network(!"verify".equals(phase));
+        try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+            WebView web=web(scenario);
+            if("prepare".equals(phase)){
+                await(web,"qPokoyAndroidCache?.displayed && qPokoyAuth.getUser()");fresh(web);await(web,"qPokoyAndroidCache.canWrite && qPokoyAndroidCache.pending.length===0");
+                String label="ANDROID_DELETE_"+System.currentTimeMillis(),literal=org.json.JSONObject.quote(label);meta.edit().putString("label",label).putInt("baseline",Integer.parseInt(js(web,"IncomeStore.load().length"))).commit();
+                js(web,"window.__deleteReady=false;window.__deleteIds=[];(async()=>{await qPokoyApi.addCategory("+literal+");await qPokoyLoadCategories(qPokoyAuth.getUser());for(let i=0;i<5;i++){const r=await qPokoyApi.addIncome({id:crypto.randomUUID(),income_date:'2026-10-11',amount:500+i,category:"+literal+",description:"+literal+"});window.__deleteIds.push(r.id)}await qPokoyAndroidCache.refresh();window.__deleteReady=true})()");await(web,"window.__deleteReady");
+                String ids=js(web,"JSON.stringify(window.__deleteIds)");meta.edit().putString("ids",new org.json.JSONTokener(ids).nextValue().toString()).commit();org.json.JSONArray rows=new org.json.JSONArray(meta.getString("ids",""));
+                network(false);js(web,"window.__deleteCalls=0;qPokoyAndroidNetwork.accept({state:'offline'})");
+                for(int n=0;n<3;n++){
+                    if(n==1)js(web,"Object.defineProperty(navigator,'onLine',{value:true,configurable:true});qPokoyAndroidNetwork.accept({state:'online'})");
+                    if(n==2)js(web,"qPokoyAndroidNetwork.accept({state:'unknown'})");
+                    deleteSave(web,rows.getString(n));
+                }
+                js(web,"qPokoyAndroidNetwork.accept({state:'offline'})");String fourth=rows.getString(3);editSave(web,fourth,750,label,label);deleteSave(web,fourth);
+                js(web,"document.querySelector('.add-income-btn').click();incomeDate.value='11.10.26';incomeAmount.value='600';incomeCategory.value="+literal+";incomeDescription.value="+literal+";saveIncome.click()");await(web,"incomeForm.hidden && qPokoyAndroidCache.pending.some(r=>r.kind==='add')");
+                String add=new org.json.JSONTokener(js(web,"qPokoyAndroidCache.pending.find(r=>r.kind==='add').income_id")).nextValue().toString();editSave(web,add,650,label,label);deleteSave(web,add);
+                assertEquals("true",js(web,"qPokoyAndroidCache.pending.length===4 && qPokoyAndroidCache.pending.every(r=>r.kind==='delete')"));
+                js(web,"window.__deleteReload=true");instrumentation.runOnMainSync(web::reload);await(web,"!window.__deleteReload && qPokoyAndroidCache?.pending.length===4 && qPokoyAuth.getUser()");assertEquals("1",js(web,"IncomeStore.load().filter(r=>r.description==="+literal+").length"));return;
+            }
+            String label=meta.getString("label",""),literal=org.json.JSONObject.quote(label);assertFalse(label.isEmpty());
+            await(web,"qPokoyAndroidCache?.displayed && qPokoyAuth.getUser()");
+            if("verify".equals(phase)){
+                assertEquals("true",js(web,"qPokoyAndroidCache.pending.length===4 && qPokoyAndroidCache.pending.every(r=>r.kind==='delete') && IncomeStore.load().filter(r=>r.description==="+literal+").length===1"));return;
+            }
+            fresh(web);await(web,"qPokoyAndroidCache.pending.length===0");
+            js(web,"window.__deleteCloud=false;qPokoyApi.listIncomes().then(rows=>window.__deleteCloud=rows.filter(r=>r.description==="+literal+").length===1)");if(!"clean".equals(phase))await(web,"window.__deleteCloud");
+            js(web,"window.__deleteClean=false;(async()=>{for(const r of await qPokoyApi.listIncomes())if(r.description==="+literal+")await qPokoyApi.deleteIncome(r.id);for(const c of await qPokoyApi.listCategories())if(c.name==="+literal+")await qPokoyApi.deleteCategory(c.id);await qPokoyAndroidCache.refresh();window.__deleteClean=true})()");await(web,"window.__deleteClean");fresh(web);assertEquals(String.valueOf(meta.getInt("baseline",0)),js(web,"IncomeStore.load().length"));meta.edit().clear().commit();
+        }
+    }
+    @Test public void onlineSlowLostAndRacingDeletes() throws Exception {
+        org.junit.Assume.assumeTrue("Explicit native DELETE TEST account","true".equals(InstrumentationRegistry.getArguments().getString("localFirstDeletes")));network(true);
+        try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+            WebView web=web(scenario);await(web,"qPokoyAndroidCache?.displayed && qPokoyAuth.getUser()");fresh(web);await(web,"qPokoyAndroidCache.canWrite && qPokoyAndroidCache.pending.length===0");
+            String label="ANDROID_DELETE_ONLINE_"+System.currentTimeMillis(),literal=org.json.JSONObject.quote(label);
+            js(web,"window.__deleteReady=false;window.__deleteIds=[];(async()=>{await qPokoyApi.addCategory("+literal+");await qPokoyLoadCategories(qPokoyAuth.getUser());for(let i=0;i<4;i++){const r=await qPokoyApi.addIncome({id:crypto.randomUUID(),income_date:'2026-10-11',amount:700+i,category:"+literal+",description:"+literal+"});window.__deleteIds.push(r.id)}await qPokoyAndroidCache.refresh();window.__deleteReady=true})()");await(web,"window.__deleteReady");
+            org.json.JSONArray ids=new org.json.JSONArray(new org.json.JSONTokener(js(web,"JSON.stringify(window.__deleteIds)")).nextValue().toString());
+            String shim="window.__nativeFetch=window.fetch;window.__holdDelete=false;window.__lostDelete=false;window.__holdWrite=false;window.__writeBefore=false;window.__writeApplied=false;window.__releases=[];window.__earlyDelete=0;window.fetch=(...a)=>{const path=new URL(String(a[0]),location.href).pathname,m=a[1]?.method;if(m==='DELETE'&&path.startsWith('/incomes/')){if(!qPokoyAndroidCache.metrics.sqliteCommit||IncomeStore.load().some(r=>r.id===decodeURIComponent(path.split('/').pop())))window.__earlyDelete++;if(window.__holdDelete)return new Promise((resolve,reject)=>window.__releases.push(()=>window.__nativeFetch(...a).then(resolve,reject)));if(window.__lostDelete){window.__lostDelete=false;return window.__nativeFetch(...a).then(()=>{throw new TypeError('Failed to fetch simulated lost DELETE')})}}if(window.__holdWrite&&(m==='POST'||m==='PUT')&&path.startsWith('/incomes')){if(window.__writeBefore){window.__writeApplied=true;return new Promise((resolve,reject)=>window.__releases.push(()=>window.__nativeFetch(...a).then(resolve,reject)))}return window.__nativeFetch(...a).then(r=>{window.__writeApplied=true;return new Promise(resolve=>window.__releases.push(()=>resolve(r)))})}return window.__nativeFetch(...a)};";
+            android.webkit.WebViewClient delegate=interceptApi(web,shim);js(web,"window.__deleteReload=true");instrumentation.runOnMainSync(web::reload);await(web,"!window.__deleteReload && window.__nativeFetch && qPokoyAndroidCache?.canWrite");
+            try{
+                deleteSave(web,ids.getString(0));await(web,"qPokoyAndroidCache.pending.length===0");
+                js(web,"window.__holdDelete=true");deleteSave(web,ids.getString(1));await(web,"window.__releases.length>0");
+                js(web,"window.__tombstoneCheck=false;qPokoyApi.bootstrap().then(data=>window.__tombstoneCheck=!data.incomes.some(r=>r.id==="+org.json.JSONObject.quote(ids.getString(1))+") && qPokoyAndroidCache.pending.some(r=>r.kind==='delete'))");await(web,"window.__tombstoneCheck");Thread.sleep(35000);
+                assertEquals("false",js(web,"IncomeStore.load().some(r=>r.id==="+org.json.JSONObject.quote(ids.getString(1))+")"));js(web,"window.__holdDelete=false;window.__releases.splice(0).forEach(fn=>fn())");fresh(web);await(web,"qPokoyAndroidCache.pending.length===0");
+                js(web,"window.__lostDelete=true");deleteSave(web,ids.getString(2));await(web,"qPokoyAndroidCache.pending.some(r=>r.attempts>0)");Thread.sleep(5500);fresh(web);await(web,"qPokoyAndroidCache.pending.length===0");
+                js(web,"window.__holdWrite=true;window.__writeBefore=false;window.__writeApplied=false");editSave(web,ids.getString(3),950,label,label);await(web,"window.__writeApplied");deleteSave(web,ids.getString(3));js(web,"window.__holdWrite=false;window.__releases.splice(0).forEach(fn=>fn())");fresh(web);await(web,"qPokoyAndroidCache.pending.length===0");
+                for(boolean before:new boolean[]{false,true}){
+                    js(web,"window.__holdWrite=true;window.__writeBefore="+before+";window.__writeApplied=false;document.querySelector('.add-income-btn').click();incomeDate.value='11.10.26';incomeAmount.value='800';incomeCategory.value="+literal+";incomeDescription.value="+literal+";saveIncome.click()");await(web,"incomeForm.hidden && window.__writeApplied");
+                    String id=new org.json.JSONTokener(js(web,"qPokoyAndroidCache.pending.find(r=>r.kind==='add').income_id")).nextValue().toString();deleteSave(web,id);
+                    if(before){Thread.sleep(35000);assertEquals("true",js(web,"qPokoyAndroidCache.pending.some(r=>r.kind==='delete')"));js(web,"window.__tombstoneCheck=false;qPokoyApi.bootstrap().then(data=>window.__tombstoneCheck=!data.incomes.some(r=>r.id==="+org.json.JSONObject.quote(id)+") && qPokoyAndroidCache.pending.some(r=>r.kind==='delete'))");await(web,"window.__tombstoneCheck");}
+                    js(web,"window.__holdWrite=false;window.__releases.splice(0).forEach(fn=>fn())");fresh(web);await(web,"qPokoyAndroidCache.pending.length===0");
+                }
+                assertEquals("0",js(web,"window.__earlyDelete"));js(web,"window.__deleteCloud=false;qPokoyApi.listIncomes().then(rows=>window.__deleteCloud=!rows.some(r=>r.description==="+literal+"))");await(web,"window.__deleteCloud");
+            }finally{
+                js(web,"window.__holdWrite=false;window.__holdDelete=false;window.__releases.splice(0).forEach(fn=>fn())");instrumentation.runOnMainSync(()->web.setWebViewClient(delegate));fresh(web);await(web,"qPokoyAndroidCache.pending.length===0");
+                js(web,"window.__deleteClean=false;(async()=>{for(const r of await qPokoyApi.listIncomes())if(r.description==="+literal+")await qPokoyApi.deleteIncome(r.id);for(const c of await qPokoyApi.listCategories())if(c.name==="+literal+")await qPokoyApi.deleteCategory(c.id);await qPokoyAndroidCache.refresh();window.__deleteClean=true})()");await(web,"window.__deleteClean");
+            }
+        }
+    }
+
+
+    @Test public void appV3UpgradeWithPendingAddAndEdit() throws Exception {
+        String phase=InstrumentationRegistry.getArguments().getString("upgradePhase");org.junit.Assume.assumeTrue("Explicit TEST database upgrade",phase!=null);
+        network("prepare".equals(phase)||"sync".equals(phase));android.content.SharedPreferences meta=instrumentation.getTargetContext().getSharedPreferences("upgrade-v3-test",0);
+        try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+            WebView web=web(scenario);await(web,"qPokoyAndroidCache?.displayed && qPokoyAuth.getUser()");
+            if("prepare".equals(phase)){
+                fresh(web);await(web,"qPokoyAndroidCache.pending.length===0 && qPokoyAndroidCache.canWrite");String label="ANDROID_DELETE_UPGRADE_"+System.currentTimeMillis(),literal=org.json.JSONObject.quote(label);
+                meta.edit().putString("label",label).commit();js(web,"window.__upgradeReady=false;(async()=>{await qPokoyApi.addCategory("+literal+");await qPokoyLoadCategories(qPokoyAuth.getUser());const r=await qPokoyApi.addIncome({id:crypto.randomUUID(),income_date:'2026-10-11',amount:1000,category:"+literal+",description:"+literal+"});window.__upgradeId=r.id;await qPokoyAndroidCache.refresh();window.__upgradeReady=true})()");await(web,"window.__upgradeReady");
+                network(false);js(web,"window.__upgradeQueued=false;(async()=>{await IncomeStore.update(window.__upgradeId,{date:'11.10.26',amount:1200,category:"+literal+",description:"+literal+"});await IncomeStore.add({date:'11.10.26',amount:650,category:"+literal+",description:"+literal+"});window.__upgradeQueued=true})()");await(web,"window.__upgradeQueued");assertEquals("2",js(web,"qPokoyAndroidCache.pending.length"));
+                // Reconstruct the exact v3 schema with real pending rows. Reinstall
+                // APK/force-stop next; no snapshot/outbox/session rows are removed.
+                try(ReadCacheDatabase db=new ReadCacheDatabase(instrumentation.getTargetContext())){db.getWritableDatabase().execSQL("ALTER TABLE pending_adds DROP COLUMN sent");db.getWritableDatabase().setVersion(3);}return;
+            }
+            if("verify".equals(phase)){
+                assertEquals("true",js(web,"qPokoyAndroidCache.pending.length===2 && qPokoyAndroidCache.pending.some(r=>r.kind==='add'&&r.amount===650)&&qPokoyAndroidCache.pending.some(r=>r.kind==='update'&&r.amount===1200)&&qPokoyAndroidCache.pending.every(r=>r.sent===1)"));
+                try(ReadCacheDatabase db=new ReadCacheDatabase(instrumentation.getTargetContext())){assertEquals(4,db.getWritableDatabase().getVersion());}return;
+            }
+            fresh(web);await(web,"qPokoyAndroidCache.pending.length===0");String literal=org.json.JSONObject.quote(meta.getString("label",""));
+            js(web,"window.__upgradeCloud=false;qPokoyApi.listIncomes().then(rows=>{const own=rows.filter(r=>r.description==="+literal+");window.__upgradeCloud=own.length===2 && own.some(r=>r.amount===1200)&&own.some(r=>r.amount===650)})");await(web,"window.__upgradeCloud");
+            js(web,"window.__upgradeClean=false;(async()=>{for(const r of await qPokoyApi.listIncomes())if(r.description==="+literal+")await qPokoyApi.deleteIncome(r.id);for(const c of await qPokoyApi.listCategories())if(c.name==="+literal+")await qPokoyApi.deleteCategory(c.id);await qPokoyAndroidCache.refresh();window.__upgradeClean=true})()");await(web,"window.__upgradeClean");meta.edit().clear().commit();
+        }
+    }
+    @Test public void singleOfflineDeleteLifecycle() throws Exception {
+        String phase=InstrumentationRegistry.getArguments().getString("offlineDeletePhase");org.junit.Assume.assumeTrue("Explicit single DELETE TEST fixture",phase!=null);
+        network(!"verify".equals(phase));android.content.SharedPreferences meta=instrumentation.getTargetContext().getSharedPreferences("single-delete-test",0);
+        try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
+            WebView web=web(scenario);await(web,"qPokoyAndroidCache?.displayed && qPokoyAuth.getUser()");
+            if("prepare".equals(phase)){
+                fresh(web);await(web,"qPokoyAndroidCache.canWrite && qPokoyAndroidCache.pending.length===0");
+                String label="ANDROID_DELETE_SINGLE_"+System.currentTimeMillis(),literal=org.json.JSONObject.quote(label);meta.edit().putString("label",label).putInt("baseline",Integer.parseInt(js(web,"IncomeStore.load().length"))).commit();
+                js(web,"window.__singleReady=false;(async()=>{await qPokoyApi.addCategory("+literal+");await qPokoyLoadCategories(qPokoyAuth.getUser());const r=await qPokoyApi.addIncome({id:crypto.randomUUID(),income_date:'2026-10-11',amount:777,category:"+literal+",description:"+literal+"});window.__singleId=r.id;await qPokoyAndroidCache.refresh();window.__singleReady=true})()");await(web,"window.__singleReady");
+                String id=new org.json.JSONTokener(js(web,"window.__singleId")).nextValue().toString();meta.edit().putString("id",id).commit();network(false);js(web,"qPokoyAndroidNetwork.accept({state:'offline'})");deleteSave(web,id);
+                js(web,"window.__singleReload=true");instrumentation.runOnMainSync(web::reload);await(web,"!window.__singleReload && qPokoyAndroidCache?.displayed && qPokoyAuth.getUser()");
+            }
+            String id=meta.getString("id","");assertFalse(id.isEmpty());String literal=org.json.JSONObject.quote(id);
+            if(!"sync".equals(phase)){
+                assertEquals("true",js(web,"qPokoyAndroidCache.pending.length===1 && qPokoyAndroidCache.pending[0].kind==='delete' && qPokoyAndroidCache.pending[0].income_id==="+literal+" && !IncomeStore.load().some(r=>r.id==="+literal+") && !document.querySelector('.edit-income[data-id=\"'+"+literal+"+'\"]')"));return;
+            }
+            fresh(web);await(web,"qPokoyAndroidCache.pending.length===0");js(web,"window.__singleAbsent=false;qPokoyApi.listIncomes().then(rows=>window.__singleAbsent=!rows.some(r=>r.id==="+literal+"))");await(web,"window.__singleAbsent");
+            String label=org.json.JSONObject.quote(meta.getString("label",""));js(web,"window.__singleClean=false;(async()=>{for(const c of await qPokoyApi.listCategories())if(c.name==="+label+")await qPokoyApi.deleteCategory(c.id);await qPokoyAndroidCache.refresh();window.__singleClean=true})()");await(web,"window.__singleClean");fresh(web);assertEquals(String.valueOf(meta.getInt("baseline",0)),js(web,"IncomeStore.load().length"));meta.edit().clear().commit();
+        }
+    }
+
 }
