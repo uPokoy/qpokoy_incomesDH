@@ -4,6 +4,18 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'index.html'
+      - 'admin.html'
+      - 'about.html'
+      - 'service.html'
+      - 'offer.html'
+      - 'pricing.html'
+      - 'privacy.html'
+      - 'manifest.json'
+      - 'css/**'
+      - 'js/**'
+      - 'icons/**'
   workflow_dispatch:
 
 permissions:
@@ -14,7 +26,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Test dependency manager
+        uses: pnpm/action-setup@v4
+        with:
+          version: '11.19.0'
+
+      - name: Install frontend test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Frontend API and DOM regression tests
+        run: node --test tests/*.test.js
+
+      - name: Frontend syntax and HTML/CSS structure
+        run: node tests/helpers/check-project.js
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Backend tests
+        working-directory: backend
+        run: npm test
+
+      - name: Backend syntax check
+        working-directory: backend
+        run: |
+          node --check index.js
+          node --check app.js
+          node --check category-router.js
+          node --check admin-billing.js
+          node --check admin-receipt.js
+          node --check billing-payments.js
+          node --check payment-router.js
+          node --check yookassa.js
+          node --check renewals.js
+          node --check precharge-notifications.js
+          node --check precharge-test.js
+          node --check receipt-mail.js
+          node --check ydb.js
+          node --check ydb-core.js
+          node --check security.js
+          node --check mail.js
+          node --check oauth.js
+
   deploy:
+    needs: checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
