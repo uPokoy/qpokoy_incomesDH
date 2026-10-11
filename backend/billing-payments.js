@@ -39,7 +39,7 @@ function buildPaidGrant(plan, current, existing) {
   return {
     plan,
     paid_until: end.toISOString(),
-    grace_until: new Date(end.getTime() + GRACE_MS).toISOString(),
+    grace_until: null,
     auto_renew: false
   };
 }
