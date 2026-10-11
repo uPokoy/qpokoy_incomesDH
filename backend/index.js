@@ -117,6 +117,7 @@ function buildAdminUsersData(snapshot = {}, _unused = '', current = new Date()) 
       receipt_status: receiptStatus
     };
   });
+
   const active = users.filter((item) => item.status === 'active' && ['active', 'grace'].includes(item.billing?.status)).length;
   const trial = users.filter((item) => item.status === 'active' && item.billing?.mode === 'trial').length;
   const expired = users.filter((item) => item.status === 'active' && item.billing?.status === 'expired').length;
