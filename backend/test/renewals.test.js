@@ -22,3 +22,22 @@ test('worker returns continuation at its time budget rather than losing batch pr
     {enabled:true,now:()=>new Date('2026-10-03'),elapsedNow:()=>elapsed,budgetMs:10});
   const result=await run();assert.equal(result.checked,1);assert.equal(result.next_cursor,ids[0]);assert.equal(calls,1);
 });
+
+test('refund reconciliation runs for every billing candidate and its failures stay isolated',async()=>{
+  const ids=['00000001-1111-4111-8111-111111111111','00000002-1111-4111-8111-111111111111'];
+  const reconciled=[],renewed=[];
+  const store={listPaymentRenewalUsers:async()=>ids.map(user_id=>({user_id}))};
+  const router={renewUser:async id=>{renewed.push(id);return {skipped:true};}};
+  const run=createRenewalWorker(store,router,{enabled:true,reconcileRefund:async id=>{
+    reconciled.push(id);
+    if(id===ids[1])throw Error('refund check failed');
+    return {checked:true,refunded:true};
+  }});
+  const result=await run();
+  assert.deepEqual(reconciled,ids);
+  assert.deepEqual(renewed,ids);
+  assert.equal(result.refund_checked,1);
+  assert.equal(result.refund_reconciled,1);
+  assert.equal(result.refund_failed,1);
+  assert.equal(result.failed,0);
+});
