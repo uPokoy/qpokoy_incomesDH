@@ -63,6 +63,7 @@ function fixture(){
   return{
     router,user,post,success,requests,
     get:k=>values.get(key(k)),
+    set:(k,v)=>values.set(key(k),structuredClone(v)),
     setTime:value=>{clock=new Date(value);}
   };
 }
@@ -121,4 +122,36 @@ test('yearly to monthly keeps paid time and renews as monthly',async()=>{
   assert.equal(h.requests.at(-1).metadata.plan,'monthly');
   assert.equal(h.get(ACCESS).plan,'monthly');
   assert.equal(h.get(ACCESS).paid_until,'2027-12-03T12:00:00.000Z');
+});
+
+test('repurchase after expiry starts a fresh term and clears old grace',async()=>{
+  for(const [plan,previousPlan,expectedUntil,amountRub] of [
+    ['monthly','yearly','2026-11-03T12:00:00.000Z',149],
+    ['yearly','monthly','2027-10-03T12:00:00.000Z',1190]
+  ]){
+    const h=fixture();
+    h.set(ACCESS,{
+      plan:previousPlan,
+      paid_until:'2026-09-03T12:00:00.000Z',
+      grace_until:'2026-09-06T12:00:00.000Z',
+      auto_renew:false,
+      last_payment_id:randomUUID(),
+      last_paid_at:'2026-08-03T12:00:00.000Z'
+    });
+
+    const created=await h.post({plan,auto_renew:true});
+    assert.equal(created.status,201);
+    assert.equal(h.requests.at(-1).amountRub,amountRub);
+    await h.success(created.body.data.payment_id);
+
+    const access=h.get(ACCESS);
+    assert.equal(access.plan,plan);
+    assert.equal(access.paid_until,expectedUntil);
+    assert.equal(access.grace_until,null);
+    assert.equal(access.auto_renew,true);
+    assert.equal(access.last_payment_id,created.body.data.payment_id);
+    assert.equal(h.get(CONSENT_KEY).plan,plan);
+    assert.equal(h.get(CONSENT_KEY).enabled,true);
+    assert.equal(h.get(METHOD).source_payment_id,created.body.data.payment_id);
+  }
 });
