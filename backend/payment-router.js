@@ -151,6 +151,8 @@ function createPaymentRouter(store, options = {}) {
     const auto=body.plan!=='lifetime'&&body.auto_renew===true;
     const candidate=orderFor(user.user_id,body.plan,auto,requestId);
     const order=await tx(user.user_id,async t=>{
+      const access=await t.get(BILLING_ACCESS_SETTING),adminOverride=await t.get('billing.admin_override');
+      if(access?.plan==='lifetime'||adminOverride?.plan==='lifetime')throw new PaymentHttpError(409,'lifetime_access_exists','Бессрочный доступ уже активен.');
       const old=await t.get(ORDER_PREFIX+candidate.order_id);
       if(old){if(old.plan!==candidate.plan||old.auto_renew_requested!==auto)throw new PaymentHttpError(409,'request_conflict','Этот запрос уже используется для другого платежа.');return old;}
       const consent=await t.get(CONSENT_KEY);
