@@ -1,5 +1,46 @@
 # Prototype verification — 2026-10-09
 
+## DEV420 handoff — 2026-10-11, 0.1.17-dev / code 18
+
+Starting Android HEAD: `c4de73dba99bfe7ce7e6a168884ddf18076bcf06`.
+Bundled main: `803724e1ffc64efc9ea40e57d1ff658e7a59ee98`,
+DEV `2026.10.11.420`. Used the existing `bundle.cjs --source-ref` mechanism
+and Capacitor sync; generated assets stay ignored and are reproducible from Git.
+
+Compared DEV403 -> DEV420 before generation. Runtime frontend differences are
+api-client.js (payment-return reconciliation and bootstrap session guard) and
+legal text in offer.html. app.js/auth.js/mobile CSS and the Android adaptation
+markers remain compatible. The bundled API client equals main byte-for-byte;
+a mocked transport verifies bootstrap, auth/me, POST UUID and PUT/DELETE routes.
+No Android storage/native adapters or production sources were rewritten.
+SQLite/offline ADD/UPDATE/DELETE, manual/automatic sync, pending icons, safe area,
+Back and local PDF library adaptations remain present.
+
+- Android Node: 104/104. Existing durable queue, retry, tombstone, account isolation,
+  UI save and pull-gate tests plus bundled DEV420 API contract test passed.
+- Gradle `test :app:assembleDebug :app:assembleDebugAndroidTest`: passed.
+  JVM debug 3/3 and release 3/3; both debug APKs assembled.
+- A separate clean clone installed root test dependencies from pnpm-lock.yaml and
+  Android dependencies with npm ci. No old www/build/local.properties were copied.
+  Applying this update's tracked files, regenerating bundle and syncing Capacitor
+  passed; Node 104/104 repeated. Fresh Gradle `test :app:assembleDebug` passed
+  (133 tasks executed), using installed SDK/JDK and environment configuration.
+- Syntax/structure, injected CSS parsing, APK contents/source SHA/version checks
+  and git diff --check passed. No connected emulator/device in this run;
+  instrumentation and real Samsung/cloud acceptance were not repeated.
+- npm ci/audit reported three existing moderate dev-tool advisories in the
+  @capacitor/cli -> xcode -> uuid chain. These tools are not bundled into the APK;
+  no forced/automatic dependency upgrades were made as part of this update.
+
+APK (local, ignored): `android-app/artifacts/qPokoy-0.1.17-dev-debug.apk`.
+README contains full-history clone, dependency install, pinned source regeneration,
+SDK/JDK and Gradle setup. No environment file, token, keystore, generated output
+or dependency directory is required in Git. A fresh PC can build a fresh debug
+installation. Updating an existing debug installation in place needs the matching
+private debug signing key transferred separately and securely, outside Git.
+
+main, backend/API, cloud configuration and both backup refs were untouched.
+
 ## DEV402 frontend bundle — 2026-10-10, 0.1.10-dev / code 11
 
 Starting Android HEAD: `2b385c9fd9cbe86cfef642ab93cec7861d697da7`.

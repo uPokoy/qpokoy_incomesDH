@@ -1,7 +1,7 @@
 # qPokoy Android — first technical prototype
 
 **Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create/update/delete outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.16-dev`, `versionCode=17`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.17-dev`, `versionCode=18`.
 
 Android UI/storage adaptations live in this directory. The user has separately
 deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
@@ -31,13 +31,55 @@ Install: `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
 No release key is created/committed. Gradle uses ordinary local debug signing;
 debug APK is for Samsung testing, not RuStore publication.
 
+## Continue on another PC
+
+Install Git, Node 22+ (npm included), pnpm 11.19.0 for the repository's DOM test
+dependencies, and Android Studio 2025.2.1+ with JDK 21. In SDK Manager install
+Android SDK Platform 36, Build-Tools 36.0.0 and Platform-Tools. An emulator/system
+image and hardware virtualization are optional for instrumentation tests. Gradle
+8.14.3 is downloaded by the committed wrapper; no separate Gradle install is needed.
+
+Clone with full Git history (not a shallow ZIP checkout). From an empty directory:
+
+```sh
+git clone --branch codex/android-capacitor-bootstrap https://github.com/uPokoy/qpokoy_incomesDH.git
+cd qpokoy_incomesDH
+git fetch origin
+pnpm install --frozen-lockfile --ignore-scripts
+cd android-app
+npm ci
+# Reproduce this verified DEV420 bundle, even if origin/main later advances:
+npm run bundle -- --source-ref 803724e1ffc64efc9ea40e57d1ff658e7a59ee98
+npx cap sync android
+npm test
+npx cap open android
+```
+
+Select JDK 21 for Gradle in Android Studio and allow it to generate the ignored
+`android/local.properties` for this PC's SDK. For command-line builds instead,
+set `JAVA_HOME` and `ANDROID_HOME` to this PC's installations, then run from
+`android-app/android`: `./gradlew test :app:assembleDebug` (Windows:
+`gradlew.bat test :app:assembleDebug`). SDK/dependency downloads require internet.
+
+All required sources, launcher assets, Gradle wrapper and dependency lockfiles
+are committed. `www/`, Capacitor copied assets, dependencies, APKs and build
+folders are recreated locally, not copied from the old PC. No .env, cloud
+credentials or release signing key is needed for the debug build. Sign in in the
+app normally; account/cache/SQLite contents are device-local and not in Git.
+
+A new PC creates a different private debug signing key. To update an already
+installed debug APK in place, securely transfer the existing debug key outside
+Git. Otherwise use a separate emulator/device installation; do not uninstall an
+app with unsynchronized operations, because uninstall removes its SQLite queue.
+This does not introduce or modify release signing.
+
 ## Updating the bundled frontend
 
-APK 0.1.16-dev uses main DEV403, source
-`48e6b501cc6aa33fef6720c74dc6e7986cc78ed2`. Recent mobile cards now share the
+APK 0.1.17-dev uses main DEV420, source
+`803724e1ffc64efc9ea40e57d1ff658e7a59ee98`. Recent mobile cards now share the
 full-history layout, including description. Android pending status is a subtle 16px sync icon at the bottom-right
 of recent/history cards. Every Android create commits to SQLite before background synchronization. To reproduce this source, use
-`npm run bundle -- --source-ref 48e6b501cc6aa33fef6720c74dc6e7986cc78ed2`, then
+`npm run bundle -- --source-ref 803724e1ffc64efc9ea40e57d1ff658e7a59ee98`, then
 `npx cap sync android` and the normal Gradle build.
 
 ### 0.1.16 pending icons and native manual synchronization

@@ -33,7 +33,7 @@ test('offline API failures are controlled and OAuth does not start an unsafe Web
   assert.equal((await w.fetch('https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net/auth/me')).status,401);
 });
 
-test('bundle preserves the main recent-card description and Android pending date label',()=>{
+test('bundle preserves the main recent-card description and Android pending icons',()=>{
   const info=JSON.parse(fs.readFileSync(path.join(root,'www/bundle-info.json')));
   const app=fs.readFileSync(path.join(root,'www/js/app.js'),'utf8');
   const css=fs.readFileSync(path.join(root,'www/css/mobile.css'),'utf8');
@@ -46,6 +46,27 @@ test('bundle preserves the main recent-card description and Android pending date
   assert.match(css,/Mobile recent cards use the same content layout as full history/);
   assert.match(css,/grid-template-areas:"amount category" "date category" "description description"/);
 });
+test('DEV420 bundled API client keeps bootstrap and Android income CRUD contracts',async()=>{
+  const info=JSON.parse(fs.readFileSync(path.join(root,'www/bundle-info.json')));
+  const source=fs.readFileSync(path.join(root,'www/js/api-client.js'),'utf8');
+  const {execFileSync}=require('node:child_process');
+  assert.equal(source,execFileSync('git',['show',info.sourceCommit+':js/api-client.js'],{cwd:path.join(root,'..'),encoding:'utf8'}));
+  const {createApiClient,TOKEN_KEY}=require('../www/js/api-client.js');
+  const values=new Map([[TOKEN_KEY,'test-only-token']]),calls=[];
+  const storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};
+  const id='b1d5dd77-df32-48cf-9165-a97b1215d40c',user={user_id:'test-user'};
+  const client=createApiClient({storage,location:{search:''},fetchImpl:async(url,options)=>{
+    calls.push({path:new URL(url).pathname,method:options.method,body:options.body?JSON.parse(options.body):null});
+    const value=calls.at(-1).path==='/bootstrap'?{user,incomes:[],categories:[],settings:[],revision:'test'}:{data:{id,user_id:user.user_id},user};
+    return {ok:true,status:200,text:async()=>JSON.stringify(value)};
+  }});
+  assert.deepEqual((await client.bootstrap()).user,user);
+  assert.deepEqual(await client.restoreSession(),user);
+  await client.addIncome({id,client_mutation_id:id,amount:1,income_date:'2026-10-11',category:'Test',description:'Fixture'});
+  await client.updateIncome(id,{amount:2});await client.deleteIncome(id);
+  assert.deepEqual(calls.map(({path,method})=>[method,path]),[['GET','/bootstrap'],['GET','/auth/me'],['POST','/incomes'],['PUT','/incomes/'+id],['DELETE','/incomes/'+id]]);
+  assert.equal(calls[2].body.id,id);assert.equal(calls[2].body.client_mutation_id,id);
+});
 test('bundled HTTPS localhost origin, separate identity/version and no release signing',()=>{
   const config=JSON.parse(fs.readFileSync(path.join(root,'capacitor.config.json')));
   assert.equal(config.appId,'ru.qpokoy.app');assert.equal(config.server.url,undefined);
@@ -53,7 +74,7 @@ test('bundled HTTPS localhost origin, separate identity/version and no release s
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
   assert.equal(config.plugins.SystemBars.insetsHandling,'disable');
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.16-dev"/);assert.match(gradle,/versionCode 17/);
+  assert.match(gradle,/versionName "0.1.17-dev"/);assert.match(gradle,/versionCode 18/);
   assert.doesNotMatch(gradle,/signingConfigs|storePassword|keyPassword/);
   const manifest=fs.readFileSync(path.join(root,'android/app/src/main/AndroidManifest.xml'),'utf8');
   assert.match(manifest,/allowBackup="false"/);assert.match(manifest,/windowSoftInputMode="adjustResize"/);
