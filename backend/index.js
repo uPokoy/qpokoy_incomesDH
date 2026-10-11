@@ -117,7 +117,6 @@ function buildAdminUsersData(snapshot = {}, _unused = '', current = new Date()) 
       receipt_status: receiptStatus
     };
   });
-
   const active = users.filter((item) => item.status === 'active' && ['active', 'grace'].includes(item.billing?.status)).length;
   const trial = users.filter((item) => item.status === 'active' && item.billing?.mode === 'trial').length;
   const expired = users.filter((item) => item.status === 'active' && item.billing?.status === 'expired').length;
@@ -170,7 +169,7 @@ async function handler(event = {}) {
       appBaseUrl,
       oauthCallbackBaseUrl: process.env.PUBLIC_API_BASE_URL || 'https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net',
       oauth: createOAuthService(process.env),
-      requireEmailVerification: String(process.env.REQUIRE_EMAIL_VERIFICATION || '').toLowerCase() === 'true',
+      requireEmailVerification: String(process.env.REQUIRE_EMAIL_VERIFICATION ?? 'true').trim().toLowerCase() !== 'false',
       adminUserIds: process.env.ADMIN_USER_IDS || '',
       sendPasswordResetEmail: ({ to, resetUrl }) => sendPasswordResetEmail({
         to,
