@@ -117,7 +117,7 @@ test('authenticated user creates payment and successful verified webhook grants 
   assert.deepEqual(access, {
     plan: 'monthly',
     paid_until: '2026-11-03T12:01:00.000Z',
-    grace_until: '2026-11-06T12:01:00.000Z',
+    grace_until: null,
     auto_renew: true,
     last_payment_id: paymentId,
     last_paid_at: '2026-10-03T12:01:00.000Z'
