@@ -155,3 +155,36 @@ test('repurchase after expiry starts a fresh term and clears old grace',async()=
     assert.equal(h.get(METHOD).source_payment_id,created.body.data.payment_id);
   }
 });
+
+test('manual payment during renewal grace restores normal paid access',async()=>{
+  const h=fixture();
+  const oldPaymentId=randomUUID(),oldMethodId=randomUUID(),oldConsentVersion=randomUUID();
+  h.set(ACCESS,{
+    plan:'monthly',
+    paid_until:'2026-10-03T12:00:00.000Z',
+    grace_until:'2026-10-06T12:00:00.000Z',
+    auto_renew:false,
+    last_payment_id:oldPaymentId,
+    last_paid_at:'2026-09-03T12:00:00.000Z'
+  });
+  h.set(CONSENT_KEY,{enabled:true,plan:'monthly',version:oldConsentVersion,at:'2026-09-03T12:00:00.000Z'});
+  h.set(METHOD,{payment_method_id:oldMethodId,saved:true,source_payment_id:oldPaymentId});
+  h.setTime('2026-10-04T12:00:00Z');
+
+  const created=await h.post({plan:'monthly',auto_renew:true});
+  assert.equal(created.status,201);
+  await h.success(created.body.data.payment_id);
+
+  const access=h.get(ACCESS);
+  assert.equal(access.plan,'monthly');
+  assert.equal(access.paid_until,'2026-11-04T12:00:00.000Z');
+  assert.equal(access.grace_until,null);
+  assert.equal(access.auto_renew,true);
+  assert.equal(access.last_payment_id,created.body.data.payment_id);
+  assert.equal(access.last_paid_at,'2026-10-04T12:00:00.000Z');
+  assert.equal(h.get(CONSENT_KEY).plan,'monthly');
+  assert.equal(h.get(CONSENT_KEY).enabled,true);
+  assert.notEqual(h.get(CONSENT_KEY).version,oldConsentVersion);
+  assert.equal(h.get(METHOD).source_payment_id,created.body.data.payment_id);
+  assert.notEqual(h.get(METHOD).payment_method_id,oldMethodId);
+});
