@@ -92,7 +92,8 @@
       if(!payment?.confirmation_url||!PAYMENT_ID_RE.test(id))return;
       try{paymentStorage?.setItem(PENDING_PAYMENT_KEY,id);}catch(_){}
     }
-    function clearPendingPayment(){try{paymentStorage?.removeItem(PENDING_PAYMENT_KEY);}catch(_){}}
+    function clearPendingPayment(){try{paymentStorage?.removeItem(PENDING_PAYMENT_KEY);}catch(_){}
+    }
     function pendingPaymentId(){
       try{
         const id=String(paymentStorage?.getItem(PENDING_PAYMENT_KEY)||'');
@@ -201,12 +202,13 @@
       },
       async completeOnboarding(){return request('PUT','/settings/onboarding_completed',{setting_value:'true'});},
       async bootstrap(){
-        if(!getToken())return null;
+        const token=getToken();
+        if(!token)return null;
         await reconcilePaymentReturn();
         if(!getToken())return null;
+        if(token!==getToken())throw new ApiError(0,'session_changed','Сессия изменилась во время загрузки.');
         let timingStart;
         try{timingStart=globalThis.performance?.now?.();}catch(_){}
-        const token=getToken();
         const cache=readBootstrapCache();
         try{
           let payload=await request('GET','/bootstrap'+(cache?'?revision='+encodeURIComponent(cache.revision):''));
