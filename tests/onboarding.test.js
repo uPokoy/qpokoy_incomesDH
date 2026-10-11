@@ -147,18 +147,15 @@ test('mobile category trigger opens the existing editor and creates/selects with
   assert.deepEqual(h.errors,[]);
 });
 
-test('temporary mobile test mode repeats completed accounts on fresh launch and login, not desktop',async t=>{
+test('completed mobile accounts do not repeat onboarding on fresh launch and login',async t=>{
   for(let launch=0;launch<3;launch++){
     const h=await createHarness({onboarding:true,onboardingCompleted:true,width:390,height:844,pointer:'coarse'});t.after(()=>h.close());
-    assert.equal(h.node('qpTourText').textContent,'Здесь самое важное: доход за текущий месяц, а также годовой график.');
-    tour(h).querySelector('[data-tour-skip]').click();await h.settle();
-    assert.equal(tour(h),null);assert.equal(h.calls.includes('completeOnboarding'),false);
+    assert.equal(tour(h),null);
+    assert.equal(h.calls.includes('completeOnboarding'),false);
     assert.equal(h.w.document.querySelector('.qp-tour-demo-badge'),null);
-    await h.logout();await h.login();assert.ok(tour(h));
+    await h.logout();await h.login();assert.equal(tour(h),null);
     assert.deepEqual(h.errors,[]);
   }
-  const desktop=await createHarness({onboarding:true,onboardingCompleted:true});t.after(()=>desktop.close());
-  assert.equal(tour(desktop),null);await desktop.logout();await desktop.login();assert.equal(tour(desktop),null);
 });
 
 test('mobile skip saves normal completion and restores the prior recent/history state',async t=>{
