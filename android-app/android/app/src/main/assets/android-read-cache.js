@@ -46,6 +46,21 @@
     const sendAdd=api.addIncome?.bind(api),sendUpdate=api.updateIncome?.bind(api),sendDelete=api.deleteIncome?.bind(api);
     let epoch=0,current=null,binding=null,validatedToken=null,displayed=false,renderedSignature=null,hydrate=null,refreshJob=null,refreshEpoch=0,clearJob=Promise.resolve(),mutations=0,view=null;
     let pending=[],syncJob=null,manualJob=null,retryTimer=null;
+    let recoveryTimer=null,recoveryStep=0,closed=false;
+    const recoveryDelays=[1000,3000,6000,10000,15000,30000,60000,120000,300000];
+    function stopRecovery(){if(recoveryTimer!==null){clearTimeout(recoveryTimer);recoveryTimer=null;}}
+    function scheduleRecovery(reset=false){
+      if(reset){stopRecovery();recoveryStep=0;}
+      if(closed||recoveryTimer!==null||!view||view.document.visibilityState==='hidden'||!current||!api.getToken()||canWrite()||!pending.some(row=>row.status!=='error')||recoveryStep>=recoveryDelays.length)return;
+      // Bounded foreground native probes also cover a missed OS/WebView event.
+      // Unknown is not proof of connectivity: never poll the API while offline.
+      recoveryTimer=setTimeout(async()=>{
+        recoveryTimer=null;
+        try{const state=await networkState({fresh:true});if(state?.state==='online')await sessionSync(false);}catch(_){}
+        finally{scheduleRecovery();}
+      },recoveryDelays[recoveryStep++]);
+      recoveryTimer.unref?.();
+    }
     const inFlight=new Set(),activeWrites=new Map();
     const metrics={};
     // Safe stage-only diagnostics: never log account IDs, tokens or income data.
@@ -94,6 +109,7 @@
       current=value;binding=hash;setPending(stored?.pending,value.user.user_id);return true;
     }
     function purge(){
+      stopRecovery();
       epoch++;current=null;binding=null;validatedToken=null;displayed=false;renderedSignature=null;pending=[];inFlight.clear();
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
       if(view){
@@ -111,6 +127,7 @@
       if(run!==epoch||token!==api.getToken())return undefined;
       if(!data){await purge();return null;}
       const value=snapshot(data,clock());
+      if(pending.length&&current&&value.user.user_id!==current.user.user_id){await purge();return null;}
       const old=renderedSignature;
       // A storage failure must not make a successful server response unusable.
       try{await save(value,token,run);}catch(_){if(run===epoch&&token===api.getToken()){current=value;binding=await identity(token);}}
@@ -126,6 +143,7 @@
         return;
       }
       if(mutations||!online())return;
+      if(manualJob){await manualJob;return;}
       if(!api.getToken())return;
       refreshEpoch=epoch;
       const job=(async()=>{
@@ -160,8 +178,8 @@
           }else if(cached){await purge();}
         }catch(_){await purge().catch(()=>{});}
       }
-      if(!online()&&displayed)return;
-      await refresh();
+      if(!online()&&displayed){scheduleRecovery(true);return;}
+      try{await refresh();}finally{scheduleRecovery(true);}
       if(!online()&&!displayed)throw new Error('Нет подключения к интернету');
     }
     async function enqueue(record,edit=false){
@@ -223,6 +241,7 @@
     }
     function scheduleRetry(){
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
+      scheduleRecovery();
       if(!canWrite()||view?.document.visibilityState==='hidden')return;
       const waiting=pending.filter(row=>row.status!=='error');if(!waiting.length)return;
       const due=Math.min(...waiting.map(row=>row.next_attempt_at||0));
@@ -299,25 +318,32 @@
     }
     // Manual pull uses the same outbox, without fetching bootstrap/categories/charts.
     // A cold cached session is revalidated through the existing /auth/me endpoint.
-    function manualSync(){
+    function sessionSync(force){
       if(manualJob)return manualJob;
       const job=(async()=>{
+        if(refreshJob)await refreshJob;
         const state=await networkState({fresh:true});
         if(state?.state==='offline'||!online())return 'offline';
         if(!pending.length)return 'idle';
         const token=api.getToken(),run=epoch,uid=current?.user.user_id;
-        if(!token||!uid||!binding||mutations)return 'idle';
+        if(!token||!uid||!binding||mutations||binding!==await identity(token)||token!==api.getToken())return 'idle';
         if(validatedToken!==token){
           const user=await api.restoreSession();
           if(run!==epoch||token!==api.getToken())return 'idle';
           if(!user||user.user_id!==uid){await purge();return 'idle';}
           validatedToken=token;
         }
-        await syncPending(true); // Ignore transient backoff once; permanent errors stay.
+        await syncPending(force); // Only a manual pull bypasses transient backoff.
         return 'done';
       })();
       manualJob=job;
       return job.finally(()=>{if(manualJob===job)manualJob=null;});
+    }
+    function manualSync(){return sessionSync(true);}
+    function wake(){
+      if(closed||!hydrate||view?.document.visibilityState==='hidden')return;
+      scheduleRecovery(true);
+      void (pending.length&&!canWrite()?sessionSync(false):refresh()).catch(()=>{});
     }
     async function confirmed(name,args,result,token,run){
       if(!current||token!==api.getToken()||run!==epoch)return;
@@ -396,8 +422,9 @@
         if(target&&!canWrite()){event.preventDefault();event.stopImmediatePropagation();notify();}
         if(event.target.closest?.('#qpAuthLogoutBtn')&&pending.length){event.preventDefault();event.stopImmediatePropagation();w.qPokoyNotice?.('Несинхронизированные доходы',pendingWarning,'error');}
       },true);
-      w.addEventListener('online',()=>{void (refreshJob||Promise.resolve()).catch(()=>{}).then(()=>refresh()).catch(()=>{});});
-      w.document.addEventListener('visibilitychange',()=>{if(w.document.visibilityState==='visible')void refresh().catch(()=>{});else if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}});
+      w.addEventListener('online',wake);
+      w.document.addEventListener('visibilitychange',()=>{if(w.document.visibilityState==='visible')wake();else{stopRecovery();if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}}});
+      w.addEventListener('pagehide',()=>{closed=true;stopRecovery();if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}},{once:true});
       // One JS subscription per document; one OS callback per resumed native plugin.
       if(w.Capacitor?.addListener){
         let removed=false,listener;
@@ -406,7 +433,7 @@
         listener=w.Capacitor.addListener('QPokoyReadCache','networkStateChange',state=>{
           if(removed||!state)return;
           w.qPokoyAndroidNetwork.accept(state);
-          if(hydrate&&state.state!=='offline'&&w.document.visibilityState!=='hidden')void refresh().catch(()=>{});
+          if(state.state==='online')wake();
         });
       }
     }

@@ -32,7 +32,8 @@ public class ReadCachePlugin extends Plugin {
     private synchronized void publishNetwork(JSObject state){
         if(networkCallback==null)return;
         String value=state.toString();if(value.equals(lastNetworkState))return;
-        lastNetworkState=value;notifyListeners("networkStateChange",state);
+        // Resume may precede JS listener registration during a cold WebView load.
+        lastNetworkState=value;notifyListeners("networkStateChange",state,true);
     }
     private synchronized void startNetworkMonitoring(){
         if(networkCallback!=null||connectivity==null)return;

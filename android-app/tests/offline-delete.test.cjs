@@ -72,13 +72,15 @@ function fixture(){
     },
     deleteAllIncomes:async()=>{},replaceIncomes:async()=>{}
   };
-  const view={IncomeStore:{load:()=>ui,save:rows=>ui=rows},document:{addEventListener:()=>{},visibilityState:'visible'},addEventListener:()=>{},setTimeout:()=>{},applyIncomeHeaderFilters:()=>{},renderIncomeAnalytics:()=>{},qPokoyNotice:()=>{}};
+  const events=new Map(),listen=(name,fn)=>events.set(name,[...(events.get(name)||[]),fn]);
+  const view={IncomeStore:{load:()=>ui,save:rows=>ui=rows},document:{addEventListener:listen,visibilityState:'visible'},addEventListener:listen,setTimeout:()=>{},applyIncomeHeaderFilters:()=>{},renderIncomeAnalytics:()=>{},qPokoyNotice:()=>{}};
   const originals={...api};
   const hydrate=async payload=>view.IncomeStore.save(payload?payload.incomes.map(row=>({id:row.id,date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description})):[]);
   let cache;
   function fresh(){Object.assign(api,originals);cache=create({api,db,fingerprint:async()=> 'a'.repeat(64),online:()=>online,networkState:async()=>({state:online?'online':'offline'})});cache.install(view);}
   fresh();
   return {api,db,server,queue,posts,updates,deletes,view,get bootstraps(){return bootstraps;},get identities(){return identities;},get cache(){return cache;},get ui(){return ui;},
+    event:name=>events.get(name)?.forEach(fn=>fn()),
     setOnline:value=>online=value,setGate:value=>gate=value,setLostDelete:value=>lostDelete=value,setFault:value=>fault=value,setBootstrapGate:value=>bootstrapGate=value,fresh,
     start:()=>cache.start(hydrate),add:amount=>view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount,category:'Test',description:'Fixture'})};
 }
@@ -209,4 +211,74 @@ test('concurrent pulls and active automatic send coalesce without duplicate requ
 test('cold manual account mismatch never sends or discards another account queue',async t=>{
   const f=fixture();t.after(()=>f.cache.purge());await f.start();f.setOnline(false);await f.add(126);f.fresh();await f.start();f.setOnline(true);
   f.api.restoreSession=async()=>({user_id:'B'});assert.equal(await f.cache.manualSync(),'idle');assert.equal(f.posts.length,0);assert.equal(f.queue.size,1);assert.equal(f.ui.length,0);
+});
+
+const settle=()=>new Promise(resolve=>setImmediate(resolve));
+async function coldPending(t){
+  t.mock.timers.enable({apis:['setTimeout']});
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();
+  f.setOnline(false);await f.add(127);f.event('pagehide');f.fresh();await f.start();
+  assert.equal(f.cache.canWrite,false);assert.equal(f.cache.pending.length,1);
+  return f;
+}
+test('missed native/online event: bounded fallback validates cold owner and automatically flushes',async t=>{
+  const f=await coldPending(t),before=f.bootstraps;
+  t.mock.timers.tick(1000);await settle();assert.equal(f.identities,0);assert.equal(f.posts.length,0);
+  f.setOnline(true);t.mock.timers.tick(3000);await settle();
+  assert.equal(f.identities,1);assert.equal(f.bootstraps,before);assert.equal(f.cache.canWrite,true);
+  assert.equal(f.posts.length,1);assert.equal(f.server.size,1);assert.equal(f.queue.size,0);
+  t.mock.timers.tick(600000);await settle();assert.equal(f.posts.length,1);
+});
+for(const status of [401,503])test('failed automatic session validation '+status+' never sends pending',async t=>{
+  const f=await coldPending(t);let validations=0;
+  f.api.restoreSession=async()=>{validations++;throw failure(status);};
+  f.setOnline(true);t.mock.timers.tick(1000);await settle();
+  assert.equal(validations,1);assert.equal(f.cache.canWrite,false);assert.equal(f.posts.length,0);assert.equal(f.queue.size,1);
+});
+test('automatic owner mismatch retains durable old queue and cannot send it under another user',async t=>{
+  const f=await coldPending(t);f.api.restoreSession=async()=>({user_id:'B'});
+  f.setOnline(true);t.mock.timers.tick(1000);await settle();
+  assert.equal(f.posts.length,0);assert.equal(f.cache.canWrite,false);assert.equal(f.queue.size,1);assert.equal(f.ui.length,0);
+});
+test('repeated online/foreground events and fallback share one validation and one send',async t=>{
+  const f=await coldPending(t);let validations=0,release;
+  f.api.restoreSession=async()=>{validations++;await new Promise(resolve=>release=resolve);return {user_id:'A'};};
+  f.setOnline(true);for(let i=0;i<5;i++){f.event('online');f.event('visibilitychange');}
+  t.mock.timers.tick(1000);await settle();assert.equal(validations,1);assert.equal(f.posts.length,0);
+  release();await settle();assert.equal(f.posts.length,1);assert.equal(f.queue.size,0);
+});
+test('offline fallback is finite, does not call API, and foreground re-arms recovery',async t=>{
+  const f=await coldPending(t),before=f.bootstraps;
+  for(let i=0;i<20;i++){t.mock.timers.tick(600000);await settle();}
+  assert.equal(f.identities,0);assert.equal(f.bootstraps,before);assert.equal(f.posts.length,0);
+  f.setOnline(true);t.mock.timers.tick(600000);await settle();assert.equal(f.posts.length,0);
+  f.event('visibilitychange');await settle();assert.equal(f.identities,1);assert.equal(f.posts.length,1);
+});
+test('fallback pauses while hidden and stops on pagehide',async t=>{
+  const f=await coldPending(t);f.view.document.visibilityState='hidden';f.event('visibilitychange');
+  f.setOnline(true);t.mock.timers.tick(600000);await settle();assert.equal(f.identities,0);
+  f.event('pagehide');f.view.document.visibilityState='visible';f.event('visibilitychange');
+  t.mock.timers.tick(600000);await settle();assert.equal(f.posts.length,0);
+});
+test('native reconnect signals use the same guarded single-flight recovery',async t=>{
+  const f=await coldPending(t);f.event('pagehide');let callback;
+  f.view.Capacitor={addListener(plugin,event,fn){assert.equal(plugin,'QPokoyReadCache');assert.equal(event,'networkStateChange');callback=fn;return {remove:async()=>{}};}};
+  f.view.qPokoyAndroidNetwork={accept:()=>{}};f.fresh();await f.start();
+  f.setOnline(true);for(let i=0;i<6;i++)callback({state:'online'});await settle();
+  assert.equal(f.identities,1);assert.equal(f.posts.length,1);assert.equal(f.queue.size,0);
+});
+test('token change during automatic validation never sends the old queue',async t=>{
+  const f=await coldPending(t);let release;
+  f.api.restoreSession=()=>new Promise(resolve=>release=resolve);
+  f.setOnline(true);t.mock.timers.tick(1000);await settle();
+  f.api.getToken=()=> 'different-session';release({user_id:'A'});await settle();
+  assert.equal(f.cache.canWrite,false);assert.equal(f.posts.length,0);assert.equal(f.queue.size,1);
+});
+test('a bootstrap for another owner cannot rebind or send a cold pending queue',async t=>{
+  const f=await coldPending(t);f.api.bootstrap=async()=>({user:{user_id:'B'},incomes:[],categories:[],settings:[]});
+  // Capture the changed original bootstrap in a new process-equivalent coordinator.
+  // fixture.fresh restores API originals, so use a standalone coordinator here.
+  f.event('pagehide');const c=create({api:f.api,db:f.db,fingerprint:async()=> 'a'.repeat(64),online:()=>true});
+  t.after(()=>c.purge());await c.start(async()=>{});
+  assert.equal(c.canWrite,false);assert.equal(f.posts.length,0);assert.equal(f.queue.size,1);assert.equal(c.snapshot,null);
 });
