@@ -24,12 +24,37 @@
       }
     };
     captureAuth();document.head.appendChild(style);
+    // Body padding scrolls away. Keep the editor below the real status-bar inset
+    // when WebView pans the document to reveal a focused field above the IME.
+    let editorFrame=null,editorKeyboardVisible=false;
+    const keepEditorBelowStatusBar=()=>{
+      editorFrame=null;
+      const form=document.getElementById('incomeForm');
+      if(!form||form.hidden||!form.contains(document.activeElement))return;
+      // Do not pin a normal scrolling page after the keyboard has closed.
+      if(!editorKeyboardVisible)return;
+      const top=parseFloat(getComputedStyle(root).getPropertyValue('--qp-android-top'))||0;
+      const delta=form.getBoundingClientRect().top-top;
+      if(delta<0)window.scrollTo({top:Math.max(0,Math.floor(window.scrollY+delta)),behavior:'instant'});
+    };
+    const scheduleEditorInset=()=>{
+      if(editorFrame===null)editorFrame=requestAnimationFrame(keepEditorBelowStatusBar);
+    };
+    document.addEventListener('focusin',scheduleEditorInset);
+    document.addEventListener('scroll',scheduleEditorInset,true);
+    window.visualViewport?.addEventListener('resize',scheduleEditorInset);
+    window.visualViewport?.addEventListener('scroll',scheduleEditorInset);
+    window.addEventListener('pagehide',()=>{
+      if(editorFrame!==null)cancelAnimationFrame(editorFrame);
+    },{once:true});
     const authObserver=new MutationObserver(captureAuth);
     authObserver.observe(document.body,{childList:true,subtree:true});
     window.addEventListener('pagehide',()=>authObserver.disconnect(),{once:true});
-    window.qPokoyAndroidSetTopInset=top=>{
+    window.qPokoyAndroidSetTopInset=(top,keyboardVisible=false)=>{
+      editorKeyboardVisible=keyboardVisible===true;
       root.style.setProperty('--qp-android-top',`${Number.isFinite(top)?Math.max(0,top):0}px`);
       captureAuth();
+      scheduleEditorInset();
     };
   }
   // Android-only pending icon; it is a direct child of the card surface.

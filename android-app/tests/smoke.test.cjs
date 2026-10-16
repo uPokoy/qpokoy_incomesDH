@@ -90,6 +90,29 @@ test('content top inset preserves existing padding and does not accumulate',t=>{
   w.eval(adapter);assert.equal(w.document.querySelectorAll('#qpAndroidSafeArea').length,1);
   w.qPokoyAndroidSetTopInset(0);assert.equal(root.style.getPropertyValue('--qp-android-top'),'0px');
 });
+test('editor autoscroll respects the current Android inset without affecting other page scroll',t=>{
+  const dom=new JSDOM('<div id="incomeForm"><input id="description"></div><input id="outside">',{url:'https://localhost/',runScripts:'outside-only',pretendToBeVisual:true});
+  const w=dom.window;t.after(()=>{w.dispatchEvent(new w.Event('pagehide'));w.close();});
+  const frames=new Map();let frame=0,y=450;const moves=[];
+  w.requestAnimationFrame=fn=>{frames.set(++frame,fn);return frame;};w.cancelAnimationFrame=id=>frames.delete(id);
+  const flush=()=>{for(const [id,fn]of [...frames]){frames.delete(id);fn();}};
+  Object.defineProperty(w,'scrollY',{get:()=>y});
+  w.scrollTo=options=>{moves.push(options);y=options.top;};
+  w.visualViewport=new w.EventTarget();w.visualViewport.height=490;
+  const form=w.document.getElementById('incomeForm');form.getBoundingClientRect=()=>({top:400-y});
+  w.qPokoyAndroid={postMessage(){}};w.eval(adapter);w.qPokoyAndroidSetTopInset(34.333332,true);
+  w.document.getElementById('description').focus();flush();
+  assert.ok(form.getBoundingClientRect().top>=34.333332);assert.equal(moves.length,1);assert.equal(moves[0].behavior,'instant');
+  w.document.dispatchEvent(new w.Event('scroll'));flush();assert.equal(moves.length,1,'no repeated correction once safe');
+  // IME resize and a changed system inset use the same guard, not a fixed offset.
+  y=430;w.qPokoyAndroidSetTopInset(48,true);w.visualViewport.dispatchEvent(new w.Event('resize'));flush();
+  assert.equal(form.getBoundingClientRect().top,48);
+  w.qPokoyAndroidSetTopInset(48,false);y=500;w.visualViewport.dispatchEvent(new w.Event('resize'));flush();assert.equal(y,500,'normal scrolling remains available without the keyboard');
+  w.qPokoyAndroidSetTopInset(48,true);
+  w.document.getElementById('outside').focus();y=500;w.document.dispatchEvent(new w.Event('scroll'));flush();assert.equal(y,500);
+  w.document.getElementById('description').focus();form.hidden=true;flush();assert.equal(y,500);
+});
+
 test('Android Back closes real controls in order without changing website handlers',t=>{
   const dom=new JSDOM('<div id="qpConfirmOverlay"><button data-confirm-cancel></button></div><div id="categoryPopup" class="open"></div><button id="categorySelect"></button><div id="incomeForm"><button id="cancelIncome"></button></div>',{url:'https://localhost/',runScripts:'outside-only',pretendToBeVisual:true});t.after(()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();});
   const w=dom.window;w.qPokoyAndroid={postMessage(){}};

@@ -38,7 +38,7 @@ import org.json.JSONObject;
 public class MainActivity extends BridgeActivity {
     private String adapter;
     private SyncSwipeRefreshLayout pullSync;
-    private boolean pullAllowed;
+    private boolean pullAllowed,keyboardVisible;
     private int pullRequest,pullInset=-1;
     private int topSafeInset;
     private WebView reportView;
@@ -148,6 +148,7 @@ public class MainActivity extends BridgeActivity {
             Insets bars=insets.getInsets(WindowInsetsCompat.Type.systemBars()|WindowInsetsCompat.Type.displayCutout());
             Insets ime=insets.getInsets(WindowInsetsCompat.Type.ime());
             topSafeInset=bars.top;
+            keyboardVisible=insets.isVisible(WindowInsetsCompat.Type.ime());
             updatePullInset();
             view.setPadding(bars.left,0,bars.right,Math.max(bars.bottom,ime.bottom));
             WebView web=bridge.getWebView();
@@ -162,7 +163,7 @@ public class MainActivity extends BridgeActivity {
     }
     private String topInsetScript(){
         float cssTop=topSafeInset/getResources().getDisplayMetrics().density;
-        return "window.qPokoyAndroidSetTopInset && window.qPokoyAndroidSetTopInset("+Float.toString(cssTop)+")";
+        return "window.qPokoyAndroidSetTopInset && window.qPokoyAndroidSetTopInset("+Float.toString(cssTop)+","+keyboardVisible+")";
     }
     static boolean isInternal(Uri uri){
         return AppOrigin.trusts(uri.toString());
