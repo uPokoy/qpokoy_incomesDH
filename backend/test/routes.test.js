@@ -60,6 +60,11 @@ function memoryStore() {
       settings.set(key(user.user_id, 'auth.onboarding_completed'), { user_id: user.user_id, setting_key: 'auth.onboarding_completed', setting_value: 'false', updated_at: user.created_at });
       return true;
     },
+    consumeOAuthTicket: async (uid, id, expected) => {
+      const k = key(uid, id);
+      if (settings.get(k)?.setting_value !== expected) return false;
+      settings.delete(k); return true;
+    },
     getIdentity: async (provider, providerUserId) => identities.get(identityKey(provider, providerUserId)),
     linkIdentity: async (provider, providerUserId, uid, createdAt) => {
       const k = identityKey(provider, providerUserId);
@@ -789,4 +794,101 @@ test('decimal strings and numbers normalize on create/edit/replace; malformed va
   assert.equal((await app.handle('GET','/incomes',{},headers)).body.data.length,before);
   const replaced=await app.handle('POST','/incomes/replace',{incomes:[{...base,amount:'1 250,75'},{...base,amount:199.99}]},headers);
   assert.equal(replaced.status,200);assert.deepEqual(replaced.body.data.map(x=>x.amount),[1250,199]);
+});
+
+// Android proof is bound to qPokoy's ticket, not a change to Yandex's redirect URI.
+function androidOAuthFixture() {
+  const { randomBytes, createHash } = require('node:crypto');
+  let clock = new Date('2026-10-16T12:00:00Z');
+  const attempt = randomBytes(32).toString('base64url'), verifier = randomBytes(32).toString('base64url');
+  const challenge = createHash('sha256').update(verifier).digest('base64url');
+  const redirect = 'https://d5d5b8ibed0vmrrd7rj6.jki8ffxa.apigw.yandexcloud.net/auth/oauth/yandex/callback';
+  const store = memoryStore(); const errors=[]; let providerCalls = 0, sessions = 0;
+  const add = store.addSession; store.addSession = async row => { sessions++; return add(row); };
+  const oauth = { isConfigured: p => p === 'yandex', signingSecret: () => 'fixture-signing-secret',
+    authorizationUrl: (p,state,uri) => 'https://oauth.yandex.ru/authorize?' + new URLSearchParams({ state,redirect_uri:uri,response_type:'code',client_id:'public-fixture' }),
+    exchange: async (p,code,uri) => { assert.equal(code,'good'); assert.equal(uri,redirect);providerCalls++;return {providerUserId:'fixture-yandex',email:'android@example.test'}; } };
+  const app = createApp(store,{oauth,onError:error=>errors.push(error),oauthCallbackBaseUrl:redirect.split('/auth/')[0],now:()=>clock,
+    rateLimits:{oauthStartIp:null,oauthCallbackIp:null,oauthExchangeIp:null}});
+  const query = new URLSearchParams({client:'android',attempt_id:attempt,code_challenge:challenge,code_challenge_method:'S256'});
+  const start = async (q=query) => app.handle('GET','/auth/oauth/yandex/start'+(q?'?'+q:''));
+  const callback = async state => app.handle('GET','/auth/oauth/yandex/callback?'+new URLSearchParams({code:'good',state}));
+  const ticket = async () => {const r=await start();assert.equal(r.status,302);const c=await callback(new URL(r.headers.Location).searchParams.get('state'));return new URL(c.headers.Location).searchParams.get('ticket');};
+  const exchange = body => app.handle('POST','/auth/oauth/exchange',body);
+  return {app,store,oauth,errors,start,callback,ticket,exchange,attempt,verifier,challenge,query,redirect,
+    advance:ms=>{clock=new Date(clock.getTime()+ms);},get providerCalls(){return providerCalls;},get sessions(){return sessions;}};
+}
+test('Android start signs S256 context, preserves HTTPS provider callback and fixed application return',async()=>{
+  const f=androidOAuthFixture(),r=await f.start();assert.equal(r.status,302);
+  assert.equal(r.headers['Cache-Control'],'no-store');
+  const url=new URL(r.headers.Location);assert.equal(url.origin,'https://oauth.yandex.ru');
+  assert.equal(url.searchParams.get('redirect_uri'),f.redirect);
+  const state=url.searchParams.get('state'),payload=JSON.parse(Buffer.from(state.split('.')[0],'base64url'));
+  assert.equal(payload.client,'android');assert.equal(payload.attempt_id,f.attempt);assert.equal(payload.code_challenge,f.challenge);assert.ok(payload.n);
+  const c=await f.callback(state),target=new URL(c.headers.Location);
+  assert.equal(target.protocol,'ru.qpokoy.app:');assert.equal(target.host,'oauth');assert.equal(target.pathname,'/callback');
+  assert.deepEqual([...target.searchParams.keys()].sort(),['attempt_id','ticket']);assert.equal(target.searchParams.get('attempt_id'),f.attempt);
+  assert.doesNotMatch(c.headers.Location,/access_token|refresh_token|code_verifier|provider-token/);
+});
+for(const [name,key,value] of [
+  ['unknown client','client','evil'],['bad attempt','attempt_id','bad'],['bad challenge','code_challenge','bad'],
+  ['plain method','code_challenge_method','plain'],['return URL','return_url','https://evil.test'],['redirect override','redirect_uri','https://evil.test']
+])test('Android start rejects '+name,async()=>{const f=androidOAuthFixture();f.query.set(key,value);assert.equal((await f.start()).status,400);});
+test('Android start rejects missing and repeated parameters and web redirect injection',async()=>{
+  const f=androidOAuthFixture();f.query.append('attempt_id',f.attempt);assert.equal((await f.start()).status,400);
+  f.query.delete('attempt_id');assert.equal((await f.start()).status,400);
+  assert.equal((await f.start('return_url=https://evil.test')).status,400);
+});
+test('Tampered/expired state never selects native return, including provider errors',async()=>{
+  const f=androidOAuthFixture(),r=await f.start(),state=new URL(r.headers.Location).searchParams.get('state');
+  const [encoded,signature]=state.split('.'),value=JSON.parse(Buffer.from(encoded,'base64url'));value.client='web';
+  for(const raw of [Buffer.from(JSON.stringify(value)).toString('base64url')+'.'+signature,state+'x']){
+    const c=await f.app.handle('GET','/auth/oauth/yandex/callback?'+new URLSearchParams({state:raw,error:'access_denied',client:'android'}));
+    assert.equal(new URL(c.headers.Location).origin,'https://qpokoy.ru');
+    assert.equal(new URL(c.headers.Location).searchParams.get('oauth_error'),'oauth_invalid_state');
+  }
+  f.advance(600000);assert.equal(new URL((await f.callback(state)).headers.Location).origin,'https://qpokoy.ru');assert.equal(f.providerCalls,0);
+});
+test('Signed Android state routes provider cancellation only to fixed callback',async()=>{
+  const f=androidOAuthFixture(),r=await f.start(),state=new URL(r.headers.Location).searchParams.get('state');
+  const c=await f.app.handle('GET','/auth/oauth/yandex/callback?'+new URLSearchParams({state,error:'access_denied',return_url:'https://evil.test'}));
+  assert.equal(new URL(c.headers.Location).protocol,'ru.qpokoy.app:');assert.equal(new URL(c.headers.Location).searchParams.get('error'),'oauth_cancelled');assert.equal(f.providerCalls,0);
+});
+test('Android ticket requires exact proof, remains usable after wrong proofs, and is single-use',async()=>{
+  const f=androidOAuthFixture(),ticket=await f.ticket();
+  for(const body of [{ticket},{ticket,attempt_id:f.attempt},{ticket,attempt_id:'x'.repeat(43),code_verifier:f.verifier},
+    {ticket,attempt_id:f.attempt,code_verifier:'x'.repeat(43)}])assert.equal((await f.exchange(body)).status,400);
+  assert.equal(f.sessions,0);
+  const body={ticket,attempt_id:f.attempt,code_verifier:f.verifier};const r=await f.exchange(body);assert.equal(r.status,200);assert.ok(r.body.token);assert.equal(r.headers['Cache-Control'],'no-store');
+  assert.equal((await f.exchange(body)).status,400);assert.equal(f.sessions,1);
+});
+test('Parallel Android exchange creates exactly one session',async()=>{
+  const f=androidOAuthFixture(),ticket=await f.ticket(),body={ticket,attempt_id:f.attempt,code_verifier:f.verifier};
+  const results=await Promise.all(Array.from({length:8},()=>f.exchange(body)));
+  assert.equal(results.filter(r=>r.status===200).length,1);assert.equal(results.filter(r=>r.status===400).length,7);assert.equal(f.sessions,1);
+});
+test('Expired Android ticket fails without session creation',async()=>{
+  const f=androidOAuthFixture(),ticket=await f.ticket();f.advance(120000);
+  assert.equal((await f.exchange({ticket,attempt_id:f.attempt,code_verifier:f.verifier})).status,400);assert.equal(f.sessions,0);
+});
+test('Web JSON start/ticket and Android namespace remain independent; parallel web replay is rejected',async()=>{
+  const f=androidOAuthFixture(),web=await f.start('');assert.equal(web.status,200);assert.deepEqual(Object.keys(web.body),['url']);
+  const c=await f.callback(new URL(web.body.url).searchParams.get('state')),ticket=new URL(c.headers.Location).searchParams.get('oauth_ticket');
+  const androidTicket=await f.ticket();
+  const results=await Promise.all([f.exchange({ticket}),f.exchange({ticket})]);assert.deepEqual(results.map(r=>r.status).sort(),[200,400]);
+  assert.equal((await f.exchange({ticket:androidTicket,attempt_id:f.attempt,code_verifier:f.verifier})).status,200);assert.equal(f.sessions,2);
+});
+
+test('Provider failure preserves safe error code but never reflects provider secrets or logs raw exceptions',async()=>{
+  const f=androidOAuthFixture(),r=await f.start(),state=new URL(r.headers.Location).searchParams.get('state');
+  f.oauth.exchange=async()=>{throw Object.assign(new Error('provider-access-token-fixture'),{code:'oauth_token_error'});};
+  const c=await f.callback(state);assert.equal(new URL(c.headers.Location).searchParams.get('error'),'oauth_token_error');
+  assert.doesNotMatch(JSON.stringify(c),/provider-access-token-fixture/);assert.equal(f.errors.length,0);
+});
+
+test('Web ticket cannot be injected into an Android attempt to bypass S256 proof',async()=>{
+  const f=androidOAuthFixture(),web=await f.start('');
+  const c=await f.callback(new URL(web.body.url).searchParams.get('state')),ticket=new URL(c.headers.Location).searchParams.get('oauth_ticket');
+  assert.equal((await f.exchange({ticket,attempt_id:f.attempt,code_verifier:f.verifier})).status,400);assert.equal(f.sessions,0);
+  assert.equal((await f.exchange({ticket})).status,200);
 });

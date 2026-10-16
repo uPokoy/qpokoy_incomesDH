@@ -116,6 +116,35 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
         }
       }
     },
+    // Compare + delete in one serializable transaction. Retry conflicts by
+    // re-reading; a concurrent winner leaves no ticket for the loser.
+    async consumeOAuthTicket(userId, key, expectedValue) {
+      if (!/^auth\.oauth_ticket(?:\.android\.[A-Za-z0-9_-]{43})?$/.test(key)) throw new Error('Invalid OAuth ticket key');
+      await ready();
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await driver.tableClient.withSession(async session => {
+            const meta = await session.beginTransaction({ serializableReadWrite: {} });
+            const control = { txId: meta.id };
+            const params = { $uid: U(userId), $key: U(key) };
+            try {
+              const result = await session.executeQuery('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT setting_value FROM `settings` WHERE user_id=$uid AND setting_key=$key;', params, control);
+              const row = result.resultSets?.[0] ? TypedData.createNativeObjects(result.resultSets[0])[0] : null;
+              const matched = !!row && row.setting_value === expectedValue;
+              if (matched) await session.executeQuery('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; DELETE FROM `settings` WHERE user_id=$uid AND setting_key=$key;', params, control);
+              await session.commitTransaction(control);
+              return matched;
+            } catch (error) {
+              try { await session.rollbackTransaction(control); } catch (_) { /* Preserve original failure. */ }
+              throw error;
+            }
+          });
+        } catch (error) {
+          if (attempt >= 2 || !(/ABORTED|RESOURCE_EXHAUSTED/i.test(String(error?.message || '')) || [8,10,400040].includes(Number(error?.code)))) throw error;
+          await sleep(50 + Math.floor(Math.random() * 100));
+        }
+      }
+    },
     // Point predicates, no JOIN. Unchanged cache hits use AUTO_TX; full loads
     // validate before data reads in an explicit serializable snapshot.
     async loadBootstrap(sessionId, validate, knownRevision = '', timings = {}) {
