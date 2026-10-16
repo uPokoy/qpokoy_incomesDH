@@ -48,6 +48,8 @@ public class MainActivity extends BridgeActivity {
     static final String APP_ORIGIN=AppOrigin.VALUE;
 
     @Override public void onCreate(Bundle state) {
+        receiveOAuthIntent(getIntent());
+        registerPlugin(OAuthPlugin.class);
         registerPlugin(ReadCachePlugin.class);
         super.onCreate(state);
         // Native inset strips use the app's existing dark background.
@@ -105,6 +107,18 @@ public class MainActivity extends BridgeActivity {
                 });
             }
         });
+    }
+    // Both delivery paths persist first, then strip credentials before Capacitor
+    // can forward an appUrlOpen event or try navigating the WebView.
+    private Intent receiveOAuthIntent(Intent intent){
+        if(intent!=null&&intent.getData()!=null&&"ru.qpokoy.app".equalsIgnoreCase(intent.getData().getScheme())){
+            OAuthPlugin.receive(this,intent.getData().toString());
+            intent.setData(null);setIntent(intent);
+        }
+        return intent;
+    }
+    @Override protected void onNewIntent(Intent intent){
+        super.onNewIntent(receiveOAuthIntent(intent));
     }
     private void installPullSync(WebView web){
         ViewGroup parent=(ViewGroup)web.getParent();int index=parent.indexOfChild(web);ViewGroup.LayoutParams params=web.getLayoutParams();

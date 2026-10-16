@@ -7,6 +7,9 @@ const { createCategoryRouter } = require('./category-router');
 const DEFAULT_CATEGORIES = ['Зарплата', 'Подработка', 'Прочее'];
 const MAX_REPLACE_INCOMES = 500;
 const OAUTH_TICKET_SETTING = 'auth.oauth_ticket';
+const ANDROID_CALLBACK = 'ru.qpokoy.app://oauth/callback';
+const oauthAttempt = value => typeof value === 'string' && /^[A-Za-z0-9_-]{43}$/.test(value);
+const oauthChallenge = value => oauthAttempt(value) && Buffer.from(value, 'base64url').toString('base64url') === value;
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 const OAUTH_TICKET_TTL_MS = 2 * 60 * 1000;
 const BILLING_ACCESS_SETTING = 'billing.access';
@@ -222,10 +225,18 @@ function createApp(store, options = {}) {
     for (const [key, value] of Object.entries(params || {})) {
       if (value !== undefined && value !== null && value !== '') target.searchParams.set(key, String(value));
     }
-    return response(302, null, { Location: target.toString() });
+    return response(302, null, { Location: target.toString(), 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' });
   }
-  function oauthErrorRedirect(provider, code) {
-    return appRedirect({ oauth_error: code || 'oauth_failed', oauth_provider: provider });
+  function oauthReturn(context, params) {
+    if (context?.client !== 'android') return appRedirect(params);
+    const target = new URL(ANDROID_CALLBACK);
+    target.searchParams.set('attempt_id', context.attempt_id);
+    for (const [key, value] of Object.entries(params)) target.searchParams.set(key === 'oauth_ticket' ? 'ticket' : key, value);
+    return response(302, null, { Location: target.toString(), 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' });
+  }
+  function oauthErrorRedirect(provider, code, context = null) {
+    return oauthReturn(context, context?.client === 'android'
+      ? { error: code || 'oauth_failed' } : { oauth_error: code || 'oauth_failed', oauth_provider: provider });
   }
 
   function validateSession(session, token) {
@@ -297,26 +308,43 @@ function createApp(store, options = {}) {
         await enforceRateLimit('oauthStartIp', sourceIp);
         const provider = oauthStartMatch[1];
         if (!oauth || !oauth.isConfigured(provider)) throw new HttpError(503, 'oauth_not_configured', 'OAuth provider is not configured');
+        const params = url.searchParams;
+        let context = {};
+        if ([...params].length) {
+          const allowed = ['client', 'attempt_id', 'code_challenge', 'code_challenge_method'];
+          if ([...params.keys()].some(key => !allowed.includes(key) || params.getAll(key).length !== 1) ||
+              params.get('client') !== 'android' || !oauthAttempt(params.get('attempt_id')) ||
+              !oauthChallenge(params.get('code_challenge')) || params.get('code_challenge_method') !== 'S256') bad('Invalid OAuth parameters');
+          context = { client: 'android', attempt_id: params.get('attempt_id'), code_challenge: params.get('code_challenge') };
+        }
         const issued = now();
         const state = signPayload(oauth.signingSecret(provider), {
-          k: 'state', p: provider, n: randomBytes(18).toString('base64url'),
+          k: 'state', p: provider, ...context, n: randomBytes(18).toString('base64url'),
           exp: issued.getTime() + OAUTH_STATE_TTL_MS
         });
-        return response(200, { url: oauth.authorizationUrl(provider, state, oauthCallbackUrl(provider)) });
+        const target = oauth.authorizationUrl(provider, state, oauthCallbackUrl(provider));
+        return context.client === 'android'
+          ? response(302, null, { Location: target, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' })
+          : response(200, { url: target }, { 'Cache-Control': 'no-store' });
       }
 
       const oauthCallbackMatch = /^\/auth\/oauth\/(yandex)\/callback$/.exec(pathname);
       if (method === 'GET' && oauthCallbackMatch) {
         const provider = oauthCallbackMatch[1];
+        let context = null;
         try {
           await enforceRateLimit('oauthCallbackIp', sourceIp);
           if (!oauth || !oauth.isConfigured(provider)) return oauthErrorRedirect(provider, 'oauth_not_configured');
-          if (url.searchParams.get('error')) return oauthErrorRedirect(provider, 'oauth_cancelled');
           const rawState = url.searchParams.get('state') || '';
-          const state = verifyPayload(oauth.signingSecret(provider), rawState);
-          if (!state || state.k !== 'state' || state.p !== provider || !Number.isFinite(state.exp) || state.exp < now().getTime()) {
+          const state = rawState.length <= 4096 ? verifyPayload(oauth.signingSecret(provider), rawState) : null;
+          if (!state || state.k !== 'state' || state.p !== provider || !Number.isFinite(state.exp) || state.exp <= now().getTime() || state.exp > now().getTime() + OAUTH_STATE_TTL_MS ||
+              typeof state.n !== 'string' || !/^[A-Za-z0-9_-]{24}$/.test(state.n) || url.searchParams.getAll('state').length !== 1 ||
+              (state.client !== undefined && (state.client !== 'android' || !oauthAttempt(state.attempt_id) || !oauthChallenge(state.code_challenge)))) {
             return oauthErrorRedirect(provider, 'oauth_invalid_state');
           }
+          context = state;
+          if (url.searchParams.get('error')) return oauthErrorRedirect(provider, 'oauth_cancelled', context);
+          if (url.searchParams.getAll('code').length !== 1) return oauthErrorRedirect(provider, 'oauth_failed', context);
           const code = url.searchParams.get('code') || '';
           const profile = await oauth.exchange(provider, code, oauthCallbackUrl(provider));
 
@@ -326,9 +354,9 @@ function createApp(store, options = {}) {
             const emailIdentity = await store.getIdentity('email', profile.email);
             if (emailIdentity) {
               user = await store.getUser(emailIdentity.user_id);
-              if (!user) return oauthErrorRedirect(provider, 'oauth_account_unavailable');
+              if (!user) return oauthErrorRedirect(provider, 'oauth_account_unavailable', context);
               if (!await store.linkIdentity(provider, profile.providerUserId, user.user_id, now())) {
-                return oauthErrorRedirect(provider, 'oauth_identity_conflict');
+                return oauthErrorRedirect(provider, 'oauth_identity_conflict', context);
               }
               if (user.status === 'pending_email') {
                 const verifiedAt = now();
@@ -357,23 +385,25 @@ function createApp(store, options = {}) {
               }
             }
           }
-          if (!user || user.status !== 'active') return oauthErrorRedirect(provider, 'oauth_account_unavailable');
+          if (!user || user.status !== 'active') return oauthErrorRedirect(provider, 'oauth_account_unavailable', context);
 
           const nonce = randomBytes(24).toString('base64url');
           const expiresAt = new Date(now().getTime() + OAUTH_TICKET_TTL_MS);
+          const binding = context.client === 'android' ? { client: 'android', attempt_id: context.attempt_id, code_challenge: context.code_challenge } : {};
           await store.putSetting({
             user_id: user.user_id,
-            setting_key: OAUTH_TICKET_SETTING,
-            setting_value: JSON.stringify({ provider, nonce_hash: sha256(nonce), expires_at: expiresAt.toISOString() }),
+            setting_key: OAUTH_TICKET_SETTING + (binding.client ? '.android.' + binding.attempt_id : ''),
+            setting_value: JSON.stringify({ ...binding, provider, nonce_hash: sha256(nonce), expires_at: expiresAt.toISOString() }),
             updated_at: now()
           });
           const ticket = signPayload(oauth.signingSecret(provider), {
-            k: 'ticket', p: provider, u: user.user_id, n: nonce, exp: expiresAt.getTime()
+            k: 'ticket', ...binding, p: provider, u: user.user_id, n: nonce, exp: expiresAt.getTime()
           });
-          return appRedirect({ oauth_ticket: ticket });
+          return oauthReturn(context, { oauth_ticket: ticket });
         } catch (error) {
-          if (options.onError && !(error instanceof HttpError)) options.onError(error);
-          return oauthErrorRedirect(provider, error?.code || 'oauth_failed');
+          // Provider exceptions may carry credentials; never forward/log them.
+          const safeCodes = ['oauth_not_configured', 'oauth_invalid_code', 'oauth_token_error', 'oauth_profile_error', 'oauth_email_unavailable', 'rate_limited'];
+          return oauthErrorRedirect(provider, safeCodes.includes(error?.code) ? error.code : 'oauth_failed', context);
         }
       }
 
@@ -388,19 +418,32 @@ function createApp(store, options = {}) {
         }
         const payload = verifyPayload(oauth.signingSecret(provider), ticket);
         if (!payload || payload.k !== 'ticket' || payload.p !== provider || !payload.u || !payload.n ||
-            !Number.isFinite(payload.exp) || payload.exp < now().getTime()) {
+            !Number.isFinite(payload.exp) || payload.exp <= now().getTime()) {
           throw new HttpError(400, 'invalid_oauth_ticket', 'Invalid or expired OAuth login ticket');
         }
-        const row = await store.getSetting(payload.u, OAUTH_TICKET_SETTING);
+        const android = payload.client === 'android';
+        if ((payload.client !== undefined && !android) ||
+            (!android && (body.attempt_id !== undefined || body.code_verifier !== undefined)) || (android &&
+            (!oauthAttempt(payload.attempt_id) || !oauthChallenge(payload.code_challenge) ||
+             body.attempt_id !== payload.attempt_id || typeof body.code_verifier !== 'string' ||
+             !/^[A-Za-z0-9._~-]{43,128}$/.test(body.code_verifier) ||
+             !timingSafeEqual(Buffer.from(sha256(body.code_verifier)), Buffer.from(payload.code_challenge))))) {
+          throw new HttpError(400, 'invalid_oauth_ticket', 'Invalid OAuth login proof');
+        }
+        const ticketKey = OAUTH_TICKET_SETTING + (android ? '.android.' + payload.attempt_id : '');
+        const row = await store.getSetting(payload.u, ticketKey);
         let saved = null;
         try { saved = row?.setting_value ? JSON.parse(row.setting_value) : null; } catch (_) { saved = null; }
         if (!saved || saved.provider !== provider || saved.nonce_hash !== sha256(payload.n) ||
-            !saved.expires_at || new Date(saved.expires_at) <= now()) {
+            !saved.expires_at || !Number.isFinite(new Date(saved.expires_at).getTime()) || new Date(saved.expires_at) <= now() ||
+            saved.client !== payload.client || (android && (saved.attempt_id !== payload.attempt_id || saved.code_challenge !== payload.code_challenge))) {
           throw new HttpError(400, 'invalid_oauth_ticket', 'Invalid or expired OAuth login ticket');
         }
         const user = await store.getUser(payload.u);
         if (!user || user.status !== 'active') throw new HttpError(401, 'unauthorized', 'Account is unavailable');
-        await store.deleteSetting(payload.u, OAUTH_TICKET_SETTING);
+        if (!await store.consumeOAuthTicket(payload.u, ticketKey, row.setting_value)) {
+          throw new HttpError(400, 'invalid_oauth_ticket', 'OAuth login ticket already used');
+        }
         return response(200, await createSession(user));
       }
 
@@ -664,11 +707,17 @@ function createApp(store, options = {}) {
       throw new HttpError(404, 'not_found', 'Route not found');
     } catch (error) {
       if (error instanceof HttpError) return response(error.status, { error: { code: error.code, message: error.message } }, error.headers);
-      if (options.onError) options.onError(error);
+      if (options.onError && !String(path).startsWith('/auth/oauth/')) options.onError(error);
       return response(500, { error: { code: 'internal_error', message: 'Internal server error' } });
     }
   }
-  return { handle };
+  return { async handle(...args) {
+    const result = await handle(...args);
+    if (String(args[1]).startsWith('/auth/oauth/')) {
+      result.headers = { ...result.headers, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
+    }
+    return result;
+  } };
 }
 
 function response(status, body, headers = {}) { return { status, body, headers }; }

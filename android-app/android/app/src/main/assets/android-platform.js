@@ -9,7 +9,11 @@
   if(navigator.serviceWorker){
     navigator.serviceWorker.register=()=>Promise.reject(new Error('PWA disabled in Android'));
   }
-  window.qPokoyAndroidStartOAuth=()=>Promise.reject(new Error('Вход через Яндекс в Android пока недоступен. Используйте email и пароль.'));
+  window.qPokoyAndroidStartOAuth=async provider=>{
+    if(provider!=='yandex'||!window.Capacitor?.nativePromise)throw new Error('Android OAuth unavailable; используйте email и пароль.');
+    window.qPokoyApi?.invalidateOAuthAttempt();
+    await window.Capacitor.nativePromise('QPokoyOAuth','begin',{provider});
+  };
   let state='unknown',readJob=null,revision=0;
   function accept(value){
     const next=['offline','online','unknown'].includes(value?.state)?value.state:'unknown';

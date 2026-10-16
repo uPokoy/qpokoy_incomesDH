@@ -27,7 +27,7 @@ function adapt(name,text){
   if(name.endsWith('.html')){
     text=text.replace(/((?:src|href)="(?:\.\/)?(?:js|css)\/[^"?]+\.(?:js|css))(?:\?v=[^"]*)?"/g,'$1?v=dev-'+sourceVersion+'"');
     text=text.replace(/<link\b[^>]*\brel=["']manifest["'][^>]*>\s*/gi,'');
-    text=text.replace(/<head>/i,'<head>\n<script src="/android-platform.js"></script>');
+    text=text.replace(/<head>/i,'<head>\n<script src="/android-platform.js"></script>\n<script src="/android-oauth.js"></script>');
     text=text.replace(/<\/body>/i,'<script src="/android-adapter.js"></script>\n</body>');
   }
   if(name==='index.html')text=text.replace(/(<strong id="qPokoyDevVersion">)dev-\d{4}\.\d{2}\.\d{2}\.\d+(<\/strong>)/,'$1'+sourceVersion+'$2');
@@ -58,12 +58,20 @@ function adapt(name,text){
     text=text.replace(plain,"${cells}${actions}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||''}</div>`;");
   }
   if(name==='js/auth.js'){
-    const needle='const url=await api.startOAuth(provider);';
+    const needle='const url=await api.startOAuth(provider);\n      location.assign(url);';
     if(!text.includes(needle))throw new Error('OAuth adaptation needs review');
-    text=text.replace(needle,'const url=await window.qPokoyAndroidStartOAuth(provider);');
+    text=text.replace(needle,"await window.qPokoyAndroidStartOAuth(provider);button.disabled=false;setOAuthButtonText(button,label);");
+    text=text.replace('  const api=window.qPokoyApi;','  const api=window.qPokoyApi;\n  let androidAuthReady=Promise.resolve();');
     const startup="api.bootstrap().then(startup=>sync(startup?{user:apiUser(startup.user)}:null,startup))";
     if(!text.includes(startup))throw new Error('Android cache hydration adaptation needs review');
-    text=text.replace(startup,"window.qPokoyAndroidCache.start((startup,cached)=>sync(startup?{user:apiUser(startup.user)}:null,startup,cached))");
+    text=text.replace(startup,"androidAuthReady=window.qPokoyAndroidCache.start((startup,cached)=>sync(startup?{user:apiUser(startup.user)}:null,startup,cached))");
+    const endAuth='\n})();';
+    if(!text.includes(endAuth))throw new Error('Android OAuth auth publication needs review');
+    text=text.replace(endAuth,`
+  window.qPokoyAndroidOAuth.attach({api,ready:()=>androidAuthReady.catch(()=>{}),
+    getUser:()=>cloudUser, sync:user=>sync({user:apiUser(user)}),
+    message:text=>setMessage(text,'error',message)});
+})();`);
     const start=text.indexOf('  async function sync(session,startup=null){'),end=text.indexOf('  api.setUnauthorizedHandler',start);
     if(start<0||end<0)throw new Error('Android auth sync adaptation needs review');
     let sync=text.slice(start,end).replace('sync(session,startup=null)','sync(session,startup=null,cached=false)');
@@ -76,6 +84,25 @@ function adapt(name,text){
     // Disable the website journal; Android has its own durable create-only SQLite outbox.
     text=text.replace(/function readPendingCloudWrites\(\)\{[\s\S]*?\n  function savePendingCloudWrites/, 'function readPendingCloudWrites(){return [];}\n  function savePendingCloudWrites');
     text=text.replace(/function enqueuePendingCloudWrite\(userId,record,kind\)\{[\s\S]*?\n  function toIsoDate/,"function enqueuePendingCloudWrite(){throw new Error('Android требует подтверждение сервера.');}\n\n  function toIsoDate");
+  }
+  if(name==='js/api-client.js'){
+    const exchange="async exchangeOAuthTicket(ticket){\n        return saveSession(await request('POST','/auth/oauth/exchange',{ticket},false));\n      }";
+    if(!text.includes(exchange))throw new Error('Android OAuth exchange adaptation needs review');
+    text=text.replace('let unauthorizedHandler=null;','let unauthorizedHandler=null;\n    let authEpoch=0;');
+    text=text.replace('function clearToken(){','function clearToken(){authEpoch++;');
+    text=text.replace('getToken,clearToken,request,','getToken,clearToken,request,\n      invalidateOAuthAttempt(){authEpoch++;},');
+    text=text.replace('async login(email,password){','async login(email,password){authEpoch++;');
+    text=text.replace('async register(email,password){','async register(email,password){authEpoch++;');
+    text=text.replace('async logout(){','async logout(){authEpoch++;');
+    text=text.replace("return saveSession(await request('POST','/auth/login',{email,password},false));","const user=saveSession(await request('POST','/auth/login',{email,password},false));if(typeof window!=='undefined')await window.qPokoyAndroidOAuth?.cancel();return user;");
+    text=text.replace("return payload?.token&&payload?.user ? saveSession(payload) : payload;","if(payload?.token&&payload?.user){const user=saveSession(payload);if(typeof window!=='undefined')await window.qPokoyAndroidOAuth?.cancel();return user;}return payload;");
+    text=text.replace(exchange,`async exchangeOAuthTicket(ticket,proof){
+        const epoch=authEpoch,token=getToken();
+        if(proof&&token)throw new ApiError(0,'session_changed','Сессия уже открыта.');
+        const payload=await request('POST','/auth/oauth/exchange',proof?{ticket,attempt_id:proof.attempt_id,code_verifier:proof.code_verifier}:{ticket},false);
+        if(epoch!==authEpoch||token!==getToken())throw new ApiError(0,'session_changed','Сессия изменилась.');
+        return saveSession(payload);
+      }`);
   }
   if(name==='css/mobile.css'){
     const grid='/* Exactly one row with two recent-income cards. */\n  #income .income-recent.qp-mobile-recent-stack .income-recent-grid{\n    grid-template-columns:repeat(2,minmax(0,1fr)) !important;';
@@ -122,7 +149,7 @@ if(path.resolve(out)!==path.join(repo,'android-app','www'))throw new Error('Inva
 fs.rmSync(out,{recursive:true,force:true});
 fs.mkdirSync(out,{recursive:true});
 for(const [name,data] of outputs){const dest=path.join(out,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,data);}
-for(const name of ['android-platform.js','android-adapter.js','android-read-cache.js'])fs.copyFileSync(path.join(root,'android/app/src/main/assets',name),path.join(out,name));
+for(const name of ['android-platform.js','android-adapter.js','android-read-cache.js','android-oauth.js'])fs.copyFileSync(path.join(root,'android/app/src/main/assets',name),path.join(out,name));
 fs.mkdirSync(path.join(out,'vendor'),{recursive:true});
 fs.copyFileSync(require.resolve('html2pdf.js/dist/html2pdf.bundle.min.js'),path.join(out,'vendor/html2pdf.bundle.min.js'));
 fs.copyFileSync(path.join(root,'android/app/src/main/assets/vendor/yandex-id.svg'),path.join(out,'vendor/yandex-id.svg'));

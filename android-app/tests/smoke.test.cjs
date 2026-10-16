@@ -50,7 +50,21 @@ test('DEV420 bundled API client keeps bootstrap and Android income CRUD contract
   const info=JSON.parse(fs.readFileSync(path.join(root,'www/bundle-info.json')));
   const source=fs.readFileSync(path.join(root,'www/js/api-client.js'),'utf8');
   const {execFileSync}=require('node:child_process');
-  assert.equal(source,execFileSync('git',['show',info.sourceCommit+':js/api-client.js'],{cwd:path.join(root,'..'),encoding:'utf8'}));
+  // The only allowed API difference is the Android OAuth proof/session race guard.
+  let original=execFileSync('git',['show',info.sourceCommit+':js/api-client.js'],{cwd:path.join(root,'..'),encoding:'utf8'});
+  original=original.replace('let unauthorizedHandler=null;','let unauthorizedHandler=null;\n    let authEpoch=0;')
+    .replace('function clearToken(){','function clearToken(){authEpoch++;')
+    .replace('getToken,clearToken,request,','getToken,clearToken,request,\n      invalidateOAuthAttempt(){authEpoch++;},')
+    .replace('async login(email,password){','async login(email,password){authEpoch++;')
+    .replace('async register(email,password){','async register(email,password){authEpoch++;')
+    .replace('async logout(){','async logout(){authEpoch++;')
+    .replace("return saveSession(await request('POST','/auth/login',{email,password},false));","const user=saveSession(await request('POST','/auth/login',{email,password},false));if(typeof window!=='undefined')await window.qPokoyAndroidOAuth?.cancel();return user;")
+    .replace("return payload?.token&&payload?.user ? saveSession(payload) : payload;","if(payload?.token&&payload?.user){const user=saveSession(payload);if(typeof window!=='undefined')await window.qPokoyAndroidOAuth?.cancel();return user;}return payload;");
+  const oldExchange="async exchangeOAuthTicket(ticket){\n        return saveSession(await request('POST','/auth/oauth/exchange',{ticket},false));\n      }";
+  const exchange=source.match(/async exchangeOAuthTicket\(ticket,proof\)\{[\s\S]*?\n      \}/)?.[0];
+  assert.ok(exchange);assert.match(exchange,/epoch!==authEpoch\|\|token!==getToken\(\)/);
+  assert.match(exchange,/attempt_id:proof.attempt_id,code_verifier:proof.code_verifier/);
+  assert.equal(source,original.replace(oldExchange,exchange));
   const {createApiClient,TOKEN_KEY}=require('../www/js/api-client.js');
   const values=new Map([[TOKEN_KEY,'test-only-token']]),calls=[];
   const storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};
