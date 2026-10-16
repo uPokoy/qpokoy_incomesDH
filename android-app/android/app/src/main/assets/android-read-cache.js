@@ -298,6 +298,8 @@
             if(run!==epoch||token!==api.getToken())break;
             if(!saved||saved.id!==operation.income_id||saved.user_id!==uid)throw new Error('invalid_server_response');
             const value={...current,incomes:[...current.incomes.filter(row=>row.id!==saved.id),saved]};
+            // Invalidate pre-ACK bootstrap before it can replace this confirmed row in SQLite.
+            run=++epoch;
             // SQLite confirms only a matching desired payload; newer edits survive.
             if(!await save(snapshot(value,clock()),token,run))break;
             await paint();

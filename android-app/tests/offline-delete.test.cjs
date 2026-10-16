@@ -7,12 +7,13 @@ const failure=(status,code)=>Object.assign(new Error(code||'test failure'),{stat
 function fixture(){
   let uid='A',token='session-A',online=true,gate=null,lostDelete=false,fault=null,bootstrapGate=null,ui=[];
   let bootstraps=0,identities=0;
-  const snapshots=new Map(),queue=new Map(),server=new Map(),posts=[],updates=[],deletes=[];
+  const snapshots=new Map(),queue=new Map(),server=new Map(),posts=[],updates=[],deletes=[],writes=[],renders=[];
   const data=()=>({user:{user_id:uid,email:'a@test.invalid',onboarding_completed:true},incomes:[...server.values()],categories:[{id:'category-A',user_id:uid,name:'Test'}],settings:[]});
   const listed=(hash,id)=>[...queue.values()].filter(row=>row.hash===hash&&row.user_id===id).map(({hash,...row})=>clone(row));
   const db={
     read:async({sessionHash:hash})=>{const saved=snapshots.get(hash);return {snapshot:saved?clone(saved):null,pending:saved?listed(hash,saved.user.user_id):[]};},
     write:async({sessionHash:hash,snapshot:saved,deleteAck})=>{
+      writes.push(clone(saved));
       snapshots.clear();snapshots.set(hash,clone(saved));
       for(const [key,row] of [...queue])if(row.user_id===saved.user.user_id){
         row.hash=hash;const confirmed=saved.incomes.find(item=>item.id===row.income_id);
@@ -75,11 +76,11 @@ function fixture(){
   const events=new Map(),listen=(name,fn)=>events.set(name,[...(events.get(name)||[]),fn]);
   const view={IncomeStore:{load:()=>ui,save:rows=>ui=rows},document:{addEventListener:listen,visibilityState:'visible'},addEventListener:listen,setTimeout:()=>{},applyIncomeHeaderFilters:()=>{},renderIncomeAnalytics:()=>{},qPokoyNotice:()=>{}};
   const originals={...api};
-  const hydrate=async payload=>view.IncomeStore.save(payload?payload.incomes.map(row=>({id:row.id,date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description})):[]);
+  const hydrate=async payload=>{renders.push(clone(payload));return view.IncomeStore.save(payload?payload.incomes.map(row=>({id:row.id,date:row.income_date.slice(8,10)+'.'+row.income_date.slice(5,7)+'.'+row.income_date.slice(2,4),amount:row.amount,category:row.category,description:row.description})):[]);};
   let cache;
   function fresh(){Object.assign(api,originals);cache=create({api,db,fingerprint:async()=> 'a'.repeat(64),online:()=>online,networkState:async()=>({state:online?'online':'offline'})});cache.install(view);}
   fresh();
-  return {api,db,server,queue,posts,updates,deletes,view,get bootstraps(){return bootstraps;},get identities(){return identities;},get cache(){return cache;},get ui(){return ui;},
+  return {api,db,server,queue,posts,updates,deletes,writes,renders,snapshots,view,get bootstraps(){return bootstraps;},get identities(){return identities;},get cache(){return cache;},get ui(){return ui;},
     event:name=>events.get(name)?.forEach(fn=>fn()),
     setOnline:value=>online=value,setGate:value=>gate=value,setLostDelete:value=>lostDelete=value,setFault:value=>fault=value,setBootstrapGate:value=>bootstrapGate=value,fresh,
     start:()=>cache.start(hydrate),add:amount=>view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount,category:'Test',description:'Fixture'})};
@@ -214,6 +215,59 @@ test('cold manual account mismatch never sends or discards another account queue
 });
 
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
+
+for(const kind of ['ADD','UPDATE'])test('stale bootstrap after '+kind+' ACK never reaches SQLite/current/UI; fresh refresh still applies',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();
+  f.setOnline(false);await f.add(130);const id=f.ui[0].id;
+  if(kind==='UPDATE'){
+    f.setOnline(true);await f.cache.syncPending();f.setOnline(false);
+    await f.view.IncomeStore.update(id,{...f.ui[0],amount:131});
+  }
+  let release;f.setBootstrapGate(new Promise(resolve=>release=resolve));
+  f.setOnline(true);const old=f.cache.refresh();await settle();
+  // The held bootstrap captured the server before this successful ADD/UPDATE.
+  await f.cache.syncPending();
+  const amount=kind==='ADD'?130:131;
+  assert.equal(f.queue.size,0);assert.equal(f.cache.pending.length,0);
+  assert.equal(f.cache.snapshot.incomes.find(row=>row.id===id).amount,amount);
+  const writes=f.writes.length,renders=f.renders.length;
+  f.setBootstrapGate(null);release();await old;
+  assert.equal(f.writes.length,writes,'obsolete response must be rejected before native write');
+  assert.equal(f.renders.length,renders,'obsolete response must not redraw UI');
+  assert.equal(f.snapshots.get('a'.repeat(64)).incomes.find(row=>row.id===id).amount,amount);
+  assert.equal(f.cache.snapshot.incomes.find(row=>row.id===id).amount,amount);
+  assert.equal(f.ui.find(row=>row.id===id).amount,amount);assert.equal(f.queue.size,0);
+  // A later authoritative snapshot must still remove server-deleted records.
+  f.server.delete(id);await f.cache.refresh();
+  assert.equal(f.writes.length,writes+1);assert.equal(f.ui.length,0);
+  assert.equal(f.cache.snapshot.incomes.length,0);assert.equal(f.queue.size,0);
+});
+
+for(const kind of ['ADD','UPDATE'])test('overlapping recovery/refresh around '+kind+' ACK coalesces and fetches fresh state',async t=>{
+  const f=fixture();t.after(()=>f.cache.purge());await f.start();
+  f.setOnline(false);await f.add(140);const id=f.ui[0].id;
+  if(kind==='UPDATE'){
+    f.setOnline(true);await f.cache.syncPending();f.setOnline(false);
+    await f.view.IncomeStore.update(id,{...f.ui[0],amount:141});
+  }
+  const amount=kind==='ADD'?140:141,before=f.bootstraps;
+  let release;f.setBootstrapGate(new Promise(resolve=>release=resolve));f.setOnline(true);
+  const first=f.cache.refresh();await settle();
+  const others=Array.from({length:5},()=>f.cache.refresh());
+  for(let i=0;i<5;i++)f.event('online');await settle();
+  assert.equal(f.bootstraps,before+1);
+  await f.cache.syncPending();
+  const writes=f.writes.length;let active=0,maxActive=0;const write=f.db.write;
+  f.db.write=async args=>{active++;maxActive=Math.max(maxActive,active);try{await settle();return await write(args);}finally{active--;}};
+  f.setBootstrapGate(null);release();await Promise.all([first,...others]);await settle();
+  assert.equal(f.bootstraps,before+2,'one obsolete and one fresh bootstrap, no loop');
+  assert.equal(f.writes.length,writes+1,'only fresh bootstrap writes after ACK');
+  assert.equal(maxActive,1);assert.equal(f.queue.size,0);assert.equal(f.server.size,1);
+  assert.equal(f.ui.length,1);assert.equal(f.ui[0].amount,amount);
+  assert.equal(f.posts.length,1);assert.equal(f.updates.length,kind==='UPDATE'?1:0);
+  assert.equal(f.snapshots.get('a'.repeat(64)).incomes[0].amount,amount);
+});
+
 async function coldPending(t){
   t.mock.timers.enable({apis:['setTimeout']});
   const f=fixture();t.after(()=>f.cache.purge());await f.start();
