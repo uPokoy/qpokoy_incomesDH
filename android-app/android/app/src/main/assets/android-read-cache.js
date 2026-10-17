@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=exported;
   if(root?.qPokoyApi&&root.Capacitor){
     const native=method=>options=>root.Capacitor.nativePromise('QPokoyReadCache',method,options||{});
-    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),enqueueDelete:native('enqueueDelete'),beginSend:native('beginSend'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
+    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),enqueueDelete:native('enqueueDelete'),enqueueCategory:native('enqueueCategory'),beginSend:native('beginSend'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
       fingerprint:async token=>Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))).map(b=>b.toString(16).padStart(2,'0')).join(''),
       online:()=>root.qPokoyAndroidNetwork.available,networkState:options=>root.qPokoyAndroidNetwork.read(options),clock:()=>Date.now(),notify:()=>root.qPokoyNotice?.('Нет подключения к интернету','Дождитесь подключения и завершения синхронизации.','error')});
     root.qPokoyAndroidCache=cache;
@@ -36,6 +36,11 @@
       ||typeof row.category!=='string'||!row.category.trim()||row.category.trim().length>80||typeof row.description!=='string'||row.description.length>5000)throw new Error('Некорректные данные дохода');
     return {income_date:date,amount:Math.trunc(Number(input)),category:row.category.trim(),description:row.description.trim()};
   }
+  function categoryName(value){
+    if(typeof value!=='string'||!value.trim()||value.trim().length>80)throw new Error('Некорректное название категории');
+    return value.trim().replace(/\s+/g,' ');
+  }
+  const categoryKey=name=>categoryName(name).toLocaleLowerCase('ru-RU');
   function transportError(error){
     if(Number(error?.status)>0)return false;
     return error?.code==='android_transport'||error?.status===undefined&&(
@@ -43,6 +48,7 @@
   }
   function create({api,db,fingerprint,online,networkState=async()=>{},clock=Date.now,notify=()=>{},uuid=()=>globalThis.crypto.randomUUID()}){
     const bootstrap=api.bootstrap.bind(api);
+    const sendCategory=api.request?(name,requestId)=>api.request('POST','/categories',{name,request_id:requestId}).then(result=>result.data):null;
     const sendAdd=api.addIncome?.bind(api),sendUpdate=api.updateIncome?.bind(api),sendDelete=api.deleteIncome?.bind(api);
     let epoch=0,current=null,binding=null,validatedToken=null,displayed=false,renderedSignature=null,hydrate=null,refreshJob=null,refreshEpoch=0,clearJob=Promise.resolve(),mutations=0,view=null;
     let pending=[],syncJob=null,manualJob=null,retryTimer=null;
@@ -65,16 +71,17 @@
     const metrics={};
     // Safe stage-only diagnostics: never log account IDs, tokens or income data.
     const diagnostic={stage:'idle',code:null};
-    const pendingWarning='Есть доходы, которые ещё не синхронизированы. Подключитесь к интернету и дождитесь синхронизации перед выходом.';
+    const pendingWarning='Есть изменения, которые ещё не синхронизированы. Подключитесь к интернету и дождитесь синхронизации перед выходом.';
     function setPending(rows,uid){
       if(!Array.isArray(rows))return;
-      if(rows.some(row=>row.user_id!==uid||!uuidPattern.test(row.income_id)||!uuidPattern.test(row.operation_id)||!['add','update','delete'].includes(row.kind)))throw new Error('Invalid pending account binding');
+      if(rows.some(row=>row.user_id!==uid||!uuidPattern.test(row.operation_id)||(row.kind==='category_add'?row.request_id!==row.operation_id||!uuidPattern.test(row.request_id)||categoryName(row.name)!==row.name:!uuidPattern.test(row.income_id)||!['add','update','delete'].includes(row.kind))))throw new Error('Invalid pending account binding');
       pending=rows;
     }
     function combined(){
       if(!current)return null;
       const rowsById=new Map(current.incomes.map(row=>[row.id,row]));
       for(const row of pending){
+        if(row.kind==='category_add')continue;
         if(row.kind==='delete'){rowsById.delete(row.income_id);continue;}
         const old=rowsById.get(row.income_id);
         rowsById.set(row.income_id,{...old,id:row.income_id,user_id:row.user_id,...incomeValue(row),created_at:old?.created_at||new Date(row.created_at).toISOString()});
@@ -82,7 +89,11 @@
       const rows=[...rowsById.values()];
       // Same date/creation ordering as cloud history; pending status is not a sort key.
       rows.sort((a,b)=>b.income_date.localeCompare(a.income_date)||(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0));
-      return {...current,incomes:rows};
+      const categories=[...current.categories];
+      for(const row of pending.filter(row=>row.kind==='category_add')){
+        if(!categories.some(category=>categoryKey(category.name)===categoryKey(row.name)))categories.push({id:row.request_id,user_id:row.user_id,name:row.name});
+      }
+      return {...current,incomes:rows,categories};
     }
     const shownSignature=()=>current?signature(combined())+JSON.stringify(pending.map(row=>[row.income_id,row.kind,row.status,row.error_code])):null;
     async function paint(cached=false){
@@ -99,12 +110,12 @@
       }
     }
     async function identity(token){return token?fingerprint(token):null;}
-    async function save(value,token,run,deleteAck){
+    async function save(value,token,run,deleteAck,categoryAck){
       const hash=await identity(token);
       if(run!==epoch||token!==api.getToken())return false;
       await clearJob.catch(()=>{});
       if(run!==epoch||token!==api.getToken())return false;
-      const stored=await db.write({sessionHash:hash,snapshot:value,deleteAck});
+      const stored=await db.write({sessionHash:hash,snapshot:value,deleteAck,categoryAck});
       if(run!==epoch||token!==api.getToken())return false;
       current=value;binding=hash;setPending(stored?.pending,value.user.user_id);return true;
     }
@@ -190,7 +201,7 @@
       const value=incomeValue(record),id=record.id||uuid();
       if(!uuidPattern.test(id)||(!edit&&(current.incomes.some(row=>row.id===id)||pending.some(row=>row.income_id===id))))throw new Error('Некорректный или повторный ID дохода');
       if(edit&&!combined().incomes.some(row=>row.id===id))throw new Error('Доход недоступен локально');
-      if(!current.categories.some(row=>row.name===value.category))throw new Error('Выберите ранее загруженную категорию.');
+      if(!combined().categories.some(row=>row.name===value.category))throw new Error('Выберите ранее загруженную категорию.');
       const run=++epoch;
       diagnostic.stage='sqlite-enqueue';
       const result=await (edit?db.enqueueEdit:db.enqueue)({sessionHash:hash,userId:uid,income:{operation_id:uuid(),income_id:id,...value,created_at:clock()}});
@@ -210,6 +221,22 @@
       // Leave the submit continuation free to close the form first. The network
       // is only used in this later task; even a hung request cannot delay the commit.
       view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
+    }
+    async function enqueueCategory(rawName){
+      const name=categoryName(rawName),token=api.getToken(),uid=current?.user.user_id,hash=binding;
+      const digest=await identity(token);
+      if(!db.enqueueCategory||!current||!token||hash!==digest||token!==api.getToken()||binding!==hash||uid!==current.user.user_id)throw new Error('Локальное добавление недоступно: сначала войдите и загрузите данные с сервера.');
+      if(combined().categories.some(row=>categoryKey(row.name)===categoryKey(name))){const error=new Error('Категория уже существует');error.code='category_exists';throw error;}
+      const requestId=uuid();if(!uuidPattern.test(requestId))throw new Error('Некорректный request_id');
+      ++epoch; // Invalidate bootstrap captured before the local commit.
+      const result=await db.enqueueCategory({sessionHash:hash,userId:uid,category:{request_id:requestId,name,created_at:clock()}});
+      if(token!==api.getToken()||binding!==hash||current?.user.user_id!==uid)throw new Error('Сессия изменилась');
+      setPending(result.pending,uid);
+      // The existing category form appends the returned row itself. Hydrating
+      // here would append it twice and reset the open income editor.
+      scheduleRetry();
+      view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
+      return {id:requestId,user_id:uid,name};
     }
     async function enqueueDelete(id){
       diagnostic.stage='delete-account-binding';diagnostic.code=null;
@@ -239,23 +266,26 @@
       view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
       return rows;
     }
+    const blockedByCategory=row=>row.kind!=='category_add'&&row.kind!=='delete'&&pending.some(category=>category.kind==='category_add'&&categoryKey(category.name)===categoryKey(row.category));
     function scheduleRetry(){
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
       scheduleRecovery();
       if(!canWrite()||view?.document.visibilityState==='hidden')return;
-      const waiting=pending.filter(row=>row.status!=='error');if(!waiting.length)return;
+      const waiting=pending.filter(row=>row.status!=='error'&&!blockedByCategory(row));if(!waiting.length)return;
       const due=Math.min(...waiting.map(row=>row.next_attempt_at||0));
       retryTimer=setTimeout(()=>{retryTimer=null;void refresh().catch(()=>{});},Math.max(1000,Math.min(300000,due-clock())));
       retryTimer.unref?.();
     }
     async function syncPending(force=false){
-      if(syncJob){const active=syncJob;await active;if(force)return;if(canWrite()&&pending.some(row=>row.status!=='error'&&(row.next_attempt_at||0)<=clock()&&!(row.kind==='delete'&&activeWrites.has(current.user.user_id+':'+row.income_id))))return syncPending();return;}
+      if(syncJob){const active=syncJob;await active;if(force)return;if(canWrite()&&pending.some(row=>row.status!=='error'&&!blockedByCategory(row)&&(row.next_attempt_at||0)<=clock()&&!(row.kind==='delete'&&activeWrites.has(current.user.user_id+':'+row.income_id))))return syncPending();return;}
       if(!canWrite()||!pending.length||mutations||view?.document.visibilityState==='hidden')return;
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
       const token=api.getToken(),uid=current.user.user_id,hash=binding;let run=epoch;
       const job=(async()=>{
-        for(const operation of [...pending]){
+        for(const operation of [...pending].sort((a,b)=>Number(b.kind==='category_add')-Number(a.kind==='category_add'))){
           if(run!==epoch||!canWrite()||operation.status==='error'||(!force&&(operation.next_attempt_at||0)>clock()))continue;
+          if(blockedByCategory(operation))continue;
+          if(operation.kind==='category_add'&&!sendCategory)continue;
           if(operation.kind==='add'&&!sendAdd||operation.kind==='update'&&!sendUpdate||operation.kind==='delete'&&!sendDelete)continue;
           if(operation.kind==='delete'&&activeWrites.has(uid+':'+operation.income_id))continue;
           let timeout;
@@ -263,6 +293,17 @@
           try{
             if(db.beginSend && !(await db.beginSend({sessionHash:hash,userId:uid,operationId:operation.operation_id})).allowed)continue;
             if(run!==epoch||token!==api.getToken())break;
+            if(operation.kind==='category_add'){
+              const saved=await Promise.race([sendCategory(operation.name,operation.request_id),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
+              clearTimeout(timeout);
+              if(run!==epoch||token!==api.getToken())break;
+              if(!saved||!uuidPattern.test(saved.id)||saved.user_id!==uid||saved.name!==operation.name)throw new Error('invalid_server_response');
+              const value={...current,categories:[...current.categories.filter(row=>row.id!==saved.id),saved]};
+              run=++epoch; // A pre-ACK bootstrap cannot overwrite the confirmed category.
+              if(!await save(snapshot(value,clock()),token,run,undefined,{request_id:operation.request_id,category_id:saved.id}))break;
+              await paint();
+              continue;
+            }
             if(operation.kind==='delete'){
               try{
                 await Promise.race([sendDelete(operation.income_id),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
@@ -306,14 +347,14 @@
           }catch(error){
             const status=Number(error.status)||0,auth=status===401,permanent=status>=400&&status<500&&![401,408,429].includes(status);
             const next=auth||permanent?0:clock()+Math.min(300000,5000*2**Math.min(operation.attempts||0,6));
-            const code=status?'http_'+status:'network';
+            const code=operation.kind==='category_add'&&status===409&&error.code==='idempotency_conflict'?'idempotency_conflict':status?'http_'+status:'network';
             await db.pendingState({sessionHash:hash,userId:uid,operationId:operation.operation_id,status:auth?'auth_required':permanent?'error':'pending',nextAttempt:next,code});
             if(run===epoch&&token===api.getToken()){
               pending=pending.map(row=>row.operation_id===operation.operation_id?{...row,status:auth?'auth_required':permanent?'error':'pending',attempts:(row.attempts||0)+1,next_attempt_at:next,error_code:code}:row);
               await paint();
             }
             if(auth||!permanent||status===402||status===403)break;
-          }finally{inFlight.delete(operation.operation_id);}
+          }finally{clearTimeout(timeout);inFlight.delete(operation.operation_id);}
         }
       })();
       syncJob=job;try{await job;}finally{if(syncJob===job)syncJob=null;scheduleRetry();}
@@ -374,7 +415,7 @@
       api.deleteAccount=async(...args)=>{requireWrite();await guardPending();const result=await originalDelete(...args);await purge();return result;};
       api.bootstrap=async()=>{const result=await fetchSnapshot();if(result===undefined)throw new Error('Сессия изменилась');if(result)view?.setTimeout(()=>{void syncPending().catch(()=>{});},0);return result?.data||null;};
       // Guard every existing direct server mutation, including direct API callers.
-      for(const name of ['addIncome','updateIncome','deleteIncome','deleteAllIncomes','replaceIncomes','addCategory','deleteCategory','putSetting','completeOnboarding','createPayment','setBillingAutoRenew']){
+      for(const name of ['addIncome','updateIncome','deleteIncome','deleteAllIncomes','replaceIncomes','deleteCategory','putSetting','completeOnboarding','createPayment','setBillingAutoRenew']){
         const original=api[name]?.bind(api);if(!original)continue;
         api[name]=async(...args)=>{
           if(name==='deleteAllIncomes'||name==='replaceIncomes')await guardPending();
@@ -386,6 +427,7 @@
           finally{mutations--;if(!failedTransport)w.setTimeout(()=>{if(!mutations)void (refreshJob||Promise.resolve()).catch(()=>{}).then(()=>refresh()).catch(()=>{});},0);}
         };
       }
+      api.addCategory=enqueueCategory;
       // Android CREATE, UPDATE and DELETE all await SQLite only.
       const store=w.IncomeStore;
       const uiToRow=record=>{const parts=record.date.split('.');return {...record,income_date:(parts[2].length===2?'20'+parts[2]:parts[2])+'-'+parts[1]+'-'+parts[0]};};
@@ -418,7 +460,7 @@
         }
       };
       store.addMany=async records=>{requireWrite();for(const record of records)await store.add(record);return store.load();};
-      const blocked='#qpCategoryAdd,.qp-category-delete,.category-popup-create-btn,#clearIncomeDataBtn,#qpAuthDeleteAccountBtn';
+      const blocked='.qp-category-delete,#clearIncomeDataBtn,#qpAuthDeleteAccountBtn';
       w.document.addEventListener('click',event=>{
         const target=event.target.closest?.(blocked);
         if(target&&!canWrite()){event.preventDefault();event.stopImmediatePropagation();notify();}
@@ -440,7 +482,7 @@
       }
     }
     const pendingMarkup=id=>{const label=pendingLabel(id);return label?'<span class="qp-android-pending" data-android-pending role="img" aria-label="'+label+'" title="'+label+'"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7a8 8 0 0 0-13-2L4 8m0-5v5h5M4 17a8 8 0 0 0 13 2l3-3m0 5v-5h-5"/></svg></span>':'';};
-    return {start,refresh,purge,install,requireWrite,enqueue,enqueueDelete,syncPending,manualSync,pendingLabel,pendingMarkup,metrics,get diagnostic(){return {...diagnostic};},get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
+    return {start,refresh,purge,install,requireWrite,enqueue,enqueueCategory,enqueueDelete,syncPending,manualSync,pendingLabel,pendingMarkup,metrics,get diagnostic(){return {...diagnostic};},get pending(){return pending.map(row=>({...row}));},get displayed(){return displayed;},get snapshot(){return current;},get binding(){return binding;},get canWrite(){return canWrite();}};
   }
-  return {create,snapshot,incomeValue,transportError,schemaVersion};
+  return {create,snapshot,incomeValue,categoryName,transportError,schemaVersion};
 });

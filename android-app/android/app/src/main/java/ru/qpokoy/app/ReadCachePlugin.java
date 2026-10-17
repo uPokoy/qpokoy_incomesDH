@@ -71,7 +71,7 @@ public class ReadCachePlugin extends Plugin {
         long epoch=generation.get();worker.execute(()->{
             try{
                 if(epoch!=generation.get()){call.reject("Session changed");return;}
-                database.write(call.getString("sessionHash"),call.getObject("snapshot"),call.getString("deleteAck"));
+                database.write(call.getString("sessionHash"),call.getObject("snapshot"),call.getString("deleteAck"),call.getObject("categoryAck"));
                 JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getObject("snapshot").getJSONObject("user").getString("user_id")));call.resolve(result);
             }catch(Exception error){call.reject("Cannot save read cache");}
         });
@@ -88,6 +88,14 @@ public class ReadCachePlugin extends Plugin {
                 database.enqueue(call.getString("sessionHash"),call.getString("userId"),call.getObject("income"));
                 JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getString("userId")));call.resolve(result);
             }catch(Exception error){call.reject("Cannot save offline income");}
+        });
+    }
+    @PluginMethod public void enqueueCategory(PluginCall call){
+        long epoch=generation.get();worker.execute(()->{
+            try{if(epoch!=generation.get())throw new IllegalStateException("Session changed");
+                database.enqueueCategory(call.getString("sessionHash"),call.getString("userId"),call.getObject("category"));
+                JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getString("userId")));call.resolve(result);
+            }catch(Exception error){call.reject("Cannot save offline category");}
         });
     }
     @PluginMethod public void enqueueEdit(PluginCall call){
