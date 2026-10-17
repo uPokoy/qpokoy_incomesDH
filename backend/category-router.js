@@ -8,6 +8,14 @@ function createCategoryRouter({ store, requireWriteAccess, requiredString, uuidV
     if (pathname === '/categories' && method === 'POST') {
       await requireWriteAccess(user);
       const name = requiredString(body.name, 'name', 80).replace(/\s+/g, ' ');
+      if (body.request_id !== undefined) {
+        const requestId = uuidValue(requiredString(body.request_id, 'request_id', 36)).toLowerCase();
+        const result = await store.addCategoryIdempotent({ user_id: userId, id: randomUUID(), name, created_at: now() }, requestId);
+        if (result.error === 'idempotency_conflict') throw new HttpError(409, result.error, 'Request id already used for a different category name');
+        if (result.error === 'category_exists') throw new HttpError(409, result.error, 'Category already exists');
+        if (result.error === 'category_request_deleted') throw new HttpError(409, result.error, 'Category created by this request was deleted');
+        return response(result.created ? 201 : 200, { data: result.category });
+      }
       const id = randomUUID();
       const created = await store.addCategory({ user_id: userId, id, name, created_at: now() });
       if (!created) throw new HttpError(409, 'category_exists', 'Category already exists');

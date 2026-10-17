@@ -516,6 +516,60 @@ function createYdbStore(env = process.env, DriverClass = Driver) {
       SELECT user_id,id,name,created_at FROM \`categories\` WHERE user_id=$uid ORDER BY created_at ASC;`, { $uid: U(uid) }),
     getCategory: (uid, id) => first(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8;
       SELECT user_id,id,name,created_at FROM \`categories\` WHERE user_id=$uid AND id=$id;`, { $uid: U(uid), $id: U(id) }),
+    // One durable operation per account/request UUID. Internal settings are
+    // excluded from user settings/bootstrap and cannot be overwritten by clients.
+    async addCategoryIdempotent(row, requestId) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(requestId)) throw new Error('Invalid category request id');
+      const key = 'system.category_create.' + requestId;
+      await ready();
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await driver.tableClient.withSession(async session => {
+            const meta = await session.beginTransaction({ serializableReadWrite: {} });
+            const control = { txId: meta.id };
+            const execute = async (sql, params) => {
+              const result = await session.executeQuery(sql, params, control);
+              return result.resultSets?.[0] ? TypedData.createNativeObjects(result.resultSets[0]) : [];
+            };
+            try {
+              const [mapping] = await execute('DECLARE $uid AS Utf8; DECLARE $key AS Utf8; SELECT setting_value FROM `settings` WHERE user_id=$uid AND setting_key=$key;', { $uid: U(row.user_id), $key: U(key) });
+              let result;
+              if (mapping) {
+                const saved = JSON.parse(mapping.setting_value);
+                if (saved?.version !== 1 || typeof saved.name !== 'string' || typeof saved.category_id !== 'string') throw new Error('Invalid category request mapping');
+                if (saved.name !== row.name) result = { error: 'idempotency_conflict' };
+                else {
+                  const [category] = await execute('DECLARE $uid AS Utf8; DECLARE $id AS Utf8; SELECT user_id,id,name,created_at FROM `categories` WHERE user_id=$uid AND id=$id;', { $uid: U(row.user_id), $id: U(saved.category_id) });
+                  // Retain the mapping after deletion; an old retry must never
+                  // resurrect a deleted category or create a second operation.
+                  result = category ? { created: false, category } : { error: 'category_request_deleted' };
+                }
+              } else {
+                const categories = await execute('DECLARE $uid AS Utf8; SELECT user_id,id,name,created_at FROM `categories` WHERE user_id=$uid;', { $uid: U(row.user_id) });
+                if (categories.some(category => category.name.toLocaleLowerCase('ru-RU') === row.name.toLocaleLowerCase('ru-RU'))) result = { error: 'category_exists' };
+                else {
+                  await execute(`DECLARE $uid AS Utf8; DECLARE $id AS Utf8; DECLARE $name AS Utf8; DECLARE $created AS Timestamp;
+                    DECLARE $key AS Utf8; DECLARE $value AS Utf8; ${revisionDeclarations}
+                    INSERT INTO \`categories\` (user_id,id,name,created_at) VALUES ($uid,$id,$name,$created);
+                    UPSERT INTO \`settings\` (user_id,setting_key,setting_value,updated_at) VALUES ($uid,$key,$value,$created);
+                    ${revisionWrite}`, { $uid: U(row.user_id), $id: U(row.id), $name: U(row.name), $created: T(row.created_at),
+                    $key: U(key), $value: U(JSON.stringify({ version: 1, name: row.name, category_id: row.id })), ...revisionParams() });
+                  result = { created: true, category: row };
+                }
+              }
+              await session.commitTransaction(control);
+              return result;
+            } catch (error) {
+              try { await session.rollbackTransaction(control); } catch (_) { /* Preserve original failure. */ }
+              throw error;
+            }
+          });
+        } catch (error) {
+          if (attempt >= 2 || !(/ABORTED|RESOURCE_EXHAUSTED/i.test(String(error?.message || '')) || [8,10,400040].includes(Number(error?.code)))) throw error;
+          await sleep(50 + Math.floor(Math.random() * 100));
+        }
+      }
+    },
     async addCategory(row) {
       const list = await this.listCategories(row.user_id);
       if (list.some((x) => x.name.toLocaleLowerCase('ru-RU') === row.name.toLocaleLowerCase('ru-RU'))) return false;
