@@ -45,6 +45,7 @@ public class MainActivity extends BridgeActivity {
     private AlertDialog reportDialog;
     private byte[] pendingDownload;
     private ActivityResultLauncher<Intent> saveDocument;
+    private ActivityResultLauncher<String> reminderPermission;
     static final String APP_ORIGIN=AppOrigin.VALUE;
 
     @Override public void onCreate(Bundle state) {
@@ -52,6 +53,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(OAuthPlugin.class);
         registerPlugin(ReadCachePlugin.class);
         super.onCreate(state);
+        reminderPermission=registerForActivityResult(new ActivityResultContracts.RequestPermission(),granted->ReminderNotifications.schedule(this));
         // Native inset strips use the app's existing dark background.
         getWindow().getDecorView().setBackgroundColor(android.graphics.Color.rgb(7,12,20));
         installTopSafeArea();
@@ -138,6 +140,11 @@ public class MainActivity extends BridgeActivity {
         WebView web=bridge.getWebView();final int request=++pullRequest;
         if(!pullAllowed||!isInternal(Uri.parse(web.getUrl()==null?"":web.getUrl()))){pullSync.setRefreshing(false);return;}
         web.evaluateJavascript("(async()=>{let offline=false;try{offline=(await window.qPokoyAndroidCache?.manualSync())==='offline';}catch(_){}finally{window.qPokoyAndroid?.postMessage(JSON.stringify({kind:'pullSyncFinished',request:"+request+",offline}));}})()",null);
+    }
+    @Override public void onResume(){
+        super.onResume();
+        ReminderNotifications.initialize(this);
+        if(ReminderNotifications.markPermissionPrompt(this))reminderPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS);
     }
     @Override public void onPause(){
         pullRequest++;if(pullSync!=null)pullSync.setRefreshing(false);super.onPause();
