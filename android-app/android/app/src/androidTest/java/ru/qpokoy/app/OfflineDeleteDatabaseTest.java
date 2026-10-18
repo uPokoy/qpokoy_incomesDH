@@ -88,7 +88,7 @@ public class OfflineDeleteDatabaseTest {
             db.getWritableDatabase().execSQL("ALTER TABLE pending_adds DROP COLUMN sent");db.getWritableDatabase().setVersion(3);
         }
         try(ReadCacheDatabase db=db()){
-            assertEquals(4,db.getWritableDatabase().getVersion());assertEquals(2,db.pendingCount(hash));assertEquals(1,db.read(hash).getJSONArray("incomes").length());
+            assertEquals(ReadCacheDatabase.DATABASE_VERSION,db.getWritableDatabase().getVersion());assertEquals(2,db.pendingCount(hash));assertEquals(1,db.read(hash).getJSONArray("incomes").length());
             db.enqueueDelete(hash,"A",UUID.randomUUID().toString(),add,System.currentTimeMillis(),true);
             assertEquals(2,db.pendingCount(hash));assertEquals("delete",db.pending(hash,"A").getJSONObject(0).getString("kind"));
         }finally{context.deleteDatabase(name);}

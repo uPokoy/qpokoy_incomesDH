@@ -88,7 +88,7 @@ test('bundled HTTPS localhost origin, separate identity/version and external rel
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
   assert.equal(config.plugins.SystemBars.insetsHandling,'disable');
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.18"/);assert.match(gradle,/versionCode 19/);
+  assert.match(gradle,/versionName "0.1.19"/);assert.match(gradle,/versionCode 20/);
   assert.match(gradle,/C:\/qpokoy-release\/signing\.properties/);
   assert.match(gradle,/signingConfig signingConfigs\.release/);
   assert.match(gradle,/storePassword releaseSigningProperties\.getProperty\('storePassword'\)/);

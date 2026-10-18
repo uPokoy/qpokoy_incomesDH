@@ -54,5 +54,5 @@ test('Native autofill uses trusted main WebView, API guard, and release version 
  assert.match(java,/Build.VERSION.SDK_INT>=26/);assert.match(java,/manager\.isEnabled\(\)\)manager\.commit\(\)/);
  assert.match(java,/setImportantForAutofill\(View.IMPORTANT_FOR_AUTOFILL_YES\)/);
  const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
- assert.match(gradle,/versionName "0.1.18"/);assert.match(gradle,/versionCode 19/);
+ assert.match(gradle,/versionName "0.1.19"/);assert.match(gradle,/versionCode 20/);
 });

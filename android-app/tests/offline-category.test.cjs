@@ -6,10 +6,11 @@ const failure=(status,code)=>Object.assign(new Error(code||'test failure'),{stat
 
 function fixture(){
   let uid='A',token='session-A',online=true,gate=null,lostDelete=false,fault=null,bootstrapGate=null,ui=[];
+  let lostCategoryDelete=false;const categoryDeletes=[];
   let bootstraps=0,identities=0,categoryFault=null,lostCategory=false,categoryGate=null;
   const categories=new Map(),categoryRequests=new Map(),categoryPosts=[],order=[];
   const snapshots=new Map(),queue=new Map(),server=new Map(),posts=[],updates=[],deletes=[],writes=[],renders=[];
-  const data=()=>({user:{user_id:uid,email:'a@test.invalid',onboarding_completed:true},incomes:[...server.values()],categories:[{id:'category-A',user_id:uid,name:'Test'},...[...categories.values()].filter(row=>row.user_id===uid)],settings:[]});
+  const data=()=>({user:{user_id:uid,email:'a@test.invalid',onboarding_completed:true},incomes:[...server.values()].filter(row=>row.user_id===uid),categories:[{id:'category-A',user_id:uid,name:'Test'},...[...categories.values()].filter(row=>row.user_id===uid)],settings:[]});
   const listed=(hash,id)=>[...queue.values()].filter(row=>row.hash===hash&&row.user_id===id).map(({hash,...row})=>clone(row));
   const db={
     read:async({sessionHash:hash})=>{const saved=snapshots.get(hash);return {snapshot:saved?clone(saved):null,pending:saved?listed(hash,saved.user.user_id):[]};},
@@ -17,7 +18,7 @@ function fixture(){
       writes.push(clone(saved));
       snapshots.clear();snapshots.set(hash,clone(saved));
       for(const [key,row] of [...queue])if(row.user_id===saved.user.user_id){
-        row.hash=hash;if(row.kind==='category_add'){if(categoryAck?.request_id===row.request_id){assert.ok(saved.categories.some(cat=>cat.id===categoryAck.category_id&&cat.name===row.name));queue.delete(key);}continue;}const confirmed=saved.incomes.find(item=>item.id===row.income_id);
+        row.hash=hash;if(row.kind==='category_add'){if(categoryAck?.request_id===row.request_id){assert.ok(saved.categories.some(cat=>cat.id===categoryAck.category_id&&cat.name===row.name));if(row.delete_requested)Object.assign(row,{kind:'category_delete',category_id:categoryAck.category_id,sent:0,status:'pending',attempts:0,next_attempt_at:0,error_code:''});else queue.delete(key);}continue;}if(row.kind==='category_delete'){if(categoryAck?.deleted&&categoryAck.request_id===key)queue.delete(key);continue;}const confirmed=saved.incomes.find(item=>item.id===row.income_id);
         if(row.kind==='delete'){if(deleteAck===key)queue.delete(key);continue;}
         if(confirmed){
           if(JSON.stringify(incomeValue(confirmed))===JSON.stringify(incomeValue(row)))queue.delete(key);
@@ -36,6 +37,19 @@ function fixture(){
       const nameKey=category.name.toLocaleLowerCase('ru-RU');
       if([...queue.values()].some(row=>row.user_id===userId&&row.kind==='category_add'&&row.name.toLocaleLowerCase('ru-RU')===nameKey))throw Error('duplicate category');
       queue.set(category.request_id,{...clone(category),operation_id:category.request_id,hash,user_id:userId,kind:'category_add',sent:0,status:'pending',attempts:0,next_attempt_at:0,error_code:''});
+      return {pending:listed(hash,userId)};
+    },
+    enqueueCategoryDelete:async({sessionHash:hash,userId,categoryId,operationId,createdAt})=>{
+      assert.equal(snapshots.get(hash)?.user.user_id,userId);
+      const old=[...queue.values()].find(row=>row.hash===hash&&row.user_id===userId&&(row.request_id===categoryId||row.category_id===categoryId));
+      if(old){
+        if(old.delete_requested)return {pending:listed(hash,userId)};
+        if(!old.sent&&!old.attempts&&![...queue.values()].some(row=>['add','update'].includes(row.kind)&&row.user_id===userId&&row.category===old.name))queue.delete(old.operation_id);
+        else old.delete_requested=1;
+      }else{
+        const cat=snapshots.get(hash).categories.find(row=>row.id===categoryId);assert.ok(cat);
+        queue.set(operationId,{operation_id:operationId,request_id:operationId,hash,user_id:userId,name:cat.name,kind:'category_delete',category_id:categoryId,delete_requested:1,created_at:createdAt,sent:0,status:'pending',attempts:0,next_attempt_at:0,error_code:''});
+      }
       return {pending:listed(hash,userId)};
     },
     enqueueEdit:async({sessionHash:hash,userId,income})=>{
@@ -91,6 +105,12 @@ function fixture(){
       return {data:clone(row)}; // API unwraps both HTTP 201 and 200.
     },
     addCategory:async()=>{throw Error('legacy category path must not run');},
+    deleteCategory:async id=>{
+      categoryDeletes.push(id);order.push('category_delete');
+      if(!categories.has(id)||categories.get(id).user_id!==uid)throw failure(404,'not_found');
+      categories.delete(id);
+      if(lostCategoryDelete){lostCategoryDelete=false;throw failure(0,'android_transport');}
+    },
     deleteAllIncomes:async()=>{},replaceIncomes:async()=>{}
   };
   const events=new Map(),listen=(name,fn)=>events.set(name,[...(events.get(name)||[]),fn]);
@@ -100,10 +120,10 @@ function fixture(){
   let cache;
   function fresh(){Object.assign(api,originals);cache=create({api,db,fingerprint:async value=>(value==='session-A'?'a':'b').repeat(64),online:()=>online,networkState:async()=>({state:online?'online':'offline'})});cache.install(view);}
   fresh();
-  return {api,db,server,queue,posts,updates,deletes,writes,renders,snapshots,view,categories,categoryRequests,categoryPosts,order,
+  return {api,db,server,queue,categoryDeletes,setLostCategoryDelete:value=>lostCategoryDelete=value,posts,updates,deletes,writes,renders,snapshots,view,categories,categoryRequests,categoryPosts,order,
     setCategoryFault:value=>categoryFault=value,setLostCategory:value=>lostCategory=value,setCategoryGate:value=>categoryGate=value,
     switchUser:value=>{uid=value;token="session-"+value;},get bootstraps(){return bootstraps;},get identities(){return identities;},get cache(){return cache;},get ui(){return ui;},
-    event:name=>events.get(name)?.forEach(fn=>fn()),
+    event:name=>events.get(name)?.forEach(fn=>fn()),click:event=>events.get('click')?.forEach(fn=>fn(event)),
     setOnline:value=>online=value,setGate:value=>gate=value,setLostDelete:value=>lostDelete=value,setFault:value=>fault=value,setBootstrapGate:value=>bootstrapGate=value,fresh,
     start:()=>cache.start(hydrate),add:amount=>view.IncomeStore.add({id:randomUUID(),date:'10.10.26',amount,category:'Test',description:'Fixture'})};
 }
@@ -234,4 +254,70 @@ test('category ACK storage failure retains durable request and a retry uses same
  f.db.write=async options=>{if(options.categoryAck&&fail){fail=false;throw Error('SQLite ACK failure');}return write(options);};
  f.setOnline(true);await f.cache.refresh();assert.equal(f.queue.size,1);assert.equal(f.categories.size,1);
  await f.cache.manualSync();assert.equal(f.queue.size,0);assert.equal(f.categories.size,1);assert.ok(f.categoryPosts.every(row=>row.request_id===request));
+});
+
+async function categoryWithIncome(f,name='Такси'){
+ const id=randomUUID(),incomeId=randomUUID();f.categories.set(id,{id,user_id:'A',name});
+ f.server.set(incomeId,{id:incomeId,user_id:'A',income_date:'2026-10-17',amount:150,category:name,description:'unchanged'});
+ f.setOnline(true);await f.cache.refresh();f.setOnline(false);return {id,incomeId};
+}
+test('category delete waits for SQLite, persists after restart and never modifies incomes',async t=>{
+ const f=await ready(t),{id,incomeId}=await categoryWithIncome(f),before=clone(f.server.get(incomeId));
+ const commit=f.db.enqueueCategoryDelete;let release;
+ f.db.enqueueCategoryDelete=async args=>{await new Promise(resolve=>release=resolve);return commit(args);};
+ let done=false;const deleting=f.api.deleteCategory(id).then(()=>done=true);await tick();assert.equal(done,false);assert.equal(f.queue.size,0);release();await deleting;
+ assert.equal(f.categoryDeletes.length,0);assert.equal(f.queue.size,1);f.fresh();await f.start();assert.ok(!f.renders.at(-1).categories.some(row=>row.id===id));assert.equal(f.ui.find(row=>row.id===incomeId).category,'Такси');
+ f.setOnline(true);f.event('online');for(let i=0;i<20&&f.queue.size;i++)await tick();
+ assert.equal(f.queue.size,0);assert.equal(f.categories.has(id),false);assert.deepEqual(f.server.get(incomeId),before);
+ await f.cache.manualSync();await f.cache.refresh();f.fresh();await f.start();assert.equal(f.categoryDeletes.length,1);assert.ok(!f.renders.at(-1).categories.some(row=>row.id===id));assert.deepEqual(f.server.get(incomeId),before);
+});
+test('lost category DELETE response safely retries 404 without touching income',async t=>{
+ const f=await ready(t),{id,incomeId}=await categoryWithIncome(f),before=clone(f.server.get(incomeId));
+ await f.api.deleteCategory(id);await f.api.deleteCategory(id);assert.equal(f.queue.size,1);
+ f.setLostCategoryDelete(true);f.setOnline(true);await f.cache.refresh();assert.equal(f.queue.size,1);assert.ok(!f.renders.at(-1).categories.some(row=>row.id===id));
+ f.setOnline(false);f.fresh();await f.start();f.setOnline(true);await f.cache.manualSync();assert.equal(f.queue.size,0);assert.deepEqual(f.categoryDeletes,[id,id]);assert.deepEqual(f.server.get(incomeId),before);
+});
+test('unsent offline category without dependents collapses without HTTP',async t=>{
+ const f=await ready(t),cat=await f.api.addCategory('Такси');await f.api.deleteCategory(cat.id);assert.equal(f.queue.size,0);f.setOnline(true);await f.cache.refresh();assert.equal(f.categoryPosts.length,0);assert.equal(f.categoryDeletes.length,0);
+});
+test('deleted offline category creates then saves dependent income then deletes only category',async t=>{
+ const f=await ready(t),cat=await f.api.addCategory('Такси');await f.view.IncomeStore.add({date:'10.10.26',amount:42,category:cat.name,description:'preserved'});
+ await f.api.deleteCategory(cat.id);f.fresh();await f.start();assert.ok(!f.renders.at(-1).categories.some(row=>row.name==='Такси'));assert.equal(f.ui[0].category,'Такси');
+ f.setOnline(true);await f.cache.refresh();await f.cache.manualSync();await f.cache.manualSync();assert.equal(f.queue.size,0);assert.deepEqual(f.order,['category','income','category_delete']);assert.equal(f.categories.size,0);assert.equal(f.server.size,1);assert.equal([...f.server.values()][0].category,'Такси');
+});
+test('delete during in-flight category CREATE removes eventual server category',async t=>{
+ const f=await ready(t),cat=await f.api.addCategory('Такси');let release;f.setCategoryGate(new Promise(resolve=>release=resolve));f.setOnline(true);const syncing=f.cache.refresh();await tick();
+ await f.api.deleteCategory(cat.id);assert.equal(f.cache.pending[0].delete_requested,1);f.setCategoryGate(null);release();await syncing;await f.cache.manualSync();await f.cache.manualSync();assert.equal(f.queue.size,0);assert.equal(f.categories.size,0);assert.equal(f.categoryDeletes.length,1);assert.equal(new Set(f.categoryPosts.map(row=>row.request_id)).size,1);
+});
+test('salary, failed commit and account isolation prevent unsafe category deletion',async t=>{
+ const f=await ready(t),{id}=await categoryWithIncome(f,'Зарплата');await assert.rejects(f.api.deleteCategory(id),/нельзя/);assert.equal(f.queue.size,0);
+ const cat=await categoryWithIncome(f);f.db.enqueueCategoryDelete=async()=>{throw Error('commit failed');};await assert.rejects(f.api.deleteCategory(cat.id),/commit failed/);assert.ok(f.cache.snapshot.categories.some(row=>row.id===cat.id));
+ const g=await ready(t),other=await categoryWithIncome(g);await g.api.deleteCategory(other.id);await g.cache.purge();g.switchUser('B');g.fresh();g.setOnline(true);await g.start();await g.cache.manualSync();assert.equal(g.categoryDeletes.length,0);assert.equal(g.queue.size,1);
+});
+test('pending income for existing category settles before category DELETE with original name',async t=>{
+ const f=await ready(t),{id}=await categoryWithIncome(f);await f.view.IncomeStore.add({date:'10.10.26',amount:51,category:'Такси',description:'pending'});await f.api.deleteCategory(id);f.setOnline(true);await f.cache.refresh();await f.cache.manualSync();assert.deepEqual(f.order,['income','category_delete']);assert.equal(f.queue.size,0);assert.equal([...f.server.values()].filter(row=>row.category==='Такси').length,2);
+});
+
+test('stale pre-DELETE bootstrap cannot resurrect acknowledged category',async t=>{
+ const f=await ready(t),{id}=await categoryWithIncome(f);await f.api.deleteCategory(id);f.setOnline(true);
+ let release;f.setBootstrapGate(new Promise(resolve=>release=resolve));const stale=f.api.bootstrap();await tick();
+ await f.cache.syncPending();assert.equal(f.queue.size,0);f.setBootstrapGate(null);release();await assert.rejects(stale,/Сессия изменилась/);
+ assert.ok(!f.cache.snapshot.categories.some(row=>row.id===id));
+});
+test('parallel local category deletes converge to one durable operation',async t=>{
+ const f=await ready(t),{id}=await categoryWithIncome(f);await Promise.all([f.api.deleteCategory(id),f.api.deleteCategory(id)]);assert.equal(f.queue.size,1);f.setOnline(true);await f.cache.refresh();assert.equal(f.categoryDeletes.length,1);
+});
+for(const status of [401,403,429,500])test('category DELETE '+status+' retains durable operation and all incomes',async t=>{
+ const f=await ready(t),{id,incomeId}=await categoryWithIncome(f),before=clone(f.server.get(incomeId));
+ // Inject at the captured transport, preserving actual auth/cache coordinator.
+ const g=create({api:{...f.api,deleteCategory:async()=>{throw failure(status,'fixture');}},db:f.db,fingerprint:async()=> 'a'.repeat(64),online:()=>true});t.after(()=>g.purge());await g.start(async()=>{});
+ await f.api.deleteCategory(id);await g.start(async()=>{});await g.syncPending();assert.equal(f.queue.size,1);assert.deepEqual(f.server.get(incomeId),before);assert.equal([...f.queue.values()][0].status,status===401?'auth_required':status===403?'error':'pending');
+});
+
+test('offline click guard permits category delete but keeps destructive online-only actions blocked',async t=>{
+ const f=await ready(t),{JSDOM}=require('jsdom'),dom=new JSDOM('<button class="qp-category-delete"></button><button id="clearIncomeDataBtn"></button><button id="qpAuthDeleteAccountBtn"></button>');t.after(()=>dom.window.close());
+ for(const selector of ['.qp-category-delete','#clearIncomeDataBtn','#qpAuthDeleteAccountBtn']){
+  let prevented=false,stopped=false;f.click({target:dom.window.document.querySelector(selector),preventDefault(){prevented=true;},stopImmediatePropagation(){stopped=true;}});
+  assert.equal(prevented,selector!=='.qp-category-delete');assert.equal(stopped,selector!=='.qp-category-delete');
+ }
 });

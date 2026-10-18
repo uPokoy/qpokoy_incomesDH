@@ -17,7 +17,7 @@ import java.util.zip.GZIPOutputStream;
 /** Confirmed snapshots and a separately durable, account-bound create/update/delete outbox. */
 final class ReadCacheDatabase extends SQLiteOpenHelper {
     static final int VERSION=1;
-    static final int DATABASE_VERSION=5;
+    static final int DATABASE_VERSION=6;
     static final String NAME="qpokoy-read-cache.db";
     ReadCacheDatabase(Context context){this(context,NAME);}
     ReadCacheDatabase(Context context,String name){super(context,name,null,DATABASE_VERSION);}
@@ -30,11 +30,16 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS pending_adds (operation_id TEXT PRIMARY KEY, income_id TEXT NOT NULL, user_id TEXT NOT NULL, session_hash TEXT NOT NULL, income_date TEXT NOT NULL, amount REAL NOT NULL, category TEXT NOT NULL, description TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL DEFAULT 0, error_code TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL DEFAULT 'add', sent INTEGER NOT NULL DEFAULT 0, UNIQUE(user_id,income_id))");
     }
     private void createCategoryOutbox(SQLiteDatabase db){
-        db.execSQL("CREATE TABLE IF NOT EXISTS pending_categories (request_id TEXT NOT NULL, user_id TEXT NOT NULL, session_hash TEXT NOT NULL, name TEXT NOT NULL, name_key TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending', attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL DEFAULT 0, error_code TEXT NOT NULL DEFAULT '', sent INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(user_id,request_id), UNIQUE(user_id,name_key))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS pending_categories (request_id TEXT NOT NULL, user_id TEXT NOT NULL, session_hash TEXT NOT NULL, name TEXT NOT NULL, name_key TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending', attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL DEFAULT 0, error_code TEXT NOT NULL DEFAULT '', sent INTEGER NOT NULL DEFAULT 0, kind TEXT NOT NULL DEFAULT 'category_add', category_id TEXT NOT NULL DEFAULT '', delete_requested INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(user_id,request_id), UNIQUE(user_id,name_key))");
     }
     @Override public void onConfigure(SQLiteDatabase db){try(Cursor cursor=db.rawQuery("PRAGMA secure_delete=ON",null)){cursor.moveToFirst();}}
     @Override public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion){
         if(oldVersion<5)createCategoryOutbox(db);
+        else if(oldVersion<6){
+            db.execSQL("ALTER TABLE pending_categories ADD COLUMN kind TEXT NOT NULL DEFAULT 'category_add'");
+            db.execSQL("ALTER TABLE pending_categories ADD COLUMN category_id TEXT NOT NULL DEFAULT ''");
+            db.execSQL("ALTER TABLE pending_categories ADD COLUMN delete_requested INTEGER NOT NULL DEFAULT 0");
+        }
         if(oldVersion<2)createOutbox(db);
         else {
             if(oldVersion<3)db.execSQL("ALTER TABLE pending_adds ADD COLUMN kind TEXT NOT NULL DEFAULT 'add'");
@@ -75,12 +80,20 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
             db.update("pending_categories",session,"user_id=?",new String[]{uid});
             if(categoryAck!=null){
                 String requestId=categoryAck.getString("request_id"),categoryId=categoryAck.getString("category_id");uuid(requestId);uuid(categoryId);
-                try(Cursor operation=db.query("pending_categories",new String[]{"name"},"user_id=? AND request_id=?",new String[]{uid,requestId},null,null,null)){
+                try(Cursor operation=db.query("pending_categories",new String[]{"name","kind","delete_requested","category_id"},"user_id=? AND request_id=?",new String[]{uid,requestId},null,null,null)){
                     if(operation.moveToFirst()){
-                        boolean matched=false;JSONArray categories=snapshot.getJSONArray("categories");
-                        for(int i=0;i<categories.length();i++){JSONObject category=categories.getJSONObject(i);if(categoryId.equals(category.getString("id"))&&operation.getString(0).equals(category.getString("name")))matched=true;}
-                        if(!matched)throw new IllegalArgumentException("Invalid category acknowledgement");
-                        db.delete("pending_categories","user_id=? AND request_id=?",new String[]{uid,requestId});
+                        boolean found=false,matched=false;JSONArray categories=snapshot.getJSONArray("categories");
+                        for(int i=0;i<categories.length();i++){JSONObject category=categories.getJSONObject(i);if(categoryId.equals(category.getString("id"))){found=true;matched=operation.getString(0).equals(category.getString("name"));}}
+                        if(categoryAck.optBoolean("deleted",false)){
+                            if(!"category_delete".equals(operation.getString(1))||!categoryId.equals(operation.getString(3))||found)throw new IllegalArgumentException("Invalid category deletion acknowledgement");
+                            db.delete("pending_categories","user_id=? AND request_id=?",new String[]{uid,requestId});
+                        }else{
+                            if(!matched||!"category_add".equals(operation.getString(1)))throw new IllegalArgumentException("Invalid category acknowledgement");
+                            if(operation.getInt(2)!=0){
+                                ContentValues deletion=new ContentValues();deletion.put("kind","category_delete");deletion.put("category_id",categoryId);deletion.put("status","pending");deletion.put("attempts",0);deletion.put("next_attempt_at",0);deletion.put("error_code","");deletion.put("sent",0);
+                                db.update("pending_categories",deletion,"user_id=? AND request_id=?",new String[]{uid,requestId});
+                            }else db.delete("pending_categories","user_id=? AND request_id=?",new String[]{uid,requestId});
+                        }
                     }
                 }
             }
@@ -146,9 +159,9 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
         }
         try(Cursor c=getReadableDatabase().query("pending_categories",null,"session_hash=? AND user_id=?",new String[]{hash,uid},null,null,"created_at,rowid")){
             while(c.moveToNext()){
-                JSONObject row=new JSONObject().put("kind","category_add");
-                for(String key:new String[]{"request_id","user_id","name","status","error_code"})row.put(key,c.getString(c.getColumnIndexOrThrow(key)));
-                for(String key:new String[]{"created_at","attempts","next_attempt_at","sent"})row.put(key,c.getLong(c.getColumnIndexOrThrow(key)));
+                JSONObject row=new JSONObject();
+                for(String key:new String[]{"request_id","user_id","name","status","error_code","kind","category_id"})row.put(key,c.getString(c.getColumnIndexOrThrow(key)));
+                for(String key:new String[]{"created_at","attempts","next_attempt_at","sent","delete_requested"})row.put(key,c.getLong(c.getColumnIndexOrThrow(key)));
                 row.put("operation_id",row.getString("request_id"));result.put(row);
             }
         }return result;
@@ -170,7 +183,7 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
         if(!validDate(date)||!Double.isFinite(amount)||amount<=0||amount>1e12||amount!=Math.floor(amount)||category.trim().isEmpty()||category.length()>80||description.length()>5000)throw new IllegalArgumentException("Invalid income");
         boolean known=false;JSONArray cats=read(hash).getJSONArray("categories");
         for(int i=0;i<cats.length();i++)if(category.equals(cats.getJSONObject(i).getString("name")))known=true;
-        if(!known)try(Cursor c=getReadableDatabase().query("pending_categories",new String[]{"name"},"session_hash=? AND user_id=? AND name=?",new String[]{hash,uid,category},null,null,null)){known=c.moveToFirst();}
+        if(!known)try(Cursor c=getReadableDatabase().query("pending_categories",new String[]{"name"},"session_hash=? AND user_id=? AND name=? AND delete_requested=0",new String[]{hash,uid,category},null,null,null)){known=c.moveToFirst();}
         if(!known)throw new IllegalArgumentException("Category unavailable offline");
         JSONArray confirmed=read(hash).getJSONArray("incomes");
         boolean exists=false;
@@ -241,6 +254,34 @@ final class ReadCacheDatabase extends SQLiteOpenHelper {
             JSONArray categories=read(hash).getJSONArray("categories");
             for(int i=0;i<categories.length();i++)if(nameKey.equals(categories.getJSONObject(i).getString("name").toLowerCase(java.util.Locale.forLanguageTag("ru-RU"))))throw new IllegalArgumentException("Category already exists");
             ContentValues values=new ContentValues();values.put("request_id",requestId);values.put("user_id",uid);values.put("session_hash",hash);values.put("name",name);values.put("name_key",nameKey);values.put("created_at",row.getLong("created_at"));
+            db.insertOrThrow("pending_categories",null,values);db.setTransactionSuccessful();
+        }finally{db.endTransaction();}
+    }
+    void enqueueCategoryDelete(String hash,String uid,String categoryId,String operationId,long createdAt) throws Exception {
+        bound(hash,uid);uuid(categoryId);uuid(operationId);if(createdAt<=0)throw new IllegalArgumentException("Invalid creation timestamp");
+        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+        try{
+            String name=null;
+            try(Cursor c=db.query("pending_categories",null,"session_hash=? AND user_id=? AND (request_id=? OR category_id=?)",new String[]{hash,uid,categoryId,categoryId},null,null,null)){
+                if(c.moveToFirst()){
+                    name=c.getString(c.getColumnIndexOrThrow("name"));CategoryDeletionPolicy.checkName(name);
+                    if(c.getInt(c.getColumnIndexOrThrow("delete_requested"))!=0){db.setTransactionSuccessful();return;}
+                    boolean dependent;
+                    try(Cursor incomes=db.rawQuery("SELECT COUNT(*) FROM pending_adds WHERE user_id=? AND category=? AND kind IN ('add','update')",new String[]{uid,name})){incomes.moveToFirst();dependent=incomes.getInt(0)>0;}
+                    String requestId=c.getString(c.getColumnIndexOrThrow("request_id"));
+                    if(CategoryDeletionPolicy.collapse(c.getInt(c.getColumnIndexOrThrow("sent")),c.getInt(c.getColumnIndexOrThrow("attempts")),dependent)){
+                        db.delete("pending_categories","user_id=? AND request_id=?",new String[]{uid,requestId});
+                    }else{
+                        ContentValues mark=new ContentValues();mark.put("delete_requested",1);
+                        db.update("pending_categories",mark,"user_id=? AND request_id=?",new String[]{uid,requestId});
+                    }
+                    db.setTransactionSuccessful();return;
+                }
+            }
+            JSONArray categories=read(hash).getJSONArray("categories");
+            for(int i=0;i<categories.length();i++)if(categoryId.equals(categories.getJSONObject(i).getString("id")))name=categories.getJSONObject(i).getString("name");
+            if(name==null)throw new IllegalArgumentException("Category unavailable locally");CategoryDeletionPolicy.checkName(name);
+            ContentValues values=new ContentValues();values.put("request_id",operationId);values.put("user_id",uid);values.put("session_hash",hash);values.put("name",name);values.put("name_key",name.toLowerCase(java.util.Locale.forLanguageTag("ru-RU")));values.put("created_at",createdAt);values.put("kind","category_delete");values.put("category_id",categoryId);values.put("delete_requested",1);
             db.insertOrThrow("pending_categories",null,values);db.setTransactionSuccessful();
         }finally{db.endTransaction();}
     }

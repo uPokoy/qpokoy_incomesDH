@@ -69,7 +69,7 @@ public class OutboxDatabaseTest {
             db.write(a,snapshot("A"));SQLiteDatabase sql=db.getWritableDatabase();sql.execSQL("DROP TABLE pending_adds");sql.setVersion(1);
         }
         try(ReadCacheDatabase db=db()){
-            assertNotNull(db.read(a));assertEquals(4,db.getWritableDatabase().getVersion());db.enqueue(a,"A",income(9));assertEquals(1,db.pendingCount(a));
+            assertNotNull(db.read(a));assertEquals(ReadCacheDatabase.DATABASE_VERSION,db.getWritableDatabase().getVersion());db.enqueue(a,"A",income(9));assertEquals(1,db.pendingCount(a));
         }finally{context.deleteDatabase(name);}
     }
     @Test public void invalidDatesCategoriesAndDuplicateIdsAreRejectedBeforeCommit() throws Exception {
@@ -92,7 +92,7 @@ public class OutboxDatabaseTest {
             SQLiteDatabase sql=db.getWritableDatabase();sql.execSQL("ALTER TABLE pending_adds DROP COLUMN sent");sql.execSQL("ALTER TABLE pending_adds DROP COLUMN kind");sql.setVersion(2);
         }
         try(ReadCacheDatabase db=db()){
-            assertEquals(4,db.getWritableDatabase().getVersion());assertNotNull(db.read(a));
+            assertEquals(ReadCacheDatabase.DATABASE_VERSION,db.getWritableDatabase().getVersion());assertNotNull(db.read(a));
             JSONObject pending=db.pending(a,"A").getJSONObject(0);assertEquals(row.getString("income_id"),pending.getString("income_id"));assertEquals("add",pending.getString("kind"));
         }finally{context.deleteDatabase(name);}
     }

@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=exported;
   if(root?.qPokoyApi&&root.Capacitor){
     const native=method=>options=>root.Capacitor.nativePromise('QPokoyReadCache',method,options||{});
-    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),enqueueDelete:native('enqueueDelete'),enqueueCategory:native('enqueueCategory'),beginSend:native('beginSend'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
+    const cache=exported.create({api:root.qPokoyApi,db:{read:native('read'),write:native('write'),clear:native('clear'),enqueue:native('enqueue'),enqueueEdit:native('enqueueEdit'),enqueueDelete:native('enqueueDelete'),enqueueCategory:native('enqueueCategory'),enqueueCategoryDelete:native('enqueueCategoryDelete'),beginSend:native('beginSend'),pendingState:native('pendingState'),pendingCount:native('pendingCount')},
       fingerprint:async token=>Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))).map(b=>b.toString(16).padStart(2,'0')).join(''),
       online:()=>root.qPokoyAndroidNetwork.available,networkState:options=>root.qPokoyAndroidNetwork.read(options),clock:()=>Date.now(),notify:()=>root.qPokoyNotice?.('Нет подключения к интернету','Дождитесь подключения и завершения синхронизации.','error')});
     root.qPokoyAndroidCache=cache;
@@ -49,6 +49,7 @@
   function create({api,db,fingerprint,online,networkState=async()=>{},clock=Date.now,notify=()=>{},uuid=()=>globalThis.crypto.randomUUID()}){
     const bootstrap=api.bootstrap.bind(api);
     const sendCategory=api.request?(name,requestId)=>api.request('POST','/categories',{name,request_id:requestId}).then(result=>result.data):null;
+    const sendCategoryDelete=api.deleteCategory?.bind(api);
     const sendAdd=api.addIncome?.bind(api),sendUpdate=api.updateIncome?.bind(api),sendDelete=api.deleteIncome?.bind(api);
     let epoch=0,current=null,binding=null,validatedToken=null,displayed=false,renderedSignature=null,hydrate=null,refreshJob=null,refreshEpoch=0,clearJob=Promise.resolve(),mutations=0,view=null;
     let pending=[],syncJob=null,manualJob=null,retryTimer=null;
@@ -74,14 +75,14 @@
     const pendingWarning='Есть изменения, которые ещё не синхронизированы. Подключитесь к интернету и дождитесь синхронизации перед выходом.';
     function setPending(rows,uid){
       if(!Array.isArray(rows))return;
-      if(rows.some(row=>row.user_id!==uid||!uuidPattern.test(row.operation_id)||(row.kind==='category_add'?row.request_id!==row.operation_id||!uuidPattern.test(row.request_id)||categoryName(row.name)!==row.name:!uuidPattern.test(row.income_id)||!['add','update','delete'].includes(row.kind))))throw new Error('Invalid pending account binding');
+      if(rows.some(row=>row.user_id!==uid||!uuidPattern.test(row.operation_id)||(['category_add','category_delete'].includes(row.kind)?row.request_id!==row.operation_id||!uuidPattern.test(row.request_id)||categoryName(row.name)!==row.name||(row.kind==='category_delete'&&!uuidPattern.test(row.category_id)):!uuidPattern.test(row.income_id)||!['add','update','delete'].includes(row.kind))))throw new Error('Invalid pending account binding');
       pending=rows;
     }
     function combined(){
       if(!current)return null;
       const rowsById=new Map(current.incomes.map(row=>[row.id,row]));
       for(const row of pending){
-        if(row.kind==='category_add')continue;
+        if(['category_add','category_delete'].includes(row.kind))continue;
         if(row.kind==='delete'){rowsById.delete(row.income_id);continue;}
         const old=rowsById.get(row.income_id);
         rowsById.set(row.income_id,{...old,id:row.income_id,user_id:row.user_id,...incomeValue(row),created_at:old?.created_at||new Date(row.created_at).toISOString()});
@@ -93,7 +94,8 @@
       for(const row of pending.filter(row=>row.kind==='category_add')){
         if(!categories.some(category=>categoryKey(category.name)===categoryKey(row.name)))categories.push({id:row.request_id,user_id:row.user_id,name:row.name});
       }
-      return {...current,incomes:rows,categories};
+      const removed=pending.filter(row=>row.kind==='category_delete'||row.delete_requested);
+      return {...current,incomes:rows,categories:categories.filter(cat=>!removed.some(row=>cat.id===row.request_id||cat.id===row.category_id))};
     }
     const shownSignature=()=>current?signature(combined())+JSON.stringify(pending.map(row=>[row.income_id,row.kind,row.status,row.error_code])):null;
     async function paint(cached=false){
@@ -238,6 +240,22 @@
       view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
       return {id:requestId,user_id:uid,name};
     }
+    async function enqueueCategoryDelete(id){
+      const token=api.getToken(),uid=current?.user.user_id,hash=binding,categoryId=String(id);
+      if(!db.enqueueCategoryDelete||!token||!current||hash!==await identity(token)||binding!==hash||token!==api.getToken())throw new Error('Локальное удаление недоступно: сначала войдите и загрузите данные с сервера.');
+      const prior=pending.find(row=>(row.kind==='category_delete'||row.delete_requested)&&(row.request_id===categoryId||row.category_id===categoryId));
+      if(prior)return;
+      const category=combined().categories.find(row=>row.id===categoryId);
+      if(!category||!uuidPattern.test(categoryId))throw new Error('Категория недоступна локально');
+      if(categoryKey(category.name)==='зарплата')throw new Error('Категорию «Зарплата» нельзя удалить');
+      ++epoch;
+      const result=await db.enqueueCategoryDelete({sessionHash:hash,userId:uid,categoryId,operationId:uuid(),createdAt:clock()});
+      if(token!==api.getToken()||binding!==hash||current?.user.user_id!==uid)throw new Error('Сессия изменилась');
+      setPending(result.pending,uid);
+      // Existing category UI removes its row after this committed promise; never rewrite incomes.
+      scheduleRetry();
+      view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
+    }
     async function enqueueDelete(id){
       diagnostic.stage='delete-account-binding';diagnostic.code=null;
       const token=api.getToken(),uid=current?.user.user_id,hash=binding,incomeId=String(id);
@@ -266,7 +284,9 @@
       view?.setTimeout(()=>{if(online())void (canWrite()?syncPending():refresh()).catch(()=>{});},0);
       return rows;
     }
-    const blockedByCategory=row=>row.kind!=='category_add'&&row.kind!=='delete'&&pending.some(category=>category.kind==='category_add'&&categoryKey(category.name)===categoryKey(row.category));
+    const blockedByCategory=row=>row.kind==='category_delete'
+      ? pending.some(item=>['add','update'].includes(item.kind)&&categoryKey(item.category)===categoryKey(row.name))
+      : ['add','update'].includes(row.kind)&&pending.some(category=>category.kind==='category_add'&&categoryKey(category.name)===categoryKey(row.category));
     function scheduleRetry(){
       if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
       scheduleRecovery();
@@ -285,7 +305,7 @@
         for(const operation of [...pending].sort((a,b)=>Number(b.kind==='category_add')-Number(a.kind==='category_add'))){
           if(run!==epoch||!canWrite()||operation.status==='error'||(!force&&(operation.next_attempt_at||0)>clock()))continue;
           if(blockedByCategory(operation))continue;
-          if(operation.kind==='category_add'&&!sendCategory)continue;
+          if(operation.kind==='category_add'&&!sendCategory||operation.kind==='category_delete'&&!sendCategoryDelete)continue;
           if(operation.kind==='add'&&!sendAdd||operation.kind==='update'&&!sendUpdate||operation.kind==='delete'&&!sendDelete)continue;
           if(operation.kind==='delete'&&activeWrites.has(uid+':'+operation.income_id))continue;
           let timeout;
@@ -303,6 +323,17 @@
               if(!await save(snapshot(value,clock()),token,run,undefined,{request_id:operation.request_id,category_id:saved.id}))break;
               await paint();
               continue;
+            }
+            if(operation.kind==='category_delete'){
+              try{
+                await Promise.race([sendCategoryDelete(operation.category_id),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('network_timeout')),30000);timeout.unref?.();})]);
+              }catch(error){if(!(error.status===404&&error.code==='not_found'))throw error;}
+              finally{clearTimeout(timeout);}
+              if(run!==epoch||token!==api.getToken())break;
+              const value={...current,categories:current.categories.filter(row=>row.id!==operation.category_id)};
+              run=++epoch;
+              if(!await save(snapshot(value,clock()),token,run,undefined,{request_id:operation.request_id,category_id:operation.category_id,deleted:true}))break;
+              await paint();continue;
             }
             if(operation.kind==='delete'){
               try{
@@ -415,7 +446,7 @@
       api.deleteAccount=async(...args)=>{requireWrite();await guardPending();const result=await originalDelete(...args);await purge();return result;};
       api.bootstrap=async()=>{const result=await fetchSnapshot();if(result===undefined)throw new Error('Сессия изменилась');if(result)view?.setTimeout(()=>{void syncPending().catch(()=>{});},0);return result?.data||null;};
       // Guard every existing direct server mutation, including direct API callers.
-      for(const name of ['addIncome','updateIncome','deleteIncome','deleteAllIncomes','replaceIncomes','deleteCategory','putSetting','completeOnboarding','createPayment','setBillingAutoRenew']){
+      for(const name of ['addIncome','updateIncome','deleteIncome','deleteAllIncomes','replaceIncomes','putSetting','completeOnboarding','createPayment','setBillingAutoRenew']){
         const original=api[name]?.bind(api);if(!original)continue;
         api[name]=async(...args)=>{
           if(name==='deleteAllIncomes'||name==='replaceIncomes')await guardPending();
@@ -428,6 +459,7 @@
         };
       }
       api.addCategory=enqueueCategory;
+      api.deleteCategory=enqueueCategoryDelete;
       // Android CREATE, UPDATE and DELETE all await SQLite only.
       const store=w.IncomeStore;
       const uiToRow=record=>{const parts=record.date.split('.');return {...record,income_date:(parts[2].length===2?'20'+parts[2]:parts[2])+'-'+parts[1]+'-'+parts[0]};};
@@ -460,7 +492,7 @@
         }
       };
       store.addMany=async records=>{requireWrite();for(const record of records)await store.add(record);return store.load();};
-      const blocked='.qp-category-delete,#clearIncomeDataBtn,#qpAuthDeleteAccountBtn';
+      const blocked='#clearIncomeDataBtn,#qpAuthDeleteAccountBtn';
       w.document.addEventListener('click',event=>{
         const target=event.target.closest?.(blocked);
         if(target&&!canWrite()){event.preventDefault();event.stopImmediatePropagation();notify();}

@@ -95,4 +95,45 @@ public class OfflineCategoryDatabaseTest {
             db.enqueueCategory(hash,"A",category("Такси"));assertEquals(2,db.pendingCount(hash));
         }finally{context.deleteDatabase(file);}
     }
+
+    @Test public void categoryDeleteTombstonePersistsAndAckNeverChangesIncome() throws Exception {
+        context.deleteDatabase(file);String id=UUID.randomUUID().toString(),op=UUID.randomUUID().toString();JSONObject row=income("Такси");
+        JSONObject state=snapshot("A");state.getJSONArray("categories").put(new JSONObject().put("id",id).put("user_id","A").put("name","Такси"));
+        JSONObject confirmed=new JSONObject(row.toString()).put("id",row.getString("income_id")).put("user_id","A");state.getJSONArray("incomes").put(confirmed);String original=confirmed.toString();
+        try(ReadCacheDatabase db=new ReadCacheDatabase(context,file)){
+            db.write(hash,state);db.enqueueCategoryDelete(hash,"A",id,op,System.currentTimeMillis());db.enqueueCategoryDelete(hash,"A",id,UUID.randomUUID().toString(),System.currentTimeMillis());
+            assertEquals(1,db.pendingCount(hash));assertEquals(original,db.read(hash).getJSONArray("incomes").getJSONObject(0).toString());
+        }
+        try(ReadCacheDatabase db=new ReadCacheDatabase(context,file)){
+            assertEquals("category_delete",db.pending(hash,"A").getJSONObject(0).getString("kind"));
+            db.write(hash,state);assertEquals(1,db.pendingCount(hash)); // A stale bootstrap cannot ACK a deletion.
+            try{db.write(hash,state,null,new JSONObject().put("request_id",op).put("category_id",id).put("deleted",true));fail("Category still present");}catch(IllegalArgumentException expected){}
+            state.put("categories",new JSONArray());db.write(hash,state,null,new JSONObject().put("request_id",op).put("category_id",id).put("deleted",true));
+            assertEquals(0,db.pendingCount(hash));assertEquals(original,db.read(hash).getJSONArray("incomes").getJSONObject(0).toString());
+        }finally{context.deleteDatabase(file);}
+    }
+    @Test public void unsentCategoryCanCollapseButSentCreateAndDependentIncomeMustSurvive() throws Exception {
+        context.deleteDatabase(file);JSONObject row=category("Такси");
+        try(ReadCacheDatabase db=new ReadCacheDatabase(context,file)){
+            JSONObject state=snapshot("A");db.write(hash,state);db.enqueueCategory(hash,"A",row);db.enqueueCategoryDelete(hash,"A",row.getString("request_id"),UUID.randomUUID().toString(),System.currentTimeMillis());assertEquals(0,db.pendingCount(hash));
+            db.enqueueCategory(hash,"A",row);JSONObject dependent=income("Такси");db.enqueue(hash,"A",dependent);
+            assertTrue(db.beginSend(hash,"A",row.getString("request_id")));db.enqueueCategoryDelete(hash,"A",row.getString("request_id"),UUID.randomUUID().toString(),System.currentTimeMillis());assertEquals(2,db.pendingCount(hash));assertEquals(1,db.pending(hash,"A").getJSONObject(1).getInt("delete_requested"));
+            String id=UUID.randomUUID().toString();state.getJSONArray("categories").put(new JSONObject().put("id",id).put("user_id","A").put("name","Такси"));
+            db.write(hash,state,null,new JSONObject().put("request_id",row.getString("request_id")).put("category_id",id));
+            JSONArray pending=db.pending(hash,"A");assertEquals(2,pending.length());assertEquals("Такси",pending.getJSONObject(0).getString("category"));assertEquals("category_delete",pending.getJSONObject(1).getString("kind"));assertEquals(id,pending.getJSONObject(1).getString("category_id"));
+        }finally{context.deleteDatabase(file);}
+    }
+    @Test public void salaryAndAccountMismatchCannotDeleteAndVersionFiveUpgradePreservesQueues() throws Exception {
+        context.deleteDatabase(file);String id=UUID.randomUUID().toString();
+        try(ReadCacheDatabase db=new ReadCacheDatabase(context,file)){
+            JSONObject state=snapshot("A");state.getJSONArray("categories").put(new JSONObject().put("id",id).put("user_id","A").put("name","Зарплата"));db.write(hash,state);
+            try{db.enqueueCategoryDelete(hash,"B",id,UUID.randomUUID().toString(),System.currentTimeMillis());fail();}catch(IllegalArgumentException expected){}
+            try{db.enqueueCategoryDelete(hash,"A",id,UUID.randomUUID().toString(),System.currentTimeMillis());fail();}catch(IllegalArgumentException expected){}
+            db.enqueue(hash,"A",income("Test"));db.enqueueCategory(hash,"A",category("Такси"));
+            db.getWritableDatabase().execSQL("ALTER TABLE pending_categories DROP COLUMN kind");db.getWritableDatabase().execSQL("ALTER TABLE pending_categories DROP COLUMN category_id");db.getWritableDatabase().execSQL("ALTER TABLE pending_categories DROP COLUMN delete_requested");db.getWritableDatabase().setVersion(5);
+        }
+        try(ReadCacheDatabase db=new ReadCacheDatabase(context,file)){
+            assertEquals(2,db.pendingCount(hash));assertEquals("category_add",db.pending(hash,"A").getJSONObject(1).getString("kind"));
+        }finally{context.deleteDatabase(file);}
+    }
 }

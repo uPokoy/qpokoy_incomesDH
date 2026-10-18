@@ -98,6 +98,14 @@ public class ReadCachePlugin extends Plugin {
             }catch(Exception error){call.reject("Cannot save offline category");}
         });
     }
+    @PluginMethod public void enqueueCategoryDelete(PluginCall call){
+        long epoch=generation.get();worker.execute(()->{
+            try{if(epoch!=generation.get())throw new IllegalStateException("Session changed");
+                database.enqueueCategoryDelete(call.getString("sessionHash"),call.getString("userId"),call.getString("categoryId"),call.getString("operationId"),call.getLong("createdAt",0L));
+                JSObject result=new JSObject();result.put("pending",database.pending(call.getString("sessionHash"),call.getString("userId")));call.resolve(result);
+            }catch(Exception error){call.reject("Cannot save offline category deletion");}
+        });
+    }
     @PluginMethod public void enqueueEdit(PluginCall call){
         long epoch=generation.get();worker.execute(()->{
             try{if(epoch!=generation.get())throw new IllegalStateException("Session changed");
