@@ -7,7 +7,9 @@ const root=path.resolve(__dirname,'..');
 const repo=path.resolve(root,'..');
 const out=path.join(root,'www');
 const sourceArg=process.argv.indexOf('--source-ref');
-const ref=sourceArg===-1?'origin/main':process.argv[sourceArg+1];
+// Keep normal builds reproducible even when main advances. Explicit refs remain available for audits.
+const source=JSON.parse(fs.readFileSync(path.join(root,'frontend-source.json'),'utf8'));
+const ref=sourceArg===-1?source.sourceRef:process.argv[sourceArg+1];
 if(!ref)throw new Error('--source-ref requires a Git ref');
 const git=(...args)=>execFileSync('git',args,{cwd:repo,maxBuffer:32*1024*1024});
 const commit=git('rev-parse','--verify',ref+'^{commit}').toString().trim();

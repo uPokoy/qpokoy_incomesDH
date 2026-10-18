@@ -1,5 +1,29 @@
 # Prototype verification — 2026-10-09
 
+## DEV423 bundled frontend — 2026-10-18, 0.1.19 / code 20
+
+Source main: `b6a50fa7927e13da16193df9b57c2df4e1a954db`.
+Normal bundle/sync commands now read `frontend-source.json`, so another main
+update cannot silently replace this verified source. Explicit `--source-ref`
+remains available for deliberate comparisons. Two normal bundle builds produced
+identical file hashes. The version panel and runtime value are `2026.10.18.423`,
+without a DEV prefix.
+
+The only frontend source change from DEV420 is removal of the version prefix
+in index.html. All Android transforms still apply unchanged: SQLite/outbox,
+category deletion, Credential Manager, Yandex OAuth, safe area, PDF/JSON and
+local reminders. No backend/payment/cloud changes were imported.
+
+Validation: Android Node 191/191, JVM debug 40/40 and release 40/40; JS syntax
+29 files and git diff --check PASS. Capacitor sync and assembleRelease PASS.
+The APK contains the pinned source metadata, the prefix-free panel and all four
+byte-identical Android adapters. Package/version remain ru.qpokoy.app / 0.1.19 / 20.
+Release certificate remains
+`D5F4C8D753AEC949452A704553F74C15143F7FC063753BD0E4E1B11CD5DA8BB8`.
+APK: ignored `artifacts/qPokoy-0.1.19-frontend423-release.apk`.
+No APK installation or store publication was performed for this frontend update.
+
+
 ## DEV420 handoff — 2026-10-11, 0.1.17-dev / code 18
 
 Starting Android HEAD: `c4de73dba99bfe7ce7e6a168884ddf18076bcf06`.

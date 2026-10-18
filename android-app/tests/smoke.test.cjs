@@ -21,6 +21,22 @@ test('bundle has all local references, early platform adaptation and offline PDF
   assert.match(fs.readFileSync(path.join(root,'www/js/report-print.js'),'utf8'),/https:\/\/localhost\/vendor\/html2pdf/);
   assert.equal(fs.existsSync(path.join(root,'www/vendor/html2pdf.bundle.min.js')),true);
 });
+test('normal Android bundle is pinned to DEV423 and displays only the version number',()=>{
+  const source=JSON.parse(fs.readFileSync(path.join(root,'frontend-source.json'),'utf8'));
+  const info=JSON.parse(fs.readFileSync(path.join(root,'www/bundle-info.json'),'utf8'));
+  assert.equal(source.sourceRef,'b6a50fa7927e13da16193df9b57c2df4e1a954db');
+  assert.equal(info.sourceCommit,source.sourceRef);assert.equal(info.sourceVersion,'2026.10.18.423');
+  const dom=new JSDOM(fs.readFileSync(path.join(root,'www/index.html'),'utf8'));
+  try{
+    const panel=dom.window.document.querySelector('.qp-dev-panel');
+    assert.equal(panel.querySelector('#qPokoyDevVersion').textContent,'2026.10.18.423');
+    assert.doesNotMatch(panel.textContent,/DEV|dev-/);
+  }finally{dom.window.close();}
+  assert.match(fs.readFileSync(path.join(root,'www/js/app.js'),'utf8'),/const qPokoyDevVersion='2026\.10\.18\.423';/);
+  const script=fs.readFileSync(path.join(root,'scripts/bundle.cjs'),'utf8');
+  assert.match(script,/sourceArg===-1\?source.sourceRef/);
+});
+
 test('offline API failures are controlled and OAuth does not start an unsafe WebView flow',async t=>{
   const dom=new JSDOM('',{url:'https://localhost/',runScripts:'outside-only',pretendToBeVisual:true});t.after(()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();});
   const w=dom.window;let calls=0;w.fetch=async()=>{calls++;return {status:401};};
@@ -46,7 +62,7 @@ test('bundle preserves the main recent-card description and Android pending icon
   assert.match(css,/Mobile recent cards use the same content layout as full history/);
   assert.match(css,/grid-template-areas:"amount category" "date category" "description description"/);
 });
-test('DEV420 bundled API client keeps bootstrap and Android income CRUD contracts',async()=>{
+test('bundled API client keeps bootstrap and Android income CRUD contracts',async()=>{
   const info=JSON.parse(fs.readFileSync(path.join(root,'www/bundle-info.json')));
   const source=fs.readFileSync(path.join(root,'www/js/api-client.js'),'utf8');
   const {execFileSync}=require('node:child_process');

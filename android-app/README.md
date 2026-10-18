@@ -1,7 +1,7 @@
 # qPokoy Android — first technical prototype
 
 **Bundled frontend**, remote Yandex Cloud API, Android-only SQLite snapshots and create/update/delete outbox.
-Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.17-dev`, `versionCode=18`.
+Android: `ru.qpokoy.app`, `qPokoy`, `versionName=0.1.19`, `versionCode=20`.
 
 Android UI/storage adaptations live in this directory. The user has separately
 deployed the existing opt-in idempotent POST /incomes contract. This change does not edit or deploy backend code.
@@ -48,8 +48,8 @@ git fetch origin
 pnpm install --frozen-lockfile --ignore-scripts
 cd android-app
 npm ci
-# Reproduce this verified DEV420 bundle, even if origin/main later advances:
-npm run bundle -- --source-ref 803724e1ffc64efc9ea40e57d1ff658e7a59ee98
+# Reproduce the pinned DEV423 bundle, even if origin/main later advances:
+npm run bundle
 npx cap sync android
 npm test
 npx cap open android
@@ -75,11 +75,13 @@ This does not introduce or modify release signing.
 
 ## Updating the bundled frontend
 
-APK 0.1.17-dev uses main DEV420, source
-`803724e1ffc64efc9ea40e57d1ff658e7a59ee98`. Recent mobile cards now share the
+APK 0.1.19 / code 20 uses main DEV423, source
+`b6a50fa7927e13da16193df9b57c2df4e1a954db`. The displayed version is
+`2026.10.18.423`, without a DEV prefix. `frontend-source.json` pins the
+source used by normal bundle/sync commands; updating main cannot silently replace it. Recent mobile cards now share the
 full-history layout, including description. Android pending status is a subtle 16px sync icon at the bottom-right
 of recent/history cards. Every Android create commits to SQLite before background synchronization. To reproduce this source, use
-`npm run bundle -- --source-ref 803724e1ffc64efc9ea40e57d1ff658e7a59ee98`, then
+`npm run bundle`, then
 `npx cap sync android` and the normal Gradle build.
 
 ### 0.1.16 pending icons and native manual synchronization
