@@ -1,5 +1,61 @@
 # Prototype verification — 2026-10-09
 
+## FileProvider scope — 2026-10-18, 0.1.19 / code 20
+
+Base Android commit: `b6f6ebf86a3021f63c7c76d27214e25d929a3461`.
+The template's shared-external-storage root and entire private cache were
+unnecessarily eligible for URI grants. This was excessive scope, not evidence
+that arbitrary applications could read those files: the provider was already
+non-exported and required explicit temporary grants.
+
+Only `external-files-path Pictures/` is now exposed. Capacitor 8.5.3's built-in
+image capture creates its temporary files in `getExternalFilesDir(DIRECTORY_PICTURES)`.
+Its read/write URI grants remain unchanged. The installed plugins do not call
+the generic AssetUtil helper. PDF/JSON exports instead use ACTION_CREATE_DOCUMENT
+and ContentResolver; JSON import uses the system WebView file chooser. Neither
+requires an external root or cache root. No manifest, permission, Java/JS runtime,
+dependency, signing or version changes were needed.
+
+Validation:
+- Full Android Node suite: 194/194 PASS; JVM debug 40/40 and release 40/40 PASS.
+- assembleDebug, assembleRelease and assembleDebugAndroidTest: BUILD SUCCESSFUL.
+- JavaScript syntax: 16 Android source/test/script files PASS; git diff --check PASS.
+- Samsung SM-S931B / Android 16: release install -r PASS, no data clearing.
+  Release certificate remains
+  `D5F4C8D753AEC949452A704553F74C15143F7FC063753BD0E4E1B11CD5DA8BB8`.
+  Package/version remain ru.qpokoy.app / 0.1.19 / 20; bundled source remains
+  `b6a50fa7927e13da16193df9b57c2df4e1a954db`, displayed as `2026.10.18.423`.
+- Combined device regression: 42 passed, 2 conditional skips, no failures.
+  Includes isolated SQLite ADD/UPDATE/DELETE/category queues, safe-area, pull-sync,
+  launcher, reminders and empty production pending queue. One skip is the explicit
+  viewer/sharesheet phase, subsequently run separately in both modes (PASS).
+  The other is symlink creation, unsupported on this device's external FUSE
+  storage; canonical traversal, sibling paths, external root, cache, files and
+  database rejection all PASS.
+- Another UID cannot read a valid provider URI without a grant; explicit read
+  grant succeeds; revocation denies reading again. Only synthetic fixtures used.
+- Actual report generator + bundled html2pdf -> Android SAF save: PASS.
+  Pulled output parses as a valid one-page PDF (107221 bytes).
+- Actual JSON export control -> SAF save: PASS. Pulled JSON has exactly the one
+  synthetic test income (305 bytes).
+- Actual import button -> system JSON picker -> real File object/read: PASS.
+  Only IncomeBackup.importData was replaced temporarily by a fixture validator;
+  production restore/account persistence was deliberately not invoked. The
+  complete destructive account-restore scenario remains untested on this phone.
+- Each PDF/JSON phase verified account records unchanged. The provider PDF opens
+  in the local Drive PDF viewer; Android Sharesheet displays the PDF. No recipient
+  was selected and no remote sharing delivery was performed.
+- No qPokoy crash in the device crash buffer. No unexpected FileProvider/security
+  errors in the successful flows; denied reads in the negative grant test are expected.
+
+Opt-in device phases: run FileTransferDeviceTest with `-e fileTransfer pdf|json|import`
+and operate the system picker within the test deadline. Run
+`FileProviderTest#systemPdfViewerAndSharesheet` with `-e providerUi view|share`
+to inspect and dismiss the system UI. These phases never restore account data.
+Existing opt-in server-writing/lifecycle tests were not rerun against the real
+account; full Node/JVM suites and isolated SQLite regression cover unchanged logic.
+APK outputs and local diagnostic artifacts remain ignored; no APK/key is committed.
+
 ## DEV423 bundled frontend — 2026-10-18, 0.1.19 / code 20
 
 Source main: `b6a50fa7927e13da16193df9b57c2df4e1a954db`.
