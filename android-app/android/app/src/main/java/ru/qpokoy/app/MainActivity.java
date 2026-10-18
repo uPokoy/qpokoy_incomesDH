@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Build;
 import android.print.PrintManager;
 import android.view.View;
+import android.view.autofill.AutofillManager;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
@@ -37,6 +38,7 @@ import org.json.JSONObject;
 /** Bundled HTTPS localhost frontend. Remote API, no embedded credentials. */
 public class MainActivity extends BridgeActivity {
     private String adapter;
+    private final PasswordCredentialSaver passwordSaver=new PasswordCredentialSaver();
     private SyncSwipeRefreshLayout pullSync;
     private boolean pullAllowed,keyboardVisible;
     private int pullRequest,pullInset=-1;
@@ -74,6 +76,7 @@ public class MainActivity extends BridgeActivity {
         });
         WebView view=bridge.getWebView();
         view.setBackgroundColor(android.graphics.Color.rgb(7,12,20));
+        if(Build.VERSION.SDK_INT>=26)view.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
         installPullSync(view);
         installMessages(view);
         bridge.setWebViewClient(new BridgeWebViewClient(bridge){
@@ -110,6 +113,7 @@ public class MainActivity extends BridgeActivity {
             }
         });
     }
+    @Override public void onDestroy(){passwordSaver.cancel();super.onDestroy();}
     // Both delivery paths persist first, then strip credentials before Capacitor
     // can forward an appUrlOpen event or try navigating the WebView.
     private Intent receiveOAuthIntent(Intent intent){
@@ -207,6 +211,62 @@ public class MainActivity extends BridgeActivity {
                 try {
                     JSONObject data=new JSONObject(text);
                     switch(data.optString("kind")){
+                        case "getPassword": {
+                            if(web!=bridge.getWebView()||!PasswordSavePolicy.trustedPage(web.getUrl()))break;
+                            final int request=data.optInt("request");
+                            final String page=web.getUrl();
+                            web.evaluateJavascript("Boolean(document.getElementById('qpAuthGate')&&!document.getElementById('qpAuthGate').hidden&&!document.getElementById('qpAuthForm').hidden&&!window.qPokoyAuth?.getUser?.())",visible->{
+                                if(!"true".equals(visible)||!page.equals(web.getUrl())){
+                                    reply.postMessage("{\"kind\":\"passwordGetFinished\",\"request\":"+request+",\"status\":\"unavailable\"}");return;
+                                }
+                                passwordSaver.read(this,(status,credential)->{
+                                    if(!page.equals(web.getUrl())||!PasswordSavePolicy.trustedPage(web.getUrl()))return;
+                                    JSONObject result=new JSONObject();
+                                    try{
+                                        result.put("kind","passwordGetFinished");result.put("request",request);result.put("status",status);
+                                        if(credential!=null&&"selected".equals(status)){
+                                            result.put("email",credential.getId());result.put("password",credential.getPassword());
+                                        }
+                                        reply.postMessage(result.toString());
+                                    }catch(Exception ignored){/* Never log credential responses. */}
+                                    finally{result.remove("email");result.remove("password");}
+                                });
+                            });
+                            break;
+                        }
+                        case "savePassword": {
+                            if(web!=bridge.getWebView()||!PasswordSavePolicy.trustedPage(web.getUrl()))break;
+                            final int request=data.optInt("request");
+                            String email=data.optString("email",null),password=data.optString("password",null);
+                            data.remove("email");data.remove("password");
+                            if(!PasswordSavePolicy.valid(email,password)){
+                                reply.postMessage("{\"kind\":\"passwordSaveFinished\",\"request\":"+request+",\"status\":\"unavailable\"}");break;
+                            }
+                            web.evaluateJavascript("Boolean(document.getElementById('qpAuthGate')&&!document.getElementById('qpAuthGate').hidden&&!document.getElementById('qpAuthForm').hidden)",visible->{
+                                if(!"true".equals(visible)||!PasswordSavePolicy.trustedPage(web.getUrl())){
+                                    reply.postMessage("{\"kind\":\"passwordSaveFinished\",\"request\":"+request+",\"status\":\"unavailable\"}");return;
+                                }
+                                passwordSaver.save(this,email,password,status->reply.postMessage(
+                                    "{\"kind\":\"passwordSaveFinished\",\"request\":"+request+",\"status\":\""+status+"\"}"));
+                            });
+                            break;
+                        }
+                        case "commitAutofill":
+                            if(web!=bridge.getWebView())break;
+                            final int autofillRequest=data.optInt("request");
+                            web.post(()->{
+                                try{
+                                    if(Build.VERSION.SDK_INT>=26){
+                                        AutofillManager manager=getSystemService(AutofillManager.class);
+                                        if(manager!=null&&manager.isEnabled())manager.commit();
+                                    }
+                                }catch(RuntimeException ignored){
+                                    // Autofill is optional and must not affect authentication.
+                                }finally{
+                                    reply.postMessage("{\"kind\":\"autofillCommitted\",\"request\":"+autofillRequest+"}");
+                                }
+                            });
+                            break;
                         case "pullSyncState":
                             if(web==bridge.getWebView())pullAllowed=data.optBoolean("allowed");break;
                         case "pullSyncFinished":

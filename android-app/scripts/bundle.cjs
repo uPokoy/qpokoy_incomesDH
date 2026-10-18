@@ -58,6 +58,12 @@ function adapt(name,text){
     text=text.replace(plain,"${cells}${actions}${window.qPokoyAndroidCache?.pendingMarkup(item.id)||''}</div>`;");
   }
   if(name==='js/auth.js'){
+    const signupCheck='    const isSignup=e.currentTarget===signupForm;';
+    if(!text.includes(signupCheck))throw new Error('Android password-fill submit adaptation needs review');
+    text=text.replace(signupCheck,signupCheck+'\n    const fromSaved=!isSignup&&Boolean(window.qPokoyAndroidSavedPasswordFilled?.());');
+    const loginSuccess='const user=await api.login(mail,pass);';
+    if(!text.includes(loginSuccess))throw new Error('Android autofill login adaptation needs review');
+    text=text.replace(loginSuccess,loginSuccess+"\n        // Only confirmed password login can request system credential storage.\n        if(!fromSaved)try{await window.qPokoyAndroidSavePassword?.(mail,pass);}catch(_){}");
     const needle='const url=await api.startOAuth(provider);\n      location.assign(url);';
     if(!text.includes(needle))throw new Error('OAuth adaptation needs review');
     text=text.replace(needle,"await window.qPokoyAndroidStartOAuth(provider);button.disabled=false;setOAuthButtonText(button,label);");

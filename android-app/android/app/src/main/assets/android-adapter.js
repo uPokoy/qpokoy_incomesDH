@@ -4,6 +4,98 @@
   if(window.qPokoyAndroidAdapter||!window.qPokoyAndroid)return;
   window.qPokoyAndroidAdapter=true;
   const send=message=>window.qPokoyAndroid.postMessage(JSON.stringify(message));
+  // Only the confirmed email/password login path calls this, before hiding its form.
+  let autofillSequence=0;
+  const autofillRequests=new Map();
+  window.qPokoyAndroid.onmessage=event=>{
+    let data;try{data=JSON.parse(event.data);}catch(_){return;}
+    if(data.kind==='autofillCommitted')autofillRequests.get(data.request)?.();
+    if(data.kind==='passwordSaveFinished')passwordSaveRequests.get(data.request)?.(data.status);
+    if(data.kind==='passwordGetFinished')passwordGetRequests.get(data.request)?.(data);
+  };
+  window.qPokoyAndroidCommitAutofill=()=>new Promise(resolve=>{
+    const request=++autofillSequence;
+    const finish=()=>{clearTimeout(timer);autofillRequests.delete(request);resolve();};
+    // An unavailable/disabled password manager must never block ordinary login.
+    const timer=setTimeout(finish,500);
+    autofillRequests.set(request,finish);
+    try{send({kind:'commitAutofill',request});}catch(_){finish();}
+  });
+  // Password exists only in the transient message; never put it in callback state.
+  const passwordSaveRequests=new Map();
+  window.qPokoyAndroidSavePassword=(email,password)=>new Promise(resolve=>{
+    if(location.origin!=='https://localhost'||!['/','/index.html'].includes(location.pathname)){resolve('unavailable');return;}
+    const gate=document.getElementById('qpAuthGate');
+    if(!gate||gate.hidden){resolve('unavailable');return;}
+    const request=++autofillSequence;
+    passwordSaveRequests.set(request,status=>{
+      passwordSaveRequests.delete(request);
+      window.qPokoyAndroidPasswordSaveStatus=status;
+      resolve(status);
+    });
+    try{send({kind:'savePassword',request,email,password});}
+    catch(_){passwordSaveRequests.get(request)?.('unavailable');}
+    finally{email=null;password=null;}
+  });
+  window.addEventListener('pagehide',()=>{
+    for(const done of passwordSaveRequests.values())done('cancelled');
+  },{once:true});
+  const passwordGetRequests=new Map();
+  let passwordGetFlight=null,passwordPickerUsed=false,passwordFieldsFilled=false,passwordFormEpoch=0;
+  const loginForm=document.getElementById('qpAuthForm'),authGate=document.getElementById('qpAuthGate');
+  const loginEmail=document.getElementById('qpAuthEmail'),loginPassword=document.getElementById('qpAuthPassword');
+  const authFormOpen=()=>Boolean(authGate&&!authGate.hidden&&loginForm&&!loginForm.hidden);
+  let authWasOpen=authFormOpen();
+  window.qPokoyAndroidSavedPasswordFilled=()=>passwordFieldsFilled;
+  const updatePasswordForm=()=>{
+    const open=authFormOpen();
+    if(open!==authWasOpen){
+      passwordFormEpoch++;passwordPickerUsed=false;passwordFieldsFilled=false;authWasOpen=open;
+    }
+  };
+  const passwordFormObserver=new MutationObserver(updatePasswordForm);
+  if(authGate)passwordFormObserver.observe(authGate,{attributes:true,attributeFilter:['hidden']});
+  if(loginForm)passwordFormObserver.observe(loginForm,{attributes:true,attributeFilter:['hidden']});
+  for(const field of [loginEmail,loginPassword])field?.addEventListener('input',()=>{passwordFieldsFilled=false;});
+  function requestSavedPassword(){
+    if(passwordGetFlight)return passwordGetFlight;
+    if(location.origin!=='https://localhost'||!['/','/index.html'].includes(location.pathname)||!authFormOpen()||!loginEmail||!loginPassword)return Promise.resolve('unavailable');
+    const epoch=passwordFormEpoch;
+    const operation=new Promise(resolve=>{
+      const request=++autofillSequence;
+      passwordGetRequests.set(request,data=>{
+        passwordGetRequests.delete(request);
+        let status=data.status;
+        try{
+          if(status==='selected'&&authFormOpen()&&epoch===passwordFormEpoch){
+            loginEmail.value=data.email;loginPassword.value=data.password;
+            for(const field of [loginEmail,loginPassword]){
+              field.dispatchEvent(new Event('input',{bubbles:true}));
+              field.dispatchEvent(new Event('change',{bubbles:true}));
+            }
+            passwordFieldsFilled=true;
+          }
+        }catch(_){status='unavailable';}
+        finally{data.email=null;data.password=null;resolve(status);}
+      });
+      try{send({kind:'getPassword',request});}
+      catch(_){passwordGetRequests.get(request)?.({status:'unavailable'});}
+    });
+    passwordGetFlight=operation.finally(()=>{passwordGetFlight=null;});
+    return passwordGetFlight;
+  }
+  // Only a real tap on the password field opens the system picker, once per opening.
+  loginPassword?.addEventListener('pointerdown',event=>{
+    if(!event.isTrusted||event.button!==0)return;
+    updatePasswordForm();
+    if(!authFormOpen()||passwordPickerUsed)return;
+    passwordPickerUsed=true;
+    void requestSavedPassword();
+  });
+  window.addEventListener('pagehide',()=>{
+    passwordFormObserver.disconnect();
+    for(const done of passwordGetRequests.values())done({status:'cancelled'});
+  },{once:true});
   // Android-only content inset: leave backgrounds and the WebView at y=0.
   // Native handling zeroes env(safe-area-inset-top), preventing a second inset.
   if(document.body){
