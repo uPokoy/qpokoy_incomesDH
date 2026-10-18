@@ -81,15 +81,19 @@ test('DEV420 bundled API client keeps bootstrap and Android income CRUD contract
   assert.deepEqual(calls.map(({path,method})=>[method,path]),[['GET','/bootstrap'],['GET','/auth/me'],['POST','/incomes'],['PUT','/incomes/'+id],['DELETE','/incomes/'+id]]);
   assert.equal(calls[2].body.id,id);assert.equal(calls[2].body.client_mutation_id,id);
 });
-test('bundled HTTPS localhost origin, separate identity/version and no release signing',()=>{
+test('bundled HTTPS localhost origin, separate identity/version and external release signing',()=>{
   const config=JSON.parse(fs.readFileSync(path.join(root,'capacitor.config.json')));
   assert.equal(config.appId,'ru.qpokoy.app');assert.equal(config.server.url,undefined);
   assert.equal(config.server.hostname,'localhost');assert.equal(config.server.androidScheme,'https');
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
   assert.equal(config.plugins.SystemBars.insetsHandling,'disable');
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.17-dev"/);assert.match(gradle,/versionCode 18/);
-  assert.doesNotMatch(gradle,/signingConfigs|storePassword|keyPassword/);
+  assert.match(gradle,/versionName "0.1.18"/);assert.match(gradle,/versionCode 19/);
+  assert.match(gradle,/C:\/qpokoy-release\/signing\.properties/);
+  assert.match(gradle,/signingConfig signingConfigs\.release/);
+  assert.match(gradle,/storePassword releaseSigningProperties\.getProperty\('storePassword'\)/);
+  assert.match(gradle,/keyPassword releaseSigningProperties\.getProperty\('keyPassword'\)/);
+  assert.doesNotMatch(gradle,/debug\s*\{/);
   const manifest=fs.readFileSync(path.join(root,'android/app/src/main/AndroidManifest.xml'),'utf8');
   assert.match(manifest,/allowBackup="false"/);assert.match(manifest,/windowSoftInputMode="adjustResize"/);
 });
