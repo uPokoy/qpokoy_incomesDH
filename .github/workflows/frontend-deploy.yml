@@ -13,6 +13,8 @@ on:
       - 'pricing.html'
       - 'privacy.html'
       - 'manifest.json'
+      - 'robots.txt'
+      - 'sitemap.xml'
       - 'css/**'
       - 'js/**'
       - 'icons/**'
@@ -95,7 +97,7 @@ jobs:
           set -euo pipefail
           rm -rf site
           mkdir -p site
-          cp index.html admin.html about.html service.html offer.html pricing.html privacy.html manifest.json site/
+          cp index.html admin.html about.html service.html offer.html pricing.html privacy.html manifest.json robots.txt sitemap.xml site/
           cp -R css js icons site/
 
           # Stable baseline: the production tree after Stage 2 corresponds to DEV363.
