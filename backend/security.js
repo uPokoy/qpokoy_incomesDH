@@ -40,14 +40,18 @@ function hashPasswordResetToken(token) {
   return /^[A-Za-z0-9_-]{43}$/.test(String(token || '')) ? hashSecret(token) : null;
 }
 
-function newEmailVerificationToken(userId) {
+function newEmailVerificationToken(userId, client) {
   const secret = randomBytes(32).toString('base64url');
-  return { token: `${userId}.${secret}`, tokenHash: hashSecret(secret) };
+  // Bind the fixed UX target to the stored hash; a URL flag is not proof of source.
+  const proof = client === 'android' ? `${secret}.android` : secret;
+  return { token: `${userId}.${proof}`, tokenHash: hashSecret(proof) };
 }
 
 function parseEmailVerificationToken(token) {
-  const match = /^([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.([A-Za-z0-9_-]{43})$/i.exec(String(token || ''));
-  return match ? { userId: match[1], tokenHash: hashSecret(match[2]) } : null;
+  const match = /^([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.([A-Za-z0-9_-]{43})(\.android)?$/i.exec(String(token || ''));
+  if (match?.[3] && match[3] !== '.android') return null;
+  return match ? { userId: match[1], tokenHash: hashSecret(match[2] + (match[3] || '')),
+    ...(match[3] ? { client: 'android' } : {}) } : null;
 }
 
 function parseToken(header) {

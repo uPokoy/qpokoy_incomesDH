@@ -178,6 +178,99 @@ function memoryStore() {
 
 const make = () => createApp(memoryStore(), { requireEmailVerification: false });
 const register = (app, email) => app.handle('POST', '/auth/register', { email, password: 'very-secret-password' });
+
+function verificationFixture() {
+  const store = memoryStore(), sent = [];
+  let time = new Date('2026-10-23T12:00:00Z');
+  const app = createApp(store, { requireEmailVerification: true, now: () => time,
+    emailVerificationBaseUrl: 'https://qpokoy.ru/',
+    sendEmailVerificationEmail: async message => sent.push(message) });
+  return { app, store, sent, advance: ms => { time = new Date(time.getTime() + ms); },
+    token: () => new URL(sent.at(-1).verificationUrl).searchParams.get('verify_token') };
+}
+
+for (const client of [undefined, 'android']) {
+  test(`verification ${client || 'legacy web'} source is hash-bound, single-use and creates no session`, async () => {
+    const f = verificationFixture(), email = 'source@example.com';
+    const result = await f.app.handle('POST', '/auth/register', { email, password: 'very-secret-password', ...(client ? { client } : {}) });
+    assert.equal(result.status, 201); assert.equal(result.body.verification_required, true);
+    assert.equal(result.body.token, undefined);
+    const token = f.token(), uid = token.split('.')[0];
+    assert.equal(token.endsWith('.android'), client === 'android');
+    const stored = await f.store.getEmailVerification(uid);
+    assert.equal(stored.token_hash.length, 64); assert.equal(JSON.stringify(stored).includes(token), false);
+    // Adding/removing a target, or supplying an unrelated URL/body flag, cannot forge source.
+    const forged = client ? token.replace(/\.android$/, '') : token + '.android';
+    const badResult = await f.app.handle('POST', '/auth/email-verification/confirm', { token: forged, client: 'android' });
+    assert.equal(badResult.status, 400); assert.equal(badResult.body.return_to, undefined);
+    const confirmed = await f.app.handle('POST', '/auth/email-verification/confirm?client=android', { token, return_to: 'android' });
+    assert.equal(confirmed.status, client ? 200 : 204);
+    assert.deepEqual(confirmed.body, client ? { ok: true, return_to: 'android' } : null);
+    assert.equal(await f.store.getEmailVerification(uid), null);
+    const replay = await f.app.handle('POST', '/auth/email-verification/confirm', { token });
+    assert.equal(replay.status, 400); assert.equal(replay.body.return_to, undefined);
+    const login = await f.app.handle('POST', '/auth/login', { email, password: 'very-secret-password' });
+    assert.equal(login.status, 200); assert.ok(login.body.token);
+  });
+}
+
+test('verification rejects unknown source markers before registration/resend and sends no email', async () => {
+  const f = verificationFixture();
+  for (const client of ['web', '', null, true, {}, 'ANDROID', 'https://attacker.invalid']) {
+    for (const path of ['/auth/register', '/auth/email-verification/resend']) {
+      const result = await f.app.handle('POST', path, { email: 'invalid@example.com', password: 'very-secret-password', client });
+      assert.equal(result.status, 400); assert.equal(result.body.error.code, 'bad_request');
+    }
+  }
+  assert.equal(f.sent.length, 0); assert.equal(await f.store.getIdentity('email', 'invalid@example.com'), undefined);
+});
+
+test('Android verification expires; resend preserves cooldown, invalidates old link and supports old web clients', async () => {
+  const f = verificationFixture(), email = 'resend@example.com';
+  await f.app.handle('POST', '/auth/register', { email, password: 'very-secret-password', client: 'android' });
+  const first = f.token();
+  await f.app.handle('POST', '/auth/email-verification/resend', { email, client: 'android' });
+  assert.equal(f.sent.length, 1);
+  f.advance(25 * 3600000);
+  assert.equal((await f.app.handle('POST', '/auth/email-verification/confirm', { token: first })).status, 400);
+  assert.equal((await f.app.handle('POST', '/auth/email-verification/resend', { email, client: 'android' })).status, 202);
+  const second = f.token(); assert.notEqual(second, first); assert.ok(second.endsWith('.android'));
+  assert.equal((await f.app.handle('POST', '/auth/email-verification/confirm', { token: first })).status, 400);
+  f.advance(61000);
+  assert.equal((await f.app.handle('POST', '/auth/email-verification/resend', { email })).status, 202);
+  const web = f.token(); assert.equal(web.endsWith('.android'), false);
+  assert.equal((await f.app.handle('POST', '/auth/email-verification/confirm', { token: second })).status, 400);
+  assert.equal((await f.app.handle('POST', '/auth/email-verification/confirm', { token: web })).status, 204);
+});
+
+test('resent Android verification returns the same fixed target only on first successful confirmation', async () => {
+  const f = verificationFixture(), email = 'android-resend@example.com';
+  await f.app.handle('POST', '/auth/register', { email, password: 'very-secret-password', client: 'android' });
+  const first = f.token();
+  f.advance(61000);
+  const resend = await f.app.handle('POST', '/auth/email-verification/resend', { email, client: 'android' });
+  assert.equal(resend.status, 202); assert.deepEqual(resend.body, { ok: true });
+  assert.equal(f.sent.length, 2);
+  const token = f.token(); assert.notEqual(token, first);
+  assert.equal((await f.app.handle('POST', '/auth/email-verification/confirm', { token: first })).status, 400);
+  const confirmed = await f.app.handle('POST', '/auth/email-verification/confirm', { token });
+  assert.equal(confirmed.status, 200); assert.deepEqual(confirmed.body, { ok: true, return_to: 'android' });
+  const replay = await f.app.handle('POST', '/auth/email-verification/confirm', { token });
+  assert.equal(replay.status, 400); assert.equal(replay.body.return_to, undefined);
+});
+
+test('verification returns Android target only after committed consume, never on persistence failure or concurrent replay', async () => {
+  const f = verificationFixture();
+  await f.app.handle('POST', '/auth/register', { email: 'commit@example.com', password: 'very-secret-password', client: 'android' });
+  const token = f.token(), consume = f.store.confirmEmailVerification;
+  f.store.confirmEmailVerification = async () => { throw new Error('injected commit failure'); };
+  const failed = await f.app.handle('POST', '/auth/email-verification/confirm', { token });
+  assert.equal(failed.status, 500); assert.equal(failed.body.return_to, undefined);
+  f.store.confirmEmailVerification = consume;
+  const results = await Promise.all([1, 2].map(() => f.app.handle('POST', '/auth/email-verification/confirm', { token })));
+  assert.deepEqual(results.map(r => r.status).sort(), [200, 400]);
+  assert.equal(results.filter(r => r.body.return_to === 'android').length, 1);
+});
 const auth = (token) => ({ authorization: `Bearer ${token}` });
 
 test('revision cache detects every bootstrap mutation and isolates devices/users', async () => {

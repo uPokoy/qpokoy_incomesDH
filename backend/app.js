@@ -270,13 +270,18 @@ function createApp(store, options = {}) {
     return { token: session.token, expires_at: new Date(createdAt.getTime() + sessionDays * 86400000).toISOString(), user: await publicUser(user) };
   }
 
-  async function issueEmailVerification(user, respectCooldown = false) {
+  function verificationClient(body) {
+    if (Object.prototype.hasOwnProperty.call(body, 'client') && body.client !== 'android') bad('Invalid registration client');
+    return body.client;
+  }
+
+  async function issueEmailVerification(user, respectCooldown = false, client) {
     const issuedAt = now();
     if (respectCooldown) {
       const previous = await store.getEmailVerification(user.user_id);
       if (previous?.created_at && issuedAt - new Date(previous.created_at) < 60000) return true;
     }
-    const verification = newEmailVerificationToken(user.user_id);
+    const verification = newEmailVerificationToken(user.user_id, client);
     await store.createEmailVerification({
       user_id: user.user_id,
       token_hash: verification.tokenHash,
@@ -452,6 +457,7 @@ function createApp(store, options = {}) {
       }
 
       if (method === 'POST' && pathname === '/auth/register') {
+        const client = verificationClient(body);
         await enforceRateLimit('registerIp', sourceIp);
         const email = emailValue(body.email);
         await enforceRateLimit('registerEmail', email);
@@ -464,7 +470,7 @@ function createApp(store, options = {}) {
         const created = await store.register(user, passwordHash, categories);
         if (!created) throw new HttpError(409, 'email_exists', 'Email already registered');
         if (!requireEmailVerification) return response(201, await createSession(user));
-        const sent = await issueEmailVerification(user);
+        const sent = await issueEmailVerification(user, false, client);
         if (!sent) throw new HttpError(503, 'verification_email_failed', 'Account created but verification email could not be sent');
         return response(201, { ok: true, verification_required: true, user: await publicUser(user) });
       }
@@ -484,13 +490,14 @@ function createApp(store, options = {}) {
         return response(200, await createSession(user));
       }
       if (method === 'POST' && pathname === '/auth/email-verification/resend') {
+        const client = verificationClient(body);
         await enforceRateLimit('verificationResendIp', sourceIp);
         const email = emailValue(body.email);
         await enforceRateLimit('verificationResendEmail', email);
         const identity = await store.getIdentity('email', email);
         if (identity) {
           const user = await store.getUser(identity.user_id);
-          if (user?.status === 'pending_email') await issueEmailVerification(user, true);
+          if (user?.status === 'pending_email') await issueEmailVerification(user, true, client);
         }
         return response(202, { ok: true });
       }
@@ -507,6 +514,7 @@ function createApp(store, options = {}) {
           new Date(verifiedAt.getTime() + 14 * 86400000)
         );
         if (!verified) throw new HttpError(400, 'invalid_verification_token', 'Verification link is invalid or expired');
+        if (parsed.client === 'android') return response(200, { ok: true, return_to: 'android' });
         return response(204, null);
       }
       if (method === 'POST' && pathname === '/auth/password-reset/request') {

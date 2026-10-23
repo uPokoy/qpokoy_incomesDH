@@ -716,7 +716,7 @@
   }else if(verifyToken){
     setMode('login');
     showGate(true,true);
-    api.confirmEmailVerification(verifyToken).then(()=>{
+    api.confirmEmailVerification(verifyToken).then(result=>{
       api.clearToken();
       const url=new URL(location.href);
       url.searchParams.delete('verify_token');
@@ -724,6 +724,17 @@
       setMode('login');
       showGate(true);
       setMessage('Почта подтверждена. Теперь войдите в аккаунт.','success',message);
+      if(result?.ok===true&&result.return_to==='android'){
+        // Only the successful server response selects this fixed, credential-free target.
+        // Keep web login and a user-gesture fallback usable if automatic launch is blocked.
+        const callback='ru.qpokoy.app://email/confirmed';
+        const link=document.createElement('a');
+        link.href=callback;
+        link.className='qp-auth-link';
+        link.textContent='Открыть qPokoy';
+        message.append(document.createElement('br'),link);
+        try{location.assign(callback);}catch(_){/* The manual link remains available. */}
+      }
     }).catch(error=>{
       const url=new URL(location.href);
       url.searchParams.delete('verify_token');
