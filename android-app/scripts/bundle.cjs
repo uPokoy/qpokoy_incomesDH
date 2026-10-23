@@ -35,6 +35,10 @@ function adapt(name,text){
   if(name==='index.html')text=text.replace(/(<strong id="qPokoyDevVersion">)dev-\d{4}\.\d{2}\.\d{2}\.\d+(<\/strong>)/,'$1'+sourceVersion+'$2');
   if(name==='index.html')text=text.replace('<script id="qPokoyAuth"','<script src="/android-read-cache.js"></script>\n<script id="qPokoyAuth"');
   if(name==='js/app.js'){
+    const gestureStart=text.indexOf('/* qp-mobile-month-total-swipe-v34 */');
+    const gestureEnd=text.indexOf('/* DEV93:',gestureStart);
+    if(gestureStart<0||gestureEnd<0)throw new Error('Android header swipe adaptation needs review');
+    text=text.slice(0,gestureStart)+fs.readFileSync(path.join(root,'scripts/header-swipe.js'),'utf8')+'\n\n'+text.slice(gestureEnd);
     // Keep older source refs compatible; current main already uses one card.
     const pageSize=".matches?2:RECENT_INCOME_PAGE_SIZE";
     if(!text.includes(pageSize)&&!text.includes('.matches?1:RECENT_INCOME_PAGE_SIZE'))throw new Error('Mobile recent pagination adaptation needs review');
@@ -79,6 +83,13 @@ function adapt(name,text){
   window.qPokoyAndroidOAuth.attach({api,ready:()=>androidAuthReady.catch(()=>{}),
     getUser:()=>cloudUser, sync:user=>sync({user:apiUser(user)}),
     message:text=>setMessage(text,'error',message)});
+  // This callback is a UI hint, not proof of verification. The server still authenticates login.
+  window.qPokoyAndroidEmailConfirmed=async()=>{
+    await androidAuthReady.catch(()=>{});
+    if(cloudUser||api.getToken())return; // Never discard another account/session or pending operations.
+    setMode('login');showGate(true);
+    setMessage('Почта подтверждена. Войдите в аккаунт','success',message);
+  };
 })();`);
     const start=text.indexOf('  async function sync(session,startup=null){'),end=text.indexOf('  api.setUnauthorizedHandler',start);
     if(start<0||end<0)throw new Error('Android auth sync adaptation needs review');
@@ -94,6 +105,9 @@ function adapt(name,text){
     text=text.replace(/function enqueuePendingCloudWrite\(userId,record,kind\)\{[\s\S]*?\n  function toIsoDate/,"function enqueuePendingCloudWrite(){throw new Error('Android требует подтверждение сервера.');}\n\n  function toIsoDate");
   }
   if(name==='js/api-client.js'){
+    const registration="request('POST','/auth/register',{email,password},false)";
+    if(!text.includes(registration))throw new Error('Android registration source adaptation needs review');
+    text=text.replace(registration,"request('POST','/auth/register',{email,password,client:'android'},false)");
     const exchange="async exchangeOAuthTicket(ticket){\n        return saveSession(await request('POST','/auth/oauth/exchange',{ticket},false));\n      }";
     if(!text.includes(exchange))throw new Error('Android OAuth exchange adaptation needs review');
     text=text.replace('let unauthorizedHandler=null;','let unauthorizedHandler=null;\n    let authEpoch=0;');

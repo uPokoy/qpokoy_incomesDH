@@ -66,9 +66,10 @@ test('bundled API client keeps bootstrap and Android income CRUD contracts',asyn
   const info=JSON.parse(fs.readFileSync(path.join(root,'www/bundle-info.json')));
   const source=fs.readFileSync(path.join(root,'www/js/api-client.js'),'utf8');
   const {execFileSync}=require('node:child_process');
-  // The only allowed API difference is the Android OAuth proof/session race guard.
+  // Android differences are OAuth proof/session guards and the registration UX source marker.
   let original=execFileSync('git',['show',info.sourceCommit+':js/api-client.js'],{cwd:path.join(root,'..'),encoding:'utf8'});
   original=original.replace('let unauthorizedHandler=null;','let unauthorizedHandler=null;\n    let authEpoch=0;')
+    .replace("request('POST','/auth/register',{email,password},false)","request('POST','/auth/register',{email,password,client:'android'},false)")
     .replace('function clearToken(){','function clearToken(){authEpoch++;')
     .replace('getToken,clearToken,request,','getToken,clearToken,request,\n      invalidateOAuthAttempt(){authEpoch++;},')
     .replace('async login(email,password){','async login(email,password){authEpoch++;')
@@ -104,7 +105,7 @@ test('bundled HTTPS localhost origin, separate identity/version and external rel
   assert.equal(config.server.cleartext,false);assert.equal(config.android.allowMixedContent,false);
   assert.equal(config.plugins.SystemBars.insetsHandling,'disable');
   const gradle=fs.readFileSync(path.join(root,'android/app/build.gradle'),'utf8');
-  assert.match(gradle,/versionName "0.1.19"/);assert.match(gradle,/versionCode 20/);
+  assert.match(gradle,/versionName "0.1.20"/);assert.match(gradle,/versionCode 21/);
   assert.match(gradle,/C:\/qpokoy-release\/signing\.properties/);
   assert.match(gradle,/signingConfig signingConfigs\.release/);
   assert.match(gradle,/storePassword releaseSigningProperties\.getProperty\('storePassword'\)/);

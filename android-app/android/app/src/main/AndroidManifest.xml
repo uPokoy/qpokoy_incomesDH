@@ -37,6 +37,12 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="ru.qpokoy.app" android:host="oauth" android:path="/callback" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ru.qpokoy.app" android:host="email" android:path="/confirmed" />
+            </intent-filter>
         </activity>
 
         <receiver android:name=".ReminderReceiver" android:exported="false">

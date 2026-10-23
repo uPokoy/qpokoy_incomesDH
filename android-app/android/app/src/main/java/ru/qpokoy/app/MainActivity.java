@@ -46,11 +46,13 @@ public class MainActivity extends BridgeActivity {
     private WebView reportView;
     private AlertDialog reportDialog;
     private byte[] pendingDownload;
+    private boolean emailVerificationPending;
     private ActivityResultLauncher<Intent> saveDocument;
     private ActivityResultLauncher<String> reminderPermission;
     static final String APP_ORIGIN=AppOrigin.VALUE;
 
     @Override public void onCreate(Bundle state) {
+        emailVerificationPending=state!=null&&state.getBoolean("emailVerificationPending",false);
         receiveOAuthIntent(getIntent());
         registerPlugin(OAuthPlugin.class);
         registerPlugin(ReadCachePlugin.class);
@@ -114,17 +116,26 @@ public class MainActivity extends BridgeActivity {
         });
     }
     @Override public void onDestroy(){passwordSaver.cancel();super.onDestroy();}
-    // Both delivery paths persist first, then strip credentials before Capacitor
-    // can forward an appUrlOpen event or try navigating the WebView.
+    @Override public void onSaveInstanceState(Bundle state){
+        state.putBoolean("emailVerificationPending",emailVerificationPending);super.onSaveInstanceState(state);
+    }
+    // OAuth persists its proof; email return queues only a credential-free UI hint.
+    // Strip either URI before Capacitor can forward it or navigate the WebView.
     private Intent receiveOAuthIntent(Intent intent){
         if(intent!=null&&intent.getData()!=null&&"ru.qpokoy.app".equalsIgnoreCase(intent.getData().getScheme())){
-            OAuthPlugin.receive(this,intent.getData().toString());
+            if(EmailVerificationReturn.accepts(intent.getData().toString()))emailVerificationPending=true;
+            else OAuthPlugin.receive(this,intent.getData().toString());
             intent.setData(null);setIntent(intent);
         }
         return intent;
     }
     @Override protected void onNewIntent(Intent intent){
         super.onNewIntent(receiveOAuthIntent(intent));
+        if(emailVerificationPending&&bridge!=null){
+            WebView web=bridge.getWebView();
+            if(!PasswordSavePolicy.trustedPage(web.getUrl()))web.loadUrl(APP_ORIGIN+"/");
+            else web.evaluateJavascript("window.qPokoyAndroidEmailVerificationPoll?.()",null);
+        }
     }
     private void installPullSync(WebView web){
         ViewGroup parent=(ViewGroup)web.getParent();int index=parent.indexOfChild(web);ViewGroup.LayoutParams params=web.getLayoutParams();
@@ -211,6 +222,11 @@ public class MainActivity extends BridgeActivity {
                 try {
                     JSONObject data=new JSONObject(text);
                     switch(data.optString("kind")){
+                        case "emailVerificationReady":
+                            if(web!=bridge.getWebView()||!PasswordSavePolicy.trustedPage(web.getUrl()))break;
+                            reply.postMessage("{\"kind\":\"emailVerificationReturn\",\"confirmed\":"+emailVerificationPending+"}");
+                            emailVerificationPending=false;
+                            break;
                         case "getPassword": {
                             if(web!=bridge.getWebView()||!PasswordSavePolicy.trustedPage(web.getUrl()))break;
                             final int request=data.optInt("request");

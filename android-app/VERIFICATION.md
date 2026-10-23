@@ -1,5 +1,46 @@
 # Prototype verification — 2026-10-09
 
+## 0.1.20 / code 21 patch preparation — 2026-10-23 (no APK)
+
+Base Android commit: `cc45b4869372696e16d4799cd99c6397196340c5`; branch `android`.
+The pinned DEV423 frontend remains unchanged at source; the Android bundle adds:
+- A fixed `client: android` registration preference and an isolated credential-free
+  email-return callback `ru.qpokoy.app://email/confirmed`.
+- Cold/warm callback delivery through MainActivity and the trusted existing bridge.
+  Login messaging awaits startup; existing accounts/sessions are not cleared.
+- A shared sum/chart header swipe handler replacing the old sum-only handler.
+  Direction/threshold stay the same. Vertical motion cancels the gesture; chart
+  taps/keys remain functional; native synthetic clicks after swipes are suppressed.
+  Month/year picker handlers remain excluded to avoid double navigation.
+
+End-to-end email return is NOT enabled by Android alone. See
+[EMAIL-VERIFICATION-DEPENDENCIES.md](EMAIL-VERIFICATION-DEPENDENCIES.md) for the
+unimplemented site/backend work and browser restrictions. Read-only inspection
+of current origin/main confirms that verification is still HTTP 204 without a
+bound registration source or website return handling. Invalid/expired/replayed
+links keep their current server rules. No deployed backend/site was changed.
+
+Validation:
+- Android Node: 207/207 PASS, including gestures and email source/return UI tests.
+- JVM debug: 41/41 PASS; JVM release: 41/41 PASS.
+- Debug/release production Java and existing instrumentation tests compile: PASS.
+  Gradle tasks: testDebugUnitTest, testReleaseUnitTest, compileDebugJavaWithJavac,
+  compileReleaseJavaWithJavac, compileDebugAndroidTestJavaWithJavac.
+- Unchanged local backend suite: 146/146 PASS. Web auth regression: 12/12 PASS.
+  Existing root backend dependencies were supplied by NODE_PATH; no backend code,
+  dependency manifests or cloud settings were changed.
+- Android JS syntax: 19 files PASS; git diff --check PASS.
+- No assemble/package task was run, and build outputs contain no APK.
+- Existing 0.1.19 RuStore APK remains byte-identical (SHA-256
+  `77f45817916b07d620f276605a0b9f798c903b32a28f60353ed969318b0b10e0`).
+- No device installation, real email/browser handoff or Samsung gesture test was
+  performed for 0.1.20. These require the separately authorized APK and site/backend
+  changes. Node/JVM simulations are not physical-device verification.
+
+Version is 0.1.20 / 21 in Gradle and package manifests. Application ID, signing,
+OAuth, SQLite/outbox, FileProvider, PDF/JSON, notifications and CSS are unchanged.
+No commit/push, deployment, branch merge or store publication was performed.
+
 ## FileProvider scope — 2026-10-18, 0.1.19 / code 20
 
 Base Android commit: `b6f6ebf86a3021f63c7c76d27214e25d929a3461`.

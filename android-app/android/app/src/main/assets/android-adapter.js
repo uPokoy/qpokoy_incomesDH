@@ -9,10 +9,20 @@
   const autofillRequests=new Map();
   window.qPokoyAndroid.onmessage=event=>{
     let data;try{data=JSON.parse(event.data);}catch(_){return;}
+    if(data.kind==='emailVerificationReturn'&&data.confirmed===true&&location.origin==='https://localhost'&&['/','/index.html'].includes(location.pathname)){
+      void window.qPokoyAndroidEmailConfirmed?.();
+    }
     if(data.kind==='autofillCommitted')autofillRequests.get(data.request)?.();
     if(data.kind==='passwordSaveFinished')passwordSaveRequests.get(data.request)?.(data.status);
     if(data.kind==='passwordGetFinished')passwordGetRequests.get(data.request)?.(data);
   };
+  window.qPokoyAndroidEmailVerificationPoll=()=>{
+    if(location.origin==='https://localhost'&&['/','/index.html'].includes(location.pathname)){
+      try{send({kind:'emailVerificationReady'});}catch(_){/* Optional hint must not break the adapter. */}
+    }
+  };
+  window.qPokoyAndroidEmailVerificationPoll();
+  window.addEventListener('focus',window.qPokoyAndroidEmailVerificationPoll);
   window.qPokoyAndroidCommitAutofill=()=>new Promise(resolve=>{
     const request=++autofillSequence;
     const finish=()=>{clearTimeout(timer);autofillRequests.delete(request);resolve();};
