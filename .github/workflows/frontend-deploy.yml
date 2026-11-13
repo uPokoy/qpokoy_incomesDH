@@ -21,6 +21,7 @@ on:
       - 'css/**'
       - 'js/**'
       - 'icons/**'
+      - 'stepcounter/**'
   workflow_dispatch:
 
 permissions:
