@@ -1,0 +1,71 @@
+name: Publish Stepcounter legal pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'stepcounter/agreement.html'
+      - 'stepcounter/privacy.html'
+      - 'stepcounter/premium.html'
+      - '.github/workflows/stepcounter-legal-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Serialize with the existing full-site publisher without cancelling it.
+concurrency:
+  group: qpokoy-frontend-deploy
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check isolated static pages
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const files = ['agreement.html', 'privacy.html', 'premium.html'];
+          for (const file of files) {
+            const html = readFileSync('stepcounter/' + file, 'utf8');
+            assert.match(html, /<html lang="ru">/);
+            assert.match(html, /name="viewport"/);
+            assert.match(html, /Редакция для ознакомления/);
+            assert.doesNotMatch(html, /<script\b/i);
+            assert.doesNotMatch(html, /<(?:iframe|form)\b/i);
+            for (const link of files) assert.ok(html.includes('href="' + link + '"'));
+            assert.equal((html.match(/<main\b/g) || []).length, 1);
+            assert.equal((html.match(/<section\b/g) || []).length, (html.match(/<\/section>/g) || []).length);
+          }
+          console.log('Three isolated static legal pages verified');
+          JS
+      - name: Install publisher
+        run: python -m pip install awscli
+      - name: Upload only the three legal pages
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.YANDEX_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.YANDEX_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ru-central1
+        run: |
+          set -euo pipefail
+          for page in agreement privacy premium; do
+            aws s3 cp "stepcounter/${page}.html" "s3://qpokoy.ru/stepcounter/${page}.html" \
+              --endpoint-url=https://storage.yandexcloud.net \
+              --content-type 'text/html; charset=utf-8' \
+              --cache-control 'no-cache, no-store, must-revalidate' \
+              --only-show-errors
+          done
+      - name: Verify public documents
+        run: |
+          set -euo pipefail
+          for page in agreement privacy premium; do
+            curl --fail --silent --show-error --retry 3 --retry-delay 5 \
+              "https://qpokoy.ru/stepcounter/${page}.html" -o "/tmp/${page}.html"
+            cmp "stepcounter/${page}.html" "/tmp/${page}.html"
+          done

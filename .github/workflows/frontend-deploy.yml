@@ -102,6 +102,7 @@ jobs:
           mkdir -p site
           cp index.html admin.html about.html service.html offer.html pricing.html privacy.html manifest.json robots.txt sitemap.xml favicon.png favicon.ico apple-touch-icon.png site/
           cp -R css js icons site/
+          cp -R stepcounter site/
 
           # Stable baseline: the production tree after Stage 2 corresponds to DEV363.
           # Every later main commit gets the next DEV number automatically.
