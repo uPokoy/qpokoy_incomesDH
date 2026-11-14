@@ -13,9 +13,9 @@ on:
 permissions:
   contents: read
 
-# Serialize with the existing full-site publisher without cancelling it.
+# Publish legal pages independently of the full-site test workflow.
 concurrency:
-  group: qpokoy-frontend-deploy
+  group: qpokoy-stepcounter-legal-deploy
   cancel-in-progress: false
 
 jobs:
